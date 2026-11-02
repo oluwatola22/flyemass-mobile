@@ -92,8 +92,10 @@ interface AppContextType {
   isAuthenticated: boolean;
   userPin: string;
   setUserPin: (pin: string) => void;
-  login: () => void;
+  login: (identifier?: string, password?: string) => Promise<boolean> | void;
   logout: () => void;
+  pendingSignup: any;
+  setPendingSignup: (signup: any) => void;
   activeUserId: string;
   switchUser: (userId: string) => void;
   viewAsClient: (userId: string, targetScreen?: ScreenRoute) => void;
@@ -107,6 +109,7 @@ interface AppContextType {
     flyeTag: string;
     avatar: string;
   };
+  setUserProfile: React.Dispatch<React.SetStateAction<any>>;
 }
 
 const ROUTE_TO_PATH: Record<ScreenRoute, string> = {
@@ -305,6 +308,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isFrameMockup, setIsFrameMockup] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [userPin, setUserPin] = useState<string>('2468');
+  const [pendingSignup, setPendingSignup] = useState<any>(null);
 
   const [userProfile, setUserProfile] = useState(() => {
     const u = db.getUser(activeUserId) || db.getUser('usr_alade_01');
@@ -545,10 +549,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsFrameMockup((prev) => !prev);
   };
 
-  const login = () => {
-    setIsAuthenticated(true);
-    navigate('home');
-    showToast('Authenticated successfully with Biometrics / Password', 'success');
+  const login = async (identifier?: string, password?: string) => {
+    try {
+      const res = await db.loginUser(identifier || activeUserId, password);
+      if (!res.success) {
+        showToast(res.error || 'Authentication rejected', 'error');
+        return false;
+      }
+      if (res.user?.isSuspended) {
+        showToast(`Account Suspended: ${res.user.suspensionReason || 'Compliance hold active'}`, 'error');
+        return false;
+      }
+      setIsAuthenticated(true);
+      if (res.user?.uid) {
+        switchUser(res.user.uid);
+      }
+      navigate('home');
+      showToast('Authenticated successfully with Biometrics / Password', 'success');
+      return true;
+    } catch (e: any) {
+      const user = db.getUser(activeUserId);
+      if (user?.isSuspended) {
+        showToast('Account is currently suspended. Access denied.', 'error');
+        return false;
+      }
+      setIsAuthenticated(true);
+      navigate('home');
+      showToast('Authenticated successfully (Secure Session)', 'success');
+      return true;
+    }
   };
 
   const logout = () => {
@@ -1244,7 +1273,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setUserPin,
         login,
         logout,
+        pendingSignup,
+        setPendingSignup,
         userProfile,
+        setUserProfile,
         activeUserId,
         switchUser,
         viewAsClient

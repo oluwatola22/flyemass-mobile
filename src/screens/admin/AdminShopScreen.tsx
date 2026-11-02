@@ -55,10 +55,39 @@ export const AdminShopScreen: React.FC = () => {
     showToast('Inventory stock counter updated', 'info');
   };
 
-  const handleUpdateOrderStatus = (orderId: string, status: ShopOrderDocument['fulfillmentStatus']) => {
-    db.updateShopOrderStatus(orderId, status);
-    firebaseSync.recordAudit('Fulfillment Officer', 'ORDER_STATUS_UPDATE', 'shop_orders', orderId, `Marked order as ${status}`);
-    showToast(`Order status updated to "${status.toUpperCase()}"!`, 'success');
+  const handleUpdateOrderStatus = async (orderId: string, status: ShopOrderDocument['fulfillmentStatus']) => {
+    try {
+      await db.fulfillShopOrder(orderId, undefined, status, undefined, 'adm-001');
+      firebaseSync.recordAudit('Fulfillment Officer', 'ORDER_STATUS_UPDATE', 'shop_orders', orderId, `Marked order as ${status}`);
+      showToast(`Order status updated to "${status.toUpperCase()}"!`, 'success');
+      setDbState({ ...db.getState() });
+    } catch (e: any) {
+      showToast(e.message || 'Failed to update order', 'error');
+    }
+  };
+
+  const handleRefundOrder = async (order: ShopOrderDocument) => {
+    if (!window.confirm(`Issue authoritative refund for Order #${order.orderNumber || order.id}? ${order.currency} ${order.totalAmount} will be credited to customer wallet and stock restored.`)) return;
+    try {
+      await db.cancelShopOrder(order.id, 'Refunded by Admin', 'adm-001');
+      showToast(`Order refunded and ${order.currency} ${order.totalAmount.toLocaleString()} credited back!`, 'success');
+      setDbState({ ...db.getState() });
+      setProducts(db.getProducts());
+    } catch (e: any) {
+      showToast(e.message || 'Failed to refund order', 'error');
+    }
+  };
+
+  const handleAssignTracking = async (order: ShopOrderDocument) => {
+    const tracking = window.prompt(`Enter air cargo tracking number for order #${order.orderNumber || order.id}:`, order.trackingNumber || 'FM-CAN-LOS-89241');
+    if (!tracking || !tracking.trim()) return;
+    try {
+      await db.fulfillShopOrder(order.id, tracking.trim(), 'shipped', 'Assigned via fulfillment console', 'adm-001');
+      showToast(`Assigned tracking #${tracking.trim()} and advanced to Shipped!`, 'success');
+      setDbState({ ...db.getState() });
+    } catch (e: any) {
+      showToast(e.message || 'Failed to assign tracking', 'error');
+    }
   };
 
   const handleAddProduct = (e: React.FormEvent) => {
@@ -244,9 +273,25 @@ export const AdminShopScreen: React.FC = () => {
                   <p><span className="text-slate-500">Air Waybill:</span> <strong className="font-mono text-cyan-400">{ord.trackingNumber || 'FM-CAN-LOS-89241'}</strong></p>
                 </div>
 
-                <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
-                  <span className="text-[10px] text-slate-500 uppercase font-semibold">Advance Fulfillment Stage:</span>
-                  <div className="flex gap-2">
+                <div className="pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleAssignTracking(ord)}
+                      className="px-2.5 py-1 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-[10px] font-bold transition-all active:scale-95"
+                    >
+                      Assign Tracking
+                    </button>
+                    {ord.fulfillmentStatus !== 'cancelled' && ord.fulfillmentStatus !== 'delivered' && (
+                      <button
+                        onClick={() => handleRefundOrder(ord)}
+                        className="px-2.5 py-1 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-bold transition-all active:scale-95"
+                      >
+                        Refund Order
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex gap-1.5">
                     {(['processing', 'shipped', 'delivered'] as const).map((st) => (
                       <button
                         key={st}

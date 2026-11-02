@@ -1287,6 +1287,44 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 201, { success: true, user: newUser });
     }
 
+    if (pathname === '/api/auth/login' && req.method === 'POST') {
+      const { identifier, password, role } = await readJsonBody(req);
+      // Find user by email, uid, or phone
+      const user = Object.values(dbState.users).find(u => 
+        (u.email && u.email.toLowerCase() === (identifier || '').toLowerCase()) ||
+        u.uid === identifier ||
+        (u.phone && u.phone === identifier)
+      ) || (role === 'admin' ? dbState.users['adm-001'] : dbState.users['usr_alade_01']);
+
+      if (!user) {
+        return sendJson(res, 404, { success: false, error: 'User account not found' });
+      }
+
+      if (user.isSuspended) {
+        return sendJson(res, 403, { 
+          success: false, 
+          isSuspended: true, 
+          error: `Account Suspended: ${user.suspensionReason || 'Compliance restriction active. Please contact customer support.'}` 
+        });
+      }
+
+      return sendJson(res, 200, {
+        success: true,
+        user: {
+          uid: user.uid,
+          fullName: user.fullName,
+          email: user.email,
+          phone: user.phone,
+          businessName: user.businessName,
+          verifiedBadge: user.verifiedBadge,
+          role: user.role,
+          balances: user.balances,
+          isSuspended: !!user.isSuspended,
+          restrictions: user.restrictions || []
+        }
+      });
+    }
+
     if (pathname === '/api/auth/set-pin' && req.method === 'POST') {
       const { userId, newPin, oldPin } = await readJsonBody(req);
       let user = dbState.users[userId || 'usr_alade_01'];
@@ -2260,6 +2298,152 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { success: true, order: orderDoc, ledger: ledgerEntry, balances: user.balances });
     }
 
+    if ((pathname === '/api/shop/cancel' || pathname === '/api/admin/shop/orders/refund') && req.method === 'POST') {
+      const { orderId, reason, adminId } = await readJsonBody(req);
+      const order = dbState.shop_orders[orderId];
+      if (!order) return sendJson(res, 404, { error: 'Order not found' });
+      if (order.fulfillmentStatus === 'cancelled' || order.fulfillmentStatus === 'refunded') {
+        return sendJson(res, 400, { error: 'Order is already cancelled or refunded' });
+      }
+
+      const user = dbState.users[order.userId];
+      if (!user) return sendJson(res, 404, { error: 'User not found' });
+
+      const curr = order.currency || order.paymentWalletUsed || 'USD';
+      const amount = order.totalAmount;
+      const ref = `REV-${order.orderNumber || order.id}`;
+
+      await withUserLock(user.uid, async () => {
+        const openingBalance = user.balances[curr] || 0;
+
+        recordDoubleEntry({
+          reference: ref,
+          userId: user.uid,
+          transactionType: 'SHOP_ORDER_REFUND',
+          description: `Order #${order.orderNumber || order.id} cancellation refund: ${reason || 'Customer requested cancellation'}`,
+          postings: [
+            { account: `liabilities:shop_escrow:${curr.toLowerCase()}`, currency: curr, debit: amount, credit: 0 },
+            { account: `liabilities:customer:${user.uid}:${curr.toLowerCase()}`, currency: curr, debit: 0, credit: amount }
+          ]
+        });
+
+        // Restore stock
+        if (order.items && Array.isArray(order.items)) {
+          for (const itm of order.items) {
+            const prodId = itm.product?.id;
+            if (prodId && dbState.products[prodId]) {
+              dbState.products[prodId].stockCount = (dbState.products[prodId].stockCount || 0) + (itm.quantity || 1);
+            }
+          }
+        }
+
+        const closingBalance = user.balances[curr];
+        order.fulfillmentStatus = 'cancelled';
+        order.cancellationReason = reason || 'Customer requested cancellation';
+        order.cancelledAt = Date.now();
+
+        const ledgerId = `ldg_${Date.now()}`;
+        dbState.wallets_ledger[ledgerId] = {
+          id: ledgerId,
+          userId: user.uid,
+          type: 'SHOP_ORDER',
+          sourceCurrency: curr,
+          targetCurrency: curr,
+          amount,
+          fee: 0,
+          openingBalance,
+          closingBalance,
+          status: 'completed',
+          reference: ref,
+          timestamp: Date.now(),
+          notes: `Shop order refund: ${curr} ${amount.toLocaleString()} credited back`
+        };
+
+        recordAudit(adminId || user.fullName, 'SHOP_ORDER_CANCELLED', 'shop_orders', order.id, `Order #${order.orderNumber || order.id} cancelled & refunded (${curr} ${amount})`, req);
+      });
+
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, order, balances: user.balances });
+    }
+
+    if (pathname === '/api/admin/shop/orders/fulfill' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'logistics_manager', 'operations'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { orderId, trackingNumber, status, notes } = await readJsonBody(req);
+      const order = dbState.shop_orders[orderId];
+      if (!order) return sendJson(res, 404, { error: 'Order not found' });
+
+      order.fulfillmentStatus = status || 'shipped';
+      if (trackingNumber) order.trackingNumber = trackingNumber;
+      if (notes) order.fulfillmentNotes = notes;
+      order.updatedAt = Date.now();
+
+      recordAudit('Shop Operations', 'ORDER_FULFILLED', 'shop_orders', order.id, `Status updated to ${order.fulfillmentStatus}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, order });
+    }
+
+    if ((pathname === '/api/shipments/cancel' || pathname === '/api/admin/shipments/refund') && req.method === 'POST') {
+      const { shipmentId, reason, adminId } = await readJsonBody(req);
+      const shipment = dbState.shipments[shipmentId];
+      if (!shipment) return sendJson(res, 404, { error: 'Shipment not found' });
+      if (shipment.currentStatus === 'Cancelled') {
+        return sendJson(res, 400, { error: 'Shipment is already cancelled' });
+      }
+
+      const user = dbState.users[shipment.userId];
+      if (shipment.freightPaid && user) {
+        const curr = shipment.freightCurrency || shipment.costCurrency || 'USD';
+        const fee = shipment.freightFee || shipment.costEstimate || 0;
+        const ref = `REF-SHP-${shipment.trackingNumber}`;
+
+        await withUserLock(user.uid, async () => {
+          const openingBalance = user.balances[curr] || 0;
+          recordDoubleEntry({
+            reference: ref,
+            userId: user.uid,
+            transactionType: 'FREIGHT_REFUND',
+            description: `Freight fee refund for cancelled shipment ${shipment.trackingNumber}: ${reason || 'Operational cancellation'}`,
+            postings: [
+              { account: `liabilities:freight_escrow:${curr.toLowerCase()}`, currency: curr, debit: fee, credit: 0 },
+              { account: `liabilities:customer:${user.uid}:${curr.toLowerCase()}`, currency: curr, debit: 0, credit: fee }
+            ]
+          });
+          const closingBalance = user.balances[curr];
+          shipment.freightPaid = false;
+
+          const ledgerId = `ldg_${Date.now()}`;
+          dbState.wallets_ledger[ledgerId] = {
+            id: ledgerId,
+            userId: user.uid,
+            type: 'CARGO_FREIGHT',
+            sourceCurrency: curr,
+            targetCurrency: curr,
+            amount: fee,
+            fee: 0,
+            openingBalance,
+            closingBalance,
+            status: 'completed',
+            reference: ref,
+            timestamp: Date.now(),
+            notes: `Freight refund for shipment ${shipment.trackingNumber}: ${curr} ${fee.toLocaleString()} credited back`
+          };
+        });
+      }
+
+      shipment.currentStatus = 'Cancelled';
+      shipment.cancellationReason = reason || 'Cancelled by staff / user';
+      shipment.updatedAt = Date.now();
+
+      recordAudit(adminId || 'Logistics Desk', 'SHIPMENT_CANCELLED', 'shipments', shipment.id, `Shipment ${shipment.trackingNumber} cancelled`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, shipment, balances: user ? user.balances : null });
+    }
+
     // -------------------------------------------------------------
     // 20. HOTEL RESERVATIONS & CANCELLATIONS
     // -------------------------------------------------------------
@@ -2571,6 +2755,215 @@ const server = http.createServer(async (req, res) => {
       persistState();
       broadcastUpdate();
       return sendJson(res, 200, { success: true, payment, balances: user.balances });
+    }
+
+    // -------------------------------------------------------------
+    // 24B. AUTHORITATIVE MANUAL WALLET BALANCE ADJUSTMENT
+    // -------------------------------------------------------------
+    if (pathname === '/api/admin/wallets/manual-adjust' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'finance_officer'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Finance Officer or Super Admin role required' });
+      }
+
+      const { userId, currency, amount, type, reason, adminId } = await readJsonBody(req);
+      const user = dbState.users[userId];
+      if (!user) return sendJson(res, 404, { error: 'User not found' });
+
+      const curr = (currency || 'NGN').toUpperCase();
+      if (!['NGN', 'CNY', 'USD'].includes(curr)) {
+        return sendJson(res, 400, { error: 'Invalid currency. Must be NGN, CNY, or USD' });
+      }
+
+      const numAmount = parseFloat(amount);
+      if (isNaN(numAmount) || numAmount <= 0) {
+        return sendJson(res, 400, { error: 'Amount must be a positive number' });
+      }
+
+      const adjType = (type || '').toLowerCase();
+      if (adjType !== 'credit' && adjType !== 'debit') {
+        return sendJson(res, 400, { error: 'Type must be "credit" or "debit"' });
+      }
+
+      const ref = `ADJ-ADMIN-${Date.now().toString().slice(-6)}`;
+      let ledgerId = `ldg_${Date.now()}`;
+
+      await withUserLock(user.uid, async () => {
+        const openingBalance = user.balances[curr] || 0;
+
+        if (adjType === 'debit' && openingBalance < numAmount) {
+          throw new Error(`Insufficient customer balance: Available ${curr} ${openingBalance.toLocaleString()}, requested debit ${curr} ${numAmount.toLocaleString()}`);
+        }
+
+        if (adjType === 'credit') {
+          recordDoubleEntry({
+            reference: ref,
+            userId: user.uid,
+            transactionType: 'MANUAL_CREDIT_ADJUSTMENT',
+            description: `Manual admin credit adjustment by ${adminId || 'adm-001'}: ${reason || 'Reconciliation'}`,
+            postings: [
+              { account: `equity:admin_adjustments:${curr.toLowerCase()}`, currency: curr, debit: numAmount, credit: 0 },
+              { account: `liabilities:customer:${user.uid}:${curr.toLowerCase()}`, currency: curr, debit: 0, credit: numAmount }
+            ]
+          });
+        } else {
+          recordDoubleEntry({
+            reference: ref,
+            userId: user.uid,
+            transactionType: 'MANUAL_DEBIT_ADJUSTMENT',
+            description: `Manual admin debit adjustment by ${adminId || 'adm-001'}: ${reason || 'Reconciliation'}`,
+            postings: [
+              { account: `liabilities:customer:${user.uid}:${curr.toLowerCase()}`, currency: curr, debit: numAmount, credit: 0 },
+              { account: `equity:admin_adjustments:${curr.toLowerCase()}`, currency: curr, debit: 0, credit: numAmount }
+            ]
+          });
+        }
+
+        if (adjType === 'credit') {
+          user.balances[curr] = (user.balances[curr] || 0) + numAmount;
+        } else {
+          user.balances[curr] = (user.balances[curr] || 0) - numAmount;
+        }
+
+        const closingBalance = user.balances[curr];
+
+        dbState.wallets_ledger[ledgerId] = {
+          id: ledgerId,
+          userId: user.uid,
+          type: adjType === 'credit' ? 'FUND' : 'WITHDRAW',
+          sourceCurrency: curr,
+          targetCurrency: curr,
+          amount: numAmount,
+          fee: 0,
+          openingBalance,
+          closingBalance,
+          status: 'completed',
+          reference: ref,
+          timestamp: Date.now(),
+          notes: `Manual ${adjType.toUpperCase()} by Admin (${adminId || 'adm-001'}): ${reason || 'Ledger reconciliation'}`
+        };
+
+        recordAudit(adminId || 'Finance Officer', 'MANUAL_BALANCE_ADJUST', 'wallets_ledger', user.uid, `${adjType.toUpperCase()} ${curr} ${numAmount.toLocaleString()} (${reason})`, req);
+      });
+
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, balances: user.balances, reference: ref, ledgerId });
+    }
+
+    // -------------------------------------------------------------
+    // 24C. USER SUSPENSION & RESTRICTIONS MANAGEMENT
+    // -------------------------------------------------------------
+    if (pathname === '/api/admin/users/suspend' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'compliance'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+
+      const { userId, isSuspended, reason, restrictions, adminId } = await readJsonBody(req);
+      if (userId === 'adm-001') {
+        return sendJson(res, 403, { error: 'Master Super Admin (adm-001) cannot be suspended' });
+      }
+
+      const user = dbState.users[userId];
+      if (!user) return sendJson(res, 404, { error: 'User not found' });
+
+      user.isSuspended = !!isSuspended;
+      user.suspensionReason = reason || '';
+      user.restrictions = Array.isArray(restrictions) ? restrictions : [];
+      user.updatedAt = Date.now();
+
+      recordAudit(adminId || 'Admin Desk', 'USER_SUSPENSION_TOGGLED', 'users', user.uid, `Set isSuspended: ${user.isSuspended} (${reason || 'No reason provided'})`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, user });
+    }
+
+    // -------------------------------------------------------------
+    // 24D. IN-APP BROADCAST / TARGETED NOTIFICATIONS
+    // -------------------------------------------------------------
+    if (pathname === '/api/admin/notifications/send' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'support_agent'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+
+      const { title, message, type, targetUserId, linkRoute, adminId } = await readJsonBody(req);
+      if (!title || !message) {
+        return sendJson(res, 400, { error: 'Title and message are required' });
+      }
+
+      const notifId = `notif_${Date.now()}`;
+      const notif = {
+        id: notifId,
+        title,
+        message,
+        time: 'Just now',
+        timestamp: Date.now(),
+        read: false,
+        type: type || 'system',
+        targetUserId: targetUserId || 'all',
+        linkRoute: linkRoute || 'notifications'
+      };
+
+      if (!dbState.notifications) dbState.notifications = [];
+      dbState.notifications.unshift(notif);
+
+      recordAudit(adminId || 'Admin Staff', 'NOTIFICATION_DISPATCHED', 'notifications', notifId, `Dispatched: "${title}" to ${targetUserId || 'all users'}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, notification: notif });
+    }
+
+    // -------------------------------------------------------------
+    // 24E. SUPPLIER DIRECTORY MANAGEMENT
+    // -------------------------------------------------------------
+    if (pathname === '/api/admin/suppliers/create' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'compliance'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { supplier, adminId } = await readJsonBody(req);
+      if (!supplier || !supplier.name) return sendJson(res, 400, { error: 'Supplier details required' });
+
+      const supplierId = supplier.id || `sup_${Date.now()}`;
+      const newSup = {
+        ...supplier,
+        id: supplierId,
+        verifiedYears: supplier.verifiedYears || 1,
+        inspectionPassed: supplier.inspectionPassed ?? true,
+        createdAt: Date.now()
+      };
+
+      if (!dbState.suppliers) dbState.suppliers = {};
+      dbState.suppliers[supplierId] = newSup;
+
+      recordAudit(adminId || 'Trade Sourcing Desk', 'SUPPLIER_REGISTERED', 'suppliers', supplierId, `Registered supplier: ${newSup.name} (${newSup.city})`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 201, { success: true, supplier: newSup });
+    }
+
+    // -------------------------------------------------------------
+    // 24F. HOTEL DIRECTORY MANAGEMENT
+    // -------------------------------------------------------------
+    if (pathname === '/api/admin/hotels/create' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { hotel, adminId } = await readJsonBody(req);
+      if (!hotel || !hotel.name) return sendJson(res, 400, { error: 'Hotel details required' });
+
+      const hotelId = hotel.id || `htl_${Date.now()}`;
+      const newHotel = {
+        ...hotel,
+        id: hotelId,
+        createdAt: Date.now()
+      };
+
+      if (!dbState.hotels) dbState.hotels = {};
+      dbState.hotels[hotelId] = newHotel;
+
+      recordAudit(adminId || 'Hotels Desk', 'HOTEL_REGISTERED', 'hotels', hotelId, `Registered business hotel: ${newHotel.name} (${newHotel.city})`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 201, { success: true, hotel: newHotel });
     }
 
     // -------------------------------------------------------------

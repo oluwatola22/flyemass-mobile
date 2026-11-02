@@ -28,6 +28,8 @@ export interface DatabaseState {
   banners: BannerDocument[];
   system_settings: SystemSettingsDocument;
   audit_logs: any[];
+  double_entry_ledger?: Record<string, any>;
+  notifications?: any[];
 }
 
 import { getBackendBaseUrl } from '../utils/environment';
@@ -546,7 +548,9 @@ export const INITIAL_DATABASE: DatabaseState = {
       timestamp: Date.now() - 7200000,
       ipAddress: '102.89.44.12 (Lagos)'
     }
-  ]
+  ],
+  double_entry_ledger: {},
+  notifications: []
 };
 
 class DatabaseService {
@@ -986,6 +990,16 @@ class DatabaseService {
     return user;
   }
 
+  public updateUser(userId: string, updates: Partial<UserDocument>): UserDocument | undefined {
+    const user = this.state.users[userId];
+    if (user) {
+      Object.assign(user, updates);
+      this.persist();
+      this.notifyListeners();
+    }
+    return user;
+  }
+
   public getLedger(): WalletLedgerDocument[] {
     return Object.values(this.state.wallets_ledger).sort((a, b) => b.timestamp - a.timestamp);
   }
@@ -1342,6 +1356,167 @@ class DatabaseService {
 
   public getSystemSettings(): SystemSettingsDocument {
     return this.state.system_settings;
+  }
+
+  public async loginUser(identifier: string, password?: string, role: string = 'client'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password, role })
+    });
+    return await res.json();
+  }
+
+  public async registerUser(details: { fullName: string; email: string; phone?: string; businessName?: string; pin?: string }): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(details)
+    });
+    return await res.json();
+  }
+
+  public async manualAdjustBalance(
+    userId: string,
+    currency: string,
+    amount: number,
+    type: 'credit' | 'debit',
+    reason: string,
+    adminId: string = 'adm-001'
+  ): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/wallets/manual-adjust`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ userId, currency, amount, type, reason, adminId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to adjust balance');
+    return data;
+  }
+
+  public async suspendUser(
+    userId: string,
+    isSuspended: boolean,
+    reason?: string,
+    restrictions: string[] = [],
+    adminId: string = 'adm-001'
+  ): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/users/suspend`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ userId, isSuspended, reason, restrictions, adminId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update user suspension status');
+    return data;
+  }
+
+  public async cancelShopOrder(orderId: string, reason?: string, adminId?: string): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/shop/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, reason, adminId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to cancel shop order');
+    return data;
+  }
+
+  public async fulfillShopOrder(orderId: string, trackingNumber?: string, status: string = 'shipped', notes?: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/shop/orders/fulfill`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ orderId, trackingNumber, status, notes })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to fulfill order');
+    return data;
+  }
+
+  public async cancelShipment(shipmentId: string, reason?: string, adminId?: string): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/shipments/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ shipmentId, reason, adminId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to cancel shipment');
+    return data;
+  }
+
+  public async cancelHotelBooking(bookingId: string, userId: string, reason?: string): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/hotels/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookingId, userId, reason })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to cancel hotel booking');
+    return data;
+  }
+
+  public async sendAdminNotification(
+    title: string,
+    message: string,
+    type: 'trade' | 'cargo' | 'fx' | 'system' = 'system',
+    targetUserId: string = 'all',
+    linkRoute?: string,
+    adminId: string = 'adm-001'
+  ): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/notifications/send`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ title, message, type, targetUserId, linkRoute, adminId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to dispatch notification');
+    return data;
+  }
+
+  public async createSupplier(supplier: any, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/suppliers/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ supplier, adminId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to create supplier');
+    return data;
+  }
+
+  public async createHotel(hotel: any, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/hotels/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ hotel, adminId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to create hotel');
+    return data;
   }
 }
 

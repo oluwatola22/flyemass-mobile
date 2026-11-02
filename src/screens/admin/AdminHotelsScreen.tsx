@@ -43,6 +43,17 @@ export const AdminHotelsScreen: React.FC = () => {
     showToast(`Voucher status updated to ${newStatus}!`, 'success');
   };
 
+  const handleCancelBooking = async (bk: any) => {
+    if (!window.confirm(`Cancel voucher ${bk.confirmationCode} and issue refund of $${bk.totalUSD} USD to customer?`)) return;
+    try {
+      await db.cancelHotelBooking(bk.id, bk.userId || 'usr_alade_01', 'Administrative cancellation');
+      showToast(`Booking ${bk.confirmationCode} cancelled and $${bk.totalUSD} refunded to customer!`, 'info');
+      setDbBookings(db.getHotelBookings());
+    } catch (err: any) {
+      showToast(err.message || 'Failed to cancel booking', 'error');
+    }
+  };
+
   return (
     <AdminLayout activeTab="hotels">
       <div className="space-y-6">
@@ -156,12 +167,20 @@ export const AdminHotelsScreen: React.FC = () => {
                         Check In
                       </button>
                     )}
-                    {bk.status !== 'Completed' && (
+                    {bk.status !== 'Completed' && bk.status !== 'cancelled' && (
                       <button
                         onClick={() => handleUpdateStatus(bk.id, 'Completed')}
                         className="px-2.5 py-1.5 rounded-xl bg-emerald-500 text-slate-950 text-[10px] font-bold"
                       >
                         Complete
+                      </button>
+                    )}
+                    {bk.status !== 'cancelled' && (
+                      <button
+                        onClick={() => handleCancelBooking(bk)}
+                        className="px-2.5 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 text-[10px] font-bold"
+                      >
+                        Cancel & Refund
                       </button>
                     )}
                   </div>

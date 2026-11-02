@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Building2, Mail, Phone, Lock, ChevronLeft, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export const SignupScreen: React.FC = () => {
-  const { navigate } = useApp();
+  const { navigate, setPendingSignup } = useApp();
   const [form, setForm] = useState({
     companyName: 'Alade Global Enterprises Ltd',
     rcNumber: 'RC-1849204',
@@ -15,6 +15,7 @@ export const SignupScreen: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setPendingSignup(form);
     navigate('verify-email');
   };
 

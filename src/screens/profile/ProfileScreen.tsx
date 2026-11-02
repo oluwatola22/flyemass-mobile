@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
+import { db } from '../../services/db';
 import { 
   ShieldCheck, 
   Building2, 
@@ -16,12 +17,17 @@ import {
   Sun, 
   Smartphone,
   CheckCircle2,
-  Share2
+  Share2,
+  Edit,
+  X,
+  Check
 } from 'lucide-react';
 
 export const ProfileScreen: React.FC = () => {
   const { 
     userProfile, 
+    setUserProfile,
+    activeUserId,
     logout, 
     navigate, 
     showToast,
@@ -32,6 +38,29 @@ export const ProfileScreen: React.FC = () => {
   } = useApp();
 
   const [language, setLanguage] = useState<'EN' | 'ZH' | 'YO' | 'HA'>('EN');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editName, setEditName] = useState(userProfile.name);
+  const [editCompany, setEditCompany] = useState(userProfile.company);
+  const [editPhone, setEditPhone] = useState(userProfile.phone);
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    db.updateUser(activeUserId, {
+      fullName: editName,
+      businessName: editCompany,
+      phone: editPhone
+    });
+    if (setUserProfile) {
+      setUserProfile((prev: any) => ({
+        ...prev,
+        name: editName,
+        company: editCompany,
+        phone: editPhone
+      }));
+    }
+    showToast('Corporate profile updated and synchronized!', 'success');
+    setShowEditModal(false);
+  };
 
   const menuSections = [
     {
@@ -87,6 +116,19 @@ export const ProfileScreen: React.FC = () => {
                 <span className="text-[10px] text-slate-500 font-mono">{userProfile.rcNumber}</span>
               </div>
             </div>
+
+            <button
+              onClick={() => {
+                setEditName(userProfile.name);
+                setEditCompany(userProfile.company);
+                setEditPhone(userProfile.phone);
+                setShowEditModal(true);
+              }}
+              className="p-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all active:scale-95 shrink-0"
+              title="Edit Profile Details"
+            >
+              <Edit className="w-4 h-4 text-emerald-400" />
+            </button>
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-800/80 grid grid-cols-2 gap-2 text-xs">
@@ -194,6 +236,66 @@ export const ProfileScreen: React.FC = () => {
           <LogOut className="w-4 h-4" />
           <span>Sign Out of Corporate Account</span>
         </button>
+
+        {/* Edit Profile Modal */}
+        {showEditModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+            <form onSubmit={handleSaveProfile} className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                <h3 className="text-sm font-extrabold text-white">Edit Corporate Profile</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <label className="text-[11px] font-bold text-slate-400 block mb-1">Director / Authorized Representative</label>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 font-bold"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-400 block mb-1">Registered Enterprise Name</label>
+                  <input
+                    type="text"
+                    value={editCompany}
+                    onChange={(e) => setEditCompany(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-400 block mb-1">Phone Number (SMS / WhatsApp)</label>
+                  <input
+                    type="text"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 font-mono"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all"
+                >
+                  Save & Synchronize Profile
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );

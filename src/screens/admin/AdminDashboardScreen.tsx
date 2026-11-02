@@ -23,7 +23,8 @@ import {
   ShieldAlert,
   Sparkles,
   Smartphone,
-  ExternalLink
+  ExternalLink,
+  Download
 } from 'lucide-react';
 
 export const AdminDashboardScreen: React.FC = () => {
@@ -74,12 +75,32 @@ export const AdminDashboardScreen: React.FC = () => {
   const maxVal = Math.max(...volumeData.map((d) => d.ngn));
 
   const handleApprovePayment = (id: string) => {
-    const payment = dbState.supplier_payments[id];
-    if (payment) {
-      payment.status = 'disbursed';
-      showToast(`Disbursed ¥${payment.amountRMB.toLocaleString()} to ${payment.receiverName}!`, 'success');
-      setDbState({ ...db.getState() });
-    }
+    navigate('admin-payments');
+    showToast('Redirecting to Treasury Disbursement Console for mandatory Chinese remittance proof logging', 'info');
+  };
+
+  const handleExportExecutiveReport = () => {
+    const reportData = [
+      ['Metric', 'Value'],
+      ['Total Importers & Agents', usersCount],
+      ['Total Balances NGN', `₦${totalBalancesNGN.toLocaleString()}`],
+      ['Total Balances CNY', `¥${totalBalancesCNY.toLocaleString()}`],
+      ['Total Balances USD', `$${totalBalancesUSD.toLocaleString()}`],
+      ['Active Air & Sea Shipments', activeShipments.length],
+      ['Pending Supplier Payouts', pendingPayments.length],
+      ['Pending NUBAN Withdrawals', pendingWithdrawalsCount],
+      ['Total Reconciled USD Volume', `$${totalVolumeUSD.toLocaleString()}`],
+      ['Report Timestamp', new Date().toISOString()]
+    ];
+    const csvContent = 'data:text/csv;charset=utf-8,' + reportData.map(e => e.join(',')).join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `flyemass_executive_summary_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Executive Operations & Financial Report downloaded!', 'success');
   };
 
   return (
@@ -95,6 +116,14 @@ export const AdminDashboardScreen: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportExecutiveReport}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs shadow-sm active:scale-95 transition-all"
+              title="Download Executive Operations & Reconciliation Report"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Export Report</span>
+            </button>
             <button
               onClick={() => window.open(getMobileAppUrl(), '_blank')}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-400 font-extrabold text-xs shadow-sm shadow-emerald-500/10 active:scale-95 transition-all"

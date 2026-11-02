@@ -8,6 +8,8 @@ export const RegisterPackageScreen: React.FC = () => {
   const [trackingNumber, setTrackingNumber] = useState('SF18920488219');
   const [title, setTitle] = useState('100x GaN 65W Fast Chargers & Cables');
   const [sender, setSender] = useState('Shenzhen Anker Micro Technology');
+  const [originWarehouse, setOriginWarehouse] = useState<'Guangzhou' | 'Yiwu'>('Guangzhou');
+  const [destination, setDestination] = useState<string>('Nigeria (Lagos MM2 Hub)');
   const [type, setType] = useState<'air' | 'sea'>('air');
   const [weightKg, setWeightKg] = useState('8.5');
 
@@ -78,9 +80,45 @@ export const RegisterPackageScreen: React.FC = () => {
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider block mb-1">
+                Receiving Dock (China)
+              </label>
+              <select
+                value={originWarehouse}
+                onChange={(e) => setOriginWarehouse(e.target.value as any)}
+                className="w-full px-3 py-2.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-white outline-none"
+              >
+                <option value="Guangzhou">Guangzhou Baiyun Dock</option>
+                <option value="Yiwu">Yiwu Trade Center Dock</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider block mb-1">
+                Destination Corridor
+              </label>
+              <select
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-white outline-none"
+              >
+                <option value="Nigeria (Lagos MM2 Hub)">🇳🇬 Nigeria (Lagos Hub)</option>
+                <option value="China (Guangzhou Hub)">🇨🇳 China (Guangzhou Hub)</option>
+                <option value="United States (NYC Hub)">🇺🇸 United States (NYC/LA)</option>
+                <option value="Canada (Toronto Hub)">🇨🇦 Canada (Toronto)</option>
+                <option value="Europe (London / FRA)">🇪🇺 Europe (London/FRA)</option>
+                <option value="Ghana (Accra Hub)">🇬🇭 Ghana (Accra Hub)</option>
+                <option value="South Africa (Joburg)">🇿🇦 South Africa (Joburg)</option>
+                <option value="Kenya (Nairobi Hub)">🇰🇪 Kenya (Nairobi)</option>
+              </select>
+            </div>
+          </div>
+
           <div>
             <label className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider block mb-1.5">
-              Target Shipping Mode to Nigeria
+              Target Shipping Mode
             </label>
             <div className="grid grid-cols-2 gap-2">
               <button

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
+import { db } from '../../services/db';
 import { 
   PackageCheck, 
   Truck, 
@@ -12,7 +13,8 @@ import {
   Headphones, 
   Copy, 
   ShieldCheck,
-  ExternalLink
+  ExternalLink,
+  Ban
 } from 'lucide-react';
 
 export const ShopOrderDetailScreen: React.FC = () => {
@@ -21,6 +23,17 @@ export const ShopOrderDetailScreen: React.FC = () => {
 
   const orderId = routeParam || selectedOrderId;
   const order = shopOrders.find((o) => o.id === orderId) || shopOrders[0];
+
+  const handleCancelOrder = async () => {
+    if (!window.confirm(`Request immediate cancellation for order #${order.orderNumber}? The amount will be refunded to your wallet.`)) return;
+    try {
+      await db.cancelShopOrder(order.id, 'Customer cancellation request');
+      showToast(`Order #${order.orderNumber} cancelled and refunded!`, 'success');
+      navigate('wallets');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to cancel order', 'error');
+    }
+  };
 
   const steps = [
     { title: 'Order Paid & Vault Secured', desc: 'Debited via USD Global Account', time: 'Oct 28, 16:45' },
@@ -188,6 +201,16 @@ export const ShopOrderDetailScreen: React.FC = () => {
             <span>Chat Concierge</span>
           </button>
         </div>
+
+        {order.status === 'Processing' && (
+          <button
+            onClick={handleCancelOrder}
+            className="w-full py-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all mt-2"
+          >
+            <Ban className="w-4 h-4" />
+            <span>Cancel Consignment & Refund Wallet</span>
+          </button>
+        )}
       </div>
     </div>
   );

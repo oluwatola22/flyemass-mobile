@@ -28,6 +28,18 @@ export const LogisticsScreen: React.FC = () => {
   const [calcType, setCalcType] = useState<'air' | 'sea'>('air');
   const [weightKg, setWeightKg] = useState('20');
   const [cbm, setCbm] = useState('0.15');
+  const [selectedRoute, setSelectedRoute] = useState<'CN-NG' | 'NG-CN' | 'CN-US' | 'CN-CA' | 'CN-EU' | 'CN-GH' | 'CN-ZA' | 'CN-KE'>('CN-NG');
+
+  const ROUTE_MULTIPLIERS = {
+    'CN-NG': { airRate: 9.5, seaRate: 280, label: '🇨🇳 China ➔ 🇳🇬 Nigeria (Lagos Hub)' },
+    'NG-CN': { airRate: 11.0, seaRate: 310, label: '🇳🇬 Nigeria ➔ 🇨🇳 China (Guangzhou Hub)' },
+    'CN-US': { airRate: 12.5, seaRate: 320, label: '🇨🇳 China ➔ 🇺🇸 United States (New York / LA)' },
+    'CN-CA': { airRate: 13.0, seaRate: 330, label: '🇨🇳 China ➔ 🇨🇦 Canada (Toronto / Vancouver)' },
+    'CN-EU': { airRate: 11.8, seaRate: 300, label: '🇨🇳 China ➔ 🇪🇺 Europe (London / Frankfurt)' },
+    'CN-GH': { airRate: 10.2, seaRate: 290, label: '🇨🇳 China ➔ 🇬🇭 Ghana (Accra Hub)' },
+    'CN-ZA': { airRate: 10.8, seaRate: 295, label: '🇨🇳 China ➔ 🇿🇦 South Africa (Joburg Hub)' },
+    'CN-KE': { airRate: 10.5, seaRate: 285, label: '🇨🇳 China ➔ 🇰🇪 Kenya (Nairobi Hub)' }
+  };
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard?.writeText(text);
@@ -36,9 +48,10 @@ export const LogisticsScreen: React.FC = () => {
     setTimeout(() => setCopiedId(null), 2500);
   };
 
+  const activeRate = ROUTE_MULTIPLIERS[selectedRoute];
   const calculatedCost = calcType === 'air' 
-    ? (parseFloat(weightKg) || 0) * 9.5 
-    : (parseFloat(cbm) || 0) * 280;
+    ? (parseFloat(weightKg) || 0) * activeRate.airRate 
+    : (parseFloat(cbm) || 0) * activeRate.seaRate;
 
   return (
     <div className="min-h-full pb-24 bg-slate-950 text-white">
@@ -237,10 +250,27 @@ export const LogisticsScreen: React.FC = () => {
         {activeTab === 'calculator' && (
           <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
             <div>
-              <h3 className="text-sm font-bold text-white">Air & Sea Freight Estimator</h3>
+              <h3 className="text-sm font-bold text-white">Global Air & Sea Freight Estimator</h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Calculate all-inclusive landed shipping costs from China to Lagos (Clearing included).
+                Calculate all-inclusive landed shipping costs across 8 global trade corridors with customs clearing included.
               </p>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-semibold text-slate-400 block mb-1">
+                Global Trade Corridor & Destination
+              </label>
+              <select
+                value={selectedRoute}
+                onChange={(e) => setSelectedRoute(e.target.value as any)}
+                className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500 font-semibold"
+              >
+                {Object.entries(ROUTE_MULTIPLIERS).map(([key, val]) => (
+                  <option key={key} value={key}>
+                    {val.label} (Air: ${val.airRate}/kg • Sea: ${val.seaRate}/CBM)
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-2">

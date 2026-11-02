@@ -76,6 +76,16 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
     { id: 'db', label: 'NoSQL Schema Explorer', route: 'schema-inspector' as ScreenRoute, icon: Database, isDev: true },
   ];
 
+  const ROLE_AUTHORIZED_TABS: Record<AdminRole, string[]> = {
+    super_admin: ['dashboard', 'users', 'logistics', 'payments', 'shop', 'hotels', 'agents', 'support', 'team', 'db'],
+    finance_officer: ['dashboard', 'users', 'payments', 'team', 'db'],
+    logistics_manager: ['dashboard', 'logistics', 'shop', 'agents', 'db'],
+    support_agent: ['dashboard', 'users', 'hotels', 'support']
+  };
+
+  const authorizedTabs = ROLE_AUTHORIZED_TABS[currentAdmin.role] || ROLE_AUTHORIZED_TABS.super_admin;
+  const filteredNavItems = navItems.filter(item => authorizedTabs.includes(item.id));
+
   const handleRoleChange = (admin: AdminUser) => {
     setCurrentAdmin(admin);
     setShowRoleSwitcher(false);
@@ -176,7 +186,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
 
             {/* Navigation Menu */}
             <nav className="p-2 space-y-1 overflow-y-auto max-h-[calc(100vh-210px)] no-scrollbar">
-              {navItems.map((item) => {
+              {filteredNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
                 return (

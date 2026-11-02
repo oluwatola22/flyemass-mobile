@@ -23,7 +23,12 @@ import {
   Building,
   Eye,
   FileText,
-  Smartphone
+  Smartphone,
+  AlertOctagon,
+  Ban,
+  Bell,
+  Truck,
+  Package
 } from 'lucide-react';
 
 export const AdminUsersScreen: React.FC = () => {
@@ -59,7 +64,45 @@ export const AdminUsersScreen: React.FC = () => {
     showToast(`${user.fullName} KYC verification set to: ${newBadge ? 'VERIFIED' : 'UNVERIFIED'}`, 'info');
   };
 
-  const handleApplyAdjustment = (e: React.FormEvent) => {
+  const handleToggleSuspension = async (user: UserDocument) => {
+    const nextState = !user.isSuspended;
+    try {
+      await db.suspendUser(
+        user.uid,
+        nextState,
+        nextState ? 'Compliance review / Trade restriction' : 'Resolved',
+        [],
+        'adm-001'
+      );
+      showToast(`${user.fullName} account suspension set to: ${nextState ? 'SUSPENDED' : 'ACTIVE'}`, nextState ? 'error' : 'success');
+      if (selectedUser?.uid === user.uid) {
+        setSelectedUser({ ...selectedUser, isSuspended: nextState });
+      }
+      setDbState({ ...db.getState() });
+    } catch (err: any) {
+      showToast(err.message || 'Failed to toggle suspension', 'error');
+    }
+  };
+
+  const handleSendNotification = async (userId: string) => {
+    const text = window.prompt(`Send real-time in-app notification alert to ${selectedUser?.fullName || 'user'}:`);
+    if (!text || !text.trim()) return;
+    try {
+      await db.sendAdminNotification(
+        'FlyeMass Executive Notice',
+        text.trim(),
+        'system',
+        userId,
+        'notifications',
+        'adm-001'
+      );
+      showToast(`Notification dispatched to ${selectedUser?.fullName || userId}!`, 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to send notification', 'error');
+    }
+  };
+
+  const handleApplyAdjustment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedUser) return;
     const amt = parseFloat(adjustmentAmount);
@@ -68,30 +111,23 @@ export const AdminUsersScreen: React.FC = () => {
       return;
     }
 
-    const currentBal = selectedUser.balances[adjustmentCurrency];
-    const newBal = adjustmentType === 'credit' ? currentBal + amt : Math.max(0, currentBal - amt);
-
-    db.updateUserBalances(selectedUser.uid, {
-      [adjustmentCurrency]: newBal
-    });
-
-    db.recordLedgerEntry({
-      userId: selectedUser.uid,
-      type: adjustmentType === 'credit' ? 'FUND' : 'WITHDRAW',
-      sourceCurrency: adjustmentCurrency,
-      targetCurrency: adjustmentCurrency,
-      amount: amt,
-      fee: 0,
-      status: 'completed',
-      reference: `ADJ-ADMIN-${Date.now().toString().slice(-6)}`,
-      notes: `Manual ${adjustmentType.toUpperCase()} by Admin: ${adjustmentReason}`
-    });
-
-    firebaseSync.recordAudit('Admin', 'MANUAL_BALANCE_ADJUST', 'wallets_ledger', selectedUser.uid, `${adjustmentType.toUpperCase()} ${adjustmentCurrency} ${amt} (${adjustmentReason})`);
-
-    showToast(`Successfully updated ${selectedUser.fullName}'s ${adjustmentCurrency} vault by ${adjustmentType === 'credit' ? '+' : '-'}${amt.toLocaleString()}`, 'success');
-    setSelectedUser({ ...selectedUser, balances: { ...selectedUser.balances, [adjustmentCurrency]: newBal } });
-    setDbState({ ...db.getState() });
+    try {
+      const res = await db.manualAdjustBalance(
+        selectedUser.uid,
+        adjustmentCurrency,
+        amt,
+        adjustmentType,
+        adjustmentReason,
+        'adm-001'
+      );
+      showToast(`Successfully executed authoritative ${adjustmentType.toUpperCase()} of ${adjustmentCurrency} ${amt.toLocaleString()}!`, 'success');
+      setSelectedUser({ ...selectedUser, balances: res.balances });
+      setAdjustmentAmount('');
+      setAdjustmentReason('');
+      setDbState({ ...db.getState() });
+    } catch (err: any) {
+      showToast(err.message || 'Failed to execute adjustment', 'error');
+    }
   };
 
   const userLedgerHistory = selectedUser 
@@ -305,6 +341,85 @@ export const AdminUsersScreen: React.FC = () => {
                 <p className="text-sm font-extrabold text-white num-tabular mt-1">
                   ${(selectedUser?.balances?.USD ?? 0).toLocaleString()}
                 </p>
+              </div>
+            </div>
+
+            {/* Account Status & Administrative Quick Actions */}
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
+                    selectedUser.isSuspended
+                      ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                      : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  }`}>
+                    {selectedUser.isSuspended ? 'Account Suspended' : 'Account Active & Compliant'}
+                  </span>
+                  {selectedUser.suspensionReason && (
+                    <span className="text-[11px] text-rose-400 font-mono">({selectedUser.suspensionReason})</span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleSendNotification(selectedUser.uid)}
+                    className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs text-white font-semibold flex items-center gap-1.5 transition-all active:scale-95"
+                  >
+                    <Bell className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Send In-App Alert</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleToggleSuspension(selectedUser)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 active:scale-95 ${
+                      selectedUser.isSuspended
+                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/25'
+                        : 'bg-rose-500/15 border-rose-500/40 text-rose-400 hover:bg-rose-500/25'
+                    }`}
+                  >
+                    {selectedUser.isSuspended ? (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Reactivate Account</span>
+                      </>
+                    ) : (
+                      <>
+                        <Ban className="w-3.5 h-3.5" />
+                        <span>Suspend Account</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Connected Services Footprint */}
+              <div className="grid grid-cols-4 gap-2 pt-2 border-t border-slate-900 text-center text-xs">
+                <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800/80">
+                  <span className="text-[10px] text-slate-500 block">Shipments</span>
+                  <span className="font-bold text-cyan-400">
+                    {Object.values(dbState.shipments).filter(s => s.userId === selectedUser.uid).length}
+                  </span>
+                </div>
+                <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800/80">
+                  <span className="text-[10px] text-slate-500 block">Shop Orders</span>
+                  <span className="font-bold text-amber-400">
+                    {Object.values(dbState.shop_orders).filter(o => o.userId === selectedUser.uid).length}
+                  </span>
+                </div>
+                <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800/80">
+                  <span className="text-[10px] text-slate-500 block">Sourcing RFQs</span>
+                  <span className="font-bold text-indigo-400">
+                    {Object.values(dbState.agent_requests).filter(r => r.userId === selectedUser.uid).length}
+                  </span>
+                </div>
+                <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800/80">
+                  <span className="text-[10px] text-slate-500 block">Hotel Stays</span>
+                  <span className="font-bold text-emerald-400">
+                    {Object.values(dbState.hotel_bookings || {}).filter((b: any) => b.userId === selectedUser.uid).length}
+                  </span>
+                </div>
               </div>
             </div>
 

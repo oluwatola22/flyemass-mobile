@@ -18,9 +18,9 @@ export const LoginScreen: React.FC = () => {
   const [password, setPassword] = useState('SecretTrade2026!');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login();
+    await login(identifier, password);
   };
 
   return (
@@ -126,7 +126,7 @@ export const LoginScreen: React.FC = () => {
 
           <div className="flex items-center justify-center gap-3">
             <button
-              onClick={login}
+              onClick={() => login(identifier, password)}
               type="button"
               className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/40 text-xs font-semibold text-slate-200 active:scale-95 transition-all shadow-md"
             >

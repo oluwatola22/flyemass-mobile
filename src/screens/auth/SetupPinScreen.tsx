@@ -5,7 +5,7 @@ import { db } from '../../services/db';
 import { ChevronLeft, CheckCircle2, Shield } from 'lucide-react';
 
 export const SetupPinScreen: React.FC = () => {
-  const { navigate, setUserPin, login, showToast, activeUserId } = useApp();
+  const { navigate, setUserPin, login, showToast, activeUserId, pendingSignup, switchUser } = useApp();
   const [step, setStep] = useState<'create' | 'confirm'>('create');
   const [firstPin, setFirstPin] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,10 +20,23 @@ export const SetupPinScreen: React.FC = () => {
     if (pin === firstPin) {
       setIsSubmitting(true);
       try {
-        await db.setPin(activeUserId, pin);
+        if (pendingSignup) {
+          const reg = await db.registerUser({
+            fullName: pendingSignup.companyName,
+            email: pendingSignup.email,
+            phone: pendingSignup.phone,
+            businessName: pendingSignup.companyName,
+            pin
+          });
+          if (reg?.user?.uid) {
+            switchUser(reg.user.uid);
+          }
+        } else {
+          await db.setPin(activeUserId, pin);
+        }
         setUserPin(pin);
         showToast('6-digit transaction PIN established & encrypted!', 'success');
-        login();
+        await login(pendingSignup?.email || activeUserId);
       } catch (err) {
         showToast('Failed to register PIN. Please retry.', 'error');
       } finally {

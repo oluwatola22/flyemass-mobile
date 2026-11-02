@@ -83,6 +83,9 @@ export interface UserDocument {
   balances: UserBalances;
   pinFailedAttempts?: number;
   pinLockedUntil?: number;
+  isSuspended?: boolean;
+  suspensionReason?: string;
+  restrictions?: string[];
 }
 
 /**
@@ -125,7 +128,7 @@ export interface ShipmentDocument {
   destination: 'Lagos Hub';
   weightKg: number;
   mode: 'Air Freight' | 'Sea Freight';
-  currentStatus: 'Origin Received' | 'Packed' | 'In Transit/Customs' | 'Lagos Hub Ready' | 'Delivered';
+  currentStatus: 'Origin Received' | 'Packed' | 'In Transit/Customs' | 'Lagos Hub Ready' | 'Delivered' | 'Cancelled';
   timeline: ShipmentTimelineEvent[];
   updatedAt: number;
   cbm?: number;
@@ -236,7 +239,7 @@ export interface ShopOrderDocument {
   currency: string;
   deliveryAddress: string;
   paymentWalletUsed: string;
-  fulfillmentStatus: 'processing' | 'shipped' | 'delivered';
+  fulfillmentStatus: 'processing' | 'shipped' | 'delivered' | 'cancelled';
   createdAt: number;
   orderNumber?: string;
   trackingNumber?: string;
@@ -432,7 +435,7 @@ export interface HotelBooking {
   totalUSD: number;
   guestName: string;
   confirmationCode: string;
-  status: 'Confirmed' | 'Completed' | 'Pending';
+  status: 'Confirmed' | 'Completed' | 'Pending' | 'cancelled' | 'Cancelled';
   taxiCardZh: string;
 }
 

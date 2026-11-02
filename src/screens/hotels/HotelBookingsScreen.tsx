@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
+import { db } from '../../services/db';
 import { 
   Building, 
   QrCode, 
@@ -9,11 +10,23 @@ import {
   CheckCircle2, 
   Copy, 
   Share2,
-  Ticket
+  Ticket,
+  Ban
 } from 'lucide-react';
 
 export const HotelBookingsScreen: React.FC = () => {
-  const { hotelBookings, showToast, navigate } = useApp();
+  const { hotelBookings, showToast, navigate, activeUserId } = useApp();
+
+  const handleCancel = async (bk: any) => {
+    if (!window.confirm(`Cancel reservation at ${bk.hotel.name} and receive full refund of $${bk.totalUSD} USD?`)) return;
+    try {
+      await db.cancelHotelBooking(bk.id, activeUserId, 'Customer requested cancellation');
+      showToast(`Reservation cancelled. $${bk.totalUSD} USD refunded to your wallet!`, 'success');
+      navigate('wallets');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to cancel reservation', 'error');
+    }
+  };
 
   return (
     <div className="min-h-full pb-24 bg-slate-950 text-white">
@@ -92,6 +105,16 @@ export const HotelBookingsScreen: React.FC = () => {
                 {bk.taxiCardZh}
               </p>
             </div>
+
+            {bk.status !== 'cancelled' && bk.status !== 'Cancelled' && (
+              <button
+                onClick={() => handleCancel(bk)}
+                className="w-full py-2.5 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+              >
+                <Ban className="w-3.5 h-3.5" />
+                <span>Cancel Reservation & Refund Wallet</span>
+              </button>
+            )}
           </div>
         ))}
       </div>
