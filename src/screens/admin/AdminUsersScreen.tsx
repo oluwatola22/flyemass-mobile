@@ -193,9 +193,9 @@ export const AdminUsersScreen: React.FC = () => {
 
                     <td className="py-3.5 px-4">
                       <div className="font-mono text-[11px] space-y-0.5">
-                        <p className="text-emerald-400 font-bold">₦{user.balances.NGN.toLocaleString()}</p>
-                        <p className="text-indigo-300 font-semibold">¥{user.balances.CNY.toLocaleString()}</p>
-                        <p className="text-slate-400">${user.balances.USD.toLocaleString()}</p>
+                        <p className="text-emerald-400 font-bold">₦{(user?.balances?.NGN ?? 0).toLocaleString()}</p>
+                        <p className="text-indigo-300 font-semibold">¥{(user?.balances?.CNY ?? 0).toLocaleString()}</p>
+                        <p className="text-slate-400">${(user?.balances?.USD ?? 0).toLocaleString()}</p>
                       </div>
                     </td>
 
@@ -288,21 +288,21 @@ export const AdminUsersScreen: React.FC = () => {
               <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
                 <span className="text-[10px] text-slate-400 uppercase font-semibold">Nigerian Naira (₦)</span>
                 <p className="text-sm font-extrabold text-emerald-400 num-tabular mt-1">
-                  ₦{selectedUser.balances.NGN.toLocaleString()}
+                  ₦{(selectedUser?.balances?.NGN ?? 0).toLocaleString()}
                 </p>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
                 <span className="text-[10px] text-slate-400 uppercase font-semibold">Chinese Yuan (¥)</span>
                 <p className="text-sm font-extrabold text-indigo-400 num-tabular mt-1">
-                  ¥{selectedUser.balances.CNY.toLocaleString()}
+                  ¥{(selectedUser?.balances?.CNY ?? 0).toLocaleString()}
                 </p>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
                 <span className="text-[10px] text-slate-400 uppercase font-semibold">US Dollar ($)</span>
                 <p className="text-sm font-extrabold text-white num-tabular mt-1">
-                  ${selectedUser.balances.USD.toLocaleString()}
+                  ${(selectedUser?.balances?.USD ?? 0).toLocaleString()}
                 </p>
               </div>
             </div>

@@ -11,8 +11,12 @@ export default defineConfig({
       name: 'admin-entry-rewrite',
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
-          if (req.url && (req.url === '/' || !req.url.includes('.'))) {
-            req.url = '/admin.html';
+          // Only rewrite HTML page navigation requests, never JS modules or assets
+          if (req.method === 'GET' && req.headers.accept?.includes('text/html')) {
+            const path = req.url ? req.url.split('?')[0] : '';
+            if (path === '/' || path === '/admin' || path.startsWith('/admin/')) {
+              req.url = '/admin.html';
+            }
           }
           next();
         });

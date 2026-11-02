@@ -81,6 +81,8 @@ export interface UserDocument {
   role: 'client' | 'agent' | 'admin';
   createdAt: number;
   balances: UserBalances;
+  pinFailedAttempts?: number;
+  pinLockedUntil?: number;
 }
 
 /**
@@ -89,11 +91,15 @@ export interface UserDocument {
 export interface WalletLedgerDocument {
   id: string;
   userId: string;
-  type: 'FUND' | 'PAY_SUPPLIER' | 'FX_SWAP' | 'WITHDRAW' | 'SHOP_ORDER';
+  type: 'FUND' | 'PAY_SUPPLIER' | 'FX_SWAP' | 'WITHDRAW' | 'SHOP_ORDER' | 'CARGO_FREIGHT' | 'SUPPLIER_SUB';
   sourceCurrency: string;
   targetCurrency: string;
   amount: number;
+  convertedAmount?: number;
   fee: number;
+  rate?: number;
+  openingBalance?: number;
+  closingBalance?: number;
   status: 'pending' | 'completed' | 'failed';
   reference: string;
   timestamp: number;
@@ -126,6 +132,9 @@ export interface ShipmentDocument {
   costEstimate?: number;
   costCurrency?: Currency;
   title?: string;
+  freightFee?: number;
+  freightCurrency?: Currency;
+  freightPaid?: boolean;
 }
 
 /**
@@ -143,6 +152,77 @@ export interface SupplierPaymentDocument {
   createdAt: number;
   reference?: string;
   notes?: string;
+}
+
+export interface WithdrawalDocument {
+  id: string;
+  userId: string;
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+  amountNGN: number;
+  feeNGN: number;
+  status: 'pending' | 'approved' | 'rejected';
+  transferReference?: string;
+  createdAt: number;
+}
+
+export interface SupplierSubscriptionDocument {
+  id: string;
+  userId: string;
+  supplierId: string;
+  purchasedAt: number;
+  activeUntil: number;
+  feeUSD: number;
+  status: 'active' | 'expired';
+}
+
+export interface AgentRequestDocument {
+  id: string;
+  userId: string;
+  clientName: string;
+  serviceType: string;
+  productName: string;
+  category: string;
+  targetQuantity: number;
+  targetUnitUSD: number;
+  supplierCity: string;
+  inspectionRequired: boolean;
+  cantonFairBooth?: string;
+  quoteAmountUSD?: number;
+  quoteAmountNGN?: number;
+  status: 'submitted' | 'quote_ready' | 'quote_accepted' | 'in_progress' | 'completed';
+  createdAt: number;
+  adminNotes?: string;
+}
+
+export interface BannerDocument {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  destinationRoute: ScreenRoute;
+  isActive: boolean;
+  displayOrder: number;
+}
+
+export interface SystemSettingsDocument {
+  rates: {
+    NGN_CNY: number;
+    USD_NGN: number;
+    USD_CNY: number;
+    spreadPercent: number;
+    lastUpdated: number;
+    updatedBy: string;
+  };
+  fees: {
+    withdrawalFlatNGN: number;
+    fundingCardPercent: number;
+    supplierEscrowPercent: number;
+    airFreightPerKgUSD: number;
+    seaFreightPerCbmUSD: number;
+    supplier30DayPassUSD: number;
+  };
 }
 
 /**

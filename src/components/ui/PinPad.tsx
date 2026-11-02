@@ -8,29 +8,31 @@ interface PinPadProps {
   onCancel?: () => void;
   expectedPin?: string;
   isSetup?: boolean;
+  length?: number;
 }
 
 export const PinPad: React.FC<PinPadProps> = ({
-  title = 'Enter Transaction PIN',
+  title = 'Enter 6-Digit Transaction PIN',
   subtitle = 'Authorize this cross-border transfer',
   onComplete,
   onCancel,
   expectedPin,
-  isSetup = false
+  isSetup = false,
+  length = 6
 }) => {
   const [pin, setPin] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
   const handleKeyPress = (num: string) => {
-    if (pin.length < 4) {
+    if (pin.length < length) {
       const nextPin = pin + num;
       setPin(nextPin);
       setError(null);
 
-      if (nextPin.length === 4) {
+      if (nextPin.length === length) {
         setTimeout(() => {
           if (expectedPin && nextPin !== expectedPin) {
-            setError('Incorrect security PIN. Please try again.');
+            setError('Incorrect 6-digit security PIN. Please try again.');
             setPin('');
           } else {
             onComplete(nextPin);
@@ -48,15 +50,15 @@ export const PinPad: React.FC<PinPadProps> = ({
   };
 
   const handleBiometric = () => {
-    // Simulate FaceID / Fingerprint approval
-    if (expectedPin) {
-      setPin(expectedPin);
-      setTimeout(() => onComplete(expectedPin), 200);
+    // In production biometric requires hardware WebAuthn / Biometric API prompt
+    if (typeof window !== 'undefined' && (window as any).PublicKeyCredential) {
+      setError('Biometric hardware prompt required. Please enter your 6-digit PIN.');
     } else {
-      setPin('2468');
-      setTimeout(() => onComplete('2468'), 200);
+      setError('Biometric sensor not enrolled on this terminal. Enter 6-digit PIN.');
     }
   };
+
+  const dotIndices = Array.from({ length }, (_, i) => i);
 
   return (
     <div className="flex flex-col items-center justify-between w-full max-w-xs mx-auto py-4">
@@ -66,17 +68,17 @@ export const PinPad: React.FC<PinPadProps> = ({
           {isSetup ? <Lock className="w-6 h-6" /> : <ShieldCheck className="w-6 h-6" />}
         </div>
         <h3 className="text-lg font-bold text-slate-100">{title}</h3>
-        <p className="text-xs text-slate-400 mt-1 max-w-[240px] mx-auto">{subtitle}</p>
+        <p className="text-xs text-slate-400 mt-1 max-w-[260px] mx-auto">{subtitle}</p>
       </div>
 
-      {/* 4 Masked Dots */}
-      <div className="flex items-center gap-4 mb-6">
-        {[0, 1, 2, 3].map((index) => {
+      {/* 6 Masked Dots */}
+      <div className="flex items-center gap-3 mb-6">
+        {dotIndices.map((index) => {
           const filled = index < pin.length;
           return (
             <div
               key={index}
-              className={`w-4 h-4 rounded-full transition-all duration-200 ${
+              className={`w-3.5 h-3.5 rounded-full transition-all duration-200 ${
                 filled
                   ? 'bg-emerald-400 scale-125 shadow-lg shadow-emerald-400/50'
                   : 'bg-slate-800 border border-slate-700'
@@ -112,6 +114,7 @@ export const PinPad: React.FC<PinPadProps> = ({
           type="button"
           aria-label="Biometric Authentication"
           className="h-14 rounded-2xl bg-slate-900/40 border border-slate-800/80 hover:border-emerald-500/40 active:scale-95 transition-all flex items-center justify-center text-emerald-400"
+          title="Authenticate via Biometrics (FaceID / Fingerprint)"
         >
           <Fingerprint className="w-6 h-6" />
         </button>

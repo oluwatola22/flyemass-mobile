@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { AdminLayout } from '../../components/admin/AdminLayout';
+import { db } from '../../services/db';
+import { firebaseSync } from '../../services/firebase';
 import { CHINA_HOTELS } from '../../data/mockData';
 import { Hotel } from '../../types';
 import { 
@@ -14,13 +16,32 @@ import {
   DollarSign, 
   Copy, 
   CheckCheck,
-  Building2
+  Building2,
+  Calendar
 } from 'lucide-react';
 
 export const AdminHotelsScreen: React.FC = () => {
   const { hotelBookings, showToast } = useApp();
   const [hotelsList, setHotelsList] = useState<Hotel[]>(CHINA_HOTELS);
   const [activeTab, setActiveTab] = useState<'hotels' | 'vouchers'>('hotels');
+  const [dbBookings, setDbBookings] = useState<any[]>(() => {
+    const list = db.getHotelBookings();
+    return list.length > 0 ? list : hotelBookings;
+  });
+
+  useEffect(() => {
+    return db.subscribe(() => {
+      const list = db.getHotelBookings();
+      if (list.length > 0) setDbBookings(list);
+    });
+  }, []);
+
+  const handleUpdateStatus = (bookingId: string, newStatus: string) => {
+    db.updateHotelBookingStatus(bookingId, newStatus);
+    setDbBookings(db.getHotelBookings());
+    firebaseSync.recordAudit('Hotel Desk Officer', 'HOTEL_VOUCHER_UPDATE', 'hotel_bookings', bookingId, `Updated status to ${newStatus}`);
+    showToast(`Voucher status updated to ${newStatus}!`, 'success');
+  };
 
   return (
     <AdminLayout activeTab="hotels">
@@ -97,27 +118,53 @@ export const AdminHotelsScreen: React.FC = () => {
         {/* 2. VOUCHERS LIST */}
         {activeTab === 'vouchers' && (
           <div className="space-y-3">
-            {hotelBookings.map((bk) => (
+            {dbBookings.map((bk) => (
               <div
                 key={bk.id}
-                className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-xl"
+                className="p-5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold shrink-0">
                     <Ticket className="w-5 h-5" />
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-white">{bk.hotel.name} ({bk.hotel.city})</p>
-                    <p className="text-[11px] text-slate-400">Guest: <strong className="text-slate-200">{bk.guestName}</strong> • {bk.nights} nights</p>
-                    <p className="text-[10px] font-mono text-emerald-400 font-bold mt-0.5">Confirmation: {bk.confirmationCode}</p>
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-white">{bk.hotel?.name || bk.hotelName} ({bk.hotel?.city || 'China'})</p>
+                    <p className="text-[11px] text-slate-400">Guest: <strong className="text-slate-200">{bk.guestName}</strong> • {bk.nights} nights ({bk.checkIn} - {bk.checkOut})</p>
+                    <p className="text-[10px] font-mono text-emerald-400 font-bold">Confirmation: {bk.confirmationCode}</p>
+                    {bk.taxiCardZh && (
+                      <p className="text-[10px] text-slate-400 font-sans bg-slate-950 p-2 rounded-xl border border-slate-800/80 mt-1">
+                        🚕 {bk.taxiCardZh}
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">
-                    {bk.status}
-                  </span>
-                  <p className="text-xs font-mono font-extrabold text-white mt-1">${bk.totalUSD} USD</p>
+                <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
+                  <div className="text-right">
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">
+                      {bk.status}
+                    </span>
+                    <p className="text-xs font-mono font-extrabold text-white mt-1">${bk.totalUSD} USD</p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {bk.status !== 'Checked-in' && (
+                      <button
+                        onClick={() => handleUpdateStatus(bk.id, 'Checked-in')}
+                        className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-slate-200"
+                      >
+                        Check In
+                      </button>
+                    )}
+                    {bk.status !== 'Completed' && (
+                      <button
+                        onClick={() => handleUpdateStatus(bk.id, 'Completed')}
+                        className="px-2.5 py-1.5 rounded-xl bg-emerald-500 text-slate-950 text-[10px] font-bold"
+                      >
+                        Complete
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

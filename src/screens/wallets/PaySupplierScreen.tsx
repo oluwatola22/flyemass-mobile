@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { PinPad } from '../../components/ui/PinPad';
+import { db } from '../../services/db';
 import { 
   Send, 
   CheckCircle2, 
@@ -17,7 +18,7 @@ import {
 type PayMethod = 'alipay' | 'wechat' | 'bank';
 
 export const PaySupplierScreen: React.FC = () => {
-  const { wallets, paySupplier, userPin, goBack, showToast } = useApp();
+  const { wallets, goBack, showToast, activeUserId } = useApp();
   const [activeTab, setActiveTab] = useState<PayMethod>('alipay');
   
   // Form fields
@@ -52,27 +53,34 @@ export const PaySupplierScreen: React.FC = () => {
       return;
     }
     if (num > cnyBalance) {
-      showToast(`Insufficient CNY balance (Available: ¥${cnyBalance.toLocaleString()})`, 'error');
+      showToast(`Insufficient CNY balance (Available: ¥${(cnyBalance ?? 0).toLocaleString()})`, 'error');
       return;
     }
     setShowPinModal(true);
   };
 
-  const handlePinSuccess = (pin: string) => {
-    setShowPinModal(false);
+  const handlePinSuccess = async (enteredPin: string) => {
     const num = parseFloat(amountCNY);
     const methodLabel = activeTab === 'alipay' ? 'Alipay Business' : activeTab === 'wechat' ? 'WeChat Pay' : 'China UnionPay CNAPS';
     
-    const success = paySupplier(supplierName, methodLabel, num, orderRemark);
-    if (success) {
+    try {
+      const res = await db.paySupplier(activeUserId, supplierName, receiverId, methodLabel, num, orderRemark, enteredPin);
+      if (res && res.error) {
+        showToast(res.error, 'error');
+        return;
+      }
+      setShowPinModal(false);
       setPaymentCompleteReceipt({
         amount: num,
         recipient: supplierName,
         receiverId,
         method: methodLabel,
-        reference: `FLYE-CN-${Math.floor(1000000 + Math.random() * 9000000)}`,
+        reference: res?.payment?.reference || `FLYE-CN-${Math.floor(1000000 + Math.random() * 9000000)}`,
         timestamp: new Date().toLocaleString()
       });
+      showToast(`¥${num.toLocaleString()} disbursed to ${supplierName}!`, 'success');
+    } catch (e) {
+      showToast('Supplier payment communication error', 'error');
     }
   };
 
@@ -119,7 +127,7 @@ export const PaySupplierScreen: React.FC = () => {
             <span className="text-xl">🇨🇳</span>
             <div>
               <span className="text-slate-400">Available RMB Wallet:</span>
-              <p className="font-extrabold text-emerald-400 num-tabular">¥{cnyBalance.toLocaleString()}</p>
+              <p className="font-extrabold text-emerald-400 num-tabular">¥{(cnyBalance ?? 0).toLocaleString()}</p>
             </div>
           </div>
           <button
@@ -236,7 +244,6 @@ export const PaySupplierScreen: React.FC = () => {
             <PinPad
               title="Authorize Supplier Payout"
               subtitle={`Transfer ¥${parseFloat(amountCNY).toLocaleString()} to ${supplierName}`}
-              expectedPin={userPin}
               onComplete={handlePinSuccess}
               onCancel={() => setShowPinModal(false)}
             />

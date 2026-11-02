@@ -24,7 +24,10 @@ import {
 export const AdminShopScreen: React.FC = () => {
   const { showToast } = useApp();
   const [dbState, setDbState] = useState<DatabaseState>(db.getState());
-  const [products, setProducts] = useState<TechProduct[]>(TECH_PRODUCTS);
+  const [products, setProducts] = useState<TechProduct[]>(() => {
+    const list = db.getProducts();
+    return list.length > 0 ? list : TECH_PRODUCTS;
+  });
   const [activeTab, setActiveTab] = useState<'inventory' | 'orders'>('inventory');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -37,21 +40,18 @@ export const AdminShopScreen: React.FC = () => {
   const [newStock, setNewStock] = useState('8');
 
   useEffect(() => {
-    return db.subscribe(() => setDbState({ ...db.getState() }));
+    return db.subscribe(() => {
+      setDbState({ ...db.getState() });
+      const current = db.getProducts();
+      if (current.length > 0) setProducts(current);
+    });
   }, []);
 
   const ordersList = Object.values(dbState.shop_orders);
 
   const handleUpdateStock = (productId: string, delta: number) => {
-    setProducts((prev) =>
-      prev.map((p) => {
-        if (p.id === productId) {
-          const updated = Math.max(0, p.stockCount + delta);
-          return { ...p, stockCount: updated, inStock: updated > 0 };
-        }
-        return p;
-      })
-    );
+    db.updateProductStock(productId, delta);
+    setProducts(db.getProducts());
     showToast('Inventory stock counter updated', 'info');
   };
 
@@ -83,8 +83,9 @@ export const AdminShopScreen: React.FC = () => {
       storageOptions: ['256GB', '512GB']
     };
 
-    setProducts([newProd, ...products]);
-    firebaseSync.recordAudit('Shop Manager', 'ADD_PRODUCT', 'shop_orders', newProd.id, `Added product ${newTitle}`);
+    db.addProduct(newProd);
+    setProducts(db.getProducts());
+    firebaseSync.recordAudit('Shop Manager', 'ADD_PRODUCT', 'products', newProd.id, `Added product ${newTitle}`);
     showToast(`Added ${newTitle} to tech catalog!`, 'success');
     setShowAddModal(false);
   };

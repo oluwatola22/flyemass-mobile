@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
+import { PinPad } from '../../components/ui/PinPad';
+import { db } from '../../services/db';
 import { 
   Plane, 
   Ship, 
@@ -13,16 +15,32 @@ import {
   FileText, 
   Share2, 
   Search,
-  ExternalLink
+  ExternalLink,
+  CreditCard,
+  DollarSign
 } from 'lucide-react';
-import { Shipment } from '../../types';
+import { Shipment, Currency } from '../../types';
 
 export const TrackShipmentScreen: React.FC = () => {
-  const { shipments, showToast } = useApp();
+  const { shipments, showToast, activeUserId, wallets } = useApp();
   const [selectedWaybill, setSelectedWaybill] = useState<string>(shipments[0]?.trackingNumber || '');
   const [copied, setCopied] = useState(false);
+  const [showPayFreightModal, setShowPayFreightModal] = useState(false);
+  const [paymentWallet, setPaymentWallet] = useState<Currency>('USD');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [, setTick] = useState(0);
 
+  useEffect(() => {
+    return db.subscribe(() => setTick((t) => t + 1));
+  }, []);
+
+  // Read latest shipment document from authoritative db
+  const dbShipments = db.getShipments();
+  const dbShip = dbShipments.find(s => s.trackingNumber === selectedWaybill) || dbShipments[0];
   const shipment = shipments.find((s) => s.trackingNumber === selectedWaybill) || shipments[0];
+
+  const isFreightPaid = dbShip ? dbShip.freightPaid : true;
+  const freightCostUSD = dbShip?.costEstimate || shipment?.costEstimate || 285;
 
   const handleCopy = () => {
     if (!shipment) return;
@@ -30,6 +48,23 @@ export const TrackShipmentScreen: React.FC = () => {
     setCopied(true);
     showToast('Tracking number copied to clipboard', 'success');
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleAuthorizeFreightPayment = async (pin: string) => {
+    setIsProcessing(true);
+    try {
+      const res = await db.payFreight(dbShip?.id || 'ship_can_los_89241', activeUserId, paymentWallet, pin);
+      if (res && res.error) {
+        showToast(res.error, 'error');
+        return;
+      }
+      setShowPayFreightModal(false);
+      showToast(`Freight fee of ${paymentWallet} paid! AWB released.`, 'success');
+    } catch (e) {
+      showToast('Payment processing error', 'error');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (!shipment) return null;
@@ -91,6 +126,44 @@ export const TrackShipmentScreen: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Phase 11: Freight Fee Settlement Card */}
+        {isFreightPaid ? (
+          <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2 text-emerald-400 font-bold">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>Freight Settled in Full (${freightCostUSD} USD)</span>
+            </div>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold">
+              Cleared for Release
+            </span>
+          </div>
+        ) : (
+          <div className="p-4 rounded-3xl bg-amber-500/10 border border-amber-500/30 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">
+                  Freight Settlement Pending
+                </span>
+                <p className="text-base font-extrabold text-white mt-0.5 num-tabular">
+                  ${freightCostUSD.toLocaleString()} USD
+                  <span className="text-xs text-slate-400 font-normal ml-1">
+                    (≈ ₦{(freightCostUSD * 1485).toLocaleString()} NGN)
+                  </span>
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPayFreightModal(true)}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-extrabold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all"
+              >
+                Pay Freight
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Authorized directly from your multi-currency wallet with instant customs clearance.
+            </p>
+          </div>
+        )}
 
         {/* 4-Step Interactive Tracking Timeline */}
         <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
@@ -174,6 +247,62 @@ export const TrackShipmentScreen: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Pay Freight Modal */}
+      {showPayFreightModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="text-center">
+              <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">
+                Freight Settlement Authorization
+              </span>
+              <h3 className="text-lg font-extrabold text-white mt-1">
+                Waybill #{shipment.trackingNumber}
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">
+                Chargeable Fee: <strong className="text-emerald-400">${freightCostUSD} USD</strong>
+              </p>
+            </div>
+
+            {/* Select Wallet to Debit */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase text-slate-400">Debit From Wallet:</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPaymentWallet('USD')}
+                  className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
+                    paymentWallet === 'USD'
+                      ? 'bg-slate-800 border-emerald-500 text-emerald-400'
+                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                  }`}
+                >
+                  🇺🇸 USD Wallet
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentWallet('NGN')}
+                  className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all ${
+                    paymentWallet === 'NGN'
+                      ? 'bg-slate-800 border-emerald-500 text-emerald-400'
+                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                  }`}
+                >
+                  🇳🇬 NGN Wallet
+                </button>
+              </div>
+            </div>
+
+            {/* 6-Digit PIN Pad */}
+            <PinPad
+              title="Authorize Freight Debit"
+              subtitle={`Confirm payment of ${paymentWallet === 'USD' ? `$${freightCostUSD} USD` : `₦${(freightCostUSD * 1485).toLocaleString()} NGN`}`}
+              onComplete={handleAuthorizeFreightPayment}
+              onCancel={() => setShowPayFreightModal(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

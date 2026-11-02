@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
+import { db } from '../../services/db';
 import { LIVE_FX_RATES } from '../../data/mockData';
 import { 
   ArrowUpRight, 
@@ -23,7 +24,7 @@ import {
   Building,
   Hotel
 } from 'lucide-react';
-import { Currency } from '../../types';
+import { Currency, BannerDocument, WalletBalance } from '../../types';
 
 export const HomeScreen: React.FC = () => {
   const { 
@@ -40,9 +41,25 @@ export const HomeScreen: React.FC = () => {
 
   const [activeCardIndex, setActiveCardIndex] = useState<number>(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [banners, setBanners] = useState<BannerDocument[]>(() => db.getBanners());
 
-  const currentWallet = wallets[activeCardIndex] || wallets[0];
-  const activeShipment = shipments[0]; // Active air cargo
+  useEffect(() => {
+    return db.subscribe(() => setBanners(db.getBanners()));
+  }, []);
+
+  const defaultWallet: WalletBalance = {
+    currency: 'NGN',
+    balance: 0,
+    symbol: '₦',
+    name: 'Nigerian Naira Wallet',
+    flag: '🇳🇬',
+    accountNumber: '9082341902',
+    bankName: 'FlyeMass / Providus Bank',
+    equivalentUSD: 0
+  };
+
+  const currentWallet = (wallets && wallets[activeCardIndex]) || (wallets && wallets[0]) || defaultWallet;
+  const activeShipment = shipments?.[0]; // Active air cargo
 
   const quickActions = [
     { title: 'Fund', desc: 'Add money', icon: ArrowDownLeft, route: 'fund', color: 'from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30' },
@@ -101,9 +118,9 @@ export const HomeScreen: React.FC = () => {
               Multi-Currency Vaults
             </span>
             <div className="flex gap-1.5">
-              {wallets.map((w, idx) => (
+              {(wallets || []).map((w, idx) => (
                 <button
-                  key={w.currency}
+                  key={w?.currency || idx}
                   onClick={() => setActiveCardIndex(idx)}
                   className={`text-[11px] font-bold px-2 py-0.5 rounded-lg transition-all ${
                     activeCardIndex === idx
@@ -111,7 +128,7 @@ export const HomeScreen: React.FC = () => {
                       : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
                   }`}
                 >
-                  {w.currency}
+                  {w?.currency ?? 'NGN'}
                 </button>
               ))}
             </div>
@@ -125,10 +142,10 @@ export const HomeScreen: React.FC = () => {
             <div className="flex items-start justify-between relative z-10">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl">{currentWallet.flag}</span>
+                  <span className="text-2xl">{currentWallet?.flag ?? '🇳🇬'}</span>
                   <div>
-                    <h3 className="text-sm font-bold text-white">{currentWallet.name}</h3>
-                    <p className="text-[10px] text-slate-400">{currentWallet.bankName}</p>
+                    <h3 className="text-sm font-bold text-white">{currentWallet?.name ?? 'Multi-Currency Wallet'}</h3>
+                    <p className="text-[10px] text-slate-400">{currentWallet?.bankName ?? 'FlyeMass Clearing Vault'}</p>
                   </div>
                 </div>
               </div>
@@ -142,26 +159,28 @@ export const HomeScreen: React.FC = () => {
             <div className="mt-5 relative z-10">
               <span className="text-xs text-slate-400 font-medium">Available Balance</span>
               <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-2xl font-bold text-emerald-400">{currentWallet.symbol}</span>
+                <span className="text-2xl font-bold text-emerald-400">{currentWallet?.symbol ?? '₦'}</span>
                 <span className="text-3xl font-extrabold text-white tracking-tight num-tabular">
                   {isBalanceHidden
                     ? '••••••••'
-                    : currentWallet.currency === 'NGN'
-                    ? currentWallet.balance.toLocaleString('en-NG', { maximumFractionDigits: 2 })
-                    : currentWallet.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    : currentWallet?.currency === 'NGN'
+                    ? (currentWallet?.balance ?? 0).toLocaleString('en-NG', { maximumFractionDigits: 2 })
+                    : (currentWallet?.balance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className="text-xs text-slate-400 font-semibold ml-1">
-                  {currentWallet.currency}
+                  {currentWallet?.currency ?? 'NGN'}
                 </span>
               </div>
 
               <p className="text-[11px] text-slate-400 mt-1 num-tabular">
-                ≈ {isBalanceHidden ? '••••' : `$${currentWallet.equivalentUSD.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`}
+                ≈ {isBalanceHidden 
+                  ? '••••' 
+                  : `$${(currentWallet?.equivalentUSD ?? ((currentWallet?.balance ?? 0) / (currentWallet?.currency === 'CNY' ? 7.24 : currentWallet?.currency === 'NGN' ? 1485 : 1))).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`}
               </p>
             </div>
 
             {/* Virtual Account Number Bar */}
-            {currentWallet.accountNumber && (
+            {currentWallet?.accountNumber && (
               <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs relative z-10">
                 <div className="flex items-center gap-2 text-slate-400">
                   <span className="text-[10px] uppercase tracking-wider font-semibold">Account / IBAN:</span>
@@ -305,27 +324,49 @@ export const HomeScreen: React.FC = () => {
           </div>
         )}
 
-        {/* Canton Fair & Trade Directory Banner */}
-        <div 
-          onClick={() => navigate('suppliers')}
-          className="p-4 rounded-3xl bg-gradient-to-r from-indigo-950/80 via-slate-900 to-slate-900 border border-indigo-900/40 cursor-pointer hover:border-indigo-500/40 transition-all flex items-center justify-between shadow-xl"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shrink-0">
-              <Building className="w-6 h-6" />
+        {/* Dynamic Trade & Fair Banners Carousel */}
+        {banners.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                China Trade Campaigns
+              </span>
+              <span className="text-[10px] text-emerald-400 font-bold">
+                {banners.length} Active Offers
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold text-white">Vetted China Manufacturers</span>
-                <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[9px] font-bold">100% Escrow</span>
-              </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Direct access to Guangzhou, Shenzhen & Yiwu verified suppliers.
-              </p>
+
+            <div className="space-y-2.5">
+              {banners.map((ban) => (
+                <div
+                  key={ban.id}
+                  onClick={() => ban.destinationRoute && navigate(ban.destinationRoute)}
+                  className="p-4 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/70 border border-slate-800 hover:border-emerald-500/50 cursor-pointer transition-all flex items-center justify-between shadow-xl group"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 overflow-hidden shrink-0">
+                      <img src={ban.imageUrl} alt={ban.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors">
+                          {ban.title}
+                        </span>
+                        <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 text-[8px] font-bold uppercase">
+                          VIP
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
+                        {ban.description}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-emerald-400 shrink-0 ml-2 transition-colors" />
+                </div>
+              ))}
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-indigo-400 shrink-0 ml-2" />
-        </div>
+        )}
 
         {/* Recent Transactions List */}
         <div>
@@ -370,14 +411,14 @@ export const HomeScreen: React.FC = () => {
 
                 <div className="text-right">
                   <p className={`text-xs font-extrabold num-tabular ${
-                    tx.type === 'fund' ? 'text-emerald-400' : 'text-slate-100'
+                    tx?.type === 'fund' ? 'text-emerald-400' : 'text-slate-100'
                   }`}>
-                    {tx.type === 'fund' ? '+' : '-'}
-                    {tx.currency === 'NGN' ? '₦' : tx.currency === 'CNY' ? '¥' : '$'}
-                    {tx.amount.toLocaleString()}
+                    {tx?.type === 'fund' ? '+' : '-'}
+                    {tx?.currency === 'NGN' ? '₦' : tx?.currency === 'CNY' ? '¥' : '$'}
+                    {(tx?.amount ?? 0).toLocaleString()}
                   </p>
                   <span className="text-[9px] uppercase font-bold text-emerald-400/90 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
-                    {tx.status}
+                    {tx?.status ?? 'completed'}
                   </span>
                 </div>
               </div>

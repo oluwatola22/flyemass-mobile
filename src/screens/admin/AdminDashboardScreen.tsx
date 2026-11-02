@@ -34,21 +34,30 @@ export const AdminDashboardScreen: React.FC = () => {
     return db.subscribe(() => setDbState({ ...db.getState() }));
   }, []);
 
-  // Compute live aggregates from database
-  const usersCount = Object.keys(dbState.users).length;
-  const ledgerEntries = Object.values(dbState.wallets_ledger);
-  const shipments = Object.values(dbState.shipments);
-  const payments = Object.values(dbState.supplier_payments);
+  // Compute live aggregates from authoritative database
+  const usersCount = Object.keys(dbState.users || {}).length;
+  const ledgerEntries = Object.values(dbState.wallets_ledger || {});
+  const shipments = Object.values(dbState.shipments || {});
+  const payments = Object.values(dbState.supplier_payments || {});
+  const withdrawals = Object.values(dbState.withdrawals || {});
+  const agentRequests = Object.values(dbState.agent_requests || {});
 
   const pendingPayments = payments.filter((p) => p.status === 'processing');
+  const pendingWithdrawalsCount = withdrawals.filter((w) => w.status === 'pending').length;
   const activeShipments = shipments.filter(
     (s) => s.currentStatus === 'Origin Received' || s.currentStatus === 'Packed' || s.currentStatus === 'In Transit/Customs'
   );
 
-  // Volume calculations
-  const totalVolumeUSD = 1248900;
-  const totalVolumeNGN = 1854200000;
-  const totalVolumeCNY = 9042500;
+  // Authoritative Balance Aggregates
+  const totalBalancesNGN = Object.values(dbState.users || {}).reduce((acc, u) => acc + (u.balances?.NGN || 0), 0);
+  const totalBalancesCNY = Object.values(dbState.users || {}).reduce((acc, u) => acc + (u.balances?.CNY || 0), 0);
+  const totalBalancesUSD = Object.values(dbState.users || {}).reduce((acc, u) => acc + (u.balances?.USD || 0), 0);
+
+  // Authoritative Freight Revenue
+  const freightRevenueUSD = shipments.filter(s => s.freightPaid).reduce((acc, s) => acc + (s.freightFee || s.costEstimate || 0), 0);
+
+  // Total Trade Volume
+  const totalVolumeUSD = totalBalancesUSD + Math.round(totalBalancesNGN / 1485) + Math.round(totalBalancesCNY / 7.24);
 
   // Chart data points
   const volumeData = [
@@ -116,13 +125,15 @@ export const AdminDashboardScreen: React.FC = () => {
 
             <div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-extrabold text-white num-tabular">$1.24M</span>
+                <span className="text-2xl font-extrabold text-white num-tabular">
+                  ${totalVolumeUSD >= 1000000 ? `${(totalVolumeUSD / 1000000).toFixed(2)}M` : `${totalVolumeUSD.toLocaleString()}`}
+                </span>
                 <span className="text-xs font-semibold text-emerald-400 flex items-center">
-                  <TrendingUp className="w-3 h-3 mr-0.5" /> +14.2%
+                  <TrendingUp className="w-3 h-3 mr-0.5" /> Reconciled
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 num-tabular mt-0.5">
-                ≈ ₦1.85B NGN • ¥9.04M CNY
+                ₦{totalBalancesNGN.toLocaleString()} NGN • ¥{totalBalancesCNY.toLocaleString()} CNY
               </p>
             </div>
           </div>

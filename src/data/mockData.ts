@@ -383,8 +383,7 @@ export const VETTED_SUPPLIERS: Supplier[] = [
     verifiedYears: 9,
     mainProducts: ['OLED Screens', 'iPhone Replacement Parts', 'Fast GaN Chargers', 'Smart Watches'],
     image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',
-    inspectionPassed: true,
-    wechatId: 'Kingzone_Export_SZ'
+    inspectionPassed: true
   },
   {
     id: 'sup-2',
@@ -399,8 +398,7 @@ export const VETTED_SUPPLIERS: Supplier[] = [
     verifiedYears: 12,
     mainProducts: ['Kitchenware', 'Luggage & Bags', 'LED Solar Lights', 'Hardware Tools'],
     image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=600&q=80',
-    inspectionPassed: true,
-    wechatId: 'Shengda_Yiwu_VIP'
+    inspectionPassed: true
   },
   {
     id: 'sup-3',
@@ -415,8 +413,7 @@ export const VETTED_SUPPLIERS: Supplier[] = [
     verifiedYears: 7,
     mainProducts: ['5kW Hybrid Inverters', 'LiFePO4 Powerwall 48V', 'Tier 1 Mono Solar Panels'],
     image: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=600&q=80',
-    inspectionPassed: true,
-    wechatId: 'Sunvolt_CN_Solar'
+    inspectionPassed: true
   },
   {
     id: 'sup-4',
@@ -431,8 +428,7 @@ export const VETTED_SUPPLIERS: Supplier[] = [
     verifiedYears: 14,
     mainProducts: ['Brocade Jacquard', 'Cotton Lace Fabrics', 'Embroidery Trimmings'],
     image: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=600&q=80',
-    inspectionPassed: true,
-    wechatId: 'Haizhu_Textile_GZ'
+    inspectionPassed: true
   }
 ];
 

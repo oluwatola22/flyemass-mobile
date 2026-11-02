@@ -47,9 +47,9 @@ export const CheckoutScreen: React.FC = () => {
     setShowPinModal(true);
   };
 
-  const handlePinSuccess = () => {
+  const handlePinSuccess = (enteredPin?: string) => {
     setShowPinModal(false);
-    const success = placeShopOrder(paymentWallet, deliveryAddress);
+    const success = placeShopOrder(paymentWallet, deliveryAddress, enteredPin);
     if (success) {
       setOrderConfirmed(true);
     }
@@ -105,7 +105,7 @@ export const CheckoutScreen: React.FC = () => {
                     <div>
                       <h4 className="text-xs font-bold text-white">{w?.name}</h4>
                       <p className="text-[10px] text-slate-400 num-tabular">
-                        Balance: {w?.symbol}{w?.balance.toLocaleString()} {c}
+                        Balance: {w?.symbol}{(w?.balance ?? 0).toLocaleString()} {c}
                       </p>
                     </div>
                   </div>

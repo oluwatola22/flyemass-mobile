@@ -1,26 +1,36 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { PinPad } from '../../components/ui/PinPad';
-import { ChevronLeft, CheckCircle2 } from 'lucide-react';
+import { db } from '../../services/db';
+import { ChevronLeft, CheckCircle2, Shield } from 'lucide-react';
 
 export const SetupPinScreen: React.FC = () => {
-  const { navigate, setUserPin, login, showToast } = useApp();
+  const { navigate, setUserPin, login, showToast, activeUserId } = useApp();
   const [step, setStep] = useState<'create' | 'confirm'>('create');
   const [firstPin, setFirstPin] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFirstPinComplete = (pin: string) => {
     setFirstPin(pin);
     setStep('confirm');
-    showToast('Re-enter your 4-digit PIN to confirm', 'info');
+    showToast('Re-enter your 6-digit PIN to confirm', 'info');
   };
 
-  const handleConfirmPinComplete = (pin: string) => {
+  const handleConfirmPinComplete = async (pin: string) => {
     if (pin === firstPin) {
-      setUserPin(pin);
-      showToast('Transaction PIN established! Welcome to FlyeMass.', 'success');
-      login();
+      setIsSubmitting(true);
+      try {
+        await db.setPin(activeUserId, pin);
+        setUserPin(pin);
+        showToast('6-digit transaction PIN established & encrypted!', 'success');
+        login();
+      } catch (err) {
+        showToast('Failed to register PIN. Please retry.', 'error');
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
-      showToast('PINs do not match. Please restart setup.', 'error');
+      showToast('PIN combinations do not match. Please restart setup.', 'error');
       setStep('create');
       setFirstPin('');
     }
@@ -36,8 +46,9 @@ export const SetupPinScreen: React.FC = () => {
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <span className="text-xs font-semibold text-emerald-400 uppercase tracking-widest">
-          {step === 'create' ? 'Step 2: Create PIN' : 'Step 2: Confirm PIN'}
+        <span className="text-xs font-semibold text-emerald-400 uppercase tracking-widest flex items-center gap-1">
+          <Shield className="w-3.5 h-3.5" />
+          <span>{step === 'create' ? 'Step 2: Create 6-Digit PIN' : 'Step 2: Confirm 6-Digit PIN'}</span>
         </span>
         <div className="w-10" />
       </div>
@@ -47,15 +58,17 @@ export const SetupPinScreen: React.FC = () => {
         {step === 'create' ? (
           <PinPad
             isSetup={true}
-            title="Create 4-Digit Security PIN"
-            subtitle="Required to authorize fast supplier payouts, FX swaps, and warehouse releases."
+            length={6}
+            title="Create 6-Digit Security PIN"
+            subtitle="Required to authorize supplier disbursements, FX swaps, and cargo releases."
             onComplete={handleFirstPinComplete}
           />
         ) : (
           <PinPad
             isSetup={true}
-            title="Confirm Your 4-Digit PIN"
-            subtitle="Please re-type the exact 4-digit combination to finalize encryption."
+            length={6}
+            title="Confirm Your 6-Digit PIN"
+            subtitle="Please re-type the exact 6-digit combination to finalize encryption."
             onComplete={handleConfirmPinComplete}
           />
         )}
@@ -65,7 +78,7 @@ export const SetupPinScreen: React.FC = () => {
       <div className="pt-4 text-center">
         <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Hardware Enclave & End-to-End Encrypted</span>
+          <span>HMAC-SHA256 Encrypted • Authoritative Backend Verification</span>
         </div>
       </div>
     </div>

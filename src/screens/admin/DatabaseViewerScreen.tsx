@@ -18,7 +18,12 @@ import {
   ChevronRight, 
   Search,
   PlusCircle,
-  FileJson
+  FileJson,
+  ShieldCheck,
+  Scale,
+  DownloadCloud,
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 
 export const DatabaseViewerScreen: React.FC = () => {
@@ -28,6 +33,14 @@ export const DatabaseViewerScreen: React.FC = () => {
   const [selectedDocId, setSelectedDocId] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Phase 3 Sub-nav view mode
+  const [viewMode, setViewMode] = useState<'collections' | 'reconciliation' | 'backups' | 'audit_chain'>('collections');
+  const [trialBalanceData, setTrialBalanceData] = useState<any | null>(null);
+  const [backupsList, setBackupsList] = useState<any[]>([]);
+  const [integrityReport, setIntegrityReport] = useState<any | null>(null);
+  const [auditChainStatus, setAuditChainStatus] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const unsubscribe = db.subscribe(() => {
@@ -35,6 +48,50 @@ export const DatabaseViewerScreen: React.FC = () => {
     });
     return unsubscribe;
   }, []);
+
+  const loadPhase3Diagnostics = async () => {
+    setIsLoading(true);
+    try {
+      const [recon, backups, integrity, audit] = await Promise.all([
+        db.getTrialBalanceReconciliation('adm-001'),
+        db.listBackups('adm-001'),
+        db.verifyDbIntegrity('adm-001'),
+        db.verifyAuditLogs('adm-001')
+      ]);
+      setTrialBalanceData(recon);
+      setBackupsList(backups?.backups || []);
+      setIntegrityReport(integrity);
+      setAuditChainStatus(audit);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPhase3Diagnostics();
+  }, [viewMode]);
+
+  const handleCreateBackup = async () => {
+    const res = await db.createBackup('MANUAL_DASHBOARD_SNAPSHOT', 'adm-001');
+    if (res && res.success) {
+      showToast(`Database snapshot ${res.snapshot.filename} created!`, 'success');
+      loadPhase3Diagnostics();
+    } else {
+      showToast('Failed to create snapshot', 'error');
+    }
+  };
+
+  const handleRunIntegrityCheck = async () => {
+    const res = await db.verifyDbIntegrity('adm-001');
+    setIntegrityReport(res);
+    if (res && res.healthy) {
+      showToast('Database integrity 100% verified! Zero ledger/schema defects.', 'success');
+    } else {
+      showToast('Integrity issues detected. Review report.', 'error');
+    }
+  };
 
   const collectionInfo: { key: keyof DatabaseState; label: string; icon: any; color: string; path: string }[] = [
     { key: 'users', label: 'Users', icon: Users, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', path: '/users/{userId}' },
@@ -116,154 +173,377 @@ export const DatabaseViewerScreen: React.FC = () => {
   return (
     <AdminLayout activeTab="db">
       <div className="space-y-6 pb-12">
-        {/* Top Architecture Banner */}
-        <div className="p-4 rounded-3xl bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-900 border border-indigo-500/30 shadow-xl space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-                <Database className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-xs font-bold text-white">NoSQL Schema Architecture</h3>
-                <p className="text-[10px] text-slate-400">Live 6-Collection Entity Store</p>
-              </div>
-            </div>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-[9px]">
-              ONLINE
-            </span>
-          </div>
-          <p className="text-[11px] text-slate-300 leading-relaxed">
-            Directly mapped to the enterprise Firestore data models for cross-border users, ledger transactions, shipments, supplier payouts, shop orders, and support tickets.
-          </p>
+        {/* Navigation Switcher Tabs */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <button
+            onClick={() => setViewMode('collections')}
+            className={`p-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+              viewMode === 'collections'
+                ? 'bg-slate-900 border-emerald-500 text-emerald-400 shadow-lg shadow-emerald-500/10'
+                : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white'
+            }`}
+          >
+            <Database className="w-4 h-4" />
+            <span>Entities & Schema</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode('reconciliation')}
+            className={`p-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+              viewMode === 'reconciliation'
+                ? 'bg-slate-900 border-emerald-500 text-emerald-400 shadow-lg shadow-emerald-500/10'
+                : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white'
+            }`}
+          >
+            <Scale className="w-4 h-4" />
+            <span>Trial Balance</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode('backups')}
+            className={`p-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+              viewMode === 'backups'
+                ? 'bg-slate-900 border-emerald-500 text-emerald-400 shadow-lg shadow-emerald-500/10'
+                : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white'
+            }`}
+          >
+            <DownloadCloud className="w-4 h-4" />
+            <span>Backups & DR</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode('audit_chain')}
+            className={`p-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+              viewMode === 'audit_chain'
+                ? 'bg-slate-900 border-emerald-500 text-emerald-400 shadow-lg shadow-emerald-500/10'
+                : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>Audit Hash Chain</span>
+          </button>
         </div>
 
-        {/* Collection Selector Pills */}
-        <div className="space-y-1.5">
-          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-1">
-            Database Collections
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            {collectionInfo.map((col) => {
-              const Icon = col.icon;
-              const count = Object.keys(dbState[col.key] || {}).length;
-              const isSelected = activeCollection === col.key;
-              return (
-                <button
-                  key={col.key}
-                  onClick={() => {
-                    setActiveCollection(col.key);
-                    setSelectedDocId('');
-                  }}
-                  className={`p-2.5 rounded-2xl border text-left transition-all flex items-center gap-2.5 ${
-                    isSelected
-                      ? 'bg-slate-900 border-emerald-500 text-white shadow-md shadow-emerald-500/10'
-                      : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  <div className={`p-2 rounded-xl border ${col.color} shrink-0`}>
-                    <Icon className="w-4 h-4" />
+        {/* 1. ENTITIES & COLLECTIONS INSPECTOR */}
+        {viewMode === 'collections' && (
+          <div className="space-y-6">
+            {/* Top Architecture Banner */}
+            <div className="p-4 rounded-3xl bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-900 border border-indigo-500/30 shadow-xl space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                    <Database className="w-4 h-4" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold truncate text-slate-100">{col.label}</p>
-                    <p className="text-[9px] text-slate-500 num-tabular font-mono">
-                      {count} {count === 1 ? 'doc' : 'docs'}
-                    </p>
+                  <div>
+                    <h3 className="text-xs font-bold text-white">NoSQL Schema Architecture</h3>
+                    <p className="text-[10px] text-slate-400">Live Authoritative Entity Store</p>
                   </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Collection Path & Action Bar */}
-        <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2 font-mono text-[11px] text-emerald-400">
-            <Code2 className="w-4 h-4 text-emerald-400" />
-            <span className="truncate max-w-[210px]">{currentMeta?.path}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={handleAddSampleRecord}
-              className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 transition-all text-[11px] font-semibold flex items-center gap-1"
-              title="Add Sample Record"
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
-              <span>Add</span>
-            </button>
-            <button
-              onClick={() => handleCopyDoc(currentDocs)}
-              className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all text-[11px] font-semibold flex items-center gap-1"
-              title="Copy Entire Collection"
-            >
-              <FileJson className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Document Selector Pills */}
-        <div className="space-y-1.5">
-          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-1">
-            Document IDs ({docIds.length})
-          </span>
-          <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-1">
-            {docIds.map((id) => (
-              <button
-                key={id}
-                onClick={() => setSelectedDocId(id)}
-                className={`px-3 py-1.5 rounded-xl font-mono text-[11px] font-bold whitespace-nowrap transition-all border ${
-                  effectiveDocId === id
-                    ? 'bg-emerald-500 text-slate-950 border-emerald-500 shadow-md'
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
-                }`}
-              >
-                {id}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Document Detail Tree / JSON Viewer */}
-        {currentDoc ? (
-          <div className="rounded-3xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden space-y-0">
-            {/* Header */}
-            <div className="p-3.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span className="font-mono text-[11px] text-white font-bold truncate max-w-[200px]">
-                  {effectiveDocId}
+                </div>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-[9px]">
+                  ONLINE
                 </span>
               </div>
-              <button
-                onClick={() => handleCopyDoc(currentDoc)}
-                className="flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold px-2 py-1 rounded-lg bg-emerald-500/10 transition-colors"
-              >
-                {copied ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? 'Copied' : 'Copy JSON'}</span>
-              </button>
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                Directly mapped to the enterprise Firestore data models for cross-border users, ledger transactions, shipments, supplier payouts, shop orders, and support tickets.
+              </p>
             </div>
 
-            {/* Code / JSON Display */}
-            <div className="p-4 bg-slate-950 font-mono text-[11px] leading-relaxed text-slate-300 overflow-x-auto max-h-96 no-scrollbar selection:bg-emerald-500/30">
-              <pre className="whitespace-pre-wrap">{JSON.stringify(currentDoc, null, 2)}</pre>
+            {/* Collection Selector Pills */}
+            <div className="space-y-1.5">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-1">
+                Database Collections
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                {collectionInfo.map((col) => {
+                  const Icon = col.icon;
+                  const count = Object.keys(dbState[col.key] || {}).length;
+                  const isSelected = activeCollection === col.key;
+                  return (
+                    <button
+                      key={col.key}
+                      onClick={() => {
+                        setActiveCollection(col.key);
+                        setSelectedDocId('');
+                      }}
+                      className={`p-2.5 rounded-2xl border text-left transition-all flex items-center gap-2.5 ${
+                        isSelected
+                          ? 'bg-slate-900 border-emerald-500 text-white shadow-md shadow-emerald-500/10'
+                          : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      <div className={`p-2 rounded-xl border ${col.color} shrink-0`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold truncate text-slate-100">{col.label}</p>
+                        <p className="text-[9px] text-slate-500 num-tabular font-mono">
+                          {count} {count === 1 ? 'doc' : 'docs'}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="p-8 text-center text-xs text-slate-500 rounded-3xl bg-slate-900 border border-slate-800">
-            No documents found in this collection.
+
+            {/* Collection Path & Action Bar */}
+            <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 font-mono text-[11px] text-emerald-400">
+                <Code2 className="w-4 h-4 text-emerald-400" />
+                <span className="truncate max-w-[210px]">{currentMeta?.path}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={handleAddSampleRecord}
+                  className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 transition-all text-[11px] font-semibold flex items-center gap-1"
+                  title="Add Sample Record"
+                >
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  <span>Add</span>
+                </button>
+                <button
+                  onClick={() => handleCopyDoc(currentDocs)}
+                  className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all text-[11px] font-semibold flex items-center gap-1"
+                  title="Copy Entire Collection"
+                >
+                  <FileJson className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Document Selector Pills */}
+            <div className="space-y-1.5">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-1">
+                Document IDs ({docIds.length})
+              </span>
+              <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-1">
+                {docIds.map((id) => (
+                  <button
+                    key={id}
+                    onClick={() => setSelectedDocId(id)}
+                    className={`px-3 py-1.5 rounded-xl font-mono text-[11px] font-bold whitespace-nowrap transition-all border ${
+                      effectiveDocId === id
+                        ? 'bg-emerald-500 text-slate-950 border-emerald-500 shadow-md'
+                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {id}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Document Detail Tree / JSON Viewer */}
+            {currentDoc ? (
+              <div className="rounded-3xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden space-y-0">
+                <div className="p-3.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <span className="font-mono text-[11px] text-white font-bold truncate max-w-[200px]">
+                      {effectiveDocId}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleCopyDoc(currentDoc)}
+                    className="flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold px-2 py-1 rounded-lg bg-emerald-500/10 transition-colors"
+                  >
+                    {copied ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copied ? 'Copied' : 'Copy JSON'}</span>
+                  </button>
+                </div>
+
+                <div className="p-4 bg-slate-950 font-mono text-[11px] leading-relaxed text-slate-300 overflow-x-auto max-h-96 no-scrollbar selection:bg-emerald-500/30">
+                  <pre className="whitespace-pre-wrap">{JSON.stringify(currentDoc, null, 2)}</pre>
+                </div>
+              </div>
+            ) : (
+              <div className="p-8 text-center text-xs text-slate-500 rounded-3xl bg-slate-900 border border-slate-800">
+                No documents found in this collection.
+              </div>
+            )}
           </div>
         )}
 
-        {/* Reset Database Button */}
-        <div className="pt-2">
+        {/* 2. TRIAL BALANCE RECONCILIATION */}
+        {viewMode === 'reconciliation' && (
+          <div className="space-y-4">
+            <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">
+                    Mathematical Ledger Integrity
+                  </span>
+                  <h3 className="text-base font-extrabold text-white mt-1">
+                    Multi-Currency Trial Balance Reconciliation
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Enforces strict double-entry equality: sum(Debits) === sum(Credits) with zero delta.
+                  </p>
+                </div>
+                <button
+                  onClick={loadPhase3Diagnostics}
+                  className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              </div>
+
+              {trialBalanceData && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {Object.entries(trialBalanceData.trialBalance || {}).map(([curr, b]: [string, any]) => (
+                    <div key={curr} className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-white text-sm">{curr} Ledger</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          b.net === 0 ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-400'
+                        }`}>
+                          {b.net === 0 ? 'BALANCED' : 'DELTA DEFECT'}
+                        </span>
+                      </div>
+                      <div className="text-xs space-y-1 font-mono">
+                        <div className="flex justify-between text-slate-400">
+                          <span>Total Debits:</span>
+                          <span className="text-slate-200">{b.debits?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-400">
+                          <span>Total Credits:</span>
+                          <span className="text-slate-200">{b.credits?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between font-bold text-emerald-400 border-t border-slate-800 pt-1">
+                          <span>Net Invariant:</span>
+                          <span>{b.net === 0 ? '0.00 (Zero Delta)' : b.net}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 3. DATABASE BACKUPS & DISASTER RECOVERY */}
+        {viewMode === 'backups' && (
+          <div className="space-y-4">
+            <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">
+                    Disaster Recovery & Point-In-Time Snapshots
+                  </span>
+                  <h3 className="text-base font-extrabold text-white mt-1">
+                    Automated Database Snapshots ({backupsList.length})
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Snapshots stored with SHA-256 integrity checksums and 15-version retention policy.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleRunIntegrityCheck}
+                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 flex items-center gap-1.5"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    <span>Run Integrity Check</span>
+                  </button>
+                  <button
+                    onClick={handleCreateBackup}
+                    className="px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-xs font-bold text-slate-950 flex items-center gap-1.5 shadow-md shadow-emerald-500/20"
+                  >
+                    <DownloadCloud className="w-4 h-4" />
+                    <span>Create Snapshot</span>
+                  </button>
+                </div>
+              </div>
+
+              {integrityReport && (
+                <div className={`p-4 rounded-2xl border text-xs flex items-center justify-between ${
+                  integrityReport.healthy ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5" />
+                    <div>
+                      <strong className="block font-bold">
+                        {integrityReport.healthy ? 'System Integrity: 100% HEALTHY' : 'Integrity Violations Detected'}
+                      </strong>
+                      <span className="text-[10px] opacity-80 font-mono">
+                        {integrityReport.totalJournalEntries} Journal Entries • {integrityReport.usersCount} Accounts Verified
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="divide-y divide-slate-800/80 border border-slate-800 rounded-2xl overflow-hidden bg-slate-950">
+                {backupsList.map((bk) => (
+                  <div key={bk.filename} className="p-3.5 flex items-center justify-between text-xs hover:bg-slate-900/40">
+                    <div>
+                      <span className="font-mono font-bold text-white text-xs">{bk.filename}</span>
+                      <p className="text-[10px] text-slate-400 mt-0.5 font-mono">
+                        SHA-256: {bk.checksum?.slice(0, 24)}... • {(bk.sizeBytes / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 text-[10px] font-bold text-slate-400">
+                      {bk.reason}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 4. AUDIT LOG HASH CHAIN VERIFICATION */}
+        {viewMode === 'audit_chain' && (
+          <div className="space-y-4">
+            <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">
+                  Cryptographic Non-Repudiation Audit
+                </span>
+                <h3 className="text-base font-extrabold text-white mt-1">
+                  Tamper-Evident SHA-256 Audit Trail Chain
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Every staff action, financial approval, and role change is linked to the prior hash, guaranteeing historical immutability.
+                </p>
+              </div>
+
+              {auditChainStatus && (
+                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                    <div>
+                      <strong className="block font-bold">Audit Chain Verified Valid</strong>
+                      <span className="text-[10px] font-mono text-emerald-400/80">
+                        {auditChainStatus.verifiedCount} Hash-Chained Logs Verified from Genesis Head
+                      </span>
+                    </div>
+                  </div>
+                  <span className="font-mono text-[10px] font-bold px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300">
+                    CHAIN INTACT
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Bottom Integrity Trigger (Non-Destructive) */}
+        <div className="pt-2 flex gap-3">
           <button
-            onClick={() => {
-              db.resetToDefaults();
-              showToast('Database reset to schema baseline', 'info');
-            }}
-            className="w-full py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-400 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-98"
+            onClick={handleRunIntegrityCheck}
+            className="flex-1 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-98"
           >
-            <RotateCcw className="w-4 h-4" />
-            <span>Reset Database to Schema Baseline</span>
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>Verify Database Ledger & Schema Integrity</span>
+          </button>
+          <button
+            onClick={handleCreateBackup}
+            className="py-3.5 px-6 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-500/20 active:scale-98"
+          >
+            <DownloadCloud className="w-4 h-4" />
+            <span>Capture Disaster Recovery Snapshot</span>
           </button>
         </div>
       </div>

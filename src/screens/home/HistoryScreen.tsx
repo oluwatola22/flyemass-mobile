@@ -175,7 +175,7 @@ export const HistoryScreen: React.FC = () => {
                     <span className={`text-xs font-extrabold font-mono tabular-nums block ${
                       isNegative ? 'text-white' : 'text-emerald-400'
                     }`}>
-                      {isNegative ? '-' : '+'}{symbol}{tx.amount.toLocaleString()}
+                      {isNegative ? '-' : '+'}{symbol}{(tx?.amount ?? 0).toLocaleString()}
                     </span>
                     <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-400/90 uppercase tracking-wider">
                       <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
@@ -215,7 +215,7 @@ export const HistoryScreen: React.FC = () => {
               </span>
               <h3 className="text-xl font-extrabold text-white mt-1">
                 {selectedTx.currency === 'NGN' ? '₦' : selectedTx.currency === 'CNY' ? '¥' : '$'}
-                {selectedTx.amount.toLocaleString()}
+                {(selectedTx?.amount ?? 0).toLocaleString()}
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">{selectedTx.title}</p>
             </div>
@@ -239,7 +239,7 @@ export const HistoryScreen: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-slate-500">Converted Value:</span>
                   <span className="font-mono font-semibold text-amber-400">
-                    {selectedTx.convertedCurrency} {selectedTx.convertedAmount.toLocaleString()}
+                    {selectedTx.convertedCurrency} {(selectedTx?.convertedAmount ?? 0).toLocaleString()}
                   </span>
                 </div>
               )}

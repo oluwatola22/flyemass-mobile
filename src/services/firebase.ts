@@ -217,7 +217,7 @@ class FirebaseSyncService {
   public onDocSnapshot<K extends keyof DatabaseState>(
     collectionName: K,
     docId: string,
-    callback: (doc: DatabaseState[K][string] | undefined) => void
+    callback: (doc: any) => void
   ): () => void {
     callback(db.getDocument(collectionName, docId));
     return db.subscribe(() => {

@@ -58,7 +58,7 @@ interface AppContextType {
   toggleCompareProduct: (productId: string) => void;
   clearCompare: () => void;
   shopOrders: ShopOrder[];
-  placeShopOrder: (paidWith: Currency, destinationAddress: string) => boolean;
+  placeShopOrder: (paidWith: Currency, destinationAddress: string, pin?: string) => boolean;
   selectedOrderId: string | null;
   setSelectedOrderId: (id: string | null) => void;
   notifications: AppNotification[];
@@ -78,7 +78,7 @@ interface AppContextType {
   withdrawToBank: (bankName: string, accountNumber: string, accountName: string, amountNGN: number) => boolean;
   registerPackage: (data: { trackingNumber: string; title: string; sender: string; type: 'air' | 'sea'; weightKg: number }) => void;
   hotelBookings: HotelBooking[];
-  bookHotel: (hotel: Hotel, nights: number) => void;
+  bookHotel: (hotel: Hotel, nights: number, currency?: Currency, pin?: string) => boolean;
   chatMessages: ChatMessage[];
   sendChatMessage: (text: string) => void;
   toast: ToastState | null;
@@ -190,8 +190,13 @@ const getInitialRoute = (): ScreenRoute => {
   if (typeof window === 'undefined') return 'home';
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
   
+  // Web Admin portal detection on port 5173 or /admin paths
+  if (window.location.port === '5173' && (path === '' || path === '/' || path === '/admin.html')) {
+    return 'admin-dashboard';
+  }
+
   if (path === '' || path === '/' || path === '/app' || path === '/home') return 'home';
-  if (path === '/admin' || path === '/admin/dashboard') return 'admin-dashboard';
+  if (path === '/admin' || path === '/admin/dashboard' || path === '/admin.html') return 'admin-dashboard';
   if (path === '/admin/db') return 'schema-inspector';
   if (path.startsWith('/admin/users')) return 'admin-users';
   if (path.startsWith('/admin/logistics')) return 'admin-logistics';
@@ -218,6 +223,44 @@ const getInitialRoute = (): ScreenRoute => {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const buildUserWallets = (balances?: { NGN?: number; CNY?: number; USD?: number }): WalletBalance[] => {
+  const ngn = balances?.NGN ?? 0;
+  const cny = balances?.CNY ?? 0;
+  const usd = balances?.USD ?? 0;
+  return [
+    {
+      currency: 'NGN',
+      balance: ngn,
+      symbol: '₦',
+      name: 'Nigerian Naira Wallet',
+      flag: '🇳🇬',
+      accountNumber: '9082341902',
+      bankName: 'FlyeMass / Providus Bank',
+      equivalentUSD: Number((ngn / 1485).toFixed(2))
+    },
+    {
+      currency: 'CNY',
+      balance: cny,
+      symbol: '¥',
+      name: 'Chinese Yuan (RMB) Escrow',
+      flag: '🇨🇳',
+      accountNumber: 'CN892300041289',
+      bankName: 'FlyeMass China Merchant Clearing',
+      equivalentUSD: Number((cny / 7.24).toFixed(2))
+    },
+    {
+      currency: 'USD',
+      balance: usd,
+      symbol: '$',
+      name: 'US Dollar Global Account',
+      flag: '🇺🇸',
+      accountNumber: 'US8921894002',
+      bankName: 'FlyeMass / Evolve Bank NY',
+      equivalentUSD: usd
+    }
+  ];
+};
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentRoute, setCurrentRoute] = useState<ScreenRoute>(() => getInitialRoute());
   const [routeHistory, setRouteHistory] = useState<ScreenRoute[]>(() => [getInitialRoute()]);
@@ -235,11 +278,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [wallets, setWallets] = useState<WalletBalance[]>(() => {
     const user = db.getUser(activeUserId) || db.getUser('usr_alade_01');
     if (user && user.balances) {
-      return [
-        { currency: 'NGN', balance: user.balances.NGN, symbol: '₦', name: 'Nigerian Naira' },
-        { currency: 'CNY', balance: user.balances.CNY, symbol: '¥', name: 'Chinese Yuan' },
-        { currency: 'USD', balance: user.balances.USD, symbol: '$', name: 'US Dollar' }
-      ];
+      return buildUserWallets(user.balances);
     }
     const saved = localStorage.getItem('flyemass_wallets');
     return saved ? JSON.parse(saved) : INITIAL_WALLETS;
@@ -287,11 +326,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setActiveUserId(userId);
     const u = db.getUser(userId);
     if (u) {
-      setWallets([
-        { currency: 'NGN', balance: u.balances.NGN, symbol: '₦', name: 'Nigerian Naira' },
-        { currency: 'CNY', balance: u.balances.CNY, symbol: '¥', name: 'Chinese Yuan' },
-        { currency: 'USD', balance: u.balances.USD, symbol: '$', name: 'US Dollar' }
-      ]);
+      setWallets(buildUserWallets(u.balances));
       setUserProfile({
         name: u.fullName,
         email: u.email,
@@ -320,11 +355,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const syncFromDb = () => {
       const user = db.getUser(activeUserId) || db.getUser('usr_alade_01');
       if (user && user.balances) {
-        setWallets([
-          { currency: 'NGN', balance: user.balances.NGN, symbol: '₦', name: 'Nigerian Naira' },
-          { currency: 'CNY', balance: user.balances.CNY, symbol: '¥', name: 'Chinese Yuan' },
-          { currency: 'USD', balance: user.balances.USD, symbol: '$', name: 'US Dollar' }
-        ]);
+        setWallets(buildUserWallets(user.balances));
         setUserProfile({
           name: user.fullName,
           email: user.email,
@@ -349,6 +380,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           'Delivered': 4
         };
 
+        const statusMap: Record<string, Shipment['status']> = {
+          'Origin Received': 'Origin Received',
+          'Packed': 'Packed & Weighed',
+          'In Transit/Customs': 'In Transit',
+          'Lagos Hub Ready': 'Customs Cleared',
+          'Delivered': 'Ready for Pickup'
+        };
+
         setShipments(
           dbShipments.map((s) => {
             const curStep = stepMap[s.currentStatus] ?? 0;
@@ -359,7 +398,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               origin: `${s.originWarehouse} Hub`,
               destination: s.destination,
               type: s.mode.toLowerCase().includes('sea') ? 'sea' : 'air',
-              status: s.currentStatus,
+              status: statusMap[s.currentStatus] || 'In Transit',
               currentStep: curStep,
               eta: s.mode.toLowerCase().includes('sea') ? 'In 21 days' : 'In 3 days',
               weightKg: s.weightKg,
@@ -370,8 +409,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 id: `wp-${s.trackingNumber}-${i}`,
                 title: tl.status,
                 location: tl.location,
-                timestamp: tl.timestamp || 'Just now',
-                status: i < curStep ? 'completed' : i === curStep ? 'current' : 'upcoming',
+                timestamp: String(tl.timestamp || 'Just now'),
+                status: (i < curStep ? 'completed' : i === curStep ? 'current' : 'upcoming') as 'completed' | 'current' | 'upcoming',
                 description: tl.notes || ''
               }))
             };
@@ -381,6 +420,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       const dbOrders = db.getShopOrders();
       if (dbOrders && dbOrders.length > 0) {
+        const orderStatusMap: Record<string, ShopOrder['status']> = {
+          'processing': 'Processing',
+          'shipped': 'HK Dispatched',
+          'delivered': 'Delivered'
+        };
+
         setShopOrders(
           dbOrders.map((o) => ({
             id: o.id,
@@ -390,7 +435,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             totalNGN: o.currency === 'NGN' ? o.totalAmount : o.totalAmount * 1485,
             paidWith: (o.paymentWalletUsed as Currency) || 'USD',
             date: new Date(o.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
-            status: o.fulfillmentStatus === 'delivered' ? 'Delivered' : o.fulfillmentStatus === 'shipped' ? 'Shipped' : 'Processing',
+            status: orderStatusMap[o.fulfillmentStatus] || 'Processing',
             step: o.fulfillmentStatus === 'delivered' ? 3 : o.fulfillmentStatus === 'shipped' ? 2 : 1,
             destinationAddress: o.deliveryAddress,
             trackingNumber: o.trackingNumber || `FM-HK-LOS-${Math.floor(10000 + Math.random() * 90000)}`
@@ -406,15 +451,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             ticketNumber: t.ticketNumber || `TKT-${t.id.slice(-4)}`,
             subject: t.subject,
             category: (t.category as SupportTicket['category']) || 'Supplier Escrow',
-            priority: (t.priority as SupportTicket['priority']) || 'Medium',
+            priority: (t.priority === 'Urgent' ? 'Urgent' : t.priority === 'High' ? 'High' : 'Normal') as SupportTicket['priority'],
             status: t.status === 'resolved' ? 'Resolved' : t.status === 'in_progress' ? 'In Progress' : 'Open',
             lastUpdated: 'Recently',
             createdAt: new Date(t.updatedAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
             messages: t.messages.map((m) => ({
-              sender: m.isAdmin ? 'support' : 'user',
+              sender: (m.isAdmin ? 'agent' : 'user') as 'agent' | 'user',
               senderName: m.senderName || (m.isAdmin ? 'FlyeMass Concierge' : 'Chief Alade'),
               text: m.text,
-              timestamp: m.timestamp || 'Just now'
+              timestamp: String(m.timestamp || 'Just now')
             }))
           }))
         );
@@ -529,99 +574,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     }
 
-    const toWallet = wallets.find((w) => w.currency === to);
-    const newFromBal = fromWallet.balance - fromAmount;
-    const newToBal = (toWallet?.balance || 0) + toAmount;
+    const calculatedRate = toAmount / fromAmount;
 
-    db.updateUserBalances(activeUserId, {
-      [from]: newFromBal,
-      [to]: newToBal
+    db.executeSwap(activeUserId, from, to, fromAmount, toAmount, calculatedRate).then((res) => {
+      if (res && res.error) {
+        showToast(res.error, 'error');
+      } else {
+        addTransaction({
+          title: `FX Swap: ${from} to ${to}`,
+          category: 'FX Swap',
+          amount: fromAmount,
+          currency: from,
+          convertedAmount: toAmount,
+          convertedCurrency: to,
+          status: 'completed',
+          reference: res?.reference || `SWP-${from}-${to}-${Math.floor(1000 + Math.random() * 9000)}`,
+          recipient: 'FlyeMass Instant Liquidity Pool',
+          paymentMethod: 'Instant FX Rate Lock Engine',
+          type: 'swap'
+        });
+        showToast(`Swapped ${fromWallet.symbol}${fromAmount.toLocaleString()} to ${to} successfully!`, 'success');
+      }
+    }).catch(() => {
+      showToast('Swap communication error', 'error');
     });
 
-    setWallets((prev) =>
-      prev.map((w) => {
-        if (w.currency === from) {
-          return { ...w, balance: newFromBal };
-        }
-        if (w.currency === to) {
-          return { ...w, balance: newToBal };
-        }
-        return w;
-      })
-    );
-
-    addTransaction({
-      title: `FX Swap: ${from} to ${to}`,
-      category: 'FX Swap',
-      amount: fromAmount,
-      currency: from,
-      convertedAmount: toAmount,
-      convertedCurrency: to,
-      status: 'completed',
-      reference: `SWP-${from}-${to}-${Math.floor(1000 + Math.random() * 9000)}`,
-      recipient: 'FlyeMass Instant Liquidity Pool',
-      paymentMethod: 'Instant FX Rate Lock Engine',
-      type: 'swap'
-    });
-
-    db.recordLedgerEntry({
-      userId: activeUserId,
-      type: 'FX_SWAP',
-      sourceCurrency: from,
-      targetCurrency: to,
-      amount: fromAmount,
-      fee: 0,
-      status: 'completed',
-      reference: `SWP-${from}-${to}-${Math.floor(1000 + Math.random() * 9000)}`,
-      notes: `Instant FX Swap: ${from} to ${to}`
-    });
-
-    showToast(`Swapped ${fromWallet.symbol}${fromAmount.toLocaleString()} to ${to} successfully!`, 'success');
     return true;
   };
 
   const fundWallet = (currency: Currency, amount: number, method: string) => {
-    const targetWallet = wallets.find((w) => w.currency === currency);
-    const newBal = (targetWallet?.balance || 0) + amount;
-
-    db.updateUserBalances(activeUserId, {
-      [currency]: newBal
+    db.fundWallet(activeUserId, currency, amount, method).then((res) => {
+      if (res && res.error) {
+        showToast(res.error, 'error');
+      } else {
+        addTransaction({
+          title: `Deposit via ${method}`,
+          category: 'Wallet Top-up',
+          amount,
+          currency,
+          status: 'completed',
+          reference: res?.reference || `TOPUP-${Date.now().toString().slice(-6)}`,
+          recipient: `${userProfile.name} ${currency} Vault`,
+          paymentMethod: method,
+          type: 'fund'
+        });
+        showToast(`Wallet credited with ${currency === 'NGN' ? '₦' : currency === 'CNY' ? '¥' : '$'}${amount.toLocaleString()}!`, 'success');
+      }
+    }).catch(() => {
+      showToast('Funding communication error', 'error');
     });
-
-    setWallets((prev) =>
-      prev.map((w) => {
-        if (w.currency === currency) {
-          return { ...w, balance: newBal };
-        }
-        return w;
-      })
-    );
-
-    addTransaction({
-      title: `Deposit via ${method}`,
-      category: 'Wallet Top-up',
-      amount,
-      currency,
-      status: 'completed',
-      reference: `TOPUP-${Date.now().toString().slice(-6)}`,
-      recipient: `${userProfile.name} ${currency} Vault`,
-      paymentMethod: method,
-      type: 'fund'
-    });
-
-    db.recordLedgerEntry({
-      userId: activeUserId,
-      type: 'FUND',
-      sourceCurrency: currency,
-      targetCurrency: currency,
-      amount,
-      fee: 0,
-      status: 'completed',
-      reference: `TOPUP-${Date.now().toString().slice(-6)}`,
-      notes: `Deposit via ${method}`
-    });
-
-    showToast(`Wallet credited with ${currency === 'NGN' ? '₦' : currency === 'CNY' ? '¥' : '$'}${amount.toLocaleString()}!`, 'success');
   };
 
   const paySupplier = (supplierName: string, method: string, amountCNY: number, note: string): boolean => {
@@ -631,102 +632,61 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     }
 
-    const newBal = cnyWallet.balance - amountCNY;
-    db.updateUserBalances(activeUserId, {
-      CNY: newBal
+    db.paySupplier(activeUserId, supplierName, '13800138000', method, amountCNY, note).then((res) => {
+      if (res && res.error) {
+        showToast(res.error, 'error');
+      } else {
+        addTransaction({
+          title: `Supplier Payment: ${supplierName}`,
+          category: 'Supplier',
+          amount: amountCNY,
+          currency: 'CNY',
+          status: 'completed',
+          reference: res?.reference || `PAY-${supplierName.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`,
+          recipient: supplierName,
+          paymentMethod: method,
+          type: 'pay_supplier'
+        });
+        showToast(`¥${amountCNY.toLocaleString()} transferred to ${supplierName} via ${method}!`, 'success');
+      }
+    }).catch(() => {
+      showToast('Supplier payment error', 'error');
     });
 
-    setWallets((prev) =>
-      prev.map((w) => {
-        if (w.currency === 'CNY') {
-          return { ...w, balance: newBal };
-        }
-        return w;
-      })
-    );
-
-    addTransaction({
-      title: `Supplier Payment: ${supplierName}`,
-      category: 'Supplier',
-      amount: amountCNY,
-      currency: 'CNY',
-      status: 'completed',
-      reference: `PAY-${supplierName.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`,
-      recipient: supplierName,
-      paymentMethod: method,
-      type: 'pay_supplier'
-    });
-
-    const paymentMethodClean = method.includes('WeChat')
-      ? 'WeChat Pay'
-      : method.includes('Bank')
-      ? 'China Bank Transfer'
-      : 'Alipay';
-
-    db.recordLedgerEntry({
-      userId: activeUserId,
-      type: 'PAY_SUPPLIER',
-      sourceCurrency: 'CNY',
-      targetCurrency: 'CNY',
-      amount: amountCNY,
-      fee: 0,
-      status: 'completed',
-      reference: `PAY-${supplierName.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`,
-      notes: `Payment to ${supplierName}`
-    });
-
-    db.recordSupplierPayment({
-      userId: activeUserId,
-      paymentMethod: paymentMethodClean,
-      receiverAccount: '13800138000',
-      receiverName: supplierName,
-      amountRMB: amountCNY,
-      equivalentNGN: amountCNY * 214.5,
-      status: 'disbursed',
-      notes: note
-    });
-
-    showToast(`¥${amountCNY.toLocaleString()} transferred to ${supplierName} via ${method}!`, 'success');
     return true;
   };
 
   const withdrawToBank = (bankName: string, accountNumber: string, accountName: string, amountNGN: number): boolean => {
     const ngnWallet = wallets.find((w) => w.currency === 'NGN');
-    const fee = 100; // Flat fee
+    const fee = 500; // Authoritative Flat fee
     const totalDeduction = amountNGN + fee;
 
     if (!ngnWallet || ngnWallet.balance < totalDeduction) {
-      showToast('Insufficient NGN wallet balance including transfer fee', 'error');
+      showToast(`Insufficient NGN wallet balance including ₦${fee} flat transfer fee`, 'error');
       return false;
     }
 
-    const newBal = ngnWallet.balance - totalDeduction;
-    db.updateUserBalances(activeUserId, {
-      NGN: newBal
+    db.requestWithdrawal(activeUserId, bankName, accountNumber, accountName, amountNGN).then((res) => {
+      if (res && res.error) {
+        showToast(res.error, 'error');
+      } else {
+        addTransaction({
+          title: `Withdrawal to ${bankName}`,
+          category: 'Wallet Top-up',
+          amount: amountNGN,
+          currency: 'NGN',
+          status: 'completed',
+          reference: res?.withdrawal?.transferReference || `WTH-${Date.now().toString().slice(-6)}`,
+          recipient: `${accountName} (${accountNumber})`,
+          paymentMethod: 'NIBSS Instant Transfer',
+          type: 'withdraw'
+        });
+        showToast(`Payout of ₦${amountNGN.toLocaleString()} queued for clearance!`, 'success');
+      }
+    }).catch(() => {
+      showToast('Withdrawal communication error', 'error');
     });
 
-    setWallets((prev) =>
-      prev.map((w) => {
-        if (w.currency === 'NGN') {
-          return { ...w, balance: newBal };
-        }
-        return w;
-      })
-    );
-
-    addTransaction({
-      title: `Payout to ${bankName} - ${accountName}`,
-      category: 'Wallet Top-up',
-      amount: amountNGN,
-      currency: 'NGN',
-      status: 'completed',
-      reference: `WDR-NGN-${Math.floor(100000 + Math.random() * 900000)}`,
-      recipient: `${accountName} (${accountNumber})`,
-      paymentMethod: `NIBSS Instant Transfer (${bankName})`,
-      type: 'withdraw'
-    });
-
-    showToast(`₦${amountNGN.toLocaleString()} sent to ${bankName} (${accountNumber})!`, 'success');
     return true;
   };
 
@@ -885,7 +845,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCompareProductIds([]);
   };
 
-  const placeShopOrder = (paidWith: Currency, destinationAddress: string): boolean => {
+  const placeShopOrder = (paidWith: Currency, destinationAddress: string, pin?: string): boolean => {
     if (cart.length === 0) return false;
     
     const totalUSD = cart.reduce((sum, item) => sum + item.product.priceUSD * item.quantity, 0);
@@ -899,7 +859,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     }
 
-    const newBal = walletToDebit.balance - requiredAmount;
+    const openingBal = walletToDebit.balance;
+    const newBal = openingBal - requiredAmount;
     db.updateUserBalances(activeUserId, {
       [paidWith]: newBal
     });
@@ -912,6 +873,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return w;
       })
     );
+
+    // Call backend authoritative endpoint
+    db.checkoutShopWithPin(activeUserId, cart, requiredAmount, paidWith, destinationAddress, pin);
+
+    // Decrement stock in catalog
+    cart.forEach(item => {
+      db.updateProductStock(item.product.id, -item.quantity);
+    });
 
     const newOrder: ShopOrder = {
       id: `ord-tech-${Date.now()}`,
@@ -931,7 +900,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSelectedOrderId(newOrder.id);
 
     db.recordShopOrder({
-      userId: 'usr_alade_01',
+      userId: activeUserId,
       items: [...cart],
       totalAmount: requiredAmount,
       currency: paidWith,
@@ -943,12 +912,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     db.recordLedgerEntry({
-      userId: 'usr_alade_01',
+      userId: activeUserId,
       type: 'SHOP_ORDER',
       sourceCurrency: paidWith,
       targetCurrency: paidWith,
       amount: requiredAmount,
       fee: 0,
+      openingBalance: openingBal,
+      closingBalance: newBal,
       status: 'completed',
       reference: newOrder.orderNumber,
       notes: `Tech Wholesale: ${cart[0].product.title}`
@@ -1097,22 +1068,80 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`RFQ ${newRfq.rfqCode} assigned to our ${data.supplierCity} agent team!`, 'success');
   };
 
-  const bookHotel = (hotel: Hotel, nights: number) => {
+  const bookHotel = (hotel: Hotel, nights: number, currency: Currency = 'USD', pin?: string): boolean => {
+    const totalUSD = hotel.pricePerNightUSD * nights;
+    const requiredDebit = currency === 'NGN' ? totalUSD * 1485 : currency === 'CNY' ? totalUSD * 7.24 : totalUSD;
+    const targetWallet = wallets.find((w) => w.currency === currency);
+    if (!targetWallet || targetWallet.balance < requiredDebit) {
+      showToast(`Insufficient balance in ${currency} wallet`, 'error');
+      return false;
+    }
+
+    const openingBal = targetWallet.balance;
+    const newBal = openingBal - requiredDebit;
+
+    db.updateUserBalances(activeUserId, {
+      [currency]: newBal
+    });
+
+    setWallets((prev) =>
+      prev.map((w) => (w.currency === currency ? { ...w, balance: newBal } : w))
+    );
+
+    // Call authoritative backend endpoint
+    db.bookHotelWithPin(activeUserId, hotel, nights, totalUSD, currency, userProfile.name, pin);
+
+    const confCode = `FM-${hotel.city.slice(0, 3).toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}`;
     const newBooking: HotelBooking = {
-      id: `BK-${hotel.city.toUpperCase().slice(0, 2)}-${Math.floor(10000 + Math.random() * 90000)}`,
+      id: `BK-${hotel.city.toUpperCase().slice(0, 2)}-${Date.now()}`,
       hotel,
       checkIn: 'Nov 15, 2026',
       checkOut: `Nov ${15 + nights}, 2026`,
       nights,
-      totalUSD: hotel.pricePerNightUSD * nights,
+      totalUSD,
       guestName: userProfile.name,
-      confirmationCode: `FM-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+      confirmationCode: confCode,
       status: 'Confirmed',
       taxiCardZh: `师傅您好，请带我到：${hotel.chineseName} (${hotel.district})。谢谢！`
     };
 
     setHotelBookings((prev) => [newBooking, ...prev]);
+
+    db.recordHotelBooking({
+      ...newBooking,
+      userId: activeUserId,
+      currency,
+      amountDebited: requiredDebit
+    });
+
+    db.recordLedgerEntry({
+      userId: activeUserId,
+      type: 'HOTEL_BOOKING' as any,
+      sourceCurrency: currency,
+      targetCurrency: currency,
+      amount: requiredDebit,
+      fee: 0,
+      openingBalance: openingBal,
+      closingBalance: newBal,
+      status: 'completed',
+      reference: confCode,
+      notes: `Reservation: ${hotel.name} (${nights} nights)`
+    });
+
+    addTransaction({
+      title: `Hotel Booking: ${hotel.name}`,
+      category: 'Logistics',
+      amount: requiredDebit,
+      currency,
+      status: 'completed',
+      reference: confCode,
+      recipient: hotel.name,
+      paymentMethod: `${currency} Wallet Direct`,
+      type: 'cargo_freight'
+    });
+
     showToast(`Reservation confirmed at ${hotel.name}!`, 'success');
+    return true;
   };
 
   const sendChatMessage = (text: string) => {
@@ -1215,7 +1244,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setUserPin,
         login,
         logout,
-        userProfile
+        userProfile,
+        activeUserId,
+        switchUser,
+        viewAsClient
       }}
     >
       {children}

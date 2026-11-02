@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
+import { db } from '../../services/db';
 import { 
   ArrowDownLeft, 
   Send, 
@@ -15,7 +16,7 @@ import {
   Sparkles,
   ExternalLink
 } from 'lucide-react';
-import { Currency, TransactionType } from '../../types';
+import { Currency, TransactionType, WalletBalance } from '../../types';
 
 export const WalletsScreen: React.FC = () => {
   const { 
@@ -25,7 +26,8 @@ export const WalletsScreen: React.FC = () => {
     transactions, 
     isBalanceHidden, 
     navigate, 
-    showToast 
+    showToast,
+    activeUserId 
   } = useApp();
 
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'Supplier' | 'FX Swap' | 'Wallet Top-up' | 'Logistics'>('all');
@@ -33,7 +35,47 @@ export const WalletsScreen: React.FC = () => {
   const [showStatementModal, setShowStatementModal] = useState(false);
   const [copiedAccount, setCopiedAccount] = useState(false);
 
-  const currentWallet = wallets.find((w) => w.currency === activeCurrency) || wallets[0];
+  const defaultWallet: WalletBalance = {
+    currency: 'NGN',
+    balance: 0,
+    symbol: '₦',
+    name: 'Nigerian Naira Wallet',
+    flag: '🇳🇬',
+    accountNumber: '9082341902',
+    bankName: 'FlyeMass / Providus Bank',
+    equivalentUSD: 0
+  };
+
+  const currentWallet = (wallets && wallets.find((w) => w?.currency === activeCurrency)) || (wallets && wallets[0]) || defaultWallet;
+
+  const handleDownloadStatement = () => {
+    const user = db.getUser(activeUserId);
+    const ledger = db.getLedger().filter(l => l.userId === activeUserId);
+    
+    let csv = `FLYE-MASS OFFICIAL ACCOUNT STATEMENT\n`;
+    csv += `Client Name,${user?.fullName || 'Chief Babatunde Alade'}\n`;
+    csv += `Company,${user?.businessName || 'Alade Global Enterprises Ltd'}\n`;
+    csv += `Currency Wallet,${currentWallet?.name || 'All Vaults'}\n`;
+    csv += `Generated At,${new Date().toISOString()}\n`;
+    csv += `Available Balance,${currentWallet?.symbol}${(currentWallet?.balance || 0).toLocaleString()}\n\n`;
+    csv += `Reference,Date,Type,Source Currency,Target Currency,Amount,Fee,Opening Balance,Closing Balance,Status,Notes\n`;
+
+    ledger.forEach((tx) => {
+      csv += `"${tx.reference}","${new Date(tx.timestamp).toLocaleString()}","${tx.type}","${tx.sourceCurrency}","${tx.targetCurrency}","${tx.amount}","${tx.fee || 0}","${tx.openingBalance ?? ''}","${tx.closingBalance ?? ''}","${tx.status}","${(tx.notes || '').replace(/"/g, '""')}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `FlyeMass_Statement_${currentWallet?.currency || 'NGN'}_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setShowStatementModal(false);
+    showToast(`Official ${currentWallet?.currency} Ledger Statement downloaded successfully!`, 'success');
+  };
 
   const filteredTransactions = transactions.filter((tx) => {
     const matchesFilter = selectedFilter === 'all' || tx.category === selectedFilter;
@@ -89,25 +131,27 @@ export const WalletsScreen: React.FC = () => {
 
           <div className="mt-4">
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold text-emerald-400">{currentWallet.symbol}</span>
+              <span className="text-2xl font-bold text-emerald-400">{currentWallet?.symbol ?? '₦'}</span>
               <span className="text-3xl font-extrabold text-white tracking-tight num-tabular">
                 {isBalanceHidden
                   ? '••••••••'
-                  : currentWallet.currency === 'NGN'
-                  ? currentWallet.balance.toLocaleString('en-NG', { maximumFractionDigits: 2 })
-                  : currentWallet.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  : currentWallet?.currency === 'NGN'
+                  ? (currentWallet?.balance ?? 0).toLocaleString('en-NG', { maximumFractionDigits: 2 })
+                  : (currentWallet?.balance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
             <p className="text-[11px] text-slate-400 mt-1 num-tabular">
-              Equivalent: ≈ {isBalanceHidden ? '••••' : `$${currentWallet.equivalentUSD.toLocaleString()} USD`}
+              Equivalent: ≈ {isBalanceHidden 
+                ? '••••' 
+                : `$${(currentWallet?.equivalentUSD ?? ((currentWallet?.balance ?? 0) / (currentWallet?.currency === 'CNY' ? 7.24 : currentWallet?.currency === 'NGN' ? 1485 : 1))).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`}
             </p>
           </div>
 
           {/* Account Details Box */}
-          {currentWallet.accountNumber && (
+          {currentWallet?.accountNumber && (
             <div className="mt-4 p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between text-xs">
               <div>
-                <p className="text-[10px] text-slate-400">{currentWallet.bankName}</p>
+                <p className="text-[10px] text-slate-400">{currentWallet.bankName ?? 'Providus Bank'}</p>
                 <p className="font-mono font-bold text-slate-200 mt-0.5">{currentWallet.accountNumber}</p>
               </div>
               <button
@@ -237,20 +281,20 @@ export const WalletsScreen: React.FC = () => {
 
                 <div className="text-right">
                   <p className={`text-xs font-extrabold num-tabular ${
-                    tx.type === 'fund' ? 'text-emerald-400' : 'text-slate-100'
+                    tx?.type === 'fund' ? 'text-emerald-400' : 'text-slate-100'
                   }`}>
-                    {tx.type === 'fund' ? '+' : '-'}
-                    {tx.currency === 'NGN' ? '₦' : tx.currency === 'CNY' ? '¥' : '$'}
-                    {tx.amount.toLocaleString()}
+                    {tx?.type === 'fund' ? '+' : '-'}
+                    {tx?.currency === 'NGN' ? '₦' : tx?.currency === 'CNY' ? '¥' : '$'}
+                    {(tx?.amount ?? 0).toLocaleString()}
                   </p>
-                  {tx.convertedAmount && (
+                  {tx?.convertedAmount !== undefined && (
                     <p className="text-[9px] text-slate-400 num-tabular mt-0.5">
-                      ≈ {tx.convertedCurrency === 'NGN' ? '₦' : tx.convertedCurrency === 'CNY' ? '¥' : '$'}
-                      {tx.convertedAmount.toLocaleString()}
+                      ≈ {tx?.convertedCurrency === 'NGN' ? '₦' : tx?.convertedCurrency === 'CNY' ? '¥' : '$'}
+                      {(tx?.convertedAmount ?? 0).toLocaleString()}
                     </p>
                   )}
                   <span className="inline-block mt-1 text-[9px] uppercase font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                    {tx.status}
+                    {tx?.status ?? 'completed'}
                   </span>
                 </div>
               </div>
@@ -308,14 +352,11 @@ export const WalletsScreen: React.FC = () => {
             </div>
 
             <button
-              onClick={() => {
-                setShowStatementModal(false);
-                showToast('Statement PDF generated & downloaded to device', 'success');
-              }}
-              className="w-full py-3.5 rounded-2xl bg-emerald-500 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+              onClick={handleDownloadStatement}
+              className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 active:scale-98 transition-all"
             >
               <Download className="w-4 h-4" />
-              <span>Download Official Statement</span>
+              <span>Download Official Statement (CSV)</span>
             </button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
+import { db } from '../../services/db';
 import { 
   Send, 
   Paperclip, 
@@ -16,7 +17,15 @@ import {
 export const SupportChatScreen: React.FC = () => {
   const { chatMessages, sendChatMessage, userProfile } = useApp();
   const [inputText, setInputText] = useState('');
+  const [ticket, setTicket] = useState(() => db.getState().support_tickets['tkt_8901']);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    return db.subscribe(() => {
+      const current = db.getState().support_tickets['tkt_8901'];
+      if (current) setTicket({ ...current });
+    });
+  }, []);
 
   const quickPills = [
     'Current NGN/RMB live rate?',
@@ -27,18 +36,36 @@ export const SupportChatScreen: React.FC = () => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages]);
+  }, [ticket?.messages, chatMessages]);
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
+
+    // Send to authoritative ticket store
+    db.addTicketMessage('tkt_8901', {
+      senderId: 'usr_alade_01',
+      senderName: userProfile.name,
+      text: inputText,
+      isAdmin: false
+    });
+
+    // Also trigger automated instant AI response if applicable
     sendChatMessage(inputText);
     setInputText('');
   };
 
   const handlePillClick = (text: string) => {
+    db.addTicketMessage('tkt_8901', {
+      senderId: 'usr_alade_01',
+      senderName: userProfile.name,
+      text,
+      isAdmin: false
+    });
     sendChatMessage(text);
   };
+
+  const displayedMessages = ticket?.messages || [];
 
   return (
     <div className="h-full flex flex-col justify-between bg-slate-950 text-white">
@@ -55,22 +82,23 @@ export const SupportChatScreen: React.FC = () => {
             </div>
             <div>
               <p className="text-xs font-bold text-white">Chen Wei & Trade AI</p>
-              <p className="text-[9px] text-slate-400">Guangzhou Hub Desk • Avg response: &lt; 1 min</p>
+              <p className="text-[9px] text-slate-400">Guangzhou Hub Desk • Real-time Sync Active</p>
             </div>
           </div>
-          <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold">
-            LIVE
+          <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>LIVE</span>
           </span>
         </div>
       </div>
 
       {/* Messages Scroll Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3.5 no-scrollbar">
-        {chatMessages.map((msg) => {
-          const isUser = msg.sender === 'user';
+        {displayedMessages.map((msg, idx) => {
+          const isUser = !msg.isAdmin;
           return (
             <div
-              key={msg.id}
+              key={idx}
               className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-[85%] ${
                 isUser ? 'ml-auto' : 'mr-auto'
               }`}
@@ -78,7 +106,7 @@ export const SupportChatScreen: React.FC = () => {
               <div className="flex items-center gap-1.5 mb-1 px-1">
                 {!isUser && (
                   <span className="text-[10px] font-bold text-emerald-400">
-                    {msg.senderName}
+                    {msg.senderName || 'FlyeMass Concierge'}
                   </span>
                 )}
                 <span className="text-[9px] text-slate-500">{msg.timestamp}</span>
@@ -94,7 +122,7 @@ export const SupportChatScreen: React.FC = () => {
                 {msg.text}
               </div>
 
-              {isUser && msg.status && (
+              {isUser && (
                 <div className="flex items-center gap-1 text-[9px] text-slate-500 mt-1 px-1">
                   <span>Delivered</span>
                   <CheckCheck className="w-3 h-3 text-emerald-400" />

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
+import { PinPad } from '../../components/ui/PinPad';
+import { db } from '../../services/db';
 import { 
   ArrowDownUp, 
   Clock, 
@@ -9,16 +11,19 @@ import {
   TrendingUp, 
   RefreshCw, 
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
+  Lock
 } from 'lucide-react';
 import { Currency } from '../../types';
 
 export const ExchangeScreen: React.FC = () => {
-  const { wallets, executeSwap, goBack, showToast } = useApp();
+  const { wallets, executeSwap, goBack, showToast, activeUserId } = useApp();
   
   const [fromCurrency, setFromCurrency] = useState<Currency>('NGN');
   const [toCurrency, setToCurrency] = useState<Currency>('CNY');
   const [fromAmount, setFromAmount] = useState<string>('5000000');
+  const [showPinModal, setShowPinModal] = useState<boolean>(false);
+  const [isSwapping, setIsSwapping] = useState<boolean>(false);
   
   // Rate lock timer (60 seconds countdown)
   const [countdown, setCountdown] = useState<number>(60);
@@ -38,13 +43,17 @@ export const ExchangeScreen: React.FC = () => {
 
   const getExchangeRate = (from: Currency, to: Currency): number => {
     if (from === to) return 1;
-    // Base rates
-    if (from === 'CNY' && to === 'NGN') return 214.50;
-    if (from === 'NGN' && to === 'CNY') return 1 / 214.50;
-    if (from === 'USD' && to === 'NGN') return 1485.00;
-    if (from === 'NGN' && to === 'USD') return 1 / 1485.00;
-    if (from === 'USD' && to === 'CNY') return 7.24;
-    if (from === 'CNY' && to === 'USD') return 1 / 7.24;
+    const settings = db.getSystemSettings()?.rates || { NGN_CNY: 214.50, USD_NGN: 1485.00, USD_CNY: 7.24 };
+    const ngnRmb = settings.NGN_CNY || 214.50;
+    const usdNgn = settings.USD_NGN || 1485.00;
+    const usdCny = settings.USD_CNY || 7.24;
+
+    if (from === 'CNY' && to === 'NGN') return ngnRmb;
+    if (from === 'NGN' && to === 'CNY') return 1 / ngnRmb;
+    if (from === 'USD' && to === 'NGN') return usdNgn;
+    if (from === 'NGN' && to === 'USD') return 1 / usdNgn;
+    if (from === 'USD' && to === 'CNY') return usdCny;
+    if (from === 'CNY' && to === 'USD') return 1 / usdCny;
     return 1;
   };
 
@@ -61,14 +70,33 @@ export const ExchangeScreen: React.FC = () => {
     setToCurrency(temp);
   };
 
-  const handleSwap = () => {
+  const handleInitiateSwap = () => {
     if (parsedFrom <= 0) {
       showToast('Enter a valid amount to swap', 'error');
       return;
     }
-    const success = executeSwap(fromCurrency, toCurrency, parsedFrom, calculatedTo);
-    if (success) {
+    if ((fromWallet?.balance || 0) < parsedFrom) {
+      showToast(`Insufficient ${fromCurrency} balance`, 'error');
+      return;
+    }
+    setShowPinModal(true);
+  };
+
+  const handleAuthorizeSwap = async (pin: string) => {
+    setIsSwapping(true);
+    try {
+      const res = await db.executeSwap(activeUserId, fromCurrency, toCurrency, parsedFrom, calculatedTo, rate, pin);
+      if (res && res.error) {
+        showToast(res.error, 'error');
+        return;
+      }
+      setShowPinModal(false);
+      showToast(`Swapped ${fromWallet?.symbol}${parsedFrom.toLocaleString()} to ${toCurrency} successfully!`, 'success');
       goBack();
+    } catch (e) {
+      showToast('Swap execution failed', 'error');
+    } finally {
+      setIsSwapping(false);
     }
   };
 
@@ -95,6 +123,17 @@ export const ExchangeScreen: React.FC = () => {
           </div>
         </div>
 
+        {/* USDT Coming Soon Notice */}
+        <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between text-xs">
+          <span className="text-slate-400 flex items-center gap-1.5">
+            <Lock className="w-3.5 h-3.5 text-slate-500" />
+            <span>USDT Tether Liquidity Bridge</span>
+          </span>
+          <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[10px] font-bold">
+            Coming Soon (Pending SAFE Approval)
+          </span>
+        </div>
+
         {/* Split-Screen Calculator Layout */}
         <div className="relative space-y-2">
           {/* Top: You Pay */}
@@ -102,7 +141,7 @@ export const ExchangeScreen: React.FC = () => {
             <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
               <span className="font-semibold uppercase tracking-wider text-[11px]">You Pay (From Vault)</span>
               <span className="num-tabular text-[11px]">
-                Available: {fromWallet?.symbol}{fromWallet?.balance.toLocaleString()} {fromCurrency}
+                Available: {fromWallet?.symbol}{(fromWallet?.balance ?? 0).toLocaleString()} {fromCurrency}
               </span>
             </div>
 
@@ -162,7 +201,7 @@ export const ExchangeScreen: React.FC = () => {
             <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
               <span className="font-semibold uppercase tracking-wider text-[11px]">You Receive (Estimated)</span>
               <span className="num-tabular text-[11px]">
-                Vault: {toWallet?.symbol}{toWallet?.balance.toLocaleString()} {toCurrency}
+                Vault: {toWallet?.symbol}{(toWallet?.balance ?? 0).toLocaleString()} {toCurrency}
               </span>
             </div>
 
@@ -216,13 +255,27 @@ export const ExchangeScreen: React.FC = () => {
 
         {/* CTA */}
         <button
-          onClick={handleSwap}
+          onClick={handleInitiateSwap}
           className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-sm shadow-xl shadow-emerald-500/20 active:scale-98 transition-all flex items-center justify-center gap-2"
         >
           <span>Confirm Instant FX Swap</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
+
+      {/* 6-Digit PIN Authorization Modal */}
+      {showPinModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+            <PinPad
+              title="Authorize Currency Swap"
+              subtitle={`Swap ${fromCurrency} ${parsedFrom.toLocaleString()} to ${toCurrency} ${calculatedTo.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
+              onComplete={handleAuthorizeSwap}
+              onCancel={() => setShowPinModal(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

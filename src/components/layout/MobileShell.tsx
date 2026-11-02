@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { BottomNav } from './BottomNav';
 import { QuickActionSheet } from '../ui/QuickActionSheet';
 import { Toast } from '../ui/Toast';
 import { 
   Wifi, 
+  WifiOff,
   Battery, 
   Signal, 
   Moon, 
@@ -99,7 +100,36 @@ export const MobileShell: React.FC = () => {
     showToast 
   } = useApp();
 
-  const [currentTime] = useState('09:41');
+  const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [currentTime, setCurrentTime] = useState<string>(() => {
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  });
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      showToast('Network online. Synchronized with FlyeMass backend.', 'success');
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      showToast('Network offline. Working with local cached ledger.', 'info');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    const timer = setInterval(() => {
+      const d = new Date();
+      setCurrentTime(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`);
+    }, 15000);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      clearInterval(timer);
+    };
+  }, [showToast]);
 
   const renderCurrentScreen = () => {
     switch (currentRoute) {
@@ -367,13 +397,25 @@ export const MobileShell: React.FC = () => {
             {/* Right: Icons (Signal, Wifi, Battery) */}
             <div className="flex items-center gap-1.5 text-white">
               <Signal className="w-3.5 h-3.5" />
-              <Wifi className="w-3.5 h-3.5" />
+              {isOnline ? (
+                <Wifi className="w-3.5 h-3.5 text-emerald-400" />
+              ) : (
+                <WifiOff className="w-3.5 h-3.5 text-amber-400" />
+              )}
               <div className="flex items-center gap-0.5">
                 <span className="text-[10px] font-mono font-bold">98%</span>
                 <Battery className="w-4 h-4 text-emerald-400" />
               </div>
             </div>
           </div>
+
+          {/* Network Offline Status Banner */}
+          {!isOnline && (
+            <div className="bg-amber-500/20 border-b border-amber-500/40 px-3 py-1 flex items-center justify-center gap-1.5 text-[11px] font-bold text-amber-300 animate-pulse">
+              <WifiOff className="w-3.5 h-3.5 shrink-0" />
+              <span>Offline Mode — Changes queued locally</span>
+            </div>
+          )}
 
           {/* Active Screen View */}
           <main className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">

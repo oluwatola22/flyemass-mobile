@@ -2,17 +2,19 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { PinPad } from '../../components/ui/PinPad';
-import { Building2, ArrowUpRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { db } from '../../services/db';
+import { Building2, ArrowUpRight, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Currency } from '../../types';
 
 export const WithdrawScreen: React.FC = () => {
-  const { wallets, userPin, goBack, showToast, addTransaction } = useApp();
+  const { wallets, goBack, showToast, activeUserId } = useApp();
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>('NGN');
   const [amount, setAmount] = useState('2500000');
   const [bankName, setBankName] = useState('Zenith Bank Plc');
   const [accountNumber, setAccountNumber] = useState('2089140021');
   const [accountName, setAccountName] = useState('Chief Babatunde Alade');
   const [showPinModal, setShowPinModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const wallet = wallets.find((w) => w.currency === selectedCurrency) || wallets[0];
 
@@ -22,30 +24,45 @@ export const WithdrawScreen: React.FC = () => {
       showToast('Enter a valid withdrawal amount', 'error');
       return;
     }
-    if (num > wallet.balance) {
-      showToast(`Insufficient balance in ${selectedCurrency} wallet`, 'error');
-      return;
+
+    if (selectedCurrency === 'NGN') {
+      const cleanAcc = accountNumber.replace(/\D/g, '');
+      if (cleanAcc.length !== 10) {
+        showToast('Please enter a valid 10-digit NUBAN account number', 'error');
+        return;
+      }
+      const fee = 500;
+      if (num + fee > wallet.balance) {
+        showToast(`Insufficient balance including ₦${fee} flat withdrawal fee`, 'error');
+        return;
+      }
+    } else {
+      if (num > wallet.balance) {
+        showToast(`Insufficient balance in ${selectedCurrency} wallet`, 'error');
+        return;
+      }
     }
+
     setShowPinModal(true);
   };
 
-  const handlePinSuccess = () => {
-    setShowPinModal(false);
+  const handlePinSuccess = async (enteredPin: string) => {
     const num = parseFloat(amount);
-    wallet.balance -= num;
-    addTransaction({
-      title: `Withdrawal to ${bankName}`,
-      category: 'Wallet Top-up',
-      amount: num,
-      currency: selectedCurrency,
-      status: 'completed',
-      reference: `WTH-${Math.floor(100000 + Math.random() * 900000)}`,
-      recipient: `${accountName} (${accountNumber})`,
-      paymentMethod: 'NIBSS Instant Transfer',
-      type: 'withdraw'
-    });
-    showToast(`Withdrawal of ${wallet.symbol}${num.toLocaleString()} processed to ${bankName}`, 'success');
-    goBack();
+    setIsSubmitting(true);
+    try {
+      const res = await db.requestWithdrawal(activeUserId, bankName, accountNumber, accountName, num, enteredPin);
+      if (res && res.error) {
+        showToast(res.error, 'error');
+        return;
+      }
+      setShowPinModal(false);
+      showToast(`Withdrawal of ${wallet.symbol}${num.toLocaleString()} queued for clearance!`, 'success');
+      goBack();
+    } catch (e) {
+      showToast('Withdrawal communication error', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -74,7 +91,7 @@ export const WithdrawScreen: React.FC = () => {
                 >
                   <p className="text-white font-extrabold">{c} Wallet</p>
                   <p className="text-[10px] text-slate-400 num-tabular mt-0.5">
-                    Avail: {w?.symbol}{w?.balance.toLocaleString()}
+                    Avail: {w?.symbol}{(w?.balance ?? 0).toLocaleString()}
                   </p>
                 </button>
               );
@@ -153,8 +170,7 @@ export const WithdrawScreen: React.FC = () => {
           <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
             <PinPad
               title="Authorize Withdrawal"
-              subtitle={`Payout ${wallet.symbol}${parseFloat(amount).toLocaleString()} to ${bankName}`}
-              expectedPin={userPin}
+              subtitle={`Payout ${wallet.symbol}${parseFloat(amount).toLocaleString()} to ${bankName} (Fee: ₦500)`}
               onComplete={handlePinSuccess}
               onCancel={() => setShowPinModal(false)}
             />

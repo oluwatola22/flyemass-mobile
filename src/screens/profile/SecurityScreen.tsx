@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { PinPad } from '../../components/ui/PinPad';
+import { db } from '../../services/db';
 import { 
   ShieldCheck, 
   Lock, 
@@ -14,7 +15,7 @@ import {
 } from 'lucide-react';
 
 export const SecurityScreen: React.FC = () => {
-  const { userPin, setUserPin, showToast, goBack } = useApp();
+  const { userPin, setUserPin, showToast, goBack, activeUserId } = useApp();
   const [biometricEnabled, setBiometricEnabled] = useState(true);
   const [showPinModal, setShowPinModal] = useState(false);
   const [trustedDevices, setTrustedDevices] = useState([
@@ -22,10 +23,15 @@ export const SecurityScreen: React.FC = () => {
     { id: 'dev-2', name: 'MacBook Pro 16" (M4 Max)', location: 'Tianhe, Guangzhou, China', active: false, icon: Laptop }
   ]);
 
-  const handlePinUpdate = (newPin: string) => {
-    setUserPin(newPin);
-    setShowPinModal(false);
-    showToast('Transaction PIN updated successfully!', 'success');
+  const handlePinUpdate = async (newPin: string) => {
+    try {
+      await db.setPin(activeUserId, newPin);
+      setUserPin(newPin);
+      setShowPinModal(false);
+      showToast('6-digit transaction PIN updated & encrypted on backend!', 'success');
+    } catch (e) {
+      showToast('Failed to update PIN', 'error');
+    }
   };
 
   const handleRevokeDevice = (id: string) => {
@@ -46,7 +52,7 @@ export const SecurityScreen: React.FC = () => {
                 <Lock className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-white">4-Digit Security PIN</h4>
+                <h4 className="text-xs font-bold text-white">6-Digit Security PIN</h4>
                 <p className="text-[10px] text-slate-400">Used for supplier payouts & withdrawals</p>
               </div>
             </div>

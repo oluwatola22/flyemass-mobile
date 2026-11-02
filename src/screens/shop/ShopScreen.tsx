@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
+import { db } from '../../services/db';
 import { TECH_PRODUCTS } from '../../data/mockData';
 import { 
   ShoppingBag, 
@@ -19,10 +20,21 @@ export const ShopScreen: React.FC = () => {
   const { navigate, addToCart, cart, savedProductIds, compareProductIds, shopOrders } = useApp();
   const [selectedCategory, setSelectedCategory] = useState<'All' | 'iPhone' | 'Mac' | 'iPad' | 'Watch' | 'Audio'>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [productsList, setProductsList] = useState<TechProduct[]>(() => {
+    const list = db.getProducts();
+    return list.length > 0 ? list : TECH_PRODUCTS;
+  });
+
+  useEffect(() => {
+    return db.subscribe(() => {
+      const current = db.getProducts();
+      if (current.length > 0) setProductsList(current);
+    });
+  }, []);
 
   const categories = ['All', 'iPhone', 'Mac', 'iPad', 'Watch', 'Audio'] as const;
 
-  const filteredProducts = TECH_PRODUCTS.filter((prod) => {
+  const filteredProducts = productsList.filter((prod) => {
     const matchesCat = selectedCategory === 'All' || prod.category === selectedCategory;
     const matchesQuery = prod.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          prod.subtitle.toLowerCase().includes(searchQuery.toLowerCase());
