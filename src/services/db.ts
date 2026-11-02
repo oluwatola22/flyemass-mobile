@@ -738,29 +738,56 @@ class DatabaseService {
     }
   }
 
-  public async paySupplier(userId: string, supplierName: string, receiverAccount: string, paymentMethod: string, amountCNY: number, note?: string, pin?: string): Promise<any> {
+  public async paySupplier(
+    userIdOrData: string | any,
+    supplierName?: string,
+    receiverAccount?: string,
+    paymentMethod?: string,
+    amountCNY?: number,
+    note?: string,
+    pin?: string,
+    options?: any
+  ): Promise<any> {
     try {
+      const payload = typeof userIdOrData === 'object'
+        ? userIdOrData
+        : { userId: userIdOrData, supplierName, receiverAccount, paymentMethod, amountCNY, note, pin, ...(options || {}) };
       const res = await fetch(`${BACKEND_BASE}/api/wallets/pay-supplier`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, supplierName, receiverAccount, paymentMethod, amountCNY, note, pin })
+        body: JSON.stringify(payload)
       });
       return await res.json();
-    } catch (e) {
-      return { success: true };
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error executing supplier payment' };
     }
   }
 
-  public async requestWithdrawal(userId: string, bankName: string, accountNumber: string, accountName: string, amountNGN: number, pin?: string): Promise<any> {
+  public async requestWithdrawal(
+    userIdOrData: string | any,
+    bankName?: string,
+    accountNumber?: string,
+    accountName?: string,
+    amountNGN?: number,
+    pin?: string,
+    feeOrOptions?: number | any,
+    note?: string
+  ): Promise<any> {
     try {
+      const isOptions = typeof feeOrOptions === 'object' && feeOrOptions !== null;
+      const fee = isOptions ? feeOrOptions.fee : feeOrOptions;
+      const opts = isOptions ? feeOrOptions : {};
+      const payload = typeof userIdOrData === 'object'
+        ? userIdOrData
+        : { userId: userIdOrData, bankName, accountNumber, accountName, amountNGN, pin, fee, note, ...opts };
       const res = await fetch(`${BACKEND_BASE}/api/wallets/withdraw`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, bankName, accountNumber, accountName, amountNGN, pin })
+        body: JSON.stringify(payload)
       });
       return await res.json();
-    } catch (e) {
-      return { success: true };
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error requesting withdrawal' };
     }
   }
 
@@ -799,12 +826,25 @@ class DatabaseService {
     }
   }
 
-  public async disburseWithdrawal(withdrawalId: string, transferReference: string, adminId?: string): Promise<any> {
+  public async markWithdrawalProcessing(withdrawalId: string, adminId?: string): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/withdrawals/processing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-id': adminId || 'adm-001', 'x-admin-role': 'finance_officer' },
+        body: JSON.stringify({ withdrawalId, adminId })
+      });
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error updating withdrawal to processing' };
+    }
+  }
+
+  public async disburseWithdrawal(withdrawalId: string, transferReference: string, paymentProofUrl?: string, adminNotes?: string, adminId?: string): Promise<any> {
     try {
       const res = await fetch(`${BACKEND_BASE}/api/admin/withdrawals/disburse`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ withdrawalId, transferReference, adminId })
+        headers: { 'Content-Type': 'application/json', 'x-admin-id': adminId || 'adm-001', 'x-admin-role': 'finance_officer' },
+        body: JSON.stringify({ withdrawalId, transferReference, paymentProofUrl, adminNotes, adminId })
       });
       return await res.json();
     } catch (e) {
@@ -860,15 +900,28 @@ class DatabaseService {
     }
   }
 
+  public async markSupplierPaymentProcessing(paymentId: string, adminId?: string, notes?: string): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/supplier-payments/processing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-id': adminId || 'adm-001', 'x-admin-role': 'finance_officer' },
+        body: JSON.stringify({ paymentId, adminId, notes })
+      });
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error updating payment to processing' };
+    }
+  }
+
   public async disburseSupplierPayment(
     paymentId: string,
-    evidence: { clearingSessionId: string; paymentProofUrl: string; safeDeclarationRef: string },
+    evidence: { clearingSessionId?: string; paymentProofUrl?: string; safeDeclarationRef?: string; externalPaymentRef?: string; adminNotes?: string },
     adminId?: string
   ): Promise<any> {
     try {
       const res = await fetch(`${BACKEND_BASE}/api/admin/supplier-payments/disburse`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-id': adminId || 'adm-001' },
+        headers: { 'Content-Type': 'application/json', 'x-admin-id': adminId || 'adm-001', 'x-admin-role': 'finance_officer' },
         body: JSON.stringify({ paymentId, ...evidence })
       });
       return await res.json();

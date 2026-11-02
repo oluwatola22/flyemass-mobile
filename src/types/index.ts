@@ -158,28 +158,64 @@ export interface ShipmentDocument {
 export interface SupplierPaymentDocument {
   id: string;
   userId: string;
-  paymentMethod: 'Alipay' | 'WeChat Pay' | 'China Bank Transfer';
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  paymentMethod: 'Alipay' | 'WeChat Pay' | 'China Bank Transfer' | string;
   receiverAccount: string;
   receiverName: string;
+  bankName?: string;
+  swiftBic?: string;
+  qrCodeUrl?: string;
+  purpose?: string;
+  purposeExplanation?: string;
   amountRMB: number;
+  feeCNY?: number;
+  totalDeductionCNY?: number;
   equivalentNGN: number;
-  status: 'processing' | 'disbursed' | 'flagged';
+  status: 'pending' | 'processing' | 'disbursed' | 'completed' | 'flagged' | 'refunded' | 'rejected';
   createdAt: number;
   reference?: string;
   notes?: string;
+  clearingSessionId?: string;
+  paymentProofUrl?: string;
+  safeDeclarationRef?: string;
+  externalPaymentRef?: string;
+  adminNotes?: string;
+  reviewer?: string;
+  reviewDate?: number;
+  disbursedAt?: number;
+  completedAt?: number;
+  refundReason?: string;
+  refundedAt?: number;
 }
 
 export interface WithdrawalDocument {
   id: string;
   userId: string;
+  reference?: string;
+  customerName?: string;
+  customerEmail?: string;
   bankName: string;
+  bankCode?: string;
   accountNumber: string;
   accountName: string;
   amountNGN: number;
   feeNGN: number;
-  status: 'pending' | 'approved' | 'rejected';
+  totalDebit?: number;
+  status: 'pending' | 'processing' | 'approved' | 'completed' | 'rejected' | 'failed' | 'refunded';
   transferReference?: string;
   createdAt: number;
+  note?: string;
+  customerNote?: string;
+  paymentProofUrl?: string;
+  adminNotes?: string;
+  reviewer?: string;
+  reviewDate?: number;
+  completedAt?: number;
+  failureReason?: string;
+  refundReason?: string;
+  refundedAt?: number;
 }
 
 export interface SupplierSubscriptionDocument {

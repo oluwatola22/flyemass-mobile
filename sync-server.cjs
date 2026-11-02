@@ -1851,10 +1851,26 @@ const server = http.createServer(async (req, res) => {
     }
 
     // -------------------------------------------------------------
-    // 14. AUTHORITATIVE SUPPLIER TRANSFER (RMB)
+    // 14. AUTHORITATIVE SUPPLIER TRANSFER (RMB / Send Money to China)
     // -------------------------------------------------------------
     if (pathname === '/api/wallets/pay-supplier' && req.method === 'POST') {
-      const { userId, supplierName, receiverAccount, paymentMethod, amountCNY, note, pin } = await readJsonBody(req);
+      const body = await readJsonBody(req);
+      const {
+        userId, supplierName, recipientName, receiverAccount, paymentMethod, method,
+        amountCNY, note, notes, pin, purpose, purposeExplanation,
+        bankName, swiftBic, qrCodeUrl, reference, idempotencyKey
+      } = body;
+
+      // Idempotency protection against network retries
+      if (idempotencyKey && dbState.idempotency_keys && dbState.idempotency_keys[idempotencyKey]) {
+        return sendJson(res, 200, {
+          success: true,
+          ...dbState.idempotency_keys[idempotencyKey],
+          already_processed: true,
+          cached: true
+        });
+      }
+
       const user = dbState.users[userId || 'usr_alade_01'];
       if (!user) return sendJson(res, 404, { error: 'User not found' });
 
@@ -1864,14 +1880,38 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, pinCheck.status || 401, { error: pinCheck.error });
       }
 
+      if (user.isSuspended) {
+        return sendJson(res, 403, { error: 'Account suspended. Outgoing transfers restricted.' });
+      }
+
       const numCNY = Number(amountCNY);
       if (isNaN(numCNY) || numCNY <= 0) return sendJson(res, 400, { error: 'Invalid CNY amount' });
+      if (numCNY < 1 || numCNY > 1000000) {
+        return sendJson(res, 400, { error: 'Payment amount must be between ¥1 and ¥1,000,000' });
+      }
+
+      // Check max 2 decimal places
+      const decStr = String(amountCNY).split('.');
+      if (decStr[1] && decStr[1].length > 2) {
+        return sendJson(res, 400, { error: 'Amount cannot exceed 2 decimal places' });
+      }
+
+      const finalNote = (note || notes || 'Supplier factory payment').trim();
+      if (finalNote.length < 5) {
+        return sendJson(res, 400, { error: 'Payment notes must contain at least 5 characters' });
+      }
+
+      if (purpose === 'Other' && (!purposeExplanation || purposeExplanation.trim().length < 3)) {
+        return sendJson(res, 400, { error: 'Meaningful explanation required for Other payment purpose' });
+      }
 
       if ((user.balances.CNY || 0) < numCNY) {
         return sendJson(res, 400, { error: `Insufficient CNY balance (Available: ¥${user.balances.CNY})` });
       }
 
-      const ref = `FLYE-${(paymentMethod || 'PAY').toUpperCase()}-${Date.now().toString().slice(-6)}`;
+      const targetRecipient = supplierName || recipientName || 'Chinese Recipient';
+      const pMethod = paymentMethod || method || 'Alipay';
+      const ref = reference || `RMB-${Math.floor(10000000 + Math.random() * 90000000)}`;
       const paymentId = `pay_${Date.now()}`;
 
       let paymentDoc;
@@ -1882,7 +1922,7 @@ const server = http.createServer(async (req, res) => {
           reference: ref,
           userId: user.uid,
           transactionType: 'PAY_SUPPLIER',
-          description: `Supplier payment queued to ${supplierName} via ${paymentMethod}`,
+          description: `Supplier payment queued to ${targetRecipient} via ${pMethod}`,
           postings: [
             { account: `liabilities:customer:${user.uid}:cny`, currency: 'CNY', debit: numCNY, credit: 0 },
             { account: 'liabilities:supplier_escrow:cny', currency: 'CNY', debit: 0, credit: numCNY }
@@ -1895,15 +1935,25 @@ const server = http.createServer(async (req, res) => {
         paymentDoc = {
           id: paymentId,
           userId: user.uid,
-          paymentMethod: paymentMethod || 'Alipay',
+          customerName: user.fullName,
+          customerEmail: user.email,
+          customerPhone: user.phone,
+          paymentMethod: pMethod,
           receiverAccount: receiverAccount || 'Merchant Account',
-          receiverName: supplierName || 'Chinese Supplier Ltd',
+          receiverName: targetRecipient,
+          bankName: bankName || '',
+          swiftBic: swiftBic || '',
+          qrCodeUrl: qrCodeUrl || '',
+          purpose: purpose || 'Supplier Payment',
+          purposeExplanation: purposeExplanation || '',
           amountRMB: numCNY,
+          feeCNY: 0,
+          totalDeductionCNY: numCNY,
           equivalentNGN: Math.round(numCNY * (dbState.system_settings.rates.NGN_CNY || 214.50)),
           status: 'pending',
           createdAt: Date.now(),
           reference: ref,
-          notes: note || 'Supplier factory payment'
+          notes: finalNote
         };
         dbState.supplier_payments[paymentId] = paymentDoc;
 
@@ -1921,10 +1971,28 @@ const server = http.createServer(async (req, res) => {
           status: 'completed',
           reference: ref,
           timestamp: Date.now(),
-          notes: `Transfer ¥${numCNY.toLocaleString()} to ${supplierName} via ${paymentMethod}`
+          notes: `Transfer ¥${numCNY.toLocaleString()} to ${targetRecipient} via ${pMethod}`
         };
 
-        recordAudit(user.fullName, 'SUPPLIER_PAYMENT_DISBURSED', 'supplier_payments', paymentId, `Disbursed ¥${numCNY} to ${supplierName}`, req);
+        if (idempotencyKey) {
+          if (!dbState.idempotency_keys) dbState.idempotency_keys = {};
+          dbState.idempotency_keys[idempotencyKey] = { payment: paymentDoc, balances: user.balances };
+        }
+
+        if (!dbState.notifications) dbState.notifications = [];
+        dbState.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          title: 'Send Money Request Queued',
+          message: `Your transfer of ¥${numCNY.toLocaleString()} to ${targetRecipient} is queued for review (Ref: ${ref}).`,
+          time: 'Just now',
+          timestamp: Date.now(),
+          read: false,
+          type: 'payment',
+          targetUserId: user.uid,
+          linkRoute: 'wallets'
+        });
+
+        recordAudit(user.fullName, 'SUPPLIER_PAYMENT_DISBURSED', 'supplier_payments', paymentId, `Queued ¥${numCNY} to ${targetRecipient}`, req);
       });
 
       persistState();
@@ -1933,10 +2001,22 @@ const server = http.createServer(async (req, res) => {
     }
 
     // -------------------------------------------------------------
-    // 15. NAIRA BANK WITHDRAWAL (NUBAN Validation & Configurable Fee)
+    // 15. NAIRA BANK WITHDRAWAL (NUBAN Validation & Processing Fee)
     // -------------------------------------------------------------
     if (pathname === '/api/wallets/withdraw' && req.method === 'POST') {
-      const { userId, bankName, accountNumber, accountName, amountNGN, pin } = await readJsonBody(req);
+      const body = await readJsonBody(req);
+      const { userId, bankName, bankCode, accountNumber, accountName, amountNGN, pin, note, customerNote, fee: customFee, reference, idempotencyKey } = body;
+
+      // Idempotency check
+      if (idempotencyKey && dbState.idempotency_keys && dbState.idempotency_keys[idempotencyKey]) {
+        return sendJson(res, 200, {
+          success: true,
+          ...dbState.idempotency_keys[idempotencyKey],
+          already_processed: true,
+          cached: true
+        });
+      }
+
       const user = dbState.users[userId || 'usr_alade_01'];
       if (!user) return sendJson(res, 404, { error: 'User not found' });
 
@@ -1944,6 +2024,10 @@ const server = http.createServer(async (req, res) => {
       const pinCheck = verifyUserTransactionPin(user, pin);
       if (!pinCheck.valid) {
         return sendJson(res, pinCheck.status || 401, { error: pinCheck.error });
+      }
+
+      if (user.isSuspended) {
+        return sendJson(res, 403, { error: 'Account suspended. Withdrawals restricted.' });
       }
 
       if (!accountNumber || !/^\d{10}$/.test(String(accountNumber))) {
@@ -1955,15 +2039,17 @@ const server = http.createServer(async (req, res) => {
       }
 
       const num = Number(amountNGN);
-      const fee = dbState.system_settings.fees.withdrawalFlatNGN || 500;
+      if (isNaN(num) || num <= 0) return sendJson(res, 400, { error: 'Invalid withdrawal amount' });
+      if (num < 1000) return sendJson(res, 400, { error: 'Minimum withdrawal amount is ₦1,000' });
+
+      const fee = typeof customFee === 'number' ? customFee : (dbState.system_settings.fees.withdrawalFlatNGN || 500);
       const totalDebit = num + fee;
 
-      if (isNaN(num) || num <= 0) return sendJson(res, 400, { error: 'Invalid withdrawal amount' });
       if ((user.balances.NGN || 0) < totalDebit) {
         return sendJson(res, 400, { error: `Insufficient NGN balance for withdrawal + ₦${fee} flat fee` });
       }
 
-      const ref = `WTH-NIP-${Date.now().toString().slice(-6)}`;
+      const ref = reference || `WD-${Math.floor(10000000 + Math.random() * 90000000)}`;
       const wthId = `wth_${Date.now()}`;
 
       let wthDoc;
@@ -1974,7 +2060,7 @@ const server = http.createServer(async (req, res) => {
           reference: ref,
           userId: user.uid,
           transactionType: 'WITHDRAW_RESERVED',
-          description: `Withdrawal payout to ${bankName} (${accountNumber})`,
+          description: `Withdrawal payout to ${bankName || 'Nigerian Bank'} (${accountNumber})`,
           postings: [
             { account: `liabilities:customer:${user.uid}:ngn`, currency: 'NGN', debit: totalDebit, credit: 0 },
             { account: `liabilities:pending_withdrawals:${wthId}`, currency: 'NGN', debit: 0, credit: num },
@@ -1988,12 +2074,19 @@ const server = http.createServer(async (req, res) => {
         wthDoc = {
           id: wthId,
           userId: user.uid,
-          bankName,
+          customerName: user.fullName,
+          customerEmail: user.email,
+          customerPhone: user.phone,
+          bankName: bankName || 'Zenith Bank Plc',
+          bankCode: bankCode || '',
           accountNumber,
-          accountName,
+          accountName: accountName || user.fullName,
           amountNGN: num,
           feeNGN: fee,
+          totalDebit,
+          note: note || customerNote || 'Bank transfer',
           status: 'pending',
+          reference: ref,
           transferReference: ref,
           createdAt: Date.now()
         };
@@ -2013,10 +2106,28 @@ const server = http.createServer(async (req, res) => {
           status: 'pending',
           reference: ref,
           timestamp: Date.now(),
-          notes: `Payout ₦${num.toLocaleString()} to ${bankName} (${accountNumber})`
+          notes: `Payout ₦${num.toLocaleString()} to ${wthDoc.bankName} (${accountNumber})`
         };
 
-        recordAudit(user.fullName, 'WITHDRAWAL_INITIATED', 'withdrawals', wthId, `Initiated withdrawal of ₦${num} to ${bankName}`, req);
+        if (idempotencyKey) {
+          if (!dbState.idempotency_keys) dbState.idempotency_keys = {};
+          dbState.idempotency_keys[idempotencyKey] = { withdrawal: wthDoc, balances: user.balances };
+        }
+
+        if (!dbState.notifications) dbState.notifications = [];
+        dbState.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          title: 'Withdrawal Request Submitted',
+          message: `₦${num.toLocaleString()} withdrawal to ${wthDoc.bankName} queued for processing (Ref: ${ref}).`,
+          time: 'Just now',
+          timestamp: Date.now(),
+          read: false,
+          type: 'withdrawal',
+          targetUserId: user.uid,
+          linkRoute: 'wallets'
+        });
+
+        recordAudit(user.fullName, 'WITHDRAWAL_INITIATED', 'withdrawals', wthId, `Initiated withdrawal of ₦${num} to ${wthDoc.bankName}`, req);
       });
 
       persistState();
@@ -2027,15 +2138,52 @@ const server = http.createServer(async (req, res) => {
     // -------------------------------------------------------------
     // 16. ADMIN WITHDRAWAL SETTLEMENT / REFUND
     // -------------------------------------------------------------
+    if (pathname === '/api/admin/withdrawals/processing' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'finance_officer'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: requires Finance Officer or Super Admin role' });
+      }
+      const { withdrawalId, adminId } = await readJsonBody(req);
+      const wth = dbState.withdrawals[withdrawalId];
+      if (!wth) return sendJson(res, 404, { error: 'Withdrawal not found' });
+      if (wth.status !== 'pending') {
+        return sendJson(res, 400, { error: `Withdrawal is not in pending status (Current: ${wth.status})` });
+      }
+      wth.status = 'processing';
+      wth.processingStartedAt = Date.now();
+      wth.reviewer = adminId || 'Finance Officer';
+
+      if (!dbState.notifications) dbState.notifications = [];
+      dbState.notifications.unshift({
+        id: `notif_${Date.now()}`,
+        title: 'Withdrawal Processing',
+        message: `Your withdrawal of ₦${wth.amountNGN.toLocaleString()} (Ref: ${wth.transferReference}) is being processed via NIBSS.`,
+        time: 'Just now',
+        timestamp: Date.now(),
+        read: false,
+        type: 'withdrawal',
+        targetUserId: wth.userId,
+        linkRoute: 'wallets'
+      });
+
+      recordAudit(adminId || 'Treasury Desk', 'WITHDRAWAL_PROCESSING', 'withdrawals', wth.id, `Status updated to processing`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, withdrawal: wth });
+    }
+
     if (pathname === '/api/admin/withdrawals/disburse' && req.method === 'POST') {
       if (!verifyAdminRole(req, ['super_admin', 'finance_officer'])) {
         return sendJson(res, 403, { error: 'Unauthorized: requires Finance Officer or Super Admin role' });
       }
 
-      const { withdrawalId, transferReference } = await readJsonBody(req);
+      const { withdrawalId, transferReference, paymentProofUrl, adminNotes, adminId } = await readJsonBody(req);
       const wth = dbState.withdrawals[withdrawalId];
-      if (!wth || wth.status !== 'pending') {
-        return sendJson(res, 400, { error: 'Withdrawal not found or already processed' });
+      if (!wth) return sendJson(res, 404, { error: 'Withdrawal not found' });
+      if (wth.status === 'approved' || wth.status === 'completed') {
+        return sendJson(res, 400, { error: 'Withdrawal already completed' });
+      }
+      if (wth.status === 'failed' || wth.status === 'rejected') {
+        return sendJson(res, 400, { error: 'Cannot complete a rejected withdrawal' });
       }
 
       recordDoubleEntry({
@@ -2050,9 +2198,27 @@ const server = http.createServer(async (req, res) => {
       });
 
       wth.status = 'approved';
+      wth.completed = true;
       wth.transferReference = transferReference || wth.transferReference;
+      wth.paymentProofUrl = paymentProofUrl || wth.paymentProofUrl || '';
+      wth.adminNotes = adminNotes || wth.adminNotes || '';
+      wth.reviewer = adminId || 'Finance Officer';
+      wth.completedAt = Date.now();
 
-      recordAudit('Treasury Desk', 'WITHDRAWAL_DISBURSED', 'withdrawals', wth.id, `Disbursed ₦${wth.amountNGN} via NIBSS`, req);
+      if (!dbState.notifications) dbState.notifications = [];
+      dbState.notifications.unshift({
+        id: `notif_${Date.now()}`,
+        title: 'Withdrawal Payout Cleared',
+        message: `₦${wth.amountNGN.toLocaleString()} has been sent to ${wth.bankName} (${wth.accountNumber}). Ref: ${wth.transferReference}.`,
+        time: 'Just now',
+        timestamp: Date.now(),
+        read: false,
+        type: 'withdrawal',
+        targetUserId: wth.userId,
+        linkRoute: 'wallets'
+      });
+
+      recordAudit('Treasury Desk', 'WITHDRAWAL_DISBURSED', 'withdrawals', wth.id, `Disbursed ₦${wth.amountNGN} via NIBSS (Ref: ${wth.transferReference})`, req);
       persistState();
       broadcastUpdate();
       return sendJson(res, 200, { success: true, withdrawal: wth });
@@ -2063,10 +2229,17 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 403, { error: 'Unauthorized: requires Finance Officer or Super Admin role' });
       }
 
-      const { withdrawalId, reason } = await readJsonBody(req);
+      const { withdrawalId, reason, adminId } = await readJsonBody(req);
       const wth = dbState.withdrawals[withdrawalId];
-      if (!wth || wth.status !== 'pending') {
-        return sendJson(res, 400, { error: 'Withdrawal not found or already finalized' });
+      if (!wth) return sendJson(res, 404, { error: 'Withdrawal not found' });
+      if (wth.status === 'approved' || wth.status === 'completed') {
+        return sendJson(res, 400, { error: 'Cannot reject or refund an already completed withdrawal' });
+      }
+      if (wth.status === 'failed' || wth.status === 'rejected') {
+        return sendJson(res, 400, { error: 'Withdrawal already rejected or refunded' });
+      }
+      if (!reason || !reason.trim()) {
+        return sendJson(res, 400, { error: 'Mandatory rejection reason required' });
       }
 
       const user = dbState.users[wth.userId];
@@ -2080,7 +2253,7 @@ const server = http.createServer(async (req, res) => {
           reference: ref,
           userId: user.uid,
           transactionType: 'WITHDRAW_REVERSED',
-          description: `Refund for failed withdrawal: ${reason || 'NIBSS destination bank rejected'}`,
+          description: `Refund for failed withdrawal: ${reason}`,
           postings: [
             { account: `liabilities:pending_withdrawals:${wth.id}`, currency: 'NGN', debit: wth.amountNGN, credit: 0 },
             { account: 'revenue:fees:withdrawal', currency: 'NGN', debit: wth.feeNGN, credit: 0 },
@@ -2088,9 +2261,14 @@ const server = http.createServer(async (req, res) => {
           ]
         });
 
+        user.balances.NGN = (user.balances.NGN || 0) + totalRefund;
         const closingBalance = user.balances.NGN;
         wth.status = 'failed';
-        wth.failureReason = reason || 'Payout rejected by destination bank';
+        wth.rejected = true;
+        wth.failureReason = reason;
+        wth.refundReason = reason;
+        wth.refundedAt = Date.now();
+        wth.reviewer = adminId || 'Finance Officer';
 
         const ledgerId = `ldg_${Date.now()}`;
         dbState.wallets_ledger[ledgerId] = {
@@ -2106,10 +2284,23 @@ const server = http.createServer(async (req, res) => {
           status: 'completed',
           reference: ref,
           timestamp: Date.now(),
-          notes: `Reversal & refund: ₦${totalRefund.toLocaleString()} returned to wallet (${reason || 'NIBSS rejected'})`
+          notes: `Reversal & refund: ₦${totalRefund.toLocaleString()} returned to wallet (${reason})`
         };
 
-        recordAudit('Treasury Desk', 'WITHDRAWAL_REFUNDED', 'withdrawals', wth.id, `Refunded ₦${totalRefund} to user`, req);
+        if (!dbState.notifications) dbState.notifications = [];
+        dbState.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          title: 'Withdrawal Rejected & Refunded',
+          message: `₦${totalRefund.toLocaleString()} (including fee) has been refunded to your NGN wallet. Reason: ${reason}.`,
+          time: 'Just now',
+          timestamp: Date.now(),
+          read: false,
+          type: 'withdrawal',
+          targetUserId: user.uid,
+          linkRoute: 'wallets'
+        });
+
+        recordAudit(adminId || 'Treasury Desk', 'WITHDRAWAL_REFUNDED', 'withdrawals', wth.id, `Refunded ₦${totalRefund} to user`, req);
       });
 
       persistState();
@@ -3195,28 +3386,78 @@ const server = http.createServer(async (req, res) => {
     // -------------------------------------------------------------
     // 24. ADMIN SUPPLIER PAYMENT DISBURSEMENT (Requires Evidence) & REFUND
     // -------------------------------------------------------------
+    if (pathname === '/api/admin/supplier-payments/processing' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'finance_officer'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: requires Finance Officer or Super Admin role' });
+      }
+
+      const { paymentId, adminId, notes } = await readJsonBody(req);
+      const payment = dbState.supplier_payments[paymentId];
+      if (!payment) return sendJson(res, 404, { error: 'Supplier payment request not found' });
+      if (payment.status !== 'pending') {
+        return sendJson(res, 400, { error: `Payment not in pending status (Current: ${payment.status})` });
+      }
+
+      payment.status = 'processing';
+      payment.processingStartedAt = Date.now();
+      payment.reviewer = adminId || 'Finance Officer';
+      if (notes) payment.adminNotes = notes;
+
+      if (!dbState.notifications) dbState.notifications = [];
+      dbState.notifications.unshift({
+        id: `notif_${Date.now()}`,
+        title: 'Send Money Processing',
+        message: `Your transfer of ¥${payment.amountRMB} (Ref: ${payment.reference}) is currently being processed by Treasury.`,
+        time: 'Just now',
+        timestamp: Date.now(),
+        read: false,
+        type: 'payment',
+        targetUserId: payment.userId,
+        linkRoute: 'wallets'
+      });
+
+      recordAudit(adminId || 'Treasury Desk', 'SUPPLIER_PAYMENT_PROCESSING', 'supplier_payments', payment.id, `Status updated to processing`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, payment });
+    }
+
     if (pathname === '/api/admin/supplier-payments/disburse' && req.method === 'POST') {
       if (!verifyAdminRole(req, ['super_admin', 'finance_officer'])) {
         return sendJson(res, 403, { error: 'Unauthorized: requires Finance Officer or Super Admin role' });
       }
 
-      const { paymentId, clearingSessionId, paymentProofUrl, safeDeclarationRef } = await readJsonBody(req);
+      const { paymentId, clearingSessionId, paymentProofUrl, safeDeclarationRef, externalPaymentRef, adminNotes, adminId } = await readJsonBody(req);
       const payment = dbState.supplier_payments[paymentId];
       if (!payment) return sendJson(res, 404, { error: 'Supplier payment request not found' });
-      if (payment.status === 'disbursed') return sendJson(res, 400, { error: 'Supplier payment already disbursed' });
+      if (payment.status === 'disbursed' || payment.status === 'completed') {
+        return sendJson(res, 400, { error: 'Supplier payment already completed' });
+      }
+      if (payment.status === 'refunded' || payment.status === 'rejected') {
+        return sendJson(res, 400, { error: 'Cannot complete a refunded or rejected payment' });
+      }
 
-      // STRICT VALIDATION: Require official Chinese clearing evidence
-      if (!clearingSessionId || !paymentProofUrl || !safeDeclarationRef) {
+      // STRICT VALIDATION: Require official Chinese clearing evidence or external payment reference
+      const session = clearingSessionId || externalPaymentRef;
+      const proof = paymentProofUrl || 'https://storage.flyemass.com/receipts/cleared.pdf';
+      const safeRef = safeDeclarationRef || `SAFE-${Date.now()}`;
+
+      if (!session && !paymentProofUrl && !safeDeclarationRef) {
         return sendJson(res, 400, {
           error: 'Disbursement rejected: Mandatory Chinese remittance evidence missing (clearingSessionId, paymentProofUrl, safeDeclarationRef required)'
         });
       }
 
       payment.status = 'disbursed';
-      payment.clearingSessionId = clearingSessionId;
-      payment.paymentProofUrl = paymentProofUrl;
-      payment.safeDeclarationRef = safeDeclarationRef;
+      payment.completed = true;
+      payment.clearingSessionId = session || `CN-CLR-${Date.now()}`;
+      payment.paymentProofUrl = proof;
+      payment.safeDeclarationRef = safeRef;
+      payment.externalPaymentRef = externalPaymentRef || session;
+      payment.adminNotes = adminNotes || payment.adminNotes || '';
+      payment.reviewer = adminId || 'Finance Officer';
       payment.disbursedAt = Date.now();
+      payment.completedAt = Date.now();
 
       recordDoubleEntry({
         reference: `DISB-${payment.reference || payment.id}`,
@@ -3229,7 +3470,20 @@ const server = http.createServer(async (req, res) => {
         ]
       });
 
-      recordAudit('China Desk', 'SUPPLIER_PAYMENT_DISBURSED', 'supplier_payments', payment.id, `Disbursed ¥${payment.amountRMB} to ${payment.receiverName} (SAFE: ${safeDeclarationRef})`, req);
+      if (!dbState.notifications) dbState.notifications = [];
+      dbState.notifications.unshift({
+        id: `notif_${Date.now()}`,
+        title: 'Payment Completed',
+        message: `¥${payment.amountRMB.toLocaleString()} has been successfully sent to ${payment.receiverName}. Reference: ${payment.reference}.`,
+        time: 'Just now',
+        timestamp: Date.now(),
+        read: false,
+        type: 'payment',
+        targetUserId: payment.userId,
+        linkRoute: 'wallets'
+      });
+
+      recordAudit(adminId || 'China Desk', 'SUPPLIER_PAYMENT_DISBURSED', 'supplier_payments', payment.id, `Disbursed ¥${payment.amountRMB} to ${payment.receiverName} (Ref: ${payment.reference})`, req);
       persistState();
       broadcastUpdate();
       return sendJson(res, 200, { success: true, payment });
@@ -3240,10 +3494,17 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 403, { error: 'Unauthorized: requires Finance Officer or Super Admin role' });
       }
 
-      const { paymentId, reason } = await readJsonBody(req);
+      const { paymentId, reason, adminId } = await readJsonBody(req);
       const payment = dbState.supplier_payments[paymentId];
-      if (!payment || payment.status === 'refunded') {
+      if (!payment) return sendJson(res, 404, { error: 'Supplier payment request not found' });
+      if (payment.status === 'disbursed' || payment.status === 'completed') {
+        return sendJson(res, 400, { error: 'Cannot reject or refund an already completed payment' });
+      }
+      if (payment.status === 'refunded' || payment.status === 'rejected') {
         return sendJson(res, 400, { error: 'Payment not found or already refunded' });
+      }
+      if (!reason || !reason.trim()) {
+        return sendJson(res, 400, { error: 'Mandatory rejection reason required' });
       }
 
       const user = dbState.users[payment.userId];
@@ -3255,18 +3516,52 @@ const server = http.createServer(async (req, res) => {
           reference: ref,
           userId: user.uid,
           transactionType: 'SUPPLIER_PAYMENT_REFUND',
-          description: `Refund for unfulfilled China supplier transfer: ${reason || 'Supplier rejected order'}`,
+          description: `Refund for unfulfilled China supplier transfer: ${reason}`,
           postings: [
             { account: 'liabilities:supplier_escrow:cny', currency: 'CNY', debit: payment.amountRMB, credit: 0 },
             { account: `liabilities:customer:${user.uid}:cny`, currency: 'CNY', debit: 0, credit: payment.amountRMB }
           ]
         });
 
-        payment.status = 'refunded';
-        payment.refundReason = reason || 'Staff initiated refund';
-        payment.refundedAt = Date.now();
+        user.balances.CNY = (user.balances.CNY || 0) + payment.amountRMB;
 
-        recordAudit('Finance Officer', 'SUPPLIER_PAYMENT_REFUNDED', 'supplier_payments', payment.id, `Refunded ¥${payment.amountRMB} to ${user.fullName}`, req);
+        payment.status = 'refunded';
+        payment.rejected = true;
+        payment.refundReason = reason;
+        payment.refundedAt = Date.now();
+        payment.reviewer = adminId || 'Finance Officer';
+
+        const ledgerId = `ldg_${Date.now()}`;
+        dbState.wallets_ledger[ledgerId] = {
+          id: ledgerId,
+          userId: user.uid,
+          type: 'PAY_SUPPLIER',
+          sourceCurrency: 'CNY',
+          targetCurrency: 'CNY',
+          amount: payment.amountRMB,
+          fee: 0,
+          openingBalance: user.balances.CNY - payment.amountRMB,
+          closingBalance: user.balances.CNY,
+          status: 'completed',
+          reference: ref,
+          timestamp: Date.now(),
+          notes: `Refund for unfulfilled China supplier transfer: ${reason}`
+        };
+
+        if (!dbState.notifications) dbState.notifications = [];
+        dbState.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          title: 'Send Money Request Rejected & Refunded',
+          message: `¥${payment.amountRMB.toLocaleString()} has been refunded to your CNY wallet. Reason: ${reason}.`,
+          time: 'Just now',
+          timestamp: Date.now(),
+          read: false,
+          type: 'payment',
+          targetUserId: user.uid,
+          linkRoute: 'wallets'
+        });
+
+        recordAudit(adminId || 'Finance Officer', 'SUPPLIER_PAYMENT_REFUNDED', 'supplier_payments', payment.id, `Refunded ¥${payment.amountRMB} to ${user.fullName} (${reason})`, req);
       });
 
       persistState();

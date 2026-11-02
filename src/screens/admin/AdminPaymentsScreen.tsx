@@ -24,15 +24,32 @@ import {
   FileText,
   Download,
   Scale,
-  RefreshCw
+  RefreshCw,
+  Eye,
+  AlertCircle,
+  QrCode
 } from 'lucide-react';
 
 export const AdminPaymentsScreen: React.FC = () => {
   const { showToast } = useApp();
   const [dbState, setDbState] = useState<DatabaseState>(db.getState());
   const [activeTab, setActiveTab] = useState<'supplier' | 'withdrawals' | 'ledger' | 'reconciliation' | 'rates' | 'gateways'>('supplier');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'processing' | 'disbursed' | 'flagged'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'processing' | 'disbursed' | 'rejected'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Naira withdrawals filtering
+  const [withdrawalStatusFilter, setWithdrawalStatusFilter] = useState<'all' | 'pending' | 'processing' | 'approved' | 'rejected'>('all');
+  const [withdrawalSearchQuery, setWithdrawalSearchQuery] = useState('');
+
+  // Rejection modal states
+  const [rejectSupplierModalPayment, setRejectSupplierModalPayment] = useState<SupplierPaymentDocument | null>(null);
+  const [supplierRejectReason, setSupplierRejectReason] = useState('');
+  const [rejectWithdrawalModal, setRejectWithdrawalModal] = useState<WithdrawalDocument | null>(null);
+  const [withdrawalRejectReason, setWithdrawalRejectReason] = useState('');
+
+  // QR Preview modal
+  const [previewQrUrl, setPreviewQrUrl] = useState<string | null>(null);
+
   const [verifyRefInput, setVerifyRefInput] = useState('');
   const [verifyResult, setVerifyResult] = useState<any>(null);
   const [isVerifyingRef, setIsVerifyingRef] = useState(false);
@@ -54,6 +71,7 @@ export const AdminPaymentsScreen: React.FC = () => {
   const [clearingSessionId, setClearingSessionId] = useState('');
   const [paymentProofUrl, setPaymentProofUrl] = useState('');
   const [safeDeclarationRef, setSafeDeclarationRef] = useState('');
+  const [disburseNotes, setDisburseNotes] = useState('');
 
   // Webhook Simulation Modal state
   const [showSimulateModal, setShowSimulateModal] = useState(false);
@@ -67,14 +85,40 @@ export const AdminPaymentsScreen: React.FC = () => {
   }, []);
 
   const paymentsList = Object.values(dbState.supplier_payments || {}).filter((p) => {
-    const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
-    const matchesSearch = p.receiverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          p.receiverAccount.includes(searchQuery) ||
-                          p.paymentMethod.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' 
+      ? true 
+      : statusFilter === 'disbursed'
+      ? (p.status === 'disbursed' || p.status === 'completed')
+      : statusFilter === 'rejected'
+      ? (p.status === 'rejected' || p.status === 'refunded' || p.status === 'flagged')
+      : p.status === statusFilter;
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q ||
+      (p.receiverName && p.receiverName.toLowerCase().includes(q)) ||
+      (p.receiverAccount && p.receiverAccount.toLowerCase().includes(q)) ||
+      (p.reference && p.reference.toLowerCase().includes(q)) ||
+      (p.paymentMethod && p.paymentMethod.toLowerCase().includes(q)) ||
+      (p.purpose && p.purpose.toLowerCase().includes(q));
     return matchesStatus && matchesSearch;
-  });
+  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  const withdrawalsList = Object.values(dbState.withdrawals || {});
+  const withdrawalsList = Object.values(dbState.withdrawals || {}).filter((w) => {
+    const matchesStatus = withdrawalStatusFilter === 'all'
+      ? true
+      : withdrawalStatusFilter === 'approved'
+      ? (w.status === 'approved' || w.status === 'completed')
+      : withdrawalStatusFilter === 'rejected'
+      ? (w.status === 'rejected' || w.status === 'refunded' || w.status === 'failed')
+      : w.status === withdrawalStatusFilter;
+    const q = withdrawalSearchQuery.toLowerCase();
+    const matchesSearch = !q ||
+      (w.accountName && w.accountName.toLowerCase().includes(q)) ||
+      (w.accountNumber && w.accountNumber.toLowerCase().includes(q)) ||
+      (w.bankName && w.bankName.toLowerCase().includes(q)) ||
+      (w.reference && w.reference.toLowerCase().includes(q));
+    return matchesStatus && matchesSearch;
+  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
   const webhookEvents = dbState.webhook_events || db.getWebhookEvents();
 
   const handleSimulateWebhook = async (e: React.FormEvent) => {
@@ -92,11 +136,40 @@ export const AdminPaymentsScreen: React.FC = () => {
     }
   };
 
+  const handleMarkSupplierProcessing = async (p: SupplierPaymentDocument) => {
+    try {
+      const res = await db.markSupplierPaymentProcessing(p.id, 'adm-001');
+      if (res && res.error) {
+        showToast(res.error, 'error');
+        return;
+      }
+      showToast(`Payment ${p.reference || p.id} marked as Processing! Customer notified.`, 'success');
+      setDbState({ ...db.getState() });
+    } catch (e: any) {
+      showToast(e.message || 'Failed to update payment status', 'error');
+    }
+  };
+
+  const handleMarkWithdrawalProcessing = async (w: WithdrawalDocument) => {
+    try {
+      const res = await db.markWithdrawalProcessing(w.id, 'adm-001');
+      if (res && res.error) {
+        showToast(res.error, 'error');
+        return;
+      }
+      showToast(`Withdrawal ${w.reference || w.id} marked as Processing! Customer notified.`, 'success');
+      setDbState({ ...db.getState() });
+    } catch (e: any) {
+      showToast(e.message || 'Failed to update withdrawal status', 'error');
+    }
+  };
+
   const handleOpenDisburseModal = (payment: SupplierPaymentDocument) => {
     setDisburseModalPayment(payment);
     setClearingSessionId(`ALIPAY-CN-${Date.now().toString().slice(-8)}`);
     setPaymentProofUrl(`https://storage.flyemass.com/receipts/${payment.id}.pdf`);
     setSafeDeclarationRef(`SAFE-CAN-2026-${Math.floor(100000 + Math.random() * 900000)}`);
+    setDisburseNotes('');
   };
 
   const handleSubmitSupplierDisbursement = async () => {
@@ -104,7 +177,7 @@ export const AdminPaymentsScreen: React.FC = () => {
     try {
       const res = await db.disburseSupplierPayment(
         disburseModalPayment.id,
-        { clearingSessionId, paymentProofUrl, safeDeclarationRef },
+        { clearingSessionId, paymentProofUrl, safeDeclarationRef, adminNotes: disburseNotes },
         'adm-001'
       );
       if (res && res.error) {
@@ -113,23 +186,68 @@ export const AdminPaymentsScreen: React.FC = () => {
       }
       showToast(`Disbursed ¥${disburseModalPayment.amountRMB.toLocaleString()} to ${disburseModalPayment.receiverName}! Proof logged.`, 'success');
       setDisburseModalPayment(null);
+      setDbState({ ...db.getState() });
     } catch (e) {
       showToast('Disbursement failed', 'error');
     }
   };
 
-  const handleRefundSupplierPayment = async (payment: SupplierPaymentDocument) => {
-    if (!window.confirm(`Refund ¥${payment.amountRMB.toLocaleString()} back to customer wallet?`)) return;
+  const handleOpenRejectSupplier = (payment: SupplierPaymentDocument) => {
+    if (payment.status === 'disbursed' || payment.status === 'completed') {
+      showToast('Cannot reject or refund an already completed payment', 'error');
+      return;
+    }
+    setRejectSupplierModalPayment(payment);
+    setSupplierRejectReason('Beneficiary account name mismatch or SAFE regulatory compliance restriction');
+  };
+
+  const handleConfirmSupplierRejection = async () => {
+    if (!rejectSupplierModalPayment) return;
+    if (!supplierRejectReason || supplierRejectReason.trim().length < 5) {
+      showToast('Rejection reason must be at least 5 characters', 'error');
+      return;
+    }
     try {
-      const res = await db.refundSupplierPayment(payment.id, 'Compliance / Supplier rejection', 'adm-001');
+      const res = await db.refundSupplierPayment(rejectSupplierModalPayment.id, supplierRejectReason.trim(), 'adm-001');
       if (res && res.error) {
         showToast(res.error, 'error');
         return;
       }
-      showToast(`Payment refunded. ¥${payment.amountRMB.toLocaleString()} credited back to customer wallet!`, 'info');
-      setDisburseModalPayment(null);
-    } catch (e) {
-      showToast('Refund failed', 'error');
+      showToast(`Payment rejected and ¥${rejectSupplierModalPayment.amountRMB.toLocaleString()} refunded to customer CNY wallet!`, 'info');
+      setRejectSupplierModalPayment(null);
+      setDbState({ ...db.getState() });
+    } catch (e: any) {
+      showToast(e.message || 'Refund failed', 'error');
+    }
+  };
+
+  const handleOpenRejectWithdrawal = (w: WithdrawalDocument) => {
+    if (w.status === 'approved' || w.status === 'completed') {
+      showToast('Cannot reject or refund an already completed withdrawal', 'error');
+      return;
+    }
+    setRejectWithdrawalModal(w);
+    setWithdrawalRejectReason('Beneficiary account rejected by receiving bank switch');
+  };
+
+  const handleConfirmWithdrawalRejection = async () => {
+    if (!rejectWithdrawalModal) return;
+    if (!withdrawalRejectReason || withdrawalRejectReason.trim().length < 5) {
+      showToast('Rejection reason must be at least 5 characters', 'error');
+      return;
+    }
+    try {
+      const res = await db.refundWithdrawal(rejectWithdrawalModal.id, withdrawalRejectReason.trim(), 'adm-001');
+      if (res && res.error) {
+        showToast(res.error, 'error');
+        return;
+      }
+      const refundTotal = rejectWithdrawalModal.amountNGN + (rejectWithdrawalModal.feeNGN || 50);
+      showToast(`Withdrawal rejected and ₦${refundTotal.toLocaleString()} refunded to customer NGN wallet!`, 'info');
+      setRejectWithdrawalModal(null);
+      setDbState({ ...db.getState() });
+    } catch (e: any) {
+      showToast(e.message || 'Refund failed', 'error');
     }
   };
 
@@ -147,6 +265,7 @@ export const AdminPaymentsScreen: React.FC = () => {
       `Flagged for Compliance ¥${payment.amountRMB} to ${payment.receiverName}`
     );
     showToast(`Payment to ${payment.receiverName} marked as FLAGGED!`, 'error');
+    setDbState({ ...db.getState() });
   };
 
   const handleApproveWithdrawal = (w: WithdrawalDocument) => {
@@ -164,6 +283,7 @@ export const AdminPaymentsScreen: React.FC = () => {
       }
       showToast(`Payout of ₦${selectedWithdrawal.amountNGN.toLocaleString()} confirmed paid to ${selectedWithdrawal.accountName}!`, 'success');
       setSelectedWithdrawal(null);
+      setDbState({ ...db.getState() });
     } catch (e) {
       showToast('Disbursement failed', 'error');
     }
@@ -355,7 +475,7 @@ export const AdminPaymentsScreen: React.FC = () => {
               </div>
 
               <div className="flex gap-1.5 p-1 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-bold">
-                {(['all', 'processing', 'disbursed', 'flagged'] as const).map((st) => (
+                {(['all', 'pending', 'processing', 'disbursed', 'rejected'] as const).map((st) => (
                   <button
                     key={st}
                     onClick={() => setStatusFilter(st)}
@@ -363,7 +483,7 @@ export const AdminPaymentsScreen: React.FC = () => {
                       statusFilter === st ? 'bg-emerald-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    {st}
+                    {st === 'disbursed' ? 'Completed' : st === 'rejected' ? 'Refunded' : st}
                   </button>
                 ))}
               </div>
@@ -375,64 +495,115 @@ export const AdminPaymentsScreen: React.FC = () => {
                   <tr className="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     <th className="py-3 px-3">Transaction</th>
                     <th className="py-3 px-3">Supplier / Beneficiary</th>
-                    <th className="py-3 px-3">Channel</th>
+                    <th className="py-3 px-3">Channel & QR</th>
                     <th className="py-3 px-3">Amount (CNY)</th>
                     <th className="py-3 px-3">Status</th>
                     <th className="py-3 px-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 text-xs">
-                  {paymentsList.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3.5 px-3">
-                        <span className="font-mono text-xs font-bold text-emerald-400">{p.reference || p.id}</span>
-                        <p className="text-[10px] text-slate-500">{new Date(p.createdAt).toLocaleDateString()}</p>
-                      </td>
-                      <td className="py-3.5 px-3">
-                        <h4 className="font-bold text-white text-xs">{p.receiverName}</h4>
-                        <p className="font-mono text-[11px] text-slate-400">{p.receiverAccount}</p>
-                      </td>
-                      <td className="py-3.5 px-3">
-                        <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-bold text-[10px]">
-                          {p.paymentMethod}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-3 font-mono">
-                        <span className="font-extrabold text-white text-sm">¥{(p.amountRMB ?? 0).toLocaleString()}</span>
-                        <p className="text-[10px] text-slate-500">≈ ₦{(p.equivalentNGN ?? 0).toLocaleString()} NGN</p>
-                      </td>
-                      <td className="py-3.5 px-3">
-                        <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${
-                          p.status === 'disbursed' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
-                          p.status === 'flagged' ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30' :
-                          'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                        }`}>
-                          {p.status}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-3 text-right">
-                        {p.status === 'processing' ? (
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => handleUpdatePaymentStatus(p, 'disbursed')}
-                              className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20"
-                            >
-                              Approve Disbursal
-                            </button>
-                            <button
-                              onClick={() => handleUpdatePaymentStatus(p, 'flagged')}
-                              className="p-1.5 rounded-xl bg-slate-800 hover:bg-rose-500/20 text-rose-400 border border-slate-700"
-                              title="Flag Transaction"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
+                  {paymentsList.map((p) => {
+                    const isLongWaiting = (p.status === 'pending' || p.status === 'processing') &&
+                      (Date.now() - new Date(p.createdAt).getTime() > 6 * 3600 * 1000);
+
+                    return (
+                      <tr key={p.id} className="hover:bg-slate-800/40 transition-colors">
+                        <td className="py-3.5 px-3">
+                          <span className="font-mono text-xs font-bold text-emerald-400">{p.reference || p.id}</span>
+                          <p className="text-[10px] text-slate-500">{new Date(p.createdAt).toLocaleDateString()}</p>
+                          {isLongWaiting && (
+                            <span className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                              <Clock className="w-2.5 h-2.5 text-amber-400" />
+                              <span>6h+ Waiting</span>
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <h4 className="font-bold text-white text-xs">{p.receiverName}</h4>
+                          <p className="font-mono text-[11px] text-slate-400">{p.receiverAccount}</p>
+                          {p.bankName && <p className="text-[10px] text-slate-500 truncate max-w-[200px]">{p.bankName}</p>}
+                          {p.purpose && <p className="text-[10px] text-slate-400 mt-0.5">Purpose: <span className="text-slate-300">{p.purpose}</span></p>}
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <div className="flex items-center gap-1.5">
+                            <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-bold text-[10px]">
+                              {p.paymentMethod}
+                            </span>
+                            {p.qrCodeUrl && (
+                              <button
+                                onClick={() => setPreviewQrUrl(p.qrCodeUrl!)}
+                                className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"
+                                title="View Beneficiary QR"
+                              >
+                                <QrCode className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
-                        ) : (
-                          <span className="text-[11px] text-slate-500 font-mono">Settled</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="py-3.5 px-3 font-mono">
+                          <span className="font-extrabold text-white text-sm">¥{(p.amountRMB ?? 0).toLocaleString()}</span>
+                          <p className="text-[10px] text-slate-500">≈ ₦{(p.equivalentNGN ?? (p.amountRMB * 214.5)).toLocaleString()} NGN</p>
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${
+                            p.status === 'disbursed' || p.status === 'completed' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
+                            p.status === 'rejected' || p.status === 'refunded' ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30' :
+                            p.status === 'processing' ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30' :
+                            'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                          }`}>
+                            {p.status}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-3 text-right">
+                          {p.status === 'pending' ? (
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => handleMarkSupplierProcessing(p)}
+                                className="px-2.5 py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 font-bold text-xs"
+                              >
+                                Process
+                              </button>
+                              <button
+                                onClick={() => handleOpenDisburseModal(p)}
+                                className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20"
+                              >
+                                Disburse
+                              </button>
+                              <button
+                                onClick={() => handleOpenRejectSupplier(p)}
+                                className="px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          ) : p.status === 'processing' ? (
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => handleOpenDisburseModal(p)}
+                                className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20"
+                              >
+                                Disburse
+                              </button>
+                              <button
+                                onClick={() => handleOpenRejectSupplier(p)}
+                                className="px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          ) : p.status === 'disbursed' || p.status === 'completed' ? (
+                            <span className="text-[11px] text-emerald-400 font-mono font-bold">
+                              Settled ({p.clearingSessionId || p.reference || 'Done'})
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-rose-400 font-mono" title={p.refundReason || 'Rejected'}>
+                              Refunded
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -442,15 +613,38 @@ export const AdminPaymentsScreen: React.FC = () => {
         {/* 2. NAIRA PAYOUTS / WITHDRAWALS QUEUE */}
         {activeTab === 'withdrawals' && (
           <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 pb-2 border-b border-slate-800">
-              Naira NUBAN Bank Payouts ({withdrawalsList.length})
-            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-800">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  value={withdrawalSearchQuery}
+                  onChange={(e) => setWithdrawalSearchQuery(e.target.value)}
+                  placeholder="Search account holder, NUBAN, or bank..."
+                  className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div className="flex gap-1.5 p-1 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-bold">
+                {(['all', 'pending', 'processing', 'approved', 'rejected'] as const).map((st) => (
+                  <button
+                    key={st}
+                    onClick={() => setWithdrawalStatusFilter(st)}
+                    className={`px-2.5 py-1 rounded-lg transition-all capitalize ${
+                      withdrawalStatusFilter === st ? 'bg-emerald-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {st === 'approved' ? 'Completed' : st === 'rejected' ? 'Refunded' : st}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    <th className="py-3 px-3">Date</th>
+                    <th className="py-3 px-3">Transaction</th>
                     <th className="py-3 px-3">Client & Bank Account</th>
                     <th className="py-3 px-3">Amount & Fee</th>
                     <th className="py-3 px-3">Transfer Ref</th>
@@ -461,24 +655,27 @@ export const AdminPaymentsScreen: React.FC = () => {
                 <tbody className="divide-y divide-slate-800/60 text-xs">
                   {withdrawalsList.map((w) => (
                     <tr key={w.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3.5 px-3 text-slate-400 font-mono text-[11px]">
-                        {new Date(w.createdAt).toLocaleDateString()}
+                      <td className="py-3.5 px-3">
+                        <span className="font-mono text-xs font-bold text-emerald-400">{w.reference || w.id}</span>
+                        <p className="text-[10px] text-slate-500">{new Date(w.createdAt).toLocaleDateString()}</p>
                       </td>
                       <td className="py-3.5 px-3">
                         <h4 className="font-bold text-white text-xs">{w.accountName}</h4>
                         <p className="text-[11px] text-slate-400 font-mono">{w.bankName} • {w.accountNumber}</p>
+                        {w.customerNote && <p className="text-[10px] text-slate-500">Note: {w.customerNote}</p>}
                       </td>
                       <td className="py-3.5 px-3 font-mono">
                         <span className="font-extrabold text-emerald-400 text-sm">₦{(w.amountNGN ?? 0).toLocaleString()}</span>
-                        <p className="text-[10px] text-slate-500">+ ₦{w.feeNGN} NIBSS fee</p>
+                        <p className="text-[10px] text-slate-500">+ ₦{w.feeNGN || 50} NIP fee</p>
                       </td>
                       <td className="py-3.5 px-3 font-mono text-xs text-slate-300">
                         {w.transferReference || 'Pending Reference'}
                       </td>
                       <td className="py-3.5 px-3">
                         <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${
-                          w.status === 'approved' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
-                          w.status === 'rejected' ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30' :
+                          w.status === 'approved' || w.status === 'completed' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
+                          w.status === 'rejected' || w.status === 'refunded' ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30' :
+                          w.status === 'processing' ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30' :
                           'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                         }`}>
                           {w.status}
@@ -488,20 +685,43 @@ export const AdminPaymentsScreen: React.FC = () => {
                         {w.status === 'pending' ? (
                           <div className="flex justify-end gap-1.5">
                             <button
+                              onClick={() => handleMarkWithdrawalProcessing(w)}
+                              className="px-2.5 py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 font-bold text-xs"
+                            >
+                              Process
+                            </button>
+                            <button
                               onClick={() => handleApproveWithdrawal(w)}
                               className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs"
                             >
                               Disburse
                             </button>
                             <button
-                              onClick={() => handleRefundWithdrawal(w)}
+                              onClick={() => handleOpenRejectWithdrawal(w)}
                               className="px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs"
                             >
                               Reject & Refund
                             </button>
                           </div>
+                        ) : w.status === 'processing' ? (
+                          <div className="flex justify-end gap-1.5">
+                            <button
+                              onClick={() => handleApproveWithdrawal(w)}
+                              className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs"
+                            >
+                              Disburse
+                            </button>
+                            <button
+                              onClick={() => handleOpenRejectWithdrawal(w)}
+                              className="px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs"
+                            >
+                              Reject & Refund
+                            </button>
+                          </div>
+                        ) : w.status === 'approved' || w.status === 'completed' ? (
+                          <span className="text-[11px] text-emerald-400 font-mono capitalize">Paid ({w.transferReference || 'Done'})</span>
                         ) : (
-                          <span className="text-[11px] text-emerald-400 font-mono capitalize">{w.status}</span>
+                          <span className="text-[11px] text-rose-400 font-mono capitalize" title={w.refundReason || 'Rejected'}>Refunded</span>
                         )}
                       </td>
                     </tr>
@@ -1023,12 +1243,24 @@ export const AdminPaymentsScreen: React.FC = () => {
                 type="text"
                 value={transferRefInput}
                 onChange={(e) => setTransferRefInput(e.target.value)}
+                placeholder="e.g. NIP-DISB-982142"
                 className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-emerald-400 outline-none focus:border-emerald-500"
                 required
               />
             </div>
 
             <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const w = selectedWithdrawal;
+                  setSelectedWithdrawal(null);
+                  handleOpenRejectWithdrawal(w);
+                }}
+                className="py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs"
+              >
+                Reject
+              </button>
               <button
                 type="button"
                 onClick={() => setSelectedWithdrawal(null)}
@@ -1103,12 +1335,29 @@ export const AdminPaymentsScreen: React.FC = () => {
                   required
                 />
               </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase text-slate-300 block mb-1">
+                  4. Administrative Notes (Optional):
+                </label>
+                <input
+                  type="text"
+                  value={disburseNotes}
+                  onChange={(e) => setDisburseNotes(e.target.value)}
+                  placeholder="e.g. Paid via ICBC Commercial Desk"
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                />
+              </div>
             </div>
 
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => handleRefundSupplierPayment(disburseModalPayment)}
+                onClick={() => {
+                  const p = disburseModalPayment;
+                  setDisburseModalPayment(null);
+                  handleOpenRejectSupplier(p);
+                }}
                 className="py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs"
               >
                 Reject & Refund
@@ -1128,6 +1377,136 @@ export const AdminPaymentsScreen: React.FC = () => {
                 Confirm Disbursement
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Supplier Payment Modal */}
+      {rejectSupplierModalPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-rose-400 tracking-wider">
+                Reject & Refund RMB Transfer
+              </span>
+              <h3 className="text-base font-extrabold text-white mt-1">
+                Refund ¥{rejectSupplierModalPayment.amountRMB.toLocaleString()} CNY
+              </h3>
+              <p className="text-xs text-slate-400">
+                To: <strong className="text-white">{rejectSupplierModalPayment.receiverName}</strong> ({rejectSupplierModalPayment.reference})
+              </p>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold uppercase text-slate-300 block mb-1">
+                Mandatory Rejection Reason (Audit Trail):
+              </label>
+              <textarea
+                value={supplierRejectReason}
+                onChange={(e) => setSupplierRejectReason(e.target.value)}
+                placeholder="Explain the specific reason for rejecting this payment..."
+                rows={3}
+                className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-rose-500 resize-none"
+                required
+              />
+            </div>
+
+            <p className="text-[10px] text-amber-300 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
+              Confirming this rejection will post a balanced double-entry refund entry to the general ledger, immediately crediting ¥{rejectSupplierModalPayment.amountRMB.toLocaleString()} back to the customer's CNY wallet and notifying the user.
+            </p>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setRejectSupplierModalPayment(null)}
+                className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSupplierRejection}
+                className="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs shadow-md shadow-rose-500/20"
+              >
+                Confirm Rejection & Refund
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Withdrawal Modal */}
+      {rejectWithdrawalModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-rose-400 tracking-wider">
+                Reject & Refund Naira Withdrawal
+              </span>
+              <h3 className="text-base font-extrabold text-white mt-1">
+                Refund ₦{(rejectWithdrawalModal.amountNGN + (rejectWithdrawalModal.feeNGN || 50)).toLocaleString()} NGN
+              </h3>
+              <p className="text-xs text-slate-400">
+                Principal ₦{rejectWithdrawalModal.amountNGN.toLocaleString()} + ₦{rejectWithdrawalModal.feeNGN || 50} Fee • {rejectWithdrawalModal.accountName}
+              </p>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold uppercase text-slate-300 block mb-1">
+                Mandatory Rejection Reason (Audit Trail):
+              </label>
+              <textarea
+                value={withdrawalRejectReason}
+                onChange={(e) => setWithdrawalRejectReason(e.target.value)}
+                placeholder="Explain the specific reason for rejecting this withdrawal..."
+                rows={3}
+                className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-rose-500 resize-none"
+                required
+              />
+            </div>
+
+            <p className="text-[10px] text-amber-300 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
+              Confirming this rejection will post a balanced double-entry refund entry to the general ledger, immediately crediting both principal and processing fee back to the customer's NGN wallet and notifying the user.
+            </p>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setRejectWithdrawalModal(null)}
+                className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmWithdrawalRejection}
+                className="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs shadow-md shadow-rose-500/20"
+              >
+                Confirm Rejection & Refund
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QR Code Preview Modal */}
+      {previewQrUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 text-center">
+            <h3 className="text-base font-bold text-white">Beneficiary Payment QR</h3>
+            <div className="p-3 bg-white rounded-2xl inline-block shadow-inner">
+              <img
+                src={previewQrUrl}
+                alt="Beneficiary QR"
+                className="w-56 h-56 object-contain mx-auto"
+              />
+            </div>
+            <button
+              onClick={() => setPreviewQrUrl(null)}
+              className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs"
+            >
+              Close Preview
+            </button>
           </div>
         </div>
       )}
