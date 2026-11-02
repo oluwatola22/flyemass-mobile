@@ -1597,6 +1597,125 @@ class DatabaseService {
     }
   }
 
+  public async deferShipmentPayment(shipmentId: string, userId: string): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/shipments/defer-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shipmentId, userId })
+      });
+      const data = await res.json();
+      if (data.shipment) {
+        this.state.shipments[data.shipment.id] = data.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Failed to defer shipment payment' };
+    }
+  }
+
+  public async intakeShipment(shipmentIdOrData: any, optionalData?: any): Promise<any> {
+    const payload = optionalData ? { shipmentId: shipmentIdOrData, ...optionalData } : (typeof shipmentIdOrData === 'object' ? shipmentIdOrData : { shipmentId: shipmentIdOrData });
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/shipments/intake`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      if (result.shipment) {
+        this.state.shipments[result.shipment.id] = result.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Failed to inspect shipment' };
+    }
+  }
+
+  public async billShipment(shipmentIdOrData: any, optionalData?: any): Promise<any> {
+    const payload = optionalData ? { shipmentId: shipmentIdOrData, ...optionalData } : (typeof shipmentIdOrData === 'object' ? shipmentIdOrData : { shipmentId: shipmentIdOrData });
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/shipments/bill`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      if (result.shipment) {
+        this.state.shipments[result.shipment.id] = result.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Failed to bill shipment' };
+    }
+  }
+
+  public async updateShipmentLifecycle(shipmentIdOrData: any, status?: string, location?: string, notes?: string): Promise<any> {
+    const payload = status ? { shipmentId: shipmentIdOrData, status, location, notes } : shipmentIdOrData;
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/shipments/update-status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      if (result.shipment) {
+        this.state.shipments[result.shipment.id] = result.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Failed to update shipment status' };
+    }
+  }
+
+  public async verifyPickupOtp(shipmentIdOrData: any, otp?: string, freightCollected?: boolean, staffId?: string): Promise<any> {
+    const payload = otp ? { shipmentId: shipmentIdOrData, otp, freightCollected, staffId } : shipmentIdOrData;
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/shipments/verify-pickup-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      if (result.shipment) {
+        this.state.shipments[result.shipment.id] = result.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Failed to verify pickup OTP' };
+    }
+  }
+
+  public async confirmDoorstepDelivery(shipmentIdOrData: any, proofNote?: string, freightCollected?: boolean, staffId?: string): Promise<any> {
+    const payload = proofNote !== undefined ? { shipmentId: shipmentIdOrData, proofNote, freightCollected, staffId } : shipmentIdOrData;
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/shipments/confirm-doorstep-delivery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      if (result.shipment) {
+        this.state.shipments[result.shipment.id] = result.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Failed to confirm delivery' };
+    }
+  }
+
   public async consolidateShipments(shipmentIds: string[], destinationHub?: string, mode?: string, userId?: string): Promise<any> {
     const res = await fetch(`${BACKEND_BASE}/api/shipments/consolidate`, {
       method: 'POST',

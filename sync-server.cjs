@@ -1206,7 +1206,7 @@ const server = http.createServer(async (req, res) => {
     // -------------------------------------------------------------
     // Health & System Info
     // -------------------------------------------------------------
-    if (pathname === '/health' && req.method === 'GET') {
+    if ((pathname === '/health' || pathname === '/api/health') && req.method === 'GET') {
       const integrity = verifyDatabaseIntegrity();
       return sendJson(res, 200, {
         status: integrity.healthy ? 'healthy' : 'degraded',
@@ -2309,10 +2309,10 @@ const server = http.createServer(async (req, res) => {
     }
 
     // -------------------------------------------------------------
-    // 17. CARGO FREIGHT SETTLEMENT
+    // 17. CARGO FREIGHT SETTLEMENT (Multi-Currency & Pay on Arrival)
     // -------------------------------------------------------------
     if (pathname === '/api/shipments/pay-freight' && req.method === 'POST') {
-      const { shipmentId, userId, paidWith, pin } = await readJsonBody(req);
+      const { shipmentId, userId, paidWith, walletCurrency, pin } = await readJsonBody(req);
       const user = dbState.users[userId || 'usr_alade_01'];
       const ship = dbState.shipments[shipmentId];
       if (!user || !ship) return sendJson(res, 404, { error: 'User or Shipment not found' });
@@ -2327,17 +2327,19 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, pinCheck.status || 401, { error: pinCheck.error });
       }
 
-      const curr = paidWith || 'USD';
-      let requiredDebit = ship.freightFee || 285;
+      const curr = paidWith || walletCurrency || 'USD';
+      let requiredDebit = ship.freightFeeUSD || ship.freightFee || 285;
       if (curr === 'NGN') {
-        requiredDebit = Math.round(requiredDebit * (dbState.system_settings.rates.USD_NGN || 1485));
+        requiredDebit = ship.freightFeeNGN || Math.round(requiredDebit * (dbState.system_settings.rates.USD_NGN || 1485));
+      } else if (curr === 'CNY') {
+        requiredDebit = ship.freightFeeCNY || Math.round(requiredDebit * (dbState.system_settings.rates.USD_CNY || 7.24) * 100) / 100;
       }
 
       if ((user.balances[curr] || 0) < requiredDebit) {
-        return sendJson(res, 400, { error: `Insufficient ${curr} balance to clear freight fee` });
+        return sendJson(res, 400, { error: `Insufficient ${curr} balance to clear freight fee (Required: ${curr} ${requiredDebit.toLocaleString()})` });
       }
 
-      const ref = `WAYBILL-${ship.trackingNumber}`;
+      const ref = `WAYBILL-${ship.trackingCode || ship.trackingNumber}`;
 
       await withUserLock(user.uid, async () => {
         const openingBalance = user.balances[curr];
@@ -2346,7 +2348,7 @@ const server = http.createServer(async (req, res) => {
           reference: ref,
           userId: user.uid,
           transactionType: 'CARGO_FREIGHT',
-          description: `Freight settlement for Waybill #${ship.trackingNumber}`,
+          description: `Freight settlement for Waybill #${ship.trackingCode || ship.trackingNumber}`,
           postings: [
             { account: `liabilities:customer:${user.uid}:${curr.toLowerCase()}`, currency: curr, debit: requiredDebit, credit: 0 },
             { account: 'revenue:fees:freight', currency: curr, debit: 0, credit: requiredDebit }
@@ -2357,12 +2359,18 @@ const server = http.createServer(async (req, res) => {
         const closingBalance = user.balances[curr];
 
         ship.freightPaid = true;
-        // NOTE: Freight payment unlocks clearance, but does NOT skip operational stages.
+        ship.paymentStatus = 'paid';
+        ship.paymentTiming = 'immediate';
+        ship.paidCurrency = curr;
+        ship.paidAmount = requiredDebit;
+        ship.currentStatus = 'ready_for_dispatch';
+        ship.status = 'ready_for_dispatch';
+
         ship.timeline.push({
           status: 'Freight Paid',
           location: 'Lagos Clearing Escrow',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          notes: `Freight cleared in full (${curr} ${requiredDebit.toLocaleString()}). Ready for customs release.`
+          notes: `Freight cleared in full (${curr} ${requiredDebit.toLocaleString()}). Ready for customs release and flight dispatch.`
         });
         ship.updatedAt = Date.now();
 
@@ -2380,8 +2388,21 @@ const server = http.createServer(async (req, res) => {
           status: 'completed',
           reference: ref,
           timestamp: Date.now(),
-          notes: `Freight settlement for Waybill #${ship.trackingNumber}`
+          notes: `Freight settlement for Waybill #${ship.trackingCode || ship.trackingNumber}`
         };
+
+        if (!dbState.notifications) dbState.notifications = [];
+        dbState.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          title: 'Freight Settlement Confirmed',
+          message: `Freight for #${ship.trackingCode || ship.trackingNumber} paid in full (${curr} ${requiredDebit.toLocaleString()}). Consignment is ready for dispatch.`,
+          time: 'Just now',
+          timestamp: Date.now(),
+          read: false,
+          type: 'shipment',
+          targetUserId: user.uid,
+          linkRoute: 'track'
+        });
 
         recordAudit(user.fullName, 'FREIGHT_PAID', 'shipments', ship.id, `Cleared freight of ${curr} ${requiredDebit} for ${ship.trackingNumber}`, req);
       });
@@ -2389,6 +2410,44 @@ const server = http.createServer(async (req, res) => {
       persistState();
       broadcastUpdate();
       return sendJson(res, 200, { success: true, shipment: ship, balances: user.balances });
+    }
+
+    if (pathname === '/api/shipments/defer-payment' && req.method === 'POST') {
+      const { shipmentId, userId } = await readJsonBody(req);
+      const ship = dbState.shipments[shipmentId];
+      if (!ship) return sendJson(res, 404, { error: 'Shipment not found' });
+
+      ship.paymentStatus = 'deferred';
+      ship.paymentTiming = 'pay_on_arrival';
+      ship.freightPaid = false;
+      ship.currentStatus = 'ready_for_dispatch';
+      ship.status = 'ready_for_dispatch';
+
+      ship.timeline.push({
+        status: 'Payment Deferred',
+        location: 'Billing Desk',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        notes: 'Pay on Arrival selected. Freight fee will be collected upon pickup at Lagos hub or doorstep handover.'
+      });
+      ship.updatedAt = Date.now();
+
+      if (!dbState.notifications) dbState.notifications = [];
+      dbState.notifications.unshift({
+        id: `notif_${Date.now()}`,
+        title: 'Pay on Arrival Selected',
+        message: `Shipment #${ship.trackingCode || ship.trackingNumber} cleared for dispatch. Freight will be collected upon arrival in Lagos.`,
+        time: 'Just now',
+        timestamp: Date.now(),
+        read: false,
+        type: 'shipment',
+        targetUserId: ship.userId,
+        linkRoute: 'track'
+      });
+
+      recordAudit('Customer', 'FREIGHT_PAYMENT_DEFERRED', 'shipments', ship.id, `Deferred freight to pay-on-arrival for ${ship.trackingNumber}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, shipment: ship });
     }
 
     // -------------------------------------------------------------
@@ -2769,45 +2828,333 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (pathname === '/api/shipments/register' && req.method === 'POST') {
-      const { trackingNumber, title, sender, type, weightKg, originWarehouse, destination, userId, receiverName } = await readJsonBody(req);
+      const body = await readJsonBody(req);
+      const {
+        originWarehouse, shippingMode, courierCompany, trackingNumber,
+        chineseCourierTracking, packageDescription, title, cartonsCount,
+        weightKg, declaredValueRMB, supplierInvoiceUrl, consolidationPreference,
+        deliveryType, pickupHub, doorstepAddress, userId, receiverName, sender
+      } = body;
+
       const uid = userId || 'usr_alade_01';
       const user = dbState.users[uid];
       const shipmentId = `shp_${Date.now()}`;
       const numWeight = parseFloat(weightKg) || 5.0;
-      const isAir = (type || 'air').toLowerCase() === 'air';
-      const costEstimate = isAir ? numWeight * 10 : numWeight * 3.5;
+      const isAir = (shippingMode || 'Air Regular').toLowerCase().includes('air');
+      const ratePerKg = isAir ? ((shippingMode || '').toLowerCase().includes('express') ? 11.5 : 9.5) : 3.5;
+      const costEstimate = Math.round(numWeight * ratePerKg * 100) / 100;
+
+      const randNum = Math.floor(10000 + Math.random() * 90000);
+      const shipmentCode = `SL-2026-${randNum}`;
+      const trackingCode = `FMCN${Math.floor(10000000 + Math.random() * 90000000)}`;
+      const pickupOtp = String(Math.floor(100000 + Math.random() * 900000));
+      const cTrack = trackingNumber || chineseCourierTracking || `SF${Math.floor(100000000000 + Math.random() * 900000000000)}`;
 
       const newShipment = {
         id: shipmentId,
-        trackingNumber: trackingNumber || `FM-${(originWarehouse || 'GZ').slice(0, 2).toUpperCase()}-${Math.floor(10000 + Math.random() * 90000)}`,
+        shipmentCode,
+        trackingCode,
+        trackingNumber: cTrack,
+        chineseCourierTracking: cTrack,
         userId: uid,
-        receiverName: receiverName || (user ? user.fullName : 'Valued Client'),
+        receiverName: receiverName || (user ? user.fullName : 'Chief Babatunde Alade'),
+        customerPhone: user?.phone || '+234 803 555 9201',
         originWarehouse: originWarehouse || 'Guangzhou',
-        destination: destination || 'Lagos Hub',
-        weightKg: numWeight,
+        destination: 'Nigeria',
+        destinationHub: deliveryType === 'doorstep' ? 'Lagos Doorstep Delivery' : (pickupHub || 'Ikeja MMIA Cargo Hub'),
+        deliveryType: deliveryType || 'pickup',
+        pickupHub: pickupHub || 'Ikeja MMIA Cargo Hub',
+        doorstepAddress: doorstepAddress || undefined,
+        shippingMode: shippingMode || 'Air Regular',
         mode: isAir ? 'Air Freight' : 'Sea Freight',
-        currentStatus: 'Origin Received',
-        timeline: [
-          {
-            status: 'Origin Received',
-            location: `${originWarehouse || 'Guangzhou'} International Cargo Hub`,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            notes: `Parcel pre-alert registered by client. Sender: ${sender || 'Domestic Supplier'}`
-          }
-        ],
-        updatedAt: Date.now(),
-        cbm: Number((numWeight * 0.005).toFixed(3)),
+        courierCompany: courierCompany || 'SF Express',
+        packageDescription: packageDescription || title || 'Commercial Goods Consignment',
+        title: title || packageDescription || 'Commercial Goods Consignment',
+        sender: sender || 'Domestic Chinese Supplier',
+        cartonsCount: Number(cartonsCount) || 1,
+        weightKg: numWeight,
+        declaredValueRMB: Number(declaredValueRMB) || 0,
+        supplierInvoiceUrl: supplierInvoiceUrl || undefined,
+        consolidationPreference: consolidationPreference || 'Keep original packaging',
+        currentStatus: 'registered',
+        status: 'registered',
+        paymentStatus: 'unbilled',
+        freightPaid: false,
         costEstimate,
         costCurrency: 'USD',
-        title: title || 'Cross-Border Cargo Consignment',
-        freightPaid: false
+        pickupOtp,
+        timeline: [
+          {
+            status: 'registered',
+            location: `${originWarehouse || 'Guangzhou'} International Receiving Dock`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            notes: `Package pre-alert registered by customer. Courier: ${courierCompany || 'SF Express'} #${cTrack}.`
+          }
+        ],
+        createdAt: Date.now(),
+        updatedAt: Date.now()
       };
 
       dbState.shipments[shipmentId] = newShipment;
-      recordAudit(user ? user.fullName : 'Client', 'SHIPMENT_REGISTERED', 'shipments', shipmentId, `Registered parcel ${newShipment.trackingNumber}`, req);
+
+      if (!dbState.notifications) dbState.notifications = [];
+      dbState.notifications.unshift({
+        id: `notif_${Date.now()}`,
+        title: 'Package Pre-Alert Registered',
+        message: `Package #${newShipment.trackingCode} (${newShipment.shipmentCode}) registered for ${newShipment.originWarehouse} delivery.`,
+        time: 'Just now',
+        timestamp: Date.now(),
+        read: false,
+        type: 'shipment',
+        targetUserId: uid,
+        linkRoute: 'track'
+      });
+
+      recordAudit(user ? user.fullName : 'Client', 'SHIPMENT_REGISTERED', 'shipments', shipmentId, `Registered package ${newShipment.trackingCode} (${newShipment.shipmentCode})`, req);
       persistState();
       broadcastUpdate();
       return sendJson(res, 201, { success: true, shipment: newShipment });
+    }
+
+    if (pathname === '/api/shipments/intake' && req.method === 'POST') {
+      const { shipmentId, actualWeightKg, lengthCm, widthCm, heightCm, dimensions, cbm, inspectionPhotos, inspectionNotes, packagingCondition, adminId } = await readJsonBody(req);
+      const ship = dbState.shipments[shipmentId];
+      if (!ship) return sendJson(res, 404, { error: 'Shipment not found' });
+
+      const actWeight = parseFloat(actualWeightKg) || ship.weightKg || 5.0;
+      const l = lengthCm || (dimensions ? dimensions.lengthCm : null);
+      const w = widthCm || (dimensions ? dimensions.widthCm : null);
+      const h = heightCm || (dimensions ? dimensions.heightCm : null);
+      let volWeight = 0;
+      if (l && w && h) {
+        volWeight = (Number(l) * Number(w) * Number(h)) / 6000;
+      } else if (cbm) {
+        volWeight = Number(cbm) * 167;
+      }
+      const billable = Math.max(actWeight, volWeight);
+
+      ship.actualWeightKg = actWeight;
+      ship.weightKg = actWeight;
+      ship.billableWeightKg = Number(billable.toFixed(2));
+      if (l && w && h) {
+        ship.dimensions = { lengthCm: Number(l), widthCm: Number(w), heightCm: Number(h) };
+        ship.cbm = Number(((Number(l) * Number(w) * Number(h)) / 1000000).toFixed(3));
+      } else if (cbm) {
+        ship.cbm = Number(cbm);
+      }
+      if (Array.isArray(inspectionPhotos) && inspectionPhotos.length > 0) {
+        ship.inspectionPhotos = inspectionPhotos;
+      }
+      if (inspectionNotes) ship.inspectionNotes = inspectionNotes;
+      if (packagingCondition) ship.packagingCondition = packagingCondition;
+
+      ship.currentStatus = 'inspection';
+      ship.status = 'inspection';
+      ship.timeline.push({
+        status: 'inspection',
+        location: `${ship.originWarehouse || 'China'} Warehouse Receiving Dock`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        notes: `Package weighed (${actWeight} kg actual, ${ship.billableWeightKg} kg billable). Packaging condition: ${packagingCondition || 'Intact'}. Inspection photos recorded.`
+      });
+      ship.updatedAt = Date.now();
+
+      if (!dbState.notifications) dbState.notifications = [];
+      dbState.notifications.unshift({
+        id: `notif_${Date.now()}`,
+        title: 'Package Received & Weighed at China Dock',
+        message: `Package #${ship.trackingCode || ship.trackingNumber} received at ${ship.originWarehouse} warehouse. Actual weight: ${actWeight} kg. Inspection photos ready.`,
+        time: 'Just now',
+        timestamp: Date.now(),
+        read: false,
+        type: 'shipment',
+        targetUserId: ship.userId,
+        linkRoute: 'track'
+      });
+
+      recordAudit(adminId || 'Warehouse Officer', 'SHIPMENT_INSPECTED', 'shipments', ship.id, `Inspected & weighed ${ship.trackingNumber}: ${actWeight} kg`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, shipment: ship });
+    }
+
+    if (pathname === '/api/shipments/bill' && req.method === 'POST') {
+      const { shipmentId, freightFeeUSD, ratePerKg, billingNotes, adminId } = await readJsonBody(req);
+      const ship = dbState.shipments[shipmentId];
+      if (!ship) return sendJson(res, 404, { error: 'Shipment not found' });
+
+      const feeUSD = parseFloat(freightFeeUSD);
+      if (isNaN(feeUSD) || feeUSD <= 0) return sendJson(res, 400, { error: 'Valid freight fee in USD required' });
+
+      const usdNgnRate = dbState.system_settings.rates.USD_NGN || 1485;
+      const usdCnyRate = dbState.system_settings.rates.USD_CNY || 7.24;
+
+      ship.freightFeeUSD = feeUSD;
+      ship.freightFee = feeUSD;
+      ship.freightFeeNGN = Math.round(feeUSD * usdNgnRate);
+      ship.freightFeeCNY = Math.round(feeUSD * usdCnyRate * 100) / 100;
+      if (ratePerKg) ship.ratePerKg = Number(ratePerKg);
+      if (billingNotes) ship.billingNotes = billingNotes;
+
+      ship.paymentStatus = 'awaiting_payment';
+      ship.currentStatus = 'awaiting_payment';
+      ship.status = 'awaiting_payment';
+
+      ship.timeline.push({
+        status: 'awaiting_payment',
+        location: 'Billing Desk',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        notes: `Freight invoice generated: $${feeUSD.toFixed(2)} USD (≈ ₦${ship.freightFeeNGN.toLocaleString()} NGN). Awaiting customer payment.`
+      });
+      ship.updatedAt = Date.now();
+
+      if (!dbState.notifications) dbState.notifications = [];
+      dbState.notifications.unshift({
+        id: `notif_${Date.now()}`,
+        title: 'Freight Invoice Ready for Settlement',
+        message: `Freight for #${ship.trackingCode || ship.trackingNumber} is ready: $${feeUSD.toFixed(2)} USD (≈ ₦${ship.freightFeeNGN.toLocaleString()}). Pay now or choose Pay on Arrival.`,
+        time: 'Just now',
+        timestamp: Date.now(),
+        read: false,
+        type: 'shipment',
+        targetUserId: ship.userId,
+        linkRoute: 'track'
+      });
+
+      recordAudit(adminId || 'Billing Officer', 'SHIPMENT_BILLED', 'shipments', ship.id, `Invoiced freight $${feeUSD} for ${ship.trackingNumber}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, shipment: ship });
+    }
+
+    if (pathname === '/api/shipments/update-status' && req.method === 'POST') {
+      const { shipmentId, status, location, notes, adminId } = await readJsonBody(req);
+      const ship = dbState.shipments[shipmentId];
+      if (!ship) return sendJson(res, 404, { error: 'Shipment not found' });
+
+      ship.currentStatus = status;
+      ship.status = status;
+      ship.timeline.push({
+        status,
+        location: location || 'Cargo Route Corridor',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        notes: notes || `Shipment advanced to stage: ${status}`
+      });
+      ship.updatedAt = Date.now();
+
+      if (!dbState.notifications) dbState.notifications = [];
+      dbState.notifications.unshift({
+        id: `notif_${Date.now()}`,
+        title: `Shipment Milestone: ${status}`,
+        message: `Waybill #${ship.trackingCode || ship.trackingNumber} has advanced: ${notes || status}`,
+        time: 'Just now',
+        timestamp: Date.now(),
+        read: false,
+        type: 'shipment',
+        targetUserId: ship.userId,
+        linkRoute: 'track'
+      });
+
+      recordAudit(adminId || 'Logistics Officer', 'SHIPMENT_STATUS_UPDATED', 'shipments', ship.id, `Updated status to ${status}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, shipment: ship });
+    }
+
+    if (pathname === '/api/shipments/verify-pickup-otp' && req.method === 'POST') {
+      const { shipmentId, otp, staffName, freightCollected } = await readJsonBody(req);
+      const ship = dbState.shipments[shipmentId];
+      if (!ship) return sendJson(res, 404, { error: 'Shipment not found' });
+
+      if (ship.pickupOtp && String(otp).trim() !== String(ship.pickupOtp).trim()) {
+        return sendJson(res, 400, { error: 'Invalid 6-digit Pickup OTP. Package release blocked.' });
+      }
+
+      if (ship.paymentStatus === 'deferred' && !freightCollected) {
+        return sendJson(res, 400, { error: `Deferred freight payment of ₦${(ship.freightFeeNGN || 0).toLocaleString()} must be collected before releasing package.` });
+      }
+
+      if (freightCollected) {
+        ship.freightPaid = true;
+        ship.paymentStatus = 'paid';
+      }
+
+      ship.otpVerified = true;
+      ship.handedOverTo = staffName || 'Lagos Hub Handover Officer';
+      ship.handoverTimestamp = Date.now();
+      ship.currentStatus = 'delivered';
+      ship.status = 'delivered';
+
+      ship.timeline.push({
+        status: 'delivered',
+        location: ship.destinationHub || 'Lagos Ikeja Hub',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        notes: `Package verified via 6-digit OTP (${otp}) and handed over to customer by ${staffName || 'Hub Officer'}.`
+      });
+      ship.updatedAt = Date.now();
+
+      if (!dbState.notifications) dbState.notifications = [];
+      dbState.notifications.unshift({
+        id: `notif_${Date.now()}`,
+        title: 'Package Handed Over & Collected',
+        message: `Package #${ship.trackingCode || ship.trackingNumber} has been verified and picked up at ${ship.destinationHub || 'Lagos Hub'}. Thank you for shipping with FlyeMass!`,
+        time: 'Just now',
+        timestamp: Date.now(),
+        read: false,
+        type: 'shipment',
+        targetUserId: ship.userId,
+        linkRoute: 'track'
+      });
+
+      recordAudit(staffName || 'Lagos Hub Officer', 'PICKUP_OTP_VERIFIED', 'shipments', ship.id, `Released package ${ship.trackingNumber} with OTP verification`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, shipment: ship });
+    }
+
+    if (pathname === '/api/shipments/confirm-doorstep-delivery' && req.method === 'POST') {
+      const { shipmentId, recipientName, proofNote, freightCollected, staffName } = await readJsonBody(req);
+      const ship = dbState.shipments[shipmentId];
+      if (!ship) return sendJson(res, 404, { error: 'Shipment not found' });
+
+      if (ship.paymentStatus === 'deferred' && !freightCollected) {
+        return sendJson(res, 400, { error: `Deferred freight payment of ₦${(ship.freightFeeNGN || 0).toLocaleString()} must be collected upon doorstep delivery.` });
+      }
+
+      if (freightCollected) {
+        ship.freightPaid = true;
+        ship.paymentStatus = 'paid';
+      }
+
+      ship.handedOverTo = recipientName || ship.receiverName;
+      ship.handoverTimestamp = Date.now();
+      ship.currentStatus = 'delivered';
+      ship.status = 'delivered';
+
+      ship.timeline.push({
+        status: 'delivered',
+        location: ship.doorstepAddress?.city ? `${ship.doorstepAddress.street}, ${ship.doorstepAddress.city}` : 'Customer Doorstep',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        notes: `Delivered to doorstep and signed by ${recipientName || ship.receiverName}. ${proofNote || 'Signed parcel proof of delivery recorded.'}`
+      });
+      ship.updatedAt = Date.now();
+
+      if (!dbState.notifications) dbState.notifications = [];
+      dbState.notifications.unshift({
+        id: `notif_${Date.now()}`,
+        title: 'Package Delivered to Doorstep',
+        message: `Package #${ship.trackingCode || ship.trackingNumber} has been delivered to your address. Enjoy your goods!`,
+        time: 'Just now',
+        timestamp: Date.now(),
+        read: false,
+        type: 'shipment',
+        targetUserId: ship.userId,
+        linkRoute: 'track'
+      });
+
+      recordAudit(staffName || 'Dispatch Driver', 'DOORSTEP_DELIVERY_CONFIRMED', 'shipments', ship.id, `Completed doorstep delivery for ${ship.trackingNumber}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, shipment: ship });
     }
 
     if (pathname === '/api/shipments/consolidate' && req.method === 'POST') {
@@ -2866,6 +3213,7 @@ const server = http.createServer(async (req, res) => {
         costEstimate: consolCost,
         costCurrency: 'USD',
         title: `Consolidated Master Container (${shipmentIds.length} Parcels)`,
+        consolidatedShipmentIds: shipmentIds,
         freightPaid: false
       };
 

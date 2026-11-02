@@ -124,32 +124,97 @@ export interface ShipmentTimelineEvent {
 
 export interface ShipmentDocument {
   id: string;
+  shipmentCode?: string;
   trackingNumber: string;
+  trackingCode?: string;
   userId: string;
   receiverName: string;
-  originWarehouse: 'Guangzhou' | 'Yiwu';
-  destination: 'Lagos Hub';
+  customerPhone?: string;
+  customerAddress?: string;
+  originWarehouse: 'Guangzhou' | 'Yiwu' | 'Foshan' | string;
+  destination: string;
+  destinationHub?: string;
   weightKg: number;
-  mode: 'Air Freight' | 'Sea Freight';
-  currentStatus: 'Origin Received' | 'Packed' | 'In Transit/Customs' | 'Lagos Hub Ready' | 'Delivered' | 'Cancelled';
+  actualWeightKg?: number;
+  billableWeightKg?: number;
+  mode: 'Air Freight' | 'Sea Freight' | string;
+  shippingMode?: 'Air Express' | 'Air Regular' | 'Sea Freight' | string;
+  courierCompany?: string;
+  chineseCourierTracking?: string;
+  packageDescription?: string;
+  cartonsCount?: number;
+  declaredValueRMB?: number;
+  supplierInvoiceUrl?: string;
+  consolidationPreference?: string;
+  deliveryType?: 'pickup' | 'doorstep';
+  pickupHub?: string;
+  doorstepAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    phone: string;
+  };
+  dimensions?: {
+    lengthCm: number;
+    widthCm: number;
+    heightCm: number;
+  };
+  cbm?: number;
+  currentStatus:
+    | 'registered'
+    | 'received_warehouse'
+    | 'inspection'
+    | 'packed'
+    | 'awaiting_payment'
+    | 'ready_for_dispatch'
+    | 'dispatched'
+    | 'in_transit'
+    | 'customs_clearance'
+    | 'arrived'
+    | 'ready_for_pickup'
+    | 'out_for_delivery'
+    | 'delivered'
+    | 'completed'
+    | 'Cancelled'
+    | 'Origin Received'
+    | 'In Transit/Customs'
+    | 'Lagos Hub Ready'
+    | string;
   timeline: ShipmentTimelineEvent[];
   updatedAt: number;
-  cbm?: number;
+  createdAt?: number;
   costEstimate?: number;
   costCurrency?: Currency;
   title?: string;
+  sender?: string;
   freightFee?: number;
+  freightFeeUSD?: number;
+  freightFeeNGN?: number;
+  freightFeeCNY?: number;
+  ratePerKg?: number;
   freightCurrency?: Currency;
   freightPaid?: boolean;
+  paymentStatus?: 'unbilled' | 'awaiting_payment' | 'paid' | 'deferred' | string;
+  paymentTiming?: 'immediate' | 'pay_on_arrival' | string;
+  paidCurrency?: Currency;
+  paidAmount?: number;
+  pickupOtp?: string;
+  otpVerified?: boolean;
+  handedOverTo?: string;
+  handoverTimestamp?: number;
+  inspectionPhotos?: string[];
+  inspectionNotes?: string;
+  packagingCondition?: string;
+  billingNotes?: string;
   status?: string;
   isConsolidatedParent?: boolean;
   consolidatedShipmentIds?: string[];
   containerNumber?: string;
-  destinationHub?: string;
   originCity?: string;
   destinationCity?: string;
   type?: string;
   totalWeightKg?: number;
+  eta?: string;
 }
 
 /**
@@ -380,19 +445,67 @@ export interface Waypoint {
 
 export interface Shipment {
   trackingNumber: string;
+  shipmentCode?: string;
+  trackingCode?: string;
+  id?: string;
   title: string;
   sender: string;
   origin: string;
+  originWarehouse?: string;
   destination: string;
+  destinationHub?: string;
   type: 'air' | 'sea';
-  status: 'Origin Received' | 'Packed & Weighed' | 'In Transit' | 'Customs Cleared' | 'Ready for Pickup';
-  currentStep: number; // 0 to 3
+  status: 'Origin Received' | 'Packed & Weighed' | 'In Transit' | 'Customs Cleared' | 'Ready for Pickup' | string;
+  currentStatus?: string;
+  currentStep: number; // 0 to 3 or 0 to 5
   eta: string;
   weightKg: number;
+  actualWeightKg?: number;
+  billableWeightKg?: number;
   cbm: number;
   costEstimate: number;
   costCurrency: Currency;
   waypoints: Waypoint[];
+  // Extended fields for Phase 9 Logistics Workflow
+  courierCompany?: string;
+  chineseCourierTracking?: string;
+  packageDescription?: string;
+  cartonsCount?: number;
+  declaredValueRMB?: number;
+  supplierInvoiceUrl?: string;
+  consolidationPreference?: string;
+  repackagingPreference?: string;
+  deliveryType?: 'pickup' | 'doorstep';
+  pickupHub?: string;
+  doorstepAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    phone: string;
+  };
+  dimensions?: {
+    lengthCm: number;
+    widthCm: number;
+    heightCm: number;
+  };
+  freightFeeUSD?: number;
+  freightFeeNGN?: number;
+  freightFeeCNY?: number;
+  ratePerKg?: number;
+  freightPaid?: boolean;
+  paymentStatus?: 'unbilled' | 'awaiting_payment' | 'paid' | 'deferred' | string;
+  paymentTiming?: 'immediate' | 'pay_on_arrival' | string;
+  paidCurrency?: Currency;
+  paidAmount?: number;
+  pickupOtp?: string;
+  otpVerified?: boolean;
+  handedOverTo?: string;
+  handoverTimestamp?: number;
+  inspectionPhotos?: string[];
+  inspectionNotes?: string;
+  packagingCondition?: string;
+  billingNotes?: string;
+  createdAt?: number;
 }
 
 export interface WarehouseAddress {

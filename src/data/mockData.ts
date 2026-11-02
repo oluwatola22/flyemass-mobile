@@ -140,8 +140,8 @@ export const CHINA_WAREHOUSES: WarehouseAddress[] = [
     hubName: 'FlyeMass Baiyun International Air Cargo Hub',
     addressEn: 'Room 302, Building B, Shijing International Logistics Park, Baiyun District, Guangzhou, Guangdong Province, China',
     addressZh: '广东省广州市白云区石井国际物流园B栋302室 (飞马斯中非物流仓)',
-    recipientEn: 'FlyeMass Cargo / [Your User ID: FM-90214]',
-    recipientZh: '飞马斯转运 / FM-90214 (阿德先生收)',
+    recipientEn: 'FlyeMass Cargo / [Your Shipping Mark: FM / USR-8924 / Babatunde Alade]',
+    recipientZh: '飞马斯转运 / FM / USR-8924 / Babatunde Alade (阿德先生收)',
     phone: '+86 186 2008 9142',
     postalCode: '510440',
     type: 'Air Freight Cargo'
@@ -152,11 +152,35 @@ export const CHINA_WAREHOUSES: WarehouseAddress[] = [
     hubName: 'FlyeMass Yiwu Futian Consolidated Sea & Air Hub',
     addressEn: 'Warehouse 18, Block D, Yiwu International Port Trade Zone, Chouzhou North Road, Yiwu, Zhejiang Province, China',
     addressZh: '浙江省义乌市稠州北路义乌港国际物流区D区18号仓 (飞马斯外贸集运部)',
-    recipientEn: 'FlyeMass Sea Cargo / [FM-90214]',
-    recipientZh: '飞马斯国际集装箱中心 / FM-90214',
+    recipientEn: 'FlyeMass Sea Cargo / [FM / USR-8924 / Babatunde Alade]',
+    recipientZh: '飞马斯国际集装箱中心 / FM / USR-8924 / Babatunde Alade',
     phone: '+86 139 5792 8841',
     postalCode: '322000',
     type: 'Sea Freight Cargo'
+  },
+  {
+    id: 'wh-foshan',
+    city: 'Foshan',
+    hubName: 'FlyeMass Foshan Nanhai Furniture & Hardware Hub',
+    addressEn: 'Building 6, Lanshi International Metal & Furniture Logistics Center, Nanhai District, Foshan, Guangdong Province, China',
+    addressZh: '广东省佛山市南海区澜石国际金属家具物流中心6栋 (飞马斯大宗重货仓)',
+    recipientEn: 'FlyeMass Bulky Sea Freight / [FM / USR-8924 / Babatunde Alade]',
+    recipientZh: '飞马斯佛山重货集运部 / FM / USR-8924 / Babatunde Alade (阿德先生收)',
+    phone: '+86 177 2278 6109',
+    postalCode: '528200',
+    type: 'Sea Freight Cargo'
+  },
+  {
+    id: 'wh-hk',
+    city: 'Hong Kong',
+    hubName: 'FlyeMass Hong Kong Express Aviation Gateway',
+    addressEn: 'Unit 408, Air Cargo Terminal 2, Hong Kong International Airport, Chek Lap Kok, Hong Kong',
+    addressZh: '香港特别行政区赤鱲角香港国际机场第二空运货运站408室 (飞马斯特快空运中心)',
+    recipientEn: 'FlyeMass HK Priority Express / [FM / USR-8924 / Babatunde Alade]',
+    recipientZh: '飞马斯香港特快空运部 / FM / USR-8924 / Babatunde Alade',
+    phone: '+852 2398 7102',
+    postalCode: '999077',
+    type: 'Air Freight Cargo'
   }
 ];
 

@@ -76,7 +76,7 @@ interface AppContextType {
   fundWallet: (currency: Currency, amount: number, method: string) => void;
   paySupplier: (supplierName: string, method: string, amountCNY: number, note: string) => boolean;
   withdrawToBank: (bankName: string, accountNumber: string, accountName: string, amountNGN: number) => boolean;
-  registerPackage: (data: { trackingNumber: string; title: string; sender: string; type: 'air' | 'sea'; weightKg: number }) => void;
+  registerPackage: (data: any) => Promise<any>;
   hotelBookings: HotelBooking[];
   bookHotel: (hotel: Hotel, nights: number, currency?: Currency, pin?: string) => boolean;
   chatMessages: ChatMessage[];
@@ -377,6 +377,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const dbShipments = db.getShipments();
       if (dbShipments && dbShipments.length > 0) {
         const stepMap: Record<string, number> = {
+          'registered': 0,
+          'received_warehouse': 1,
+          'inspection': 1,
+          'packed': 1,
+          'awaiting_payment': 1,
+          'ready_for_dispatch': 2,
+          'dispatched': 2,
+          'in_transit': 2,
+          'customs_clearance': 3,
+          'arrived': 4,
+          'ready_for_pickup': 4,
+          'out_for_delivery': 4,
+          'delivered': 5,
+          'completed': 5,
           'Origin Received': 0,
           'Packed': 1,
           'In Transit/Customs': 2,
@@ -384,39 +398,97 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           'Delivered': 4
         };
 
-        const statusMap: Record<string, Shipment['status']> = {
-          'Origin Received': 'Origin Received',
-          'Packed': 'Packed & Weighed',
-          'In Transit/Customs': 'In Transit',
-          'Lagos Hub Ready': 'Customs Cleared',
-          'Delivered': 'Ready for Pickup'
+        const statusLabelMap: Record<string, string> = {
+          'registered': 'Registered',
+          'received_warehouse': 'Received at Hub',
+          'inspection': 'Inspection & Weighing',
+          'packed': 'Packed & Stored',
+          'awaiting_payment': 'Awaiting Freight Payment',
+          'ready_for_dispatch': 'Ready for Flight / Vessel',
+          'dispatched': 'Departed Hub',
+          'in_transit': 'In Transit to Lagos',
+          'customs_clearance': 'Customs Clearance (Lagos)',
+          'arrived': 'Arrived Lagos Hub',
+          'ready_for_pickup': 'Ready for Pickup',
+          'out_for_delivery': 'Out for Delivery',
+          'delivered': 'Delivered & Handed Over',
+          'completed': 'Completed'
         };
 
         setShipments(
           dbShipments.map((s) => {
             const curStep = stepMap[s.currentStatus] ?? 0;
             return {
+              id: s.id,
               trackingNumber: s.trackingNumber,
-              title: s.title || `${s.mode} Cargo to Lagos`,
-              sender: s.originWarehouse,
-              origin: `${s.originWarehouse} Hub`,
-              destination: s.destination,
-              type: s.mode.toLowerCase().includes('sea') ? 'sea' : 'air',
-              status: statusMap[s.currentStatus] || 'In Transit',
+              shipmentCode: s.shipmentCode || s.trackingNumber,
+              trackingCode: s.trackingCode,
+              title: s.title || s.packageDescription || `${s.mode || s.shippingMode || 'Air'} Cargo to Lagos`,
+              sender: s.sender || s.originWarehouse || 'China Warehouse Hub',
+              origin: `${s.originWarehouse || 'Guangzhou'} Hub`,
+              originWarehouse: s.originWarehouse,
+              destination: s.destination || 'Lagos Hub (LOS)',
+              destinationHub: s.destinationHub || s.pickupHub || 'Ikeja MMIA Terminal',
+              type: (s.mode || s.shippingMode || '').toLowerCase().includes('sea') ? 'sea' : 'air',
+              status: statusLabelMap[s.currentStatus] || s.currentStatus || 'In Transit',
+              currentStatus: s.currentStatus,
               currentStep: curStep,
-              eta: s.mode.toLowerCase().includes('sea') ? 'In 21 days' : 'In 3 days',
-              weightKg: s.weightKg,
-              cbm: s.cbm || Number((s.weightKg * 0.005).toFixed(2)),
-              costEstimate: s.costEstimate || (s.mode.toLowerCase().includes('sea') ? s.weightKg * 3.5 : s.weightKg * 10),
+              eta: (s.mode || s.shippingMode || '').toLowerCase().includes('sea') ? 'In 21 days' : 'In 3-5 days',
+              weightKg: s.weightKg || s.actualWeightKg || 5,
+              actualWeightKg: s.actualWeightKg,
+              billableWeightKg: s.billableWeightKg,
+              cbm: s.cbm || Number(((s.weightKg || 5) * 0.005).toFixed(2)),
+              costEstimate: s.costEstimate || s.freightFeeUSD || ((s.mode || '').toLowerCase().includes('sea') ? (s.weightKg || 5) * 3.5 : (s.weightKg || 5) * 10),
               costCurrency: 'USD',
-              waypoints: (s.timeline || []).map((tl, i) => ({
-                id: `wp-${s.trackingNumber}-${i}`,
-                title: tl.status,
-                location: tl.location,
-                timestamp: String(tl.timestamp || 'Just now'),
-                status: (i < curStep ? 'completed' : i === curStep ? 'current' : 'upcoming') as 'completed' | 'current' | 'upcoming',
-                description: tl.notes || ''
-              }))
+              courierCompany: s.courierCompany,
+              chineseCourierTracking: s.chineseCourierTracking,
+              packageDescription: s.packageDescription,
+              cartonsCount: s.cartonsCount,
+              declaredValueRMB: s.declaredValueRMB,
+              supplierInvoiceUrl: s.supplierInvoiceUrl,
+              consolidationPreference: s.consolidationPreference,
+              repackagingPreference: s.packagingCondition,
+              deliveryType: s.deliveryType,
+              pickupHub: s.pickupHub,
+              doorstepAddress: s.doorstepAddress,
+              dimensions: s.dimensions,
+              freightFeeUSD: s.freightFeeUSD,
+              freightFeeNGN: s.freightFeeNGN,
+              freightFeeCNY: s.freightFeeCNY,
+              ratePerKg: s.ratePerKg,
+              freightPaid: s.freightPaid,
+              paymentStatus: s.paymentStatus,
+              paymentTiming: s.paymentTiming,
+              paidCurrency: s.paidCurrency,
+              paidAmount: s.paidAmount,
+              pickupOtp: s.pickupOtp,
+              otpVerified: s.otpVerified,
+              handedOverTo: s.handedOverTo,
+              handoverTimestamp: s.handoverTimestamp,
+              inspectionPhotos: s.inspectionPhotos,
+              inspectionNotes: s.inspectionNotes,
+              packagingCondition: s.packagingCondition,
+              billingNotes: s.billingNotes,
+              createdAt: s.createdAt,
+              waypoints: (s.timeline && s.timeline.length > 0)
+                ? s.timeline.map((tl, i) => ({
+                    id: `wp-${s.trackingNumber}-${i}`,
+                    title: tl.status,
+                    location: tl.location,
+                    timestamp: String(tl.timestamp || 'Just now'),
+                    status: (i < curStep ? 'completed' : i === curStep ? 'current' : 'upcoming') as 'completed' | 'current' | 'upcoming',
+                    description: tl.notes || ''
+                  }))
+                : [
+                    {
+                      id: `wp-${s.trackingNumber}-0`,
+                      title: 'Package Registered',
+                      location: `${s.originWarehouse || 'China'} Dock`,
+                      timestamp: 'Registered',
+                      status: 'completed',
+                      description: 'Pre-alert manifest registered.'
+                    }
+                  ]
             };
           })
         );
@@ -719,79 +791,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   };
 
-  const registerPackage = (data: { trackingNumber: string; title: string; sender: string; type: 'air' | 'sea'; weightKg: number }) => {
-    const newShipment: Shipment = {
-      trackingNumber: data.trackingNumber || `FM-GZ-LOS-${Math.floor(10000 + Math.random() * 90000)}`,
-      title: data.title,
-      sender: data.sender,
-      origin: 'Guangzhou Baiyun Hub',
-      destination: 'Lagos Ikeja Hub',
-      type: data.type,
-      status: 'Origin Received',
-      currentStep: 0,
-      eta: data.type === 'air' ? 'In 4 days' : 'In 28 days',
-      weightKg: data.weightKg,
-      cbm: Number((data.weightKg * 0.005).toFixed(2)),
-      costEstimate: data.type === 'air' ? data.weightKg * 10 : data.weightKg * 3.5,
-      costCurrency: 'USD',
-      waypoints: [
-        {
-          id: `wp-${Date.now()}-1`,
-          title: 'Package Logged & Received at Hub',
-          location: 'Guangzhou Cargo Consolidation Center',
-          timestamp: 'Just now',
-          status: 'current',
-          description: 'Package received from supplier and placed in inspection bay.'
-        },
-        {
-          id: `wp-${Date.now()}-2`,
-          title: 'Quality Check & Export Clearance',
-          location: 'Customs Air/Sea Terminal',
-          status: 'upcoming',
-          description: 'Barcode tagged and export declarations submitted.'
-        },
-        {
-          id: `wp-${Date.now()}-3`,
-          title: 'International Transit',
-          location: data.type === 'air' ? 'Air Flight Cargo' : 'Container Vessel',
-          status: 'upcoming',
-          description: 'En route to Nigerian waters/airspace.'
-        },
-        {
-          id: `wp-${Date.now()}-4`,
-          title: 'Lagos Hub Arrival & Final Clearing',
-          location: 'Lagos Terminal Ready',
-          status: 'upcoming',
-          description: 'Available for warehouse pickup or doorstep delivery.'
-        }
-      ]
-    };
-
-    setShipments((prev) => [newShipment, ...prev]);
-
-    db.registerShipment({
-      trackingNumber: newShipment.trackingNumber,
-      userId: activeUserId || 'usr_alade_01',
-      receiverName: userProfile.name,
-      originWarehouse: 'Guangzhou',
-      destination: 'Lagos Hub',
-      weightKg: data.weightKg,
-      mode: data.type === 'air' ? 'Air Freight' : 'Sea Freight',
-      currentStatus: 'Origin Received',
-      timeline: [
-        {
-          status: 'Origin Received',
-          location: 'China Consolidation Center (Guangzhou)',
-          timestamp: new Date().toLocaleTimeString(),
-          notes: 'Package registered and pre-alert sent to dock.'
-        }
-      ],
-      title: data.title
-    }).catch(err => {
-      console.warn('Backend shipment register sync notice:', err);
-    });
-
-    showToast(`Package ${newShipment.trackingNumber} registered successfully!`, 'success');
+  const registerPackage = async (data: any) => {
+    try {
+      const res = await db.registerShipment({
+        userId: activeUserId || 'usr_alade_01',
+        receiverName: userProfile.name,
+        customerPhone: userProfile.phone,
+        ...data
+      });
+      showToast(`Package pre-alert registered! Code: ${res.shipment?.shipmentCode || res.shipment?.trackingNumber}`, 'success');
+      return res;
+    } catch (err: any) {
+      showToast(err.message || 'Failed to register package', 'error');
+      throw err;
+    }
   };
 
   const addToCart = (product: TechProduct, selectedColor?: string, selectedStorage?: string) => {
