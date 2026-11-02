@@ -486,6 +486,59 @@ const INITIAL_DATABASE = {
 
   shop_orders: {},
   hotel_bookings: {},
+  hotels: {
+    'hotel-gz-westin': {
+      id: 'hotel-gz-westin',
+      name: 'The Westin Pazhou Guangzhou',
+      chineseName: '广州广交会威斯汀酒店',
+      city: 'Guangzhou',
+      district: 'Haizhu Pazhou Complex Zone',
+      pricePerNightUSD: 185,
+      pricePerNightCNY: 1340,
+      rating: 4.9,
+      reviewsCount: 520,
+      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80',
+      tags: ['Direct Skybridge to Canton Fair', 'English Concierge', 'Halal Dining Option'],
+      distanceToMarket: '0.1 km from Canton Fair Exhibition Complex',
+      amenities: ['Direct Fair Access', 'High-speed VPN Wi-Fi', 'Airport Limousine', 'Currency Exchange'],
+      roomType: 'Deluxe King City View',
+      taxiCardZh: '师傅，请带我去广州琶洲广交会威斯汀酒店（海珠区会展东路1号）。谢谢！'
+    },
+    'hotel-sz-futian': {
+      id: 'hotel-sz-futian',
+      name: 'Futian Shangri-La Shenzhen',
+      chineseName: '深圳福田香格里拉大酒店',
+      city: 'Shenzhen',
+      district: 'Futian CBD / Near Huaqiangbei',
+      pricePerNightUSD: 160,
+      pricePerNightCNY: 1158,
+      rating: 4.85,
+      reviewsCount: 410,
+      image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80',
+      tags: ['10 Mins to Huaqiangbei Market', 'Multi-Language Desk', 'Executive Lounge'],
+      distanceToMarket: '3.2 km to Huaqiangbei Electronics Hub',
+      amenities: ['Huaqiangbei Shuttle', 'Indoor Heated Pool', 'Business Center', 'Metro Station Direct'],
+      roomType: 'Horizon Club Deluxe Room',
+      taxiCardZh: '师傅，请带我去深圳福田香格里拉大酒店（益田路4088号）。谢谢！'
+    },
+    'hotel-yiwu-marriott': {
+      id: 'hotel-yiwu-marriott',
+      name: 'Yiwu Marriott Hotel',
+      chineseName: '义乌万豪酒店',
+      city: 'Yiwu',
+      district: 'Futian International Trade City',
+      pricePerNightUSD: 125,
+      pricePerNightCNY: 905,
+      rating: 4.88,
+      reviewsCount: 380,
+      image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=600&q=80',
+      tags: ['Opposite Futian Trade Market', 'African Buyers Favorite', 'Free Trade Shuttle'],
+      distanceToMarket: '400m to District 1 & 2 Commodity Mart',
+      amenities: ['Futian Market Shuttle', 'Halal Kitchen', 'Arabic / English Staff', 'High-Speed Wi-Fi'],
+      roomType: 'Deluxe Business Suite',
+      taxiCardZh: '师傅，请带我去义乌万豪酒店（福田路188号，近国际商贸城）。谢谢！'
+    }
+  },
 
   products: {
     'prod-iphone-16-pro': {
@@ -596,6 +649,41 @@ const INITIAL_DATABASE = {
   },
 
   processed_webhooks: {},
+  webhook_events: [
+    {
+      id: 'whk_seed_01',
+      provider: 'Providus',
+      reference: 'PROV-SETTLE-892401',
+      amount: 1500000,
+      currency: 'NGN',
+      status: 'SUCCESS',
+      timestamp: Date.now() - 3600000,
+      accountNumber: '9082341902',
+      userId: 'usr_alade_01'
+    },
+    {
+      id: 'whk_seed_02',
+      provider: 'Monnify',
+      reference: 'MNFY-CARD-66219',
+      amount: 250000,
+      currency: 'NGN',
+      status: 'SUCCESS',
+      timestamp: Date.now() - 7200000,
+      accountNumber: 'CARD-TXN',
+      userId: 'usr_alade_01'
+    },
+    {
+      id: 'whk_seed_03',
+      provider: 'Korapay',
+      reference: 'KORA-TRF-10928',
+      amount: 500000,
+      currency: 'NGN',
+      status: 'SUCCESS',
+      timestamp: Date.now() - 14400000,
+      accountNumber: 'KORA-NUBAN',
+      userId: 'usr_alade_01'
+    }
+  ],
   audit_logs: []
 };
 
@@ -641,6 +729,8 @@ try {
       supplier_subscriptions: { ...INITIAL_DATABASE.supplier_subscriptions, ...(parsed.supplier_subscriptions || {}) },
       shop_orders: { ...INITIAL_DATABASE.shop_orders, ...(parsed.shop_orders || {}) },
       hotel_bookings: { ...INITIAL_DATABASE.hotel_bookings, ...(parsed.hotel_bookings || {}) },
+      hotels: { ...INITIAL_DATABASE.hotels, ...(parsed.hotels || {}) },
+      webhook_events: parsed.webhook_events || INITIAL_DATABASE.webhook_events || [],
       products: { ...INITIAL_DATABASE.products, ...(parsed.products || {}) },
       support_tickets: { ...INITIAL_DATABASE.support_tickets, ...(parsed.support_tickets || {}) },
       banners: parsed.banners || INITIAL_DATABASE.banners,
@@ -1433,6 +1523,18 @@ const server = http.createServer(async (req, res) => {
         };
 
         dbState.processed_webhooks[ref] = true;
+        if (!dbState.webhook_events) dbState.webhook_events = [];
+        dbState.webhook_events.unshift({
+          id: `whk_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          provider: 'Providus',
+          reference: ref,
+          amount,
+          currency: 'NGN',
+          status: 'SUCCESS',
+          timestamp: Date.now(),
+          accountNumber: accountNumber || '9082341902',
+          userId
+        });
         recordAudit('Providus Webhook Engine', 'PAYMENT_CREDITED', 'wallets_ledger', ledgerId, `Credited ₦${amount} via Providus webhook`, req);
       });
 
@@ -1497,6 +1599,18 @@ const server = http.createServer(async (req, res) => {
         };
 
         dbState.processed_webhooks[ref] = true;
+        if (!dbState.webhook_events) dbState.webhook_events = [];
+        dbState.webhook_events.unshift({
+          id: `whk_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          provider: 'Monnify',
+          reference: ref,
+          amount,
+          currency: 'NGN',
+          status: 'SUCCESS',
+          timestamp: Date.now(),
+          accountNumber: 'CARD-RESERVED',
+          userId
+        });
         recordAudit('Monnify Webhook', 'PAYMENT_CREDITED', 'wallets_ledger', ledgerId, `Credited ₦${amount} via Monnify`, req);
       });
 
@@ -1554,6 +1668,18 @@ const server = http.createServer(async (req, res) => {
         };
 
         dbState.processed_webhooks[ref] = true;
+        if (!dbState.webhook_events) dbState.webhook_events = [];
+        dbState.webhook_events.unshift({
+          id: `whk_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          provider: 'Korapay',
+          reference: ref,
+          amount,
+          currency,
+          status: 'SUCCESS',
+          timestamp: Date.now(),
+          accountNumber: 'KORA-NUBAN',
+          userId
+        });
         recordAudit('Korapay Webhook', 'PAYMENT_CREDITED', 'wallets_ledger', ledgerId, `Credited ${currency} ${amount} via Korapay`, req);
       });
 
@@ -3455,6 +3581,152 @@ const server = http.createServer(async (req, res) => {
       persistState();
       broadcastUpdate();
       return sendJson(res, 200, { success: true, message: `Super Admin account ${adminId} restored successfully` });
+    }
+
+    // -------------------------------------------------------------
+    // 29. PRODUCT CATALOG CREATION & UPDATE
+    // -------------------------------------------------------------
+    if (pathname === '/api/shop/add-product' && req.method === 'POST') {
+      const { product } = await readJsonBody(req);
+      if (!product || !product.id || !product.title) {
+        return sendJson(res, 400, { error: 'Product id and title required' });
+      }
+      if (!dbState.products) dbState.products = {};
+      dbState.products[product.id] = {
+        ...product,
+        createdAt: Date.now()
+      };
+      recordAudit(req.headers['x-admin-id'] || 'Admin Shop', 'ADD_PRODUCT', 'products', product.id, `Created tech product ${product.title}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 201, { success: true, product: dbState.products[product.id] });
+    }
+
+    // -------------------------------------------------------------
+    // 30. PRODUCT STOCK ADJUSTMENT
+    // -------------------------------------------------------------
+    if (pathname === '/api/shop/update-stock' && req.method === 'POST') {
+      const { productId, delta } = await readJsonBody(req);
+      if (!productId || typeof delta !== 'number') {
+        return sendJson(res, 400, { error: 'productId and numeric delta required' });
+      }
+      const prod = dbState.products && dbState.products[productId];
+      if (!prod) return sendJson(res, 404, { error: 'Product not found' });
+      prod.stockCount = Math.max(0, (prod.stockCount || 0) + delta);
+      prod.inStock = prod.stockCount > 0;
+      recordAudit(req.headers['x-admin-id'] || 'Admin Shop', 'UPDATE_STOCK', 'products', productId, `Adjusted stock by ${delta} to ${prod.stockCount}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, product: prod });
+    }
+
+    // -------------------------------------------------------------
+    // 31. CUSTOMER KYC VERIFICATION TOGGLE
+    // -------------------------------------------------------------
+    if (pathname === '/api/admin/users/toggle-kyc' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'compliance'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { userId, verified, adminId } = await readJsonBody(req);
+      const user = dbState.users[userId];
+      if (!user) return sendJson(res, 404, { error: 'User not found' });
+      user.verifiedBadge = verified !== undefined ? !!verified : !user.verifiedBadge;
+      user.kycLevel = user.verifiedBadge ? 'Tier 3 (BVN & CAC Verified)' : 'Tier 1 (Basic)';
+      user.updatedAt = Date.now();
+      recordAudit(adminId || 'Compliance Desk', 'USER_KYC_TOGGLED', 'users', user.uid, `Set KYC verified: ${user.verifiedBadge}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, user });
+    }
+
+    // -------------------------------------------------------------
+    // 32. CUSTOMER COMPLIANCE NOTES
+    // -------------------------------------------------------------
+    if (pathname === '/api/admin/users/update-notes' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'compliance'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { userId, notes, adminId } = await readJsonBody(req);
+      const user = dbState.users[userId];
+      if (!user) return sendJson(res, 404, { error: 'User not found' });
+      user.adminNotes = notes || '';
+      user.updatedAt = Date.now();
+      recordAudit(adminId || 'Compliance Desk', 'USER_NOTES_UPDATED', 'users', user.uid, `Updated compliance notes: ${user.adminNotes}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, user });
+    }
+
+    // -------------------------------------------------------------
+    // 33. WEBHOOK SANDBOX INFLOW SIMULATION
+    // -------------------------------------------------------------
+    if (pathname === '/api/admin/webhooks/simulate' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'finance_officer'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Finance Officer or Super Admin required' });
+      }
+      const { provider, amount, userId, adminId } = await readJsonBody(req);
+      const numAmount = parseFloat(amount) || 100000;
+      const targetUserId = userId || 'usr_alade_01';
+      const user = dbState.users[targetUserId];
+      if (!user) return sendJson(res, 404, { error: 'User not found' });
+
+      const provName = (provider || 'providus').toLowerCase();
+      const ref = `${provName.toUpperCase()}-SIM-${Date.now()}`;
+
+      await withUserLock(targetUserId, async () => {
+        const openingBalance = user.balances.NGN || 0;
+        recordDoubleEntry({
+          reference: ref,
+          userId: targetUserId,
+          transactionType: 'FUND',
+          description: `Simulated Sandbox Inflow: ${provider ? provider.toUpperCase() : 'PROVIDUS'} Settlement`,
+          postings: [
+            { account: `assets:bank:${provName}_clearing:ngn`, currency: 'NGN', debit: numAmount, credit: 0 },
+            { account: `liabilities:customer:${targetUserId}:ngn`, currency: 'NGN', debit: 0, credit: numAmount }
+          ],
+          metadata: { provider: provName, simulated: true }
+        });
+
+        const closingBalance = user.balances.NGN;
+        const ledgerId = `ldg_${Date.now()}`;
+        dbState.wallets_ledger[ledgerId] = {
+          id: ledgerId,
+          userId: targetUserId,
+          type: 'FUND',
+          sourceCurrency: 'NGN',
+          targetCurrency: 'NGN',
+          amount: numAmount,
+          fee: 0,
+          openingBalance,
+          closingBalance,
+          status: 'completed',
+          reference: ref,
+          timestamp: Date.now(),
+          notes: `Sandbox Webhook Simulation confirmed (${ref})`
+        };
+
+        dbState.processed_webhooks[ref] = true;
+        if (!dbState.webhook_events) dbState.webhook_events = [];
+        const evt = {
+          id: `whk_${Date.now()}`,
+          provider: provName.charAt(0).toUpperCase() + provName.slice(1),
+          reference: ref,
+          amount: numAmount,
+          currency: 'NGN',
+          status: 'SUCCESS',
+          timestamp: Date.now(),
+          accountNumber: '9082341902',
+          userId: targetUserId,
+          simulated: true
+        };
+        dbState.webhook_events.unshift(evt);
+
+        recordAudit(adminId || 'Treasury Admin', 'WEBHOOK_SIMULATED', 'wallets_ledger', ledgerId, `Simulated ₦${numAmount} inflow from ${provName.toUpperCase()}`, req);
+      });
+
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, balances: user.balances, reference: ref });
     }
 
     // Endpoint not matched

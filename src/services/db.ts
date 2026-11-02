@@ -23,6 +23,8 @@ export interface DatabaseState {
   supplier_subscriptions: Record<string, SupplierSubscriptionDocument>;
   shop_orders: Record<string, ShopOrderDocument>;
   hotel_bookings: Record<string, any>;
+  hotels?: Record<string, any>;
+  webhook_events?: any[];
   products: Record<string, TechProduct>;
   support_tickets: Record<string, SupportTicketDocument>;
   banners: BannerDocument[];
@@ -616,6 +618,8 @@ class DatabaseService {
           supplier_subscriptions: { ...INITIAL_DATABASE.supplier_subscriptions, ...(parsed.supplier_subscriptions || {}) },
           shop_orders: { ...INITIAL_DATABASE.shop_orders, ...(parsed.shop_orders || {}) },
           hotel_bookings: { ...INITIAL_DATABASE.hotel_bookings, ...(parsed.hotel_bookings || {}) },
+          hotels: { ...(INITIAL_DATABASE.hotels || {}), ...(parsed.hotels || {}) },
+          webhook_events: parsed.webhook_events || INITIAL_DATABASE.webhook_events || [],
           products: { ...INITIAL_DATABASE.products, ...(parsed.products || {}) },
           support_tickets: { ...INITIAL_DATABASE.support_tickets, ...(parsed.support_tickets || {}) },
           banners: parsed.banners || INITIAL_DATABASE.banners,
@@ -1688,6 +1692,70 @@ class DatabaseService {
       this.persist();
       this.notifyListeners();
     }
+    return result;
+  }
+
+  public getHotels(): any[] {
+    const list = Object.values(this.state.hotels || {});
+    return list;
+  }
+
+  public getWebhookEvents(): any[] {
+    return this.state.webhook_events || [];
+  }
+
+  public async toggleKycVerified(userId: string, verified?: boolean, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/users/toggle-kyc`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'compliance'
+      },
+      body: JSON.stringify({ userId, verified, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to toggle KYC status');
+    if (result.user && this.state.users[userId]) {
+      this.state.users[userId] = result.user;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async updateUserAdminNotes(userId: string, notes: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/users/update-notes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'compliance'
+      },
+      body: JSON.stringify({ userId, notes, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to update compliance notes');
+    if (result.user && this.state.users[userId]) {
+      this.state.users[userId] = result.user;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async simulateWebhook(provider: string, amount: number, userId?: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/webhooks/simulate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'finance_officer'
+      },
+      body: JSON.stringify({ provider, amount, userId, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to simulate webhook');
     return result;
   }
 }

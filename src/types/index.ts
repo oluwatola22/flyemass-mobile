@@ -86,6 +86,9 @@ export interface UserDocument {
   isSuspended?: boolean;
   suspensionReason?: string;
   restrictions?: string[];
+  adminNotes?: string;
+  kycLevel?: string;
+  updatedAt?: number;
 }
 
 /**
@@ -138,6 +141,15 @@ export interface ShipmentDocument {
   freightFee?: number;
   freightCurrency?: Currency;
   freightPaid?: boolean;
+  status?: string;
+  isConsolidatedParent?: boolean;
+  consolidatedShipmentIds?: string[];
+  containerNumber?: string;
+  destinationHub?: string;
+  originCity?: string;
+  destinationCity?: string;
+  type?: string;
+  totalWeightKg?: number;
 }
 
 /**

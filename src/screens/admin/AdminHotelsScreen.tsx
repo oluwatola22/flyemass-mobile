@@ -22,19 +22,72 @@ import {
 
 export const AdminHotelsScreen: React.FC = () => {
   const { hotelBookings, showToast } = useApp();
-  const [hotelsList, setHotelsList] = useState<Hotel[]>(CHINA_HOTELS);
+  const [hotelsList, setHotelsList] = useState<Hotel[]>(() => {
+    const list = db.getHotels();
+    return list.length > 0 ? list : CHINA_HOTELS;
+  });
   const [activeTab, setActiveTab] = useState<'hotels' | 'vouchers'>('hotels');
   const [dbBookings, setDbBookings] = useState<any[]>(() => {
     const list = db.getHotelBookings();
     return list.length > 0 ? list : hotelBookings;
   });
 
+  // Add Hotel Partner Modal State
+  const [showAddHotelModal, setShowAddHotelModal] = useState(false);
+  const [newHotelName, setNewHotelName] = useState('Guangzhou Garden Hotel');
+  const [newHotelZh, setNewHotelZh] = useState('广州花园酒店');
+  const [newCity, setNewCity] = useState('Guangzhou');
+  const [newDistrict, setNewDistrict] = useState('Yuexiu Commercial District');
+  const [newPriceUSD, setNewPriceUSD] = useState('140');
+  const [newDistance, setNewDistance] = useState('15 mins direct to Pazhou Complex');
+  const [newTaxiCardZh, setNewTaxiCardZh] = useState('请带我到：广州市越秀区环市东路368号 花园酒店');
+  const [isAddingHotel, setIsAddingHotel] = useState(false);
+
   useEffect(() => {
+    const initial = db.getHotels();
+    if (initial.length > 0) setHotelsList(initial);
+
     return db.subscribe(() => {
       const list = db.getHotelBookings();
       if (list.length > 0) setDbBookings(list);
+      const hList = db.getHotels();
+      if (hList.length > 0) setHotelsList(hList);
     });
   }, []);
+
+  const handleAddHotel = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsAddingHotel(true);
+    try {
+      const priceUSD = parseFloat(newPriceUSD) || 120;
+      const newHotelObj = {
+        id: `htl_${Date.now()}`,
+        name: newHotelName,
+        chineseName: newHotelZh,
+        city: newCity,
+        district: newDistrict,
+        pricePerNightUSD: priceUSD,
+        pricePerNightCNY: Math.round(priceUSD * 7.24),
+        rating: 4.85,
+        reviewsCount: 140,
+        image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=600&q=80',
+        tags: ['Business Desk', 'English Concierge', 'Canton Fair Shuttle'],
+        distanceToMarket: newDistance,
+        amenities: ['Canton Fair Shuttle', 'High-Speed Wi-Fi', 'Western Breakfast', 'Airport Transfer'],
+        roomType: 'Superior King Room',
+        taxiCardZh: newTaxiCardZh
+      };
+
+      await db.createHotel(newHotelObj, 'adm-001');
+      showToast(`Partner hotel ${newHotelName} registered successfully!`, 'success');
+      setShowAddHotelModal(false);
+      setHotelsList(db.getHotels().length > 0 ? db.getHotels() : CHINA_HOTELS);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to add hotel', 'error');
+    } finally {
+      setIsAddingHotel(false);
+    }
+  };
 
   const handleUpdateStatus = (bookingId: string, newStatus: string) => {
     db.updateHotelBookingStatus(bookingId, newStatus);
@@ -66,10 +119,10 @@ export const AdminHotelsScreen: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setActiveTab('hotels')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'hotels' ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-900 border border-slate-800 text-slate-300'
               }`}
             >
@@ -77,11 +130,18 @@ export const AdminHotelsScreen: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('vouchers')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === 'vouchers' ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-900 border border-slate-800 text-slate-300'
               }`}
             >
-              Client Check-in Vouchers ({hotelBookings.length})
+              Client Check-in Vouchers ({dbBookings.length})
+            </button>
+            <button
+              onClick={() => setShowAddHotelModal(true)}
+              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5 stroke-[3]" />
+              <span>Register Hotel</span>
             </button>
           </div>
         </div>
@@ -190,6 +250,113 @@ export const AdminHotelsScreen: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Add Partner Hotel Modal */}
+      {showAddHotelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <HotelIcon className="w-5 h-5 text-emerald-400" />
+                <h3 className="text-sm font-extrabold text-white">Register China Business Hotel Partner</h3>
+              </div>
+              <button onClick={() => setShowAddHotelModal(false)} className="text-slate-400 hover:text-white cursor-pointer">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddHotel} className="space-y-3">
+              <div>
+                <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Hotel English Trade Name</label>
+                <input
+                  type="text"
+                  value={newHotelName}
+                  onChange={(e) => setNewHotelName(e.target.value)}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-white outline-none focus:border-emerald-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Chinese Official Legal Name (中文名)</label>
+                <input
+                  type="text"
+                  value={newHotelZh}
+                  onChange={(e) => setNewHotelZh(e.target.value)}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-indigo-300 font-sans outline-none focus:border-emerald-500"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Trade Hub City</label>
+                  <select
+                    value={newCity}
+                    onChange={(e) => setNewCity(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-white outline-none focus:border-emerald-500"
+                  >
+                    <option value="Guangzhou">Guangzhou (Canton)</option>
+                    <option value="Shenzhen">Shenzhen (Huaqiangbei)</option>
+                    <option value="Yiwu">Yiwu (Commodity City)</option>
+                    <option value="Foshan">Foshan (Furniture / Ceramics)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Contract Rate (USD / night)</label>
+                  <input
+                    type="number"
+                    value={newPriceUSD}
+                    onChange={(e) => setNewPriceUSD(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono font-bold text-emerald-400 outline-none focus:border-emerald-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Market / Fair Distance Specification</label>
+                <input
+                  type="text"
+                  value={newDistance}
+                  onChange={(e) => setNewDistance(e.target.value)}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 outline-none focus:border-emerald-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Bilingual Taxi Card Translation (出租车中文卡)</label>
+                <textarea
+                  value={newTaxiCardZh}
+                  onChange={(e) => setNewTaxiCardZh(e.target.value)}
+                  rows={2}
+                  className="w-full p-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-amber-300 font-sans outline-none focus:border-emerald-500 resize-none"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddHotelModal(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isAddingHotel}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 cursor-pointer"
+                >
+                  {isAddingHotel ? 'Saving...' : 'Register Partner'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };

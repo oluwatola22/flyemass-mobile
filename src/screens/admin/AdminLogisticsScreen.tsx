@@ -30,7 +30,7 @@ import {
 export const AdminLogisticsScreen: React.FC = () => {
   const { showToast } = useApp();
   const [dbState, setDbState] = useState<DatabaseState>(db.getState());
-  const [activeTab, setActiveTab] = useState<'cargo' | 'warehouses' | 'rates'>('cargo');
+  const [activeTab, setActiveTab] = useState<'cargo' | 'warehouses' | 'rates' | 'consolidation'>('cargo');
   const [searchQuery, setSearchQuery] = useState('');
   const [modeFilter, setModeFilter] = useState<'all' | 'Air Freight' | 'Sea Freight'>('all');
   const [airRateUSD, setAirRateUSD] = useState(String(dbState.system_settings?.fees?.airFreightPerKgUSD || 9.50));
@@ -50,9 +50,42 @@ export const AdminLogisticsScreen: React.FC = () => {
   const [updateWaypointLocation, setUpdateWaypointLocation] = useState('Flight ET921 Mid-Air Apron');
   const [updateWaypointNotes, setUpdateWaypointNotes] = useState('Passing cargo security scan clearance');
 
+  // Consolidation State
+  const [selectedConsolParcels, setSelectedConsolParcels] = useState<string[]>([]);
+  const [consolContainerCode, setConsolContainerCode] = useState(`FM-CONSOL-AIR-${Date.now().toString().slice(-6)}`);
+  const [consolDestinationHub, setConsolDestinationHub] = useState('Lagos MMIA Air Cargo Terminal');
+  const [consolMode, setConsolMode] = useState<'air_express' | 'sea_freight'>('air_express');
+  const [isConsolidating, setIsConsolidating] = useState(false);
+
   useEffect(() => {
     return db.subscribe(() => setDbState({ ...db.getState() }));
   }, []);
+
+  const unconsolidatedShipments = Object.values(dbState.shipments || {}).filter(
+    (s) => s.status !== 'consolidated' && !s.isConsolidatedParent
+  );
+  const consolidatedContainers = Object.values(dbState.shipments || {}).filter(
+    (s) => s.isConsolidatedParent || s.status === 'consolidated'
+  );
+
+  const handleConsolidatePackages = async () => {
+    if (selectedConsolParcels.length === 0) {
+      showToast('Select at least one package to consolidate', 'error');
+      return;
+    }
+    setIsConsolidating(true);
+    try {
+      const res = await db.consolidateShipments(selectedConsolParcels, consolDestinationHub, consolMode, 'usr_alade_01');
+      showToast(`Successfully consolidated ${selectedConsolParcels.length} parcels into container #${res.consolidation?.containerNumber || consolContainerCode}!`, 'success');
+      setSelectedConsolParcels([]);
+      setConsolContainerCode(`FM-CONSOL-AIR-${Date.now().toString().slice(-6)}`);
+      setDbState({ ...db.getState() });
+    } catch (err: any) {
+      showToast(err.message || 'Consolidation failed', 'error');
+    } finally {
+      setIsConsolidating(false);
+    }
+  };
 
   const WAREHOUSES = [
     {
@@ -198,6 +231,14 @@ export const AdminLogisticsScreen: React.FC = () => {
                 }`}
               >
                 Freight Pricing
+              </button>
+              <button
+                onClick={() => setActiveTab('consolidation')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  activeTab === 'consolidation' ? 'bg-emerald-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Consolidation Manager ({unconsolidatedShipments.length})
               </button>
             </div>
 
@@ -472,6 +513,198 @@ export const AdminLogisticsScreen: React.FC = () => {
             </button>
           </div>
         </form>
+      )}
+
+      {/* 4. PACKAGE CONSOLIDATION MANAGER */}
+      {activeTab === 'consolidation' && (
+        <div className="space-y-6">
+          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-800">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">
+                  Origin Warehouse Operations
+                </span>
+                <h3 className="text-base font-extrabold text-white mt-0.5">
+                  Package Consolidation Desk
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Bundle individual customer parcels into master air pallets or sea containers for joint customs clearance.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleConsolidatePackages}
+                disabled={selectedConsolParcels.length === 0 || isConsolidating}
+                className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 disabled:opacity-40 text-slate-950 font-extrabold text-xs shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+              >
+                <Package className="w-4 h-4" />
+                <span>Consolidate {selectedConsolParcels.length} Selected Parcels</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
+                  Master Container / AWB Code
+                </label>
+                <input
+                  type="text"
+                  value={consolContainerCode}
+                  onChange={(e) => setConsolContainerCode(e.target.value)}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-emerald-400 font-bold outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
+                  Destination Port / Terminal
+                </label>
+                <select
+                  value={consolDestinationHub}
+                  onChange={(e) => setConsolDestinationHub(e.target.value)}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-white outline-none focus:border-emerald-500"
+                >
+                  <option value="Lagos MMIA Air Cargo Terminal">Lagos MMIA Air Cargo Terminal (LOS)</option>
+                  <option value="Tin Can Island Port Complex">Tin Can Island Port Complex (Lagos Sea)</option>
+                  <option value="Onne Port Port-Harcourt">Onne Port (Port-Harcourt Sea)</option>
+                  <option value="Abuja Nnamdi Azikiwe International Airport">Abuja Cargo Terminal (ABV)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
+                  Freight Class
+                </label>
+                <select
+                  value={consolMode}
+                  onChange={(e: any) => setConsolMode(e.target.value)}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-white outline-none focus:border-emerald-500"
+                >
+                  <option value="air_express">Express Air Cargo Consolidation</option>
+                  <option value="sea_freight">Sea Freight LCL Container</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Selection Table */}
+            <div className="rounded-2xl border border-slate-800 overflow-hidden">
+              <div className="p-3 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-300">
+                  Select Unconsolidated Origin Parcels ({unconsolidatedShipments.length} Available)
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedConsolParcels.length === unconsolidatedShipments.length) {
+                      setSelectedConsolParcels([]);
+                    } else {
+                      setSelectedConsolParcels(unconsolidatedShipments.map(s => s.id));
+                    }
+                  }}
+                  className="text-[10px] font-bold text-emerald-400 hover:underline cursor-pointer"
+                >
+                  {selectedConsolParcels.length === unconsolidatedShipments.length ? 'Deselect All' : 'Select All'}
+                </button>
+              </div>
+
+              <div className="max-h-72 overflow-y-auto divide-y divide-slate-800/60">
+                {unconsolidatedShipments.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-slate-500">
+                    All origin parcels have already been consolidated.
+                  </div>
+                ) : (
+                  unconsolidatedShipments.map((shp) => {
+                    const isSelected = selectedConsolParcels.includes(shp.id);
+                    return (
+                      <div
+                        key={shp.id}
+                        onClick={() => {
+                          setSelectedConsolParcels(prev => 
+                            prev.includes(shp.id) ? prev.filter(id => id !== shp.id) : [...prev, shp.id]
+                          );
+                        }}
+                        className={`p-3.5 flex items-center justify-between cursor-pointer transition-colors ${
+                          isSelected ? 'bg-emerald-500/10' : 'hover:bg-slate-950/50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {}}
+                            className="w-4 h-4 rounded text-emerald-500 bg-slate-950 border-slate-700"
+                          />
+                          <div>
+                            <p className="text-xs font-bold text-white">{shp.title || shp.trackingNumber}</p>
+                            <p className="text-[10px] text-slate-400 font-mono">
+                              {shp.trackingNumber} • {shp.originCity || 'Guangzhou'} → {shp.destinationCity || 'Lagos'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <span className="text-xs font-mono font-bold text-white">{shp.weightKg || 1} kg</span>
+                          <span className="text-[10px] text-slate-500 block">{shp.type || 'Air Cargo'}</span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Active Consolidated Master Containers Table */}
+          <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Active Master Consolidated Shipments ({consolidatedContainers.length})
+            </h4>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-950/80 border-b border-slate-800 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  <tr>
+                    <th className="py-3 px-4">Master Container / Waybill</th>
+                    <th className="py-3 px-4">Destination Hub</th>
+                    <th className="py-3 px-4">Parcels Included</th>
+                    <th className="py-3 px-4">Total Weight</th>
+                    <th className="py-3 px-4 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
+                  {consolidatedContainers.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-6 text-center text-slate-500 font-sans">No consolidated containers active yet</td>
+                    </tr>
+                  ) : (
+                    consolidatedContainers.map((c: any) => (
+                      <tr key={c.id} className="hover:bg-slate-950/50 transition-colors">
+                        <td className="py-3 px-4 font-bold text-emerald-400">
+                          {c.containerNumber || c.trackingNumber}
+                        </td>
+                        <td className="py-3 px-4 font-sans text-slate-300">
+                          {c.destinationHub || c.destinationCity || 'Lagos MMIA'}
+                        </td>
+                        <td className="py-3 px-4 text-white">
+                          {c.consolidatedShipmentIds ? `${c.consolidatedShipmentIds.length} parcels` : '1 batch'}
+                        </td>
+                        <td className="py-3 px-4 text-slate-200">
+                          {c.weightKg || c.totalWeightKg || 120} kg
+                        </td>
+                        <td className="py-3 px-4 text-right font-sans">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400">
+                            {c.currentStatus || 'In Transit'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       )}
       </div>
 

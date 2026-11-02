@@ -43,10 +43,17 @@ export const AdminUsersScreen: React.FC = () => {
   const [adjustmentType, setAdjustmentType] = useState<'credit' | 'debit'>('credit');
   const [adjustmentAmount, setAdjustmentAmount] = useState('1000000');
   const [adjustmentReason, setAdjustmentReason] = useState('Providus NIP offline settlement verification');
+  const [adminNotesInput, setAdminNotesInput] = useState('');
 
   useEffect(() => {
     return db.subscribe(() => setDbState({ ...db.getState() }));
   }, []);
+
+  useEffect(() => {
+    if (selectedUser) {
+      setAdminNotesInput(selectedUser.adminNotes || '');
+    }
+  }, [selectedUser]);
 
   const usersList = Object.values(dbState.users).filter((u) => {
     const matchesRole = roleFilter === 'all' || u.role === roleFilter;
@@ -57,11 +64,30 @@ export const AdminUsersScreen: React.FC = () => {
     return matchesRole && matchesSearch;
   });
 
-  const handleToggleVerification = (user: UserDocument) => {
+  const handleToggleVerification = async (user: UserDocument) => {
     const newBadge = !user.verifiedBadge;
-    db.updateUserVerification(user.uid, newBadge);
-    firebaseSync.recordAudit('Admin', 'TOGGLE_KYC_VERIFICATION', 'users', user.uid, `Set verifiedBadge to ${newBadge}`);
-    showToast(`${user.fullName} KYC verification set to: ${newBadge ? 'VERIFIED' : 'UNVERIFIED'}`, 'info');
+    try {
+      await db.toggleKycVerified(user.uid, newBadge, 'adm-001');
+      showToast(`${user.fullName} KYC verification set to: ${newBadge ? 'VERIFIED' : 'UNVERIFIED'}`, 'info');
+      if (selectedUser?.uid === user.uid) {
+        setSelectedUser({ ...selectedUser, verifiedBadge: newBadge, kycLevel: newBadge ? 'Tier 3 (BVN & CAC Verified)' : 'Tier 1 (Basic)' });
+      }
+      setDbState({ ...db.getState() });
+    } catch (e: any) {
+      showToast(e.message || 'Failed to update KYC badge', 'error');
+    }
+  };
+
+  const handleSaveAdminNotes = async () => {
+    if (!selectedUser) return;
+    try {
+      await db.updateUserAdminNotes(selectedUser.uid, adminNotesInput, 'adm-001');
+      showToast(`Compliance audit notes saved for ${selectedUser.fullName}!`, 'success');
+      setSelectedUser({ ...selectedUser, adminNotes: adminNotesInput });
+      setDbState({ ...db.getState() });
+    } catch (err: any) {
+      showToast(err.message || 'Failed to save notes', 'error');
+    }
   };
 
   const handleToggleSuspension = async (user: UserDocument) => {
@@ -360,11 +386,20 @@ export const AdminUsersScreen: React.FC = () => {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleVerification(selectedUser)}
+                    className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs text-white font-semibold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                  >
+                    <ShieldCheck className={`w-3.5 h-3.5 ${selectedUser.verifiedBadge ? 'text-emerald-400' : 'text-slate-500'}`} />
+                    <span>{selectedUser.verifiedBadge ? 'KYC Verified' : 'Verify KYC'}</span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => handleSendNotification(selectedUser.uid)}
-                    className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs text-white font-semibold flex items-center gap-1.5 transition-all active:scale-95"
+                    className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs text-white font-semibold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
                   >
                     <Bell className="w-3.5 h-3.5 text-amber-400" />
                     <span>Send In-App Alert</span>
@@ -373,7 +408,7 @@ export const AdminUsersScreen: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleToggleSuspension(selectedUser)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 active:scale-95 ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 active:scale-95 cursor-pointer ${
                       selectedUser.isSuspended
                         ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/25'
                         : 'bg-rose-500/15 border-rose-500/40 text-rose-400 hover:bg-rose-500/25'
@@ -420,6 +455,30 @@ export const AdminUsersScreen: React.FC = () => {
                     {Object.values(dbState.hotel_bookings || {}).filter((b: any) => b.userId === selectedUser.uid).length}
                   </span>
                 </div>
+              </div>
+
+              {/* Internal Compliance Notes */}
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Administrative Compliance Notes</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleSaveAdminNotes}
+                    className="px-2.5 py-1 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 text-[10px] font-bold cursor-pointer"
+                  >
+                    Save Notes
+                  </button>
+                </div>
+                <textarea
+                  value={adminNotesInput}
+                  onChange={(e) => setAdminNotesInput(e.target.value)}
+                  placeholder="Record customer due diligence, BVN/CAC verification logs, or risk assessments..."
+                  rows={2}
+                  className="w-full p-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 placeholder-slate-600 outline-none focus:border-indigo-500 font-sans resize-none"
+                />
               </div>
             </div>
 

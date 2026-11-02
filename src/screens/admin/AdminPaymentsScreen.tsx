@@ -30,7 +30,7 @@ import {
 export const AdminPaymentsScreen: React.FC = () => {
   const { showToast } = useApp();
   const [dbState, setDbState] = useState<DatabaseState>(db.getState());
-  const [activeTab, setActiveTab] = useState<'supplier' | 'withdrawals' | 'ledger' | 'reconciliation' | 'rates'>('supplier');
+  const [activeTab, setActiveTab] = useState<'supplier' | 'withdrawals' | 'ledger' | 'reconciliation' | 'rates' | 'gateways'>('supplier');
   const [statusFilter, setStatusFilter] = useState<'all' | 'processing' | 'disbursed' | 'flagged'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [verifyRefInput, setVerifyRefInput] = useState('');
@@ -55,6 +55,13 @@ export const AdminPaymentsScreen: React.FC = () => {
   const [paymentProofUrl, setPaymentProofUrl] = useState('');
   const [safeDeclarationRef, setSafeDeclarationRef] = useState('');
 
+  // Webhook Simulation Modal state
+  const [showSimulateModal, setShowSimulateModal] = useState(false);
+  const [simProvider, setSimProvider] = useState<'providus' | 'monnify' | 'korapay'>('providus');
+  const [simAmount, setSimAmount] = useState('250000');
+  const [simUserId, setSimUserId] = useState('usr_alade_01');
+  const [isSimulating, setIsSimulating] = useState(false);
+
   useEffect(() => {
     return db.subscribe(() => setDbState({ ...db.getState() }));
   }, []);
@@ -68,6 +75,22 @@ export const AdminPaymentsScreen: React.FC = () => {
   });
 
   const withdrawalsList = Object.values(dbState.withdrawals || {});
+  const webhookEvents = dbState.webhook_events || db.getWebhookEvents();
+
+  const handleSimulateWebhook = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSimulating(true);
+    try {
+      const res = await db.simulateWebhook(simProvider, parseFloat(simAmount) || 100000, simUserId, 'adm-001');
+      showToast(`Sandbox ${simProvider.toUpperCase()} webhook processed! ₦${(parseFloat(simAmount) || 100000).toLocaleString()} credited with double-entry. Ref: ${res.reference}`, 'success');
+      setShowSimulateModal(false);
+      setDbState({ ...db.getState() });
+    } catch (err: any) {
+      showToast(err.message || 'Webhook simulation failed', 'error');
+    } finally {
+      setIsSimulating(false);
+    }
+  };
 
   const handleOpenDisburseModal = (payment: SupplierPaymentDocument) => {
     setDisburseModalPayment(payment);
@@ -304,6 +327,14 @@ export const AdminPaymentsScreen: React.FC = () => {
               }`}
             >
               FX Rates & Margins
+            </button>
+            <button
+              onClick={() => setActiveTab('gateways')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'gateways' ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-900 border border-slate-800 text-slate-300'
+              }`}
+            >
+              Gateways & Webhooks ({webhookEvents.length})
             </button>
           </div>
         </div>
@@ -813,6 +844,159 @@ export const AdminPaymentsScreen: React.FC = () => {
             </button>
           </form>
         )}
+
+        {/* 6. PAYMENT GATEWAYS & WEBHOOK MONITOR */}
+        {activeTab === 'gateways' && (
+          <div className="space-y-6">
+            {/* Header / Actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-3xl bg-slate-900 border border-slate-800">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">
+                  Payment Infrastructure Control Tower
+                </span>
+                <h3 className="text-base font-extrabold text-white mt-0.5">
+                  Gateways, Virtual NUBAN Accounts & Webhooks
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Inspect real-time health, cryptographic signatures, and trigger inbound sandbox webhook simulations.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowSimulateModal(true)}
+                className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-extrabold text-xs shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Simulate Inbound Webhook</span>
+              </button>
+            </div>
+
+            {/* Provider Connection Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white">Providus Bank</span>
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    SANDBOX_VERIFIED
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Virtual Reserved Accounts & Direct Inflow NIP Webhooks.
+                </p>
+                <div className="text-[10px] font-mono text-slate-400 space-y-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <div>Endpoint: <span className="text-emerald-400">/api/webhooks/providus</span></div>
+                  <div>Auth: <span className="text-indigo-400">HMAC-SHA256 (Secret)</span></div>
+                  <div>Account: <span className="text-slate-200">9082341902</span></div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white">Monnify</span>
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    SANDBOX_VERIFIED
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Dynamic Reserved Accounts & Card Checkout Rail.
+                </p>
+                <div className="text-[10px] font-mono text-slate-400 space-y-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <div>Endpoint: <span className="text-emerald-400">/api/webhooks/monnify</span></div>
+                  <div>Auth: <span className="text-indigo-400">HMAC-SHA512</span></div>
+                  <div>Contract: <span className="text-slate-200">8920194821</span></div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white">Korapay</span>
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    SANDBOX_VERIFIED
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Naira Checkout & Direct Bank Transfer Webhook Adapter.
+                </p>
+                <div className="text-[10px] font-mono text-slate-400 space-y-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <div>Endpoint: <span className="text-emerald-400">/api/webhooks/korapay</span></div>
+                  <div>Auth: <span className="text-indigo-400">x-korapay-signature</span></div>
+                  <div>Merchant: <span className="text-slate-200">FLYE_KORA_01</span></div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white">China SAFE Bridge</span>
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    AWAITING_CREDENTIALS
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Direct Alipay & WeChat Pay Corporate Remittance.
+                </p>
+                <div className="text-[10px] font-mono text-slate-400 space-y-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <div>Protocol: <span className="text-amber-400">Dual-Officer SAFE Proof</span></div>
+                  <div>Status: <span className="text-slate-300">Manual Clearing Active</span></div>
+                  <div>Direct API: <span className="text-slate-500">Awaiting China entity</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Inbound Webhook Event Log Table */}
+            <div className="rounded-3xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
+              <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-bold text-white">Inbound Webhook Events Ledger</h4>
+                  <p className="text-[10px] text-slate-400">Live stream of incoming gateway notifications and automatic double-entry credits</p>
+                </div>
+                <span className="text-[11px] font-mono text-emerald-400 font-bold">{webhookEvents.length} events logged</span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950/80 border-b border-slate-800 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                    <tr>
+                      <th className="py-3 px-4">Provider</th>
+                      <th className="py-3 px-4">Event Reference</th>
+                      <th className="py-3 px-4">Account / Customer</th>
+                      <th className="py-3 px-4">Amount</th>
+                      <th className="py-3 px-4">Timestamp</th>
+                      <th className="py-3 px-4 text-right">Verification Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
+                    {webhookEvents.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-6 text-center text-slate-500 font-sans">No webhook events logged yet</td>
+                      </tr>
+                    ) : (
+                      webhookEvents.map((evt: any) => (
+                        <tr key={evt.id} className="hover:bg-slate-950/50 transition-colors">
+                          <td className="py-3 px-4 font-sans font-bold text-white">
+                            <span className="px-2 py-0.5 rounded-lg bg-slate-800 border border-slate-700 text-xs">
+                              {evt.provider}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-slate-300">{evt.reference}</td>
+                          <td className="py-3 px-4 font-sans text-slate-400">{evt.accountNumber || evt.userId || 'N/A'}</td>
+                          <td className="py-3 px-4 font-bold text-emerald-400">₦{(evt.amount || 0).toLocaleString()}</td>
+                          <td className="py-3 px-4 text-slate-500 text-[10px]">{new Date(evt.timestamp).toLocaleString()}</td>
+                          <td className="py-3 px-4 text-right font-sans">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              evt.status === 'SUCCESS' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+                            }`}>
+                              {evt.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Confirm Bank Payout Modal */}
@@ -944,6 +1128,94 @@ export const AdminPaymentsScreen: React.FC = () => {
                 Confirm Disbursement
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Simulate Inbound Webhook Modal */}
+      {showSimulateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-md p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <RefreshCw className="w-5 h-5 text-emerald-400" />
+                <h3 className="font-bold text-white text-sm">Simulate Inbound Webhook</h3>
+              </div>
+              <button
+                onClick={() => setShowSimulateModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 flex items-center justify-center cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSimulateWebhook} className="space-y-4">
+              <div>
+                <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
+                  Payment Gateway Rail
+                </label>
+                <select
+                  value={simProvider}
+                  onChange={(e: any) => setSimProvider(e.target.value)}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-white outline-none focus:border-emerald-500"
+                >
+                  <option value="providus">Providus Bank Virtual Account</option>
+                  <option value="monnify">Monnify Card / Dynamic Reserved Account</option>
+                  <option value="korapay">Korapay Direct Checkout</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
+                  Inflow Amount (NGN ₦)
+                </label>
+                <input
+                  type="number"
+                  value={simAmount}
+                  onChange={(e) => setSimAmount(e.target.value)}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono font-bold text-emerald-400 outline-none focus:border-emerald-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
+                  Target Customer User ID
+                </label>
+                <select
+                  value={simUserId}
+                  onChange={(e) => setSimUserId(e.target.value)}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                >
+                  {Object.values(dbState.users || {}).map((u) => (
+                    <option key={u.uid} value={u.uid}>
+                      {u.fullName} ({u.businessName || u.uid})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <p className="text-[10px] text-slate-500 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                This triggers a cryptographic HMAC webhook request to the backend, posts balanced entries to the double-entry general ledger, and updates user balance immediately.
+              </p>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSimulateModal(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSimulating}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 cursor-pointer"
+                >
+                  {isSimulating ? 'Executing...' : 'Fire Webhook'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
