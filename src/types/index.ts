@@ -194,9 +194,17 @@ export interface AgentRequestDocument {
   cantonFairBooth?: string;
   quoteAmountUSD?: number;
   quoteAmountNGN?: number;
-  status: 'submitted' | 'quote_ready' | 'quote_accepted' | 'in_progress' | 'completed';
+  status: 'submitted' | 'pending_quote' | 'quote_ready' | 'quote_accepted' | 'po_issued' | 'in_progress' | 'completed';
   createdAt: number;
   adminNotes?: string;
+  assignedAgent?: string;
+  quotedAt?: number;
+  paidAt?: number;
+  completedAt?: number;
+  escrowReference?: string;
+  escrowAmount?: number;
+  escrowCurrency?: string;
+  reportSummary?: string;
 }
 
 export interface BannerDocument {

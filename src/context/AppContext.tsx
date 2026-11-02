@@ -769,9 +769,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setShipments((prev) => [newShipment, ...prev]);
 
-    db.recordShipment({
+    db.registerShipment({
       trackingNumber: newShipment.trackingNumber,
-      userId: 'usr_alade_01',
+      userId: activeUserId || 'usr_alade_01',
       receiverName: userProfile.name,
       originWarehouse: 'Guangzhou',
       destination: 'Lagos Hub',
@@ -787,6 +787,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       ],
       title: data.title
+    }).catch(err => {
+      console.warn('Backend shipment register sync notice:', err);
     });
 
     showToast(`Package ${newShipment.trackingNumber} registered successfully!`, 'success');
@@ -1004,22 +1006,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSupportTickets((prev) => [newTkt, ...prev]);
     setSelectedTicketId(newTkt.id);
 
-    db.recordSupportTicket({
-      userId: 'usr_alade_01',
-      subject: ticket.subject,
-      status: 'open',
-      category: ticket.category,
-      priority: ticket.priority,
-      ticketNumber: newTkt.ticketNumber,
-      messages: [
-        {
-          senderId: 'usr_alade_01',
-          senderName: userProfile.name,
-          text: ticket.message,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          isAdmin: false
-        }
-      ]
+    db.createSupportTicket(
+      ticket.subject,
+      ticket.category,
+      ticket.priority,
+      ticket.message,
+      activeUserId || 'usr_alade_01'
+    ).catch(() => {
+      db.recordSupportTicket({
+        userId: activeUserId || 'usr_alade_01',
+        subject: ticket.subject,
+        status: 'open',
+        category: ticket.category,
+        priority: ticket.priority,
+        ticketNumber: newTkt.ticketNumber,
+        messages: [
+          {
+            senderId: activeUserId || 'usr_alade_01',
+            senderName: userProfile.name,
+            text: ticket.message,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            isAdmin: false
+          }
+        ]
+      });
     });
 
     showToast(`Support ticket ${newTkt.ticketNumber} created!`, 'success');

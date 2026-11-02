@@ -1597,6 +1597,7 @@ const server = http.createServer(async (req, res) => {
           ]
         });
 
+        user.balances[curr] = (user.balances[curr] || 0) + num;
         const closingBalance = user.balances[curr];
         const ledgerId = `ldg_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
         ledgerEntry = {
@@ -1689,6 +1690,9 @@ const server = http.createServer(async (req, res) => {
           ]
         });
 
+        user.balances[fromCurrency] -= fromNum;
+        user.balances[toCurrency] = (user.balances[toCurrency] || 0) + toNum;
+
         const fromClosing = user.balances[fromCurrency];
         const toClosing = user.balances[toCurrency];
 
@@ -1759,6 +1763,7 @@ const server = http.createServer(async (req, res) => {
           ]
         });
 
+        user.balances.CNY -= numCNY;
         const closingBalance = user.balances.CNY;
 
         paymentDoc = {
@@ -1851,6 +1856,7 @@ const server = http.createServer(async (req, res) => {
           ]
         });
 
+        user.balances.NGN -= totalDebit;
         const closingBalance = user.balances.NGN;
 
         wthDoc = {
@@ -2030,6 +2036,7 @@ const server = http.createServer(async (req, res) => {
           ]
         });
 
+        user.balances[curr] -= requiredDebit;
         const closingBalance = user.balances[curr];
 
         ship.freightPaid = true;
@@ -2444,6 +2451,326 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { success: true, shipment, balances: user ? user.balances : null });
     }
 
+    if (pathname === '/api/shipments/register' && req.method === 'POST') {
+      const { trackingNumber, title, sender, type, weightKg, originWarehouse, destination, userId, receiverName } = await readJsonBody(req);
+      const uid = userId || 'usr_alade_01';
+      const user = dbState.users[uid];
+      const shipmentId = `shp_${Date.now()}`;
+      const numWeight = parseFloat(weightKg) || 5.0;
+      const isAir = (type || 'air').toLowerCase() === 'air';
+      const costEstimate = isAir ? numWeight * 10 : numWeight * 3.5;
+
+      const newShipment = {
+        id: shipmentId,
+        trackingNumber: trackingNumber || `FM-${(originWarehouse || 'GZ').slice(0, 2).toUpperCase()}-${Math.floor(10000 + Math.random() * 90000)}`,
+        userId: uid,
+        receiverName: receiverName || (user ? user.fullName : 'Valued Client'),
+        originWarehouse: originWarehouse || 'Guangzhou',
+        destination: destination || 'Lagos Hub',
+        weightKg: numWeight,
+        mode: isAir ? 'Air Freight' : 'Sea Freight',
+        currentStatus: 'Origin Received',
+        timeline: [
+          {
+            status: 'Origin Received',
+            location: `${originWarehouse || 'Guangzhou'} International Cargo Hub`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            notes: `Parcel pre-alert registered by client. Sender: ${sender || 'Domestic Supplier'}`
+          }
+        ],
+        updatedAt: Date.now(),
+        cbm: Number((numWeight * 0.005).toFixed(3)),
+        costEstimate,
+        costCurrency: 'USD',
+        title: title || 'Cross-Border Cargo Consignment',
+        freightPaid: false
+      };
+
+      dbState.shipments[shipmentId] = newShipment;
+      recordAudit(user ? user.fullName : 'Client', 'SHIPMENT_REGISTERED', 'shipments', shipmentId, `Registered parcel ${newShipment.trackingNumber}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 201, { success: true, shipment: newShipment });
+    }
+
+    if (pathname === '/api/shipments/consolidate' && req.method === 'POST') {
+      const { shipmentIds, userId, destinationHub, mode } = await readJsonBody(req);
+      const uid = userId || 'usr_alade_01';
+      const user = dbState.users[uid];
+      if (!Array.isArray(shipmentIds) || shipmentIds.length === 0) {
+        return sendJson(res, 400, { error: 'At least one package must be selected for consolidation' });
+      }
+
+      let totalWeight = 0;
+      let totalCbm = 0;
+      const consolidatedTitles = [];
+
+      for (const id of shipmentIds) {
+        const shp = dbState.shipments[id];
+        if (shp) {
+          totalWeight += (shp.weightKg || 0);
+          totalCbm += (shp.cbm || 0.01);
+          consolidatedTitles.push(shp.title || shp.trackingNumber);
+          shp.currentStatus = 'Packed';
+          shp.timeline.push({
+            status: 'Packed',
+            location: 'Guangzhou Consolidation Staging Bay',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            notes: 'Consolidated into master trade container'
+          });
+          shp.updatedAt = Date.now();
+        }
+      }
+
+      const consolId = `shp_consol_${Date.now()}`;
+      const isAir = (mode || 'air').toLowerCase() === 'air';
+      const consolCost = isAir ? totalWeight * 9.5 : totalWeight * 3.0;
+
+      const masterConsolidation = {
+        id: consolId,
+        trackingNumber: `FM-CONSOL-${Math.floor(10000 + Math.random() * 90000)}`,
+        userId: uid,
+        receiverName: user ? user.fullName : 'Valued Client',
+        originWarehouse: 'Guangzhou',
+        destination: destinationHub || 'Lagos Hub',
+        weightKg: Number(totalWeight.toFixed(1)),
+        cbm: Number(totalCbm.toFixed(3)),
+        mode: isAir ? 'Air Freight' : 'Sea Freight',
+        currentStatus: 'Packed',
+        timeline: [
+          {
+            status: 'Packed',
+            location: 'Guangzhou Cargo Consolidation Center',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            notes: `Consolidated ${shipmentIds.length} parcels: ${consolidatedTitles.slice(0, 3).join(', ')}`
+          }
+        ],
+        updatedAt: Date.now(),
+        costEstimate: consolCost,
+        costCurrency: 'USD',
+        title: `Consolidated Master Container (${shipmentIds.length} Parcels)`,
+        freightPaid: false
+      };
+
+      dbState.shipments[consolId] = masterConsolidation;
+      recordAudit(user ? user.fullName : 'Client', 'SHIPMENT_CONSOLIDATED', 'shipments', consolId, `Consolidated ${shipmentIds.length} packages into ${masterConsolidation.trackingNumber}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 201, { success: true, consolidation: masterConsolidation, count: shipmentIds.length });
+    }
+
+    if (pathname === '/api/admin/shipments/update-waypoint' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'logistics_manager', 'operations'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Logistics Manager or Super Admin role required' });
+      }
+
+      const { shipmentId, status, location, notes, adminId } = await readJsonBody(req);
+      const shipment = dbState.shipments[shipmentId];
+      if (!shipment) return sendJson(res, 404, { error: 'Shipment not found' });
+
+      shipment.currentStatus = status;
+      shipment.updatedAt = Date.now();
+      shipment.timeline.push({
+        status,
+        location: location || `${shipment.originWarehouse} Logistics Center`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        notes: notes || `Waypoint milestone advanced to ${status}`
+      });
+
+      // Also trigger in-app notification to the customer
+      if (shipment.userId && dbState.users[shipment.userId]) {
+        if (!dbState.notifications) dbState.notifications = [];
+        dbState.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          userId: shipment.userId,
+          title: `Shipment Milestone: ${status}`,
+          message: `Your cargo #${shipment.trackingNumber} is now: ${status} (${location || 'Checkpoint'}).`,
+          type: 'shipping',
+          timestamp: Date.now(),
+          read: false,
+          linkRoute: 'track'
+        });
+      }
+
+      recordAudit(adminId || 'Logistics Tower', 'WAYPOINT_ADVANCED', 'shipments', shipment.id, `Status updated to ${status} (${shipment.trackingNumber})`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, shipment });
+    }
+
+    if (pathname === '/api/agents/request' && req.method === 'POST') {
+      const { serviceType, productName, category, targetQuantity, targetUnitUSD, supplierCity, inspectionRequired, cantonFairBooth, userId } = await readJsonBody(req);
+      const uid = userId || 'usr_alade_01';
+      const user = dbState.users[uid];
+      const rfqId = `rfq_${Date.now()}`;
+
+      const newRfq = {
+        id: rfqId,
+        userId: uid,
+        clientName: user ? user.fullName : 'Enterprise Client',
+        serviceType: serviceType || 'Factory Direct RFQ & Procurement',
+        productName: productName || 'Hardware Commodity',
+        category: category || 'Electronics & Tech',
+        targetQuantity: parseInt(targetQuantity) || 100,
+        targetUnitUSD: parseFloat(targetUnitUSD) || 10.0,
+        supplierCity: supplierCity || 'Guangzhou',
+        status: 'pending_quote',
+        inspectionRequired: inspectionRequired !== false,
+        cantonFairBooth: cantonFairBooth || null,
+        createdAt: Date.now()
+      };
+
+      dbState.agent_requests[rfqId] = newRfq;
+      recordAudit(user ? user.fullName : 'Client', 'AGENT_REQUEST_CREATED', 'agent_requests', rfqId, `Submitted RFQ: ${newRfq.productName} (${newRfq.supplierCity})`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 201, { success: true, request: newRfq });
+    }
+
+    if (pathname === '/api/admin/agents/quote' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'logistics_manager'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+
+      const { requestId, quoteAmountUSD, quoteAmountNGN, adminNotes, assignedAgent, adminId } = await readJsonBody(req);
+      const rfq = dbState.agent_requests[requestId];
+      if (!rfq) return sendJson(res, 404, { error: 'Agent request not found' });
+
+      rfq.quoteAmountUSD = parseFloat(quoteAmountUSD) || 250;
+      rfq.quoteAmountNGN = parseFloat(quoteAmountNGN) || Math.round(rfq.quoteAmountUSD * 1485);
+      rfq.adminNotes = adminNotes || 'Official quotation formulated by China ground manager';
+      rfq.assignedAgent = assignedAgent || 'Zhang Wei (Bilingual Ground Agent)';
+      rfq.status = 'quote_ready';
+      rfq.quotedAt = Date.now();
+
+      // Notify customer
+      if (rfq.userId && dbState.users[rfq.userId]) {
+        if (!dbState.notifications) dbState.notifications = [];
+        dbState.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          userId: rfq.userId,
+          title: `Quotation Ready: ${rfq.productName}`,
+          message: `Your factory inspection/sourcing quote for $${rfq.quoteAmountUSD} USD is ready for review!`,
+          type: 'procurement',
+          timestamp: Date.now(),
+          read: false,
+          linkRoute: 'procure'
+        });
+      }
+
+      recordAudit(adminId || 'Agent Desk', 'AGENT_QUOTE_ISSUED', 'agent_requests', rfq.id, `Quoted $${rfq.quoteAmountUSD} USD for ${rfq.productName}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, request: rfq });
+    }
+
+    if (pathname === '/api/agents/accept-quote' && req.method === 'POST') {
+      const { requestId, pin, paymentWalletUsed, userId } = await readJsonBody(req);
+      const rfq = dbState.agent_requests[requestId];
+      if (!rfq) return sendJson(res, 404, { error: 'Agent request not found' });
+      if (rfq.status !== 'quote_ready') {
+        return sendJson(res, 400, { error: 'RFQ is not in quote_ready status' });
+      }
+
+      const uid = userId || rfq.userId || 'usr_alade_01';
+      const user = dbState.users[uid];
+      if (!user) return sendJson(res, 404, { error: 'User not found' });
+
+      const pinCheck = verifyUserTransactionPin(user, pin);
+      if (!pinCheck.valid) {
+        return sendJson(res, pinCheck.status || 401, { error: pinCheck.error });
+      }
+
+      const curr = (paymentWalletUsed || 'USD').toUpperCase();
+      const requiredAmount = curr === 'NGN' ? (rfq.quoteAmountNGN || rfq.quoteAmountUSD * 1485) : rfq.quoteAmountUSD;
+      const ref = `AGT-ESCROW-${Date.now().toString().slice(-6)}`;
+
+      await withUserLock(user.uid, async () => {
+        const openingBalance = user.balances[curr] || 0;
+        if (openingBalance < requiredAmount) {
+          throw new Error(`Insufficient funds: Available ${curr} ${openingBalance.toLocaleString()}, required ${curr} ${requiredAmount.toLocaleString()}`);
+        }
+
+        recordDoubleEntry({
+          reference: ref,
+          userId: user.uid,
+          transactionType: 'AGENT_SERVICE_ESCROW',
+          description: `Escrow hold for agent ground service: ${rfq.productName} (#${rfq.id})`,
+          postings: [
+            { account: `liabilities:customer:${user.uid}:${curr.toLowerCase()}`, currency: curr, debit: requiredAmount, credit: 0 },
+            { account: `liabilities:agent_escrow:${curr.toLowerCase()}`, currency: curr, debit: 0, credit: requiredAmount }
+          ]
+        });
+
+        user.balances[curr] -= requiredAmount;
+        const closingBalance = user.balances[curr];
+
+        rfq.status = 'po_issued';
+        rfq.escrowReference = ref;
+        rfq.escrowAmount = requiredAmount;
+        rfq.escrowCurrency = curr;
+        rfq.paidAt = Date.now();
+
+        const ledgerId = `ldg_${Date.now()}`;
+        dbState.wallets_ledger[ledgerId] = {
+          id: ledgerId,
+          userId: user.uid,
+          type: 'AGENT_PAYMENT',
+          sourceCurrency: curr,
+          targetCurrency: curr,
+          amount: requiredAmount,
+          fee: 0,
+          openingBalance,
+          closingBalance,
+          status: 'completed',
+          reference: ref,
+          timestamp: Date.now(),
+          notes: `Agent service fee escrow: ${rfq.serviceType} for ${rfq.productName}`
+        };
+
+        recordAudit(user.fullName, 'AGENT_QUOTE_ACCEPTED', 'agent_requests', rfq.id, `Accepted quote and paid ${curr} ${requiredAmount} to escrow`, req);
+      });
+
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, request: rfq, balances: user.balances });
+    }
+
+    if (pathname === '/api/admin/agents/complete' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+
+      const { requestId, reportSummary, adminId } = await readJsonBody(req);
+      const rfq = dbState.agent_requests[requestId];
+      if (!rfq) return sendJson(res, 404, { error: 'Agent request not found' });
+
+      rfq.status = 'completed';
+      rfq.completedAt = Date.now();
+      rfq.reportSummary = reportSummary || 'Ground inspection and factory audit completed successfully. PDF report filed.';
+
+      // Disburse escrow to service clearing account
+      if (rfq.escrowAmount && rfq.escrowCurrency) {
+        const curr = rfq.escrowCurrency;
+        const amt = rfq.escrowAmount;
+        recordDoubleEntry({
+          reference: `DISB-${rfq.escrowReference || rfq.id}`,
+          userId: rfq.userId,
+          transactionType: 'AGENT_ESCROW_DISBURSEMENT',
+          description: `Disburse completed agent service escrow for ${rfq.productName}`,
+          postings: [
+            { account: `liabilities:agent_escrow:${curr.toLowerCase()}`, currency: curr, debit: amt, credit: 0 },
+            { account: `equity:service_revenue:${curr.toLowerCase()}`, currency: curr, debit: 0, credit: amt }
+          ]
+        });
+      }
+
+      recordAudit(adminId || 'Agent Desk', 'AGENT_REQUEST_COMPLETED', 'agent_requests', rfq.id, `Marked request ${rfq.id} completed`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, request: rfq });
+    }
+
     // -------------------------------------------------------------
     // 20. HOTEL RESERVATIONS & CANCELLATIONS
     // -------------------------------------------------------------
@@ -2490,6 +2817,7 @@ const server = http.createServer(async (req, res) => {
           ]
         });
 
+        user.balances[curr] -= requiredDebit;
         const closingBalance = user.balances[curr];
 
         bookingDoc = {
@@ -2564,6 +2892,7 @@ const server = http.createServer(async (req, res) => {
           ]
         });
 
+        user.balances[curr] = (user.balances[curr] || 0) + amount;
         const closingBalance = user.balances[curr];
         bk.status = 'cancelled';
         bk.cancellationReason = reason || 'Customer request';
@@ -2612,6 +2941,68 @@ const server = http.createServer(async (req, res) => {
       ticket.updatedAt = Date.now();
 
       recordAudit(senderName || 'Chat User', 'TICKET_MESSAGE', 'support_tickets', ticket.id, `Sent message: "${(text || '').slice(0, 30)}..."`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, ticket });
+    }
+
+    if (pathname === '/api/support/tickets/create' && req.method === 'POST') {
+      const { subject, category, priority, message, userId } = await readJsonBody(req);
+      const uid = userId || 'usr_alade_01';
+      const user = dbState.users[uid];
+      const ticketId = `tkt_${Date.now()}`;
+      const ticketNumber = `FM-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const newTicket = {
+        id: ticketId,
+        ticketNumber,
+        userId: uid,
+        userName: user ? user.fullName : 'Valued Client',
+        subject: subject || 'General Inquiry',
+        category: category || 'General Trade',
+        status: 'open',
+        priority: priority || 'Medium',
+        messages: [
+          {
+            senderId: uid,
+            senderName: user ? user.fullName : 'Client',
+            text: message || '',
+            isAdmin: false,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ],
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+
+      dbState.support_tickets[ticketId] = newTicket;
+      recordAudit(user ? user.fullName : 'Client', 'TICKET_CREATED', 'support_tickets', ticketId, `Opened ticket #${ticketNumber}: ${subject}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 201, { success: true, ticket: newTicket });
+    }
+
+    if (pathname === '/api/admin/support/tickets/resolve' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'support_agent', 'operations'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Support Agent or Admin role required' });
+      }
+
+      const { ticketId, resolutionNotes, adminId } = await readJsonBody(req);
+      const ticket = dbState.support_tickets[ticketId];
+      if (!ticket) return sendJson(res, 404, { error: 'Ticket not found' });
+
+      ticket.status = 'resolved';
+      ticket.resolvedAt = Date.now();
+      ticket.resolutionNotes = resolutionNotes || 'Inquiry resolved by trade concierge';
+      ticket.messages.push({
+        senderId: adminId || 'adm-002',
+        senderName: 'FlyeMass Concierge Supervisor',
+        text: `Ticket marked as RESOLVED: ${resolutionNotes || 'All inquiries have been addressed. Thank you for trading with FlyeMass.'}`,
+        isAdmin: true,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+
+      recordAudit(adminId || 'Support Desk', 'TICKET_RESOLVED', 'support_tickets', ticket.id, `Resolved ticket #${ticket.ticketNumber || ticket.id}`, req);
       persistState();
       broadcastUpdate();
       return sendJson(res, 200, { success: true, ticket });

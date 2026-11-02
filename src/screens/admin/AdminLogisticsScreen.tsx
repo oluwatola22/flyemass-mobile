@@ -122,50 +122,43 @@ export const AdminLogisticsScreen: React.FC = () => {
     'Delivered'
   ];
 
-  const handleUpdateStatus = (shipment: ShipmentDocument, newStatus: ShipmentDocument['currentStatus']) => {
-    db.updateShipmentStatus(shipment.id, newStatus, {
-      location: newStatus === 'Lagos Hub Ready' ? 'FlyeMass Ikeja Clearing Terminal, Lagos' : 
+  const handleUpdateStatus = async (shipment: ShipmentDocument, newStatus: ShipmentDocument['currentStatus']) => {
+    const loc = newStatus === 'Lagos Hub Ready' ? 'FlyeMass Ikeja Clearing Terminal, Lagos' : 
                 newStatus === 'Delivered' ? 'Delivered to Customer Doorstep' :
-                newStatus === 'In Transit/Customs' ? 'International Air/Sea Transit' : 'Guangzhou Dock Hub',
-      notes: `Status advanced to ${newStatus} by Cargo Control Tower`
-    });
+                newStatus === 'In Transit/Customs' ? 'International Air/Sea Transit' : 'Guangzhou Dock Hub';
+    const notes = `Status advanced to ${newStatus} by Cargo Control Tower`;
 
-    firebaseSync.recordAudit('Logistics Desk', 'SHIPMENT_STATUS_ADVANCE', 'shipments', shipment.id, `Status updated to ${newStatus}`);
-    showToast(`Waybill #${shipment.trackingNumber} advanced to "${newStatus}"! Synced with mobile app.`, 'success');
-    setDbState({ ...db.getState() });
+    try {
+      await db.updateShipmentWaypoint(shipment.id, newStatus, loc, notes, 'adm-001');
+      showToast(`Waybill #${shipment.trackingNumber} advanced to "${newStatus}"! Synced with mobile app.`, 'success');
+      setDbState({ ...db.getState() });
+    } catch (err: any) {
+      showToast(err.message || 'Failed to update waypoint', 'error');
+    }
   };
 
-  const handleCreatePackage = (e: React.FormEvent) => {
+  const handleCreatePackage = async (e: React.FormEvent) => {
     e.preventDefault();
     const tracking = newTrackingNumber || `FM-${newOrigin.slice(0, 3).toUpperCase()}-LOS-${Math.floor(10000 + Math.random() * 90000)}`;
 
-    const newDoc = db.recordShipment({
-      trackingNumber: tracking,
-      userId: 'usr_alade_01',
-      receiverName: newReceiver,
-      originWarehouse: newOrigin,
-      destination: 'Lagos Hub',
-      weightKg: parseFloat(newWeight) || 10,
-      mode: newMode,
-      currentStatus: 'Origin Received',
-      timeline: [
-        {
-          status: 'Origin Received',
-          location: `${newOrigin} Logistics Consolidation Center`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          notes: 'Checked in by warehouse dock manager'
-        }
-      ],
-      title: newTitle,
-      cbm: Number(((parseFloat(newWeight) || 10) * 0.005).toFixed(2)),
-      costEstimate: newMode === 'Air Freight' ? (parseFloat(newWeight) || 10) * 9.5 : (parseFloat(newWeight) || 10) * 2.8,
-      costCurrency: 'USD'
-    });
-
-    firebaseSync.recordAudit('Logistics Desk', 'CREATE_WAYBILL', 'shipments', newDoc.id, `Created waybill #${tracking}`);
-    showToast(`New cargo waybill #${tracking} created and broadcasted!`, 'success');
-    setShowCreateModal(false);
-    setDbState({ ...db.getState() });
+    try {
+      await db.registerShipment({
+        trackingNumber: tracking,
+        userId: 'usr_alade_01',
+        receiverName: newReceiver,
+        originWarehouse: newOrigin,
+        destination: 'Lagos Hub',
+        weightKg: Number(newWeight),
+        mode: newMode,
+        title: `${newOrigin} to Lagos ${newMode}`
+      });
+      setShowCreateModal(false);
+      setNewTrackingNumber('');
+      setDbState({ ...db.getState() });
+      showToast(`Consignment #${tracking} registered in dock manifest!`, 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to register consignment', 'error');
+    }
   };
 
   return (

@@ -10,12 +10,12 @@
       "role": "client",
       "createdAt": 1791047745841,
       "balances": {
-        "NGN": 28450200,
-        "CNY": 184250,
-        "USD": 42890.5
+        "NGN": 26696700,
+        "CNY": 181190.56,
+        "USD": 42330.5
       },
-      "pinHash": "566140e8d31e2a116b4ca2f584481d65b4222ac1273f51b10130369f61f2531c",
-      "pinSalt": "bc1bc8755b480ce47e503a5a20855dce",
+      "pinHash": "e5c02fad433d492f91bd14950433a8c989ab7718e62a4b76ccb55e0ed6170469",
+      "pinSalt": "f16144c9fee80c4242f141f7d8cc92f6",
       "pinFailedAttempts": 0,
       "pinLockedUntil": 0
     },
@@ -356,6 +356,139 @@
       "pinSalt": "2c96a7e9f2a8e3c7275035495fa65f90",
       "pinFailedAttempts": 5,
       "pinLockedUntil": 1793648595441
+    },
+    "usr_1793648640739": {
+      "uid": "usr_1793648640739",
+      "fullName": "Chief Babatunde Alade",
+      "email": "alade_corp_1793648640721@flyemass.io",
+      "phone": "+2348035559201",
+      "businessName": "Alade Global Holdings Ltd",
+      "verifiedBadge": false,
+      "role": "client",
+      "createdAt": 1793648640739,
+      "balances": {
+        "NGN": 0,
+        "CNY": 0,
+        "USD": 0
+      },
+      "pinHash": "cec7eeb00a8ab4142141d97b42b1b23cf0ab66c26cb612ff589890b962f13923",
+      "pinSalt": "66ad73e0d100f7b61de7fc7d7aa23b0e",
+      "pinFailedAttempts": 0,
+      "pinLockedUntil": 0
+    },
+    "usr_1793648684634": {
+      "uid": "usr_1793648684634",
+      "fullName": "Chief Babatunde Alade",
+      "email": "alade_corp_1793648684617@flyemass.io",
+      "phone": "+2348035559201",
+      "businessName": "Alade Global Holdings Ltd",
+      "verifiedBadge": false,
+      "role": "client",
+      "createdAt": 1793648684634,
+      "balances": {
+        "NGN": 0,
+        "CNY": 0,
+        "USD": 0
+      },
+      "pinHash": "12b1b2ad25d92f7ce20150e50ac70b5a299b33b0d57f68a66e6a0d650a2aa068",
+      "pinSalt": "c18f40970a7aecdeeda524a459a66615",
+      "pinFailedAttempts": 0,
+      "pinLockedUntil": 0
+    },
+    "usr_1793648839118": {
+      "uid": "usr_1793648839118",
+      "fullName": "Chief Babatunde Alade",
+      "email": "alade_corp_1793648839101@flyemass.io",
+      "phone": "+2348035559201",
+      "businessName": "Alade Global Holdings Ltd",
+      "verifiedBadge": false,
+      "role": "client",
+      "createdAt": 1793648839118,
+      "balances": {
+        "NGN": 899500,
+        "CNY": 813.52,
+        "USD": 215
+      },
+      "pinHash": "bfdda530694e99b92a715c02fbb6c6884adbde0bfdf3cb14c3757aa480feed11",
+      "pinSalt": "7d4ba14b9756209936d1c5b51ff93bf0",
+      "pinFailedAttempts": 0,
+      "pinLockedUntil": 0
+    },
+    "usr_1793648887979": {
+      "uid": "usr_1793648887979",
+      "fullName": "Chief Babatunde Alade",
+      "email": "alade_corp_1793648887963@flyemass.io",
+      "phone": "+2348035559201",
+      "businessName": "Alade Global Holdings Ltd",
+      "verifiedBadge": false,
+      "role": "client",
+      "createdAt": 1793648887979,
+      "balances": {
+        "NGN": 899500,
+        "CNY": 813.52,
+        "USD": 3915
+      },
+      "pinHash": "11941b67ee17563132f2f60a94148e67b91eff5f710c95b41e9f9f735f4dc8a0",
+      "pinSalt": "51b36f674f5425fadb154fd6ed7ca9ff",
+      "pinFailedAttempts": 0,
+      "pinLockedUntil": 0
+    },
+    "usr_brute_1793648899614": {
+      "uid": "usr_brute_1793648899614",
+      "fullName": "Security Test Client",
+      "email": "usr_brute_1793648899614@flyemass.internal",
+      "role": "client",
+      "balances": {
+        "NGN": 1000000,
+        "CNY": 5000,
+        "USD": 1000
+      },
+      "pinHash": "6022b8e78adf96d19709fe388c860adea1f1177d0cad6a6a6899c12fc5d44f92",
+      "pinSalt": "84d11a8e857c309e66b9ccc33b0025ca",
+      "pinFailedAttempts": 5,
+      "pinLockedUntil": 1793649799653
+    },
+    "usr_1793648899937": {
+      "uid": "usr_1793648899937",
+      "fullName": "Audit Tester",
+      "email": "tester_1793648899918@flyemass.io",
+      "phone": "+234800000000",
+      "businessName": "Audit Global Tech Ltd",
+      "verifiedBadge": false,
+      "role": "client",
+      "createdAt": 1793648899937,
+      "balances": {
+        "NGN": 0,
+        "CNY": 0,
+        "USD": 1500
+      },
+      "pinHash": "2d39c58f016953dcc4a786f1e4061e645461f227624124868248a1e5b4c9e0af",
+      "pinSalt": "638cca7ced2bb9e1559bb7b172b7fb7c",
+      "pinFailedAttempts": 0,
+      "pinLockedUntil": 0,
+      "isSuspended": false,
+      "suspensionReason": "Audit verification cleared",
+      "restrictions": [],
+      "updatedAt": 1793648899972
+    },
+    "usr_1793648900231": {
+      "uid": "usr_1793648900231",
+      "fullName": "Chief Babatunde Alade",
+      "email": "alade_corp_1793648900211@flyemass.io",
+      "phone": "+2348035559201",
+      "businessName": "Alade Global Holdings Ltd",
+      "verifiedBadge": false,
+      "role": "client",
+      "createdAt": 1793648900232,
+      "balances": {
+        "NGN": 899500,
+        "CNY": 813.52,
+        "USD": 3915
+      },
+      "pinHash": "245c6e8ae31435eff123e7b171fca32427153c49579657752f4682a22ce2f358",
+      "pinSalt": "a3eaf48f22d147f28372c3c86bfd0412",
+      "pinFailedAttempts": 0,
+      "pinLockedUntil": 0
     }
   },
   "double_entry_ledger": {
@@ -4141,6 +4274,1567 @@
         }
       ],
       "metadata": {}
+    },
+    "je_1793648684657_438": {
+      "id": "je_1793648684657_438",
+      "reference": "PROV-SESS_1793648684617",
+      "timestamp": 1793648684657,
+      "userId": "usr_alade_01",
+      "transactionType": "FUND",
+      "description": "Providus Virtual Direct Account Transfer (9082341902)",
+      "postings": [
+        {
+          "account": "assets:bank:providus_clearing:ngn",
+          "currency": "NGN",
+          "debit": 1500000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 1500000
+        }
+      ],
+      "metadata": {
+        "provider": "Providus",
+        "payload": {
+          "sessionId": "SESS_1793648684617",
+          "accountNumber": "9082341902",
+          "transactionAmount": 1500000,
+          "currency": "NGN",
+          "channel": "NIP_DIRECT"
+        }
+      }
+    },
+    "je_1793648684677_520": {
+      "id": "je_1793648684677_520",
+      "reference": "FLYE-FUND-1793648684677",
+      "timestamp": 1793648684677,
+      "userId": "usr_1793648684634",
+      "transactionType": "FUND",
+      "description": "Deposit via Instant Rail",
+      "postings": [
+        {
+          "account": "assets:bank:clearing:ngn",
+          "currency": "NGN",
+          "debit": 1500000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648684634:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 1500000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648839151_617": {
+      "id": "je_1793648839151_617",
+      "reference": "PROV-SESS_1793648839101",
+      "timestamp": 1793648839151,
+      "userId": "usr_alade_01",
+      "transactionType": "FUND",
+      "description": "Providus Virtual Direct Account Transfer (9082341902)",
+      "postings": [
+        {
+          "account": "assets:bank:providus_clearing:ngn",
+          "currency": "NGN",
+          "debit": 1500000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 1500000
+        }
+      ],
+      "metadata": {
+        "provider": "Providus",
+        "payload": {
+          "sessionId": "SESS_1793648839101",
+          "accountNumber": "9082341902",
+          "transactionAmount": 1500000,
+          "currency": "NGN",
+          "channel": "NIP_DIRECT"
+        }
+      }
+    },
+    "je_1793648839171_436": {
+      "id": "je_1793648839171_436",
+      "reference": "FLYE-FUND-1793648839171",
+      "timestamp": 1793648839171,
+      "userId": "usr_1793648839118",
+      "transactionType": "FUND",
+      "description": "Deposit via Instant Rail",
+      "postings": [
+        {
+          "account": "assets:bank:clearing:ngn",
+          "currency": "NGN",
+          "debit": 1500000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648839118:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 1500000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648839218_465": {
+      "id": "je_1793648839218_465",
+      "reference": "SWP-NGN-CNY-4650",
+      "timestamp": 1793648839218,
+      "userId": "usr_1793648839118",
+      "transactionType": "FX_SWAP",
+      "description": "Swap NGN 500000 to CNY 2313.52 @ rate 0.0046",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648839118:ngn",
+          "currency": "NGN",
+          "debit": 500000,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500000
+        },
+        {
+          "account": "treasury:fx_clearing:cny",
+          "currency": "CNY",
+          "debit": 2313.52,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648839118:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 2313.52
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648839232_800": {
+      "id": "je_1793648839232_800",
+      "reference": "FLYE-PAY-839232",
+      "timestamp": 1793648839232,
+      "userId": "usr_1793648839118",
+      "transactionType": "PAY_SUPPLIER",
+      "description": "Supplier payment queued to Shenzhen Foxconn Micro Optics Ltd via undefined",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648839118:cny",
+          "currency": "CNY",
+          "debit": 1500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:supplier_escrow:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 1500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648839249_969": {
+      "id": "je_1793648839249_969",
+      "reference": "WTH-NIP-839249",
+      "timestamp": 1793648839249,
+      "userId": "usr_1793648839118",
+      "transactionType": "WITHDRAW_RESERVED",
+      "description": "Withdrawal payout to undefined (1012345678)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648839118:ngn",
+          "currency": "NGN",
+          "debit": 100500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:pending_withdrawals:wth_1793648839249",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 100000
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648839288_953": {
+      "id": "je_1793648839288_953",
+      "reference": "ADJ-ADMIN-839288",
+      "timestamp": 1793648839288,
+      "userId": "usr_1793648839118",
+      "transactionType": "MANUAL_CREDIT_ADJUSTMENT",
+      "description": "Manual admin credit adjustment by adm-001: Freight settlement float",
+      "postings": [
+        {
+          "account": "equity:admin_adjustments:usd",
+          "currency": "USD",
+          "debit": 500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648839118:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648839300_431": {
+      "id": "je_1793648839300_431",
+      "reference": "WAYBILL-SF-EXPRESS-1793648839101-1",
+      "timestamp": 1793648839300,
+      "userId": "usr_1793648839118",
+      "transactionType": "CARGO_FREIGHT",
+      "description": "Freight settlement for Waybill #SF-EXPRESS-1793648839101-1",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648839118:usd",
+          "currency": "USD",
+          "debit": 285,
+          "credit": 0
+        },
+        {
+          "account": "revenue:fees:freight",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 285
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648888003_233": {
+      "id": "je_1793648888003_233",
+      "reference": "PROV-SESS_1793648887963",
+      "timestamp": 1793648888003,
+      "userId": "usr_alade_01",
+      "transactionType": "FUND",
+      "description": "Providus Virtual Direct Account Transfer (9082341902)",
+      "postings": [
+        {
+          "account": "assets:bank:providus_clearing:ngn",
+          "currency": "NGN",
+          "debit": 1500000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 1500000
+        }
+      ],
+      "metadata": {
+        "provider": "Providus",
+        "payload": {
+          "sessionId": "SESS_1793648887963",
+          "accountNumber": "9082341902",
+          "transactionAmount": 1500000,
+          "currency": "NGN",
+          "channel": "NIP_DIRECT"
+        }
+      }
+    },
+    "je_1793648888022_503": {
+      "id": "je_1793648888022_503",
+      "reference": "FLYE-FUND-1793648888022",
+      "timestamp": 1793648888022,
+      "userId": "usr_1793648887979",
+      "transactionType": "FUND",
+      "description": "Deposit via Instant Rail",
+      "postings": [
+        {
+          "account": "assets:bank:clearing:ngn",
+          "currency": "NGN",
+          "debit": 1500000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648887979:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 1500000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648888046_662": {
+      "id": "je_1793648888046_662",
+      "reference": "SWP-NGN-CNY-3767",
+      "timestamp": 1793648888046,
+      "userId": "usr_1793648887979",
+      "transactionType": "FX_SWAP",
+      "description": "Swap NGN 500000 to CNY 2313.52 @ rate 0.0046",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648887979:ngn",
+          "currency": "NGN",
+          "debit": 500000,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500000
+        },
+        {
+          "account": "treasury:fx_clearing:cny",
+          "currency": "CNY",
+          "debit": 2313.52,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648887979:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 2313.52
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648888124_511": {
+      "id": "je_1793648888124_511",
+      "reference": "FLYE-PAY-888124",
+      "timestamp": 1793648888124,
+      "userId": "usr_1793648887979",
+      "transactionType": "PAY_SUPPLIER",
+      "description": "Supplier payment queued to Shenzhen Foxconn Micro Optics Ltd via undefined",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648887979:cny",
+          "currency": "CNY",
+          "debit": 1500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:supplier_escrow:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 1500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648888145_403": {
+      "id": "je_1793648888145_403",
+      "reference": "WTH-NIP-888145",
+      "timestamp": 1793648888145,
+      "userId": "usr_1793648887979",
+      "transactionType": "WITHDRAW_RESERVED",
+      "description": "Withdrawal payout to undefined (1012345678)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648887979:ngn",
+          "currency": "NGN",
+          "debit": 100500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:pending_withdrawals:wth_1793648888145",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 100000
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648888196_110": {
+      "id": "je_1793648888196_110",
+      "reference": "ADJ-ADMIN-888196",
+      "timestamp": 1793648888196,
+      "userId": "usr_1793648887979",
+      "transactionType": "MANUAL_CREDIT_ADJUSTMENT",
+      "description": "Manual admin credit adjustment by adm-001: Freight settlement and agent float",
+      "postings": [
+        {
+          "account": "equity:admin_adjustments:usd",
+          "currency": "USD",
+          "debit": 1500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648887979:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 1500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648888208_487": {
+      "id": "je_1793648888208_487",
+      "reference": "WAYBILL-SF-EXPRESS-1793648887963-1",
+      "timestamp": 1793648888208,
+      "userId": "usr_1793648887979",
+      "transactionType": "CARGO_FREIGHT",
+      "description": "Freight settlement for Waybill #SF-EXPRESS-1793648887963-1",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648887979:usd",
+          "currency": "USD",
+          "debit": 285,
+          "credit": 0
+        },
+        {
+          "account": "revenue:fees:freight",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 285
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648888280_901": {
+      "id": "je_1793648888280_901",
+      "reference": "AGT-ESCROW-888280",
+      "timestamp": 1793648888280,
+      "userId": "usr_1793648887979",
+      "transactionType": "AGENT_SERVICE_ESCROW",
+      "description": "Escrow hold for agent ground service: Commercial 5kW Hybrid Solar Inverters (#rfq_1793648888251)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648887979:usd",
+          "currency": "USD",
+          "debit": 300,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:agent_escrow:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 300
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648888294_799": {
+      "id": "je_1793648888294_799",
+      "reference": "SUB-SUPPLIER-conn",
+      "timestamp": 1793648888294,
+      "userId": "usr_1793648887979",
+      "transactionType": "SUPPLIER_SUB",
+      "description": "30-Day VIP Supplier Contact Pass for #sup-foxconn",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648887979:usd",
+          "currency": "USD",
+          "debit": 50,
+          "credit": 0
+        },
+        {
+          "account": "revenue:fees:supplier_pass",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 50
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648888320_107": {
+      "id": "je_1793648888320_107",
+      "reference": "ADJ-ADMIN-888319",
+      "timestamp": 1793648888320,
+      "userId": "usr_1793648887979",
+      "transactionType": "MANUAL_CREDIT_ADJUSTMENT",
+      "description": "Manual admin credit adjustment by adm-001: Tech shop inventory order float",
+      "postings": [
+        {
+          "account": "equity:admin_adjustments:usd",
+          "currency": "USD",
+          "debit": 3000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648887979:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 3000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648888331_898": {
+      "id": "je_1793648888331_898",
+      "reference": "ORD-HK-52190",
+      "timestamp": 1793648888331,
+      "userId": "usr_1793648887979",
+      "transactionType": "SHOP_ORDER",
+      "description": "Hong Kong Tech Wholesale: Apple iPhone 16 Pro Max (512GB)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648887979:usd",
+          "currency": "USD",
+          "debit": 1420,
+          "credit": 0
+        },
+        {
+          "account": "revenue:sales:tech_gadgets",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 1420
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648888343_136": {
+      "id": "je_1793648888343_136",
+      "reference": "REV-ORD-HK-52190",
+      "timestamp": 1793648888343,
+      "userId": "usr_1793648887979",
+      "transactionType": "SHOP_ORDER_REFUND",
+      "description": "Order #ORD-HK-52190 cancellation refund: Customer requested order consolidation adjustment",
+      "postings": [
+        {
+          "account": "liabilities:shop_escrow:usd",
+          "currency": "USD",
+          "debit": 1420,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648887979:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 1420
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648888355_654": {
+      "id": "je_1793648888355_654",
+      "reference": "WST-GUA-150043",
+      "timestamp": 1793648888356,
+      "userId": "usr_1793648887979",
+      "transactionType": "HOTEL_BOOKING",
+      "description": "Reservation: Canton Fair Garden Hotel (2 nights)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648887979:usd",
+          "currency": "USD",
+          "debit": 240,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:hotel_escrow:bk_1793648888355",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 240
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648888368_190": {
+      "id": "je_1793648888368_190",
+      "reference": "REV-WST-GUA-150043",
+      "timestamp": 1793648888368,
+      "userId": "usr_1793648887979",
+      "transactionType": "HOTEL_REFUND",
+      "description": "Hotel refund for WST-GUA-150043: Flight schedule adjusted",
+      "postings": [
+        {
+          "account": "liabilities:hotel_escrow:bk_1793648888355",
+          "currency": "USD",
+          "debit": 240,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648887979:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 240
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899110_702": {
+      "id": "je_1793648899110_702",
+      "reference": "WTH-NIP-899110",
+      "timestamp": 1793648899110,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_RESERVED",
+      "description": "Withdrawal payout to Zenith Bank Plc (2089140022)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 50500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:pending_withdrawals:wth_1793648899110",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 50000
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899134_590": {
+      "id": "je_1793648899134_590",
+      "reference": "SWP-NGN-CNY-5755",
+      "timestamp": 1793648899134,
+      "userId": "usr_alade_01",
+      "transactionType": "FX_SWAP",
+      "description": "Swap NGN 1000000 to CNY 4627.04 @ rate 0.0046",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 1000000,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 1000000
+        },
+        {
+          "account": "treasury:fx_clearing:cny",
+          "currency": "CNY",
+          "debit": 4627.04,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 4627.04
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899160_513": {
+      "id": "je_1793648899160_513",
+      "reference": "WTH-NIP-899160",
+      "timestamp": 1793648899160,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_RESERVED",
+      "description": "Withdrawal payout to Zenith Bank Plc (2089140022)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 20500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:pending_withdrawals:wth_1793648899160",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 20000
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899187_894": {
+      "id": "je_1793648899187_894",
+      "reference": "WTH-NIP-899187",
+      "timestamp": 1793648899187,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_RESERVED",
+      "description": "Withdrawal payout to Zenith Bank Plc (2089140022)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 20500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:pending_withdrawals:wth_1793648899187",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 20000
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899211_378": {
+      "id": "je_1793648899211_378",
+      "reference": "WTH-NIP-899211",
+      "timestamp": 1793648899211,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_RESERVED",
+      "description": "Withdrawal payout to Zenith Bank Plc (2089140022)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 20500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:pending_withdrawals:wth_1793648899211",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 20000
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899230_378": {
+      "id": "je_1793648899230_378",
+      "reference": "WTH-NIP-899230",
+      "timestamp": 1793648899230,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_RESERVED",
+      "description": "Withdrawal payout to Zenith Bank Plc (2089140022)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 20500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:pending_withdrawals:wth_1793648899230",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 20000
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899249_298": {
+      "id": "je_1793648899249_298",
+      "reference": "WTH-NIP-899249",
+      "timestamp": 1793648899249,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_RESERVED",
+      "description": "Withdrawal payout to Zenith Bank Plc (2089140022)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 20500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:pending_withdrawals:wth_1793648899249",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 20000
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899266_721": {
+      "id": "je_1793648899266_721",
+      "reference": "SETTLE-1793648899263",
+      "timestamp": 1793648899266,
+      "userId": "usr_alade_01",
+      "transactionType": "FUND",
+      "description": "Providus Virtual Direct Account Transfer (9082341902)",
+      "postings": [
+        {
+          "account": "assets:bank:providus_clearing:ngn",
+          "currency": "NGN",
+          "debit": 250000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 250000
+        }
+      ],
+      "metadata": {
+        "provider": "Providus",
+        "payload": {
+          "sessionId": "PROV-SESSION-1793648899263",
+          "settlementId": "SETTLE-1793648899263",
+          "accountNumber": "9082341902",
+          "transactionAmount": 250000,
+          "currency": "NGN",
+          "channel": "NIP_DIRECT"
+        }
+      }
+    },
+    "je_1793648899285_302": {
+      "id": "je_1793648899285_302",
+      "reference": "WTH-NIP-899284",
+      "timestamp": 1793648899285,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_RESERVED",
+      "description": "Withdrawal payout to Zenith Bank Plc (2089140022)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 100500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:pending_withdrawals:wth_1793648899284",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 100000
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899300_554": {
+      "id": "je_1793648899300_554",
+      "reference": "REV-WTH-NIP-899284",
+      "timestamp": 1793648899300,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_REVERSED",
+      "description": "Refund for failed withdrawal: Account name mismatch on NIBSS switch",
+      "postings": [
+        {
+          "account": "liabilities:pending_withdrawals:wth_1793648899284",
+          "currency": "NGN",
+          "debit": 100000,
+          "credit": 0
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 100500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899315_802": {
+      "id": "je_1793648899315_802",
+      "reference": "ORD-HK-14866",
+      "timestamp": 1793648899315,
+      "userId": "usr_alade_01",
+      "transactionType": "SHOP_ORDER",
+      "description": "Hong Kong Tech Wholesale: Apple Gadgets",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:usd",
+          "currency": "USD",
+          "debit": 1420,
+          "credit": 0
+        },
+        {
+          "account": "revenue:sales:tech_gadgets",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 1420
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899351_238": {
+      "id": "je_1793648899351_238",
+      "reference": "FLYE-ALIPAY-899351",
+      "timestamp": 1793648899351,
+      "userId": "usr_alade_01",
+      "transactionType": "PAY_SUPPLIER",
+      "description": "Supplier payment queued to Shenzhen Kaida Technology Ltd via alipay",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 5000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:supplier_escrow:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 5000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899367_748": {
+      "id": "je_1793648899367_748",
+      "reference": "DISB-FLYE-ALIPAY-899351",
+      "timestamp": 1793648899367,
+      "userId": "usr_alade_01",
+      "transactionType": "SUPPLIER_PAYMENT_DISBURSED",
+      "description": "Disbursement completed for supplier payment pay_1793648899351 via alipay",
+      "postings": [
+        {
+          "account": "liabilities:supplier_escrow:cny",
+          "currency": "CNY",
+          "debit": 5000,
+          "credit": 0
+        },
+        {
+          "account": "assets:china:alipay_disbursement:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 5000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899383_316": {
+      "id": "je_1793648899383_316",
+      "reference": "FLYE-WECHAT-899383",
+      "timestamp": 1793648899383,
+      "userId": "usr_alade_01",
+      "transactionType": "PAY_SUPPLIER",
+      "description": "Supplier payment queued to Yiwu Plastic Wholesale Group via wechat",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 3000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:supplier_escrow:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 3000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899396_525": {
+      "id": "je_1793648899396_525",
+      "reference": "REF-SUP-FLYE-WECHAT-899383",
+      "timestamp": 1793648899396,
+      "userId": "usr_alade_01",
+      "transactionType": "SUPPLIER_PAYMENT_REFUND",
+      "description": "Refund for unfulfilled China supplier transfer: Factory production line closed for maintenance",
+      "postings": [
+        {
+          "account": "liabilities:supplier_escrow:cny",
+          "currency": "CNY",
+          "debit": 3000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 3000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899663_378": {
+      "id": "je_1793648899663_378",
+      "reference": "ORD-HK-64393",
+      "timestamp": 1793648899663,
+      "userId": "usr_alade_01",
+      "transactionType": "SHOP_ORDER",
+      "description": "Hong Kong Tech Wholesale: Apple Gadgets",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:usd",
+          "currency": "USD",
+          "debit": 1420,
+          "credit": 0
+        },
+        {
+          "account": "revenue:sales:tech_gadgets",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 1420
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899683_549": {
+      "id": "je_1793648899683_549",
+      "reference": "SETTLE-E2E-1793648899681",
+      "timestamp": 1793648899683,
+      "userId": "usr_alade_01",
+      "transactionType": "FUND",
+      "description": "Providus Virtual Direct Account Transfer (9082341902)",
+      "postings": [
+        {
+          "account": "assets:bank:providus_clearing:ngn",
+          "currency": "NGN",
+          "debit": 1500000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 1500000
+        }
+      ],
+      "metadata": {
+        "provider": "Providus",
+        "payload": {
+          "sessionId": "E2E-PROV-1793648899681",
+          "settlementId": "SETTLE-E2E-1793648899681",
+          "accountNumber": "9082341902",
+          "transactionAmount": 1500000,
+          "currency": "NGN"
+        }
+      }
+    },
+    "je_1793648899702_164": {
+      "id": "je_1793648899702_164",
+      "reference": "SWP-NGN-CNY-7280",
+      "timestamp": 1793648899702,
+      "userId": "usr_alade_01",
+      "transactionType": "FX_SWAP",
+      "description": "Swap NGN 500000 to CNY 2313.52 @ rate 0.0046",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 500000,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500000
+        },
+        {
+          "account": "treasury:fx_clearing:cny",
+          "currency": "CNY",
+          "debit": 2313.52,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 2313.52
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899720_822": {
+      "id": "je_1793648899720_822",
+      "reference": "FLYE-WECHAT-899720",
+      "timestamp": 1793648899720,
+      "userId": "usr_alade_01",
+      "transactionType": "PAY_SUPPLIER",
+      "description": "Supplier payment queued to Foshan Ceramic Tiles Industrial Co. via wechat",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 2000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:supplier_escrow:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 2000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899738_866": {
+      "id": "je_1793648899738_866",
+      "reference": "WST-GUA-160749",
+      "timestamp": 1793648899738,
+      "userId": "usr_alade_01",
+      "transactionType": "HOTEL_BOOKING",
+      "description": "Reservation: The Westin Pazhou Guangzhou (3 nights)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:usd",
+          "currency": "USD",
+          "debit": 560,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:hotel_escrow:bk_1793648899738",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 560
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899762_735": {
+      "id": "je_1793648899762_735",
+      "reference": "DISB-FLYE-WECHAT-899720",
+      "timestamp": 1793648899762,
+      "userId": "usr_alade_01",
+      "transactionType": "SUPPLIER_PAYMENT_DISBURSED",
+      "description": "Disbursement completed for supplier payment pay_1793648899720 via wechat",
+      "postings": [
+        {
+          "account": "liabilities:supplier_escrow:cny",
+          "currency": "CNY",
+          "debit": 2000,
+          "credit": 0
+        },
+        {
+          "account": "assets:china:wechat_disbursement:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 2000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648899985_417": {
+      "id": "je_1793648899985_417",
+      "reference": "ADJ-ADMIN-899985",
+      "timestamp": 1793648899985,
+      "userId": "usr_1793648899937",
+      "transactionType": "MANUAL_CREDIT_ADJUSTMENT",
+      "description": "Manual admin credit adjustment by adm-001: Settlement reconciliation for offshore procurement order #PR-9921",
+      "postings": [
+        {
+          "account": "equity:admin_adjustments:usd",
+          "currency": "USD",
+          "debit": 1500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648899937:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 1500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648900093_370": {
+      "id": "je_1793648900093_370",
+      "reference": "REV-ord_test_1793648900071",
+      "timestamp": 1793648900093,
+      "userId": "usr_1793648899937",
+      "transactionType": "SHOP_ORDER_REFUND",
+      "description": "Order #ord_test_1793648900071 cancellation refund: Customer initiated flight rescheduling before dispatch",
+      "postings": [
+        {
+          "account": "liabilities:shop_escrow:usd",
+          "currency": "USD",
+          "debit": 180,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648899937:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 180
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648900253_643": {
+      "id": "je_1793648900253_643",
+      "reference": "PROV-SESS_1793648900211",
+      "timestamp": 1793648900253,
+      "userId": "usr_alade_01",
+      "transactionType": "FUND",
+      "description": "Providus Virtual Direct Account Transfer (9082341902)",
+      "postings": [
+        {
+          "account": "assets:bank:providus_clearing:ngn",
+          "currency": "NGN",
+          "debit": 1500000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 1500000
+        }
+      ],
+      "metadata": {
+        "provider": "Providus",
+        "payload": {
+          "sessionId": "SESS_1793648900211",
+          "accountNumber": "9082341902",
+          "transactionAmount": 1500000,
+          "currency": "NGN",
+          "channel": "NIP_DIRECT"
+        }
+      }
+    },
+    "je_1793648900276_193": {
+      "id": "je_1793648900276_193",
+      "reference": "FLYE-FUND-1793648900276",
+      "timestamp": 1793648900276,
+      "userId": "usr_1793648900231",
+      "transactionType": "FUND",
+      "description": "Deposit via Instant Rail",
+      "postings": [
+        {
+          "account": "assets:bank:clearing:ngn",
+          "currency": "NGN",
+          "debit": 1500000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648900231:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 1500000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648900296_332": {
+      "id": "je_1793648900296_332",
+      "reference": "SWP-NGN-CNY-3265",
+      "timestamp": 1793648900296,
+      "userId": "usr_1793648900231",
+      "transactionType": "FX_SWAP",
+      "description": "Swap NGN 500000 to CNY 2313.52 @ rate 0.0046",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648900231:ngn",
+          "currency": "NGN",
+          "debit": 500000,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500000
+        },
+        {
+          "account": "treasury:fx_clearing:cny",
+          "currency": "CNY",
+          "debit": 2313.52,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648900231:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 2313.52
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648900319_179": {
+      "id": "je_1793648900319_179",
+      "reference": "FLYE-PAY-900319",
+      "timestamp": 1793648900319,
+      "userId": "usr_1793648900231",
+      "transactionType": "PAY_SUPPLIER",
+      "description": "Supplier payment queued to Shenzhen Foxconn Micro Optics Ltd via undefined",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648900231:cny",
+          "currency": "CNY",
+          "debit": 1500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:supplier_escrow:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 1500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648900334_964": {
+      "id": "je_1793648900334_964",
+      "reference": "WTH-NIP-900334",
+      "timestamp": 1793648900334,
+      "userId": "usr_1793648900231",
+      "transactionType": "WITHDRAW_RESERVED",
+      "description": "Withdrawal payout to undefined (1012345678)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648900231:ngn",
+          "currency": "NGN",
+          "debit": 100500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:pending_withdrawals:wth_1793648900334",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 100000
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648900390_310": {
+      "id": "je_1793648900390_310",
+      "reference": "ADJ-ADMIN-900390",
+      "timestamp": 1793648900390,
+      "userId": "usr_1793648900231",
+      "transactionType": "MANUAL_CREDIT_ADJUSTMENT",
+      "description": "Manual admin credit adjustment by adm-001: Freight settlement and agent float",
+      "postings": [
+        {
+          "account": "equity:admin_adjustments:usd",
+          "currency": "USD",
+          "debit": 1500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648900231:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 1500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648900407_635": {
+      "id": "je_1793648900407_635",
+      "reference": "WAYBILL-SF-EXPRESS-1793648900211-1",
+      "timestamp": 1793648900407,
+      "userId": "usr_1793648900231",
+      "transactionType": "CARGO_FREIGHT",
+      "description": "Freight settlement for Waybill #SF-EXPRESS-1793648900211-1",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648900231:usd",
+          "currency": "USD",
+          "debit": 285,
+          "credit": 0
+        },
+        {
+          "account": "revenue:fees:freight",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 285
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648900501_416": {
+      "id": "je_1793648900501_416",
+      "reference": "AGT-ESCROW-900501",
+      "timestamp": 1793648900501,
+      "userId": "usr_1793648900231",
+      "transactionType": "AGENT_SERVICE_ESCROW",
+      "description": "Escrow hold for agent ground service: Commercial 5kW Hybrid Solar Inverters (#rfq_1793648900465)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648900231:usd",
+          "currency": "USD",
+          "debit": 300,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:agent_escrow:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 300
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648900522_356": {
+      "id": "je_1793648900522_356",
+      "reference": "SUB-SUPPLIER-conn",
+      "timestamp": 1793648900522,
+      "userId": "usr_1793648900231",
+      "transactionType": "SUPPLIER_SUB",
+      "description": "30-Day VIP Supplier Contact Pass for #sup-foxconn",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648900231:usd",
+          "currency": "USD",
+          "debit": 50,
+          "credit": 0
+        },
+        {
+          "account": "revenue:fees:supplier_pass",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 50
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648900559_818": {
+      "id": "je_1793648900559_818",
+      "reference": "ADJ-ADMIN-900559",
+      "timestamp": 1793648900559,
+      "userId": "usr_1793648900231",
+      "transactionType": "MANUAL_CREDIT_ADJUSTMENT",
+      "description": "Manual admin credit adjustment by adm-001: Tech shop inventory order float",
+      "postings": [
+        {
+          "account": "equity:admin_adjustments:usd",
+          "currency": "USD",
+          "debit": 3000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648900231:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 3000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648900581_916": {
+      "id": "je_1793648900581_916",
+      "reference": "ORD-HK-83804",
+      "timestamp": 1793648900581,
+      "userId": "usr_1793648900231",
+      "transactionType": "SHOP_ORDER",
+      "description": "Hong Kong Tech Wholesale: Apple iPhone 16 Pro Max (512GB)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648900231:usd",
+          "currency": "USD",
+          "debit": 1420,
+          "credit": 0
+        },
+        {
+          "account": "revenue:sales:tech_gadgets",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 1420
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648900603_133": {
+      "id": "je_1793648900603_133",
+      "reference": "REV-ORD-HK-83804",
+      "timestamp": 1793648900603,
+      "userId": "usr_1793648900231",
+      "transactionType": "SHOP_ORDER_REFUND",
+      "description": "Order #ORD-HK-83804 cancellation refund: Customer requested order consolidation adjustment",
+      "postings": [
+        {
+          "account": "liabilities:shop_escrow:usd",
+          "currency": "USD",
+          "debit": 1420,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648900231:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 1420
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648900620_911": {
+      "id": "je_1793648900620_911",
+      "reference": "WST-GUA-222527",
+      "timestamp": 1793648900620,
+      "userId": "usr_1793648900231",
+      "transactionType": "HOTEL_BOOKING",
+      "description": "Reservation: Canton Fair Garden Hotel (2 nights)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_1793648900231:usd",
+          "currency": "USD",
+          "debit": 240,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:hotel_escrow:bk_1793648900620",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 240
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1793648900635_220": {
+      "id": "je_1793648900635_220",
+      "reference": "REV-WST-GUA-222527",
+      "timestamp": 1793648900635,
+      "userId": "usr_1793648900231",
+      "transactionType": "HOTEL_REFUND",
+      "description": "Hotel refund for WST-GUA-222527: Flight schedule adjusted",
+      "postings": [
+        {
+          "account": "liabilities:hotel_escrow:bk_1793648900620",
+          "currency": "USD",
+          "debit": 240,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_1793648900231:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 240
+        }
+      ],
+      "metadata": {}
     }
   },
   "wallets_ledger": {
@@ -6055,6 +7749,871 @@
       "reference": "WST-GUA-935798",
       "timestamp": 1793647695486,
       "notes": "Reservation: The Westin Pazhou Guangzhou (3 nights)"
+    },
+    "ldg_1793648684657": {
+      "id": "ldg_1793648684657",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 1500000,
+      "fee": 0,
+      "openingBalance": 28450200,
+      "closingBalance": 28450200,
+      "status": "completed",
+      "reference": "PROV-SESS_1793648684617",
+      "timestamp": 1793648684657,
+      "notes": "Providus NIP virtual settlement confirmed (PROV-SESS_1793648684617)"
+    },
+    "ldg_1793648684678_79": {
+      "id": "ldg_1793648684678_79",
+      "userId": "usr_1793648684634",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 1500000,
+      "fee": 0,
+      "openingBalance": 0,
+      "closingBalance": 0,
+      "status": "completed",
+      "reference": "FLYE-FUND-1793648684677",
+      "timestamp": 1793648684678,
+      "notes": "Wallet credited with ₦1,500,000 via Instant Rail"
+    },
+    "ldg_1793648839151": {
+      "id": "ldg_1793648839151",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 1500000,
+      "fee": 0,
+      "openingBalance": 28450200,
+      "closingBalance": 28450200,
+      "status": "completed",
+      "reference": "PROV-SESS_1793648839101",
+      "timestamp": 1793648839151,
+      "notes": "Providus NIP virtual settlement confirmed (PROV-SESS_1793648839101)"
+    },
+    "ldg_1793648839171_298": {
+      "id": "ldg_1793648839171_298",
+      "userId": "usr_1793648839118",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 1500000,
+      "fee": 0,
+      "openingBalance": 0,
+      "closingBalance": 1500000,
+      "status": "completed",
+      "reference": "FLYE-FUND-1793648839171",
+      "timestamp": 1793648839171,
+      "notes": "Wallet credited with ₦1,500,000 via Instant Rail"
+    },
+    "ldg_1793648839218": {
+      "id": "ldg_1793648839218",
+      "userId": "usr_1793648839118",
+      "type": "FX_SWAP",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "CNY",
+      "amount": 500000,
+      "convertedAmount": 2313.52,
+      "fee": 0,
+      "rate": 0.004627039627039627,
+      "openingBalance": 1500000,
+      "closingBalance": 1000000,
+      "status": "completed",
+      "reference": "SWP-NGN-CNY-4650",
+      "timestamp": 1793648839218,
+      "notes": "Instant swap NGN 500,000 to CNY 2,313.52 @ locked rate 0.0046"
+    },
+    "ldg_1793648839233": {
+      "id": "ldg_1793648839233",
+      "userId": "usr_1793648839118",
+      "type": "PAY_SUPPLIER",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "CNY",
+      "amount": 1500,
+      "fee": 0,
+      "openingBalance": 2313.52,
+      "closingBalance": 813.52,
+      "status": "completed",
+      "reference": "FLYE-PAY-839232",
+      "timestamp": 1793648839233,
+      "notes": "Transfer ¥1,500 to Shenzhen Foxconn Micro Optics Ltd via undefined"
+    },
+    "ldg_1793648839249": {
+      "id": "ldg_1793648839249",
+      "userId": "usr_1793648839118",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 100000,
+      "fee": 500,
+      "openingBalance": 1000000,
+      "closingBalance": 899500,
+      "status": "pending",
+      "reference": "WTH-NIP-839249",
+      "timestamp": 1793648839249,
+      "notes": "Payout ₦100,000 to undefined (1012345678)"
+    },
+    "ldg_1793648839288": {
+      "id": "ldg_1793648839288",
+      "userId": "usr_1793648839118",
+      "type": "FUND",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 500,
+      "fee": 0,
+      "openingBalance": 0,
+      "closingBalance": 500,
+      "status": "completed",
+      "reference": "ADJ-ADMIN-839288",
+      "timestamp": 1793648839288,
+      "notes": "Manual CREDIT by Admin (adm-001): Freight settlement float"
+    },
+    "ldg_1793648839301": {
+      "id": "ldg_1793648839301",
+      "userId": "usr_1793648839118",
+      "type": "CARGO_FREIGHT",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 285,
+      "fee": 0,
+      "openingBalance": 500,
+      "closingBalance": 215,
+      "status": "completed",
+      "reference": "WAYBILL-SF-EXPRESS-1793648839101-1",
+      "timestamp": 1793648839301,
+      "notes": "Freight settlement for Waybill #SF-EXPRESS-1793648839101-1"
+    },
+    "ldg_1793648888003": {
+      "id": "ldg_1793648888003",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 1500000,
+      "fee": 0,
+      "openingBalance": 28450200,
+      "closingBalance": 28450200,
+      "status": "completed",
+      "reference": "PROV-SESS_1793648887963",
+      "timestamp": 1793648888003,
+      "notes": "Providus NIP virtual settlement confirmed (PROV-SESS_1793648887963)"
+    },
+    "ldg_1793648888023_402": {
+      "id": "ldg_1793648888023_402",
+      "userId": "usr_1793648887979",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 1500000,
+      "fee": 0,
+      "openingBalance": 0,
+      "closingBalance": 1500000,
+      "status": "completed",
+      "reference": "FLYE-FUND-1793648888022",
+      "timestamp": 1793648888023,
+      "notes": "Wallet credited with ₦1,500,000 via Instant Rail"
+    },
+    "ldg_1793648888089": {
+      "id": "ldg_1793648888089",
+      "userId": "usr_1793648887979",
+      "type": "FX_SWAP",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "CNY",
+      "amount": 500000,
+      "convertedAmount": 2313.52,
+      "fee": 0,
+      "rate": 0.004627039627039627,
+      "openingBalance": 1500000,
+      "closingBalance": 1000000,
+      "status": "completed",
+      "reference": "SWP-NGN-CNY-3767",
+      "timestamp": 1793648888089,
+      "notes": "Instant swap NGN 500,000 to CNY 2,313.52 @ locked rate 0.0046"
+    },
+    "ldg_1793648888124": {
+      "id": "ldg_1793648888124",
+      "userId": "usr_1793648887979",
+      "type": "PAY_SUPPLIER",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "CNY",
+      "amount": 1500,
+      "fee": 0,
+      "openingBalance": 2313.52,
+      "closingBalance": 813.52,
+      "status": "completed",
+      "reference": "FLYE-PAY-888124",
+      "timestamp": 1793648888124,
+      "notes": "Transfer ¥1,500 to Shenzhen Foxconn Micro Optics Ltd via undefined"
+    },
+    "ldg_1793648888145": {
+      "id": "ldg_1793648888145",
+      "userId": "usr_1793648887979",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 100000,
+      "fee": 500,
+      "openingBalance": 1000000,
+      "closingBalance": 899500,
+      "status": "pending",
+      "reference": "WTH-NIP-888145",
+      "timestamp": 1793648888145,
+      "notes": "Payout ₦100,000 to undefined (1012345678)"
+    },
+    "ldg_1793648888196": {
+      "id": "ldg_1793648888196",
+      "userId": "usr_1793648887979",
+      "type": "FUND",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 1500,
+      "fee": 0,
+      "openingBalance": 0,
+      "closingBalance": 1500,
+      "status": "completed",
+      "reference": "ADJ-ADMIN-888196",
+      "timestamp": 1793648888196,
+      "notes": "Manual CREDIT by Admin (adm-001): Freight settlement and agent float"
+    },
+    "ldg_1793648888208": {
+      "id": "ldg_1793648888208",
+      "userId": "usr_1793648887979",
+      "type": "CARGO_FREIGHT",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 285,
+      "fee": 0,
+      "openingBalance": 1500,
+      "closingBalance": 1215,
+      "status": "completed",
+      "reference": "WAYBILL-SF-EXPRESS-1793648887963-1",
+      "timestamp": 1793648888208,
+      "notes": "Freight settlement for Waybill #SF-EXPRESS-1793648887963-1"
+    },
+    "ldg_1793648888281": {
+      "id": "ldg_1793648888281",
+      "userId": "usr_1793648887979",
+      "type": "AGENT_PAYMENT",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 300,
+      "fee": 0,
+      "openingBalance": 1215,
+      "closingBalance": 915,
+      "status": "completed",
+      "reference": "AGT-ESCROW-888280",
+      "timestamp": 1793648888281,
+      "notes": "Agent service fee escrow: Factory Audit & Pre-Shipment Inspection for Commercial 5kW Hybrid Solar Inverters"
+    },
+    "ldg_1793648888294": {
+      "id": "ldg_1793648888294",
+      "userId": "usr_1793648887979",
+      "type": "SUPPLIER_SUB",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 50,
+      "fee": 0,
+      "openingBalance": 915,
+      "closingBalance": 915,
+      "status": "completed",
+      "reference": "SUB-SUPPLIER-conn",
+      "timestamp": 1793648888294,
+      "notes": "30-Day VIP Supplier Contact Pass for #sup-foxconn"
+    },
+    "ldg_1793648888319": {
+      "id": "ldg_1793648888319",
+      "userId": "usr_1793648887979",
+      "type": "FUND",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 3000,
+      "fee": 0,
+      "openingBalance": 915,
+      "closingBalance": 3915,
+      "status": "completed",
+      "reference": "ADJ-ADMIN-888319",
+      "timestamp": 1793648888320,
+      "notes": "Manual CREDIT by Admin (adm-001): Tech shop inventory order float"
+    },
+    "ldg_1793648888331": {
+      "id": "ldg_1793648888331",
+      "userId": "usr_1793648887979",
+      "type": "SHOP_ORDER",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 1420,
+      "fee": 0,
+      "openingBalance": 3915,
+      "closingBalance": 3915,
+      "status": "completed",
+      "reference": "ORD-HK-52190",
+      "timestamp": 1793648888331,
+      "notes": "Hong Kong Tech Wholesale: Apple iPhone 16 Pro Max (512GB)"
+    },
+    "ldg_1793648888344": {
+      "id": "ldg_1793648888344",
+      "userId": "usr_1793648887979",
+      "type": "SHOP_ORDER",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 1420,
+      "fee": 0,
+      "openingBalance": 3915,
+      "closingBalance": 3915,
+      "status": "completed",
+      "reference": "REV-ORD-HK-52190",
+      "timestamp": 1793648888344,
+      "notes": "Shop order refund: USD 1,420 credited back"
+    },
+    "ldg_1793648888356": {
+      "id": "ldg_1793648888356",
+      "userId": "usr_1793648887979",
+      "type": "HOTEL_BOOKING",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 240,
+      "fee": 0,
+      "openingBalance": 3915,
+      "closingBalance": 3675,
+      "status": "completed",
+      "reference": "WST-GUA-150043",
+      "timestamp": 1793648888356,
+      "notes": "Reservation: Canton Fair Garden Hotel (2 nights)"
+    },
+    "ldg_1793648888368": {
+      "id": "ldg_1793648888368",
+      "userId": "usr_1793648887979",
+      "type": "HOTEL_BOOKING",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 240,
+      "fee": 0,
+      "openingBalance": 3675,
+      "closingBalance": 3915,
+      "status": "completed",
+      "reference": "REV-WST-GUA-150043",
+      "timestamp": 1793648888368,
+      "notes": "Hotel booking refund: USD 240 credited back"
+    },
+    "ldg_1793648899110": {
+      "id": "ldg_1793648899110",
+      "userId": "usr_alade_01",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 50000,
+      "fee": 500,
+      "openingBalance": 28450200,
+      "closingBalance": 28399700,
+      "status": "pending",
+      "reference": "WTH-NIP-899110",
+      "timestamp": 1793648899110,
+      "notes": "Payout ₦50,000 to Zenith Bank Plc (2089140022)"
+    },
+    "ldg_1793648899134": {
+      "id": "ldg_1793648899134",
+      "userId": "usr_alade_01",
+      "type": "FX_SWAP",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "CNY",
+      "amount": 1000000,
+      "convertedAmount": 4627.04,
+      "fee": 0,
+      "rate": 0.004627039627039627,
+      "openingBalance": 28399700,
+      "closingBalance": 27399700,
+      "status": "completed",
+      "reference": "SWP-NGN-CNY-5755",
+      "timestamp": 1793648899134,
+      "notes": "Instant swap NGN 1,000,000 to CNY 4,627.04 @ locked rate 0.0046"
+    },
+    "ldg_1793648899161": {
+      "id": "ldg_1793648899161",
+      "userId": "usr_alade_01",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 20000,
+      "fee": 500,
+      "openingBalance": 27399700,
+      "closingBalance": 27379200,
+      "status": "pending",
+      "reference": "WTH-NIP-899160",
+      "timestamp": 1793648899161,
+      "notes": "Payout ₦20,000 to Zenith Bank Plc (2089140022)"
+    },
+    "ldg_1793648899187": {
+      "id": "ldg_1793648899187",
+      "userId": "usr_alade_01",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 20000,
+      "fee": 500,
+      "openingBalance": 27379200,
+      "closingBalance": 27358700,
+      "status": "pending",
+      "reference": "WTH-NIP-899187",
+      "timestamp": 1793648899187,
+      "notes": "Payout ₦20,000 to Zenith Bank Plc (2089140022)"
+    },
+    "ldg_1793648899211": {
+      "id": "ldg_1793648899211",
+      "userId": "usr_alade_01",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 20000,
+      "fee": 500,
+      "openingBalance": 27358700,
+      "closingBalance": 27338200,
+      "status": "pending",
+      "reference": "WTH-NIP-899211",
+      "timestamp": 1793648899211,
+      "notes": "Payout ₦20,000 to Zenith Bank Plc (2089140022)"
+    },
+    "ldg_1793648899230": {
+      "id": "ldg_1793648899230",
+      "userId": "usr_alade_01",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 20000,
+      "fee": 500,
+      "openingBalance": 27338200,
+      "closingBalance": 27317700,
+      "status": "pending",
+      "reference": "WTH-NIP-899230",
+      "timestamp": 1793648899230,
+      "notes": "Payout ₦20,000 to Zenith Bank Plc (2089140022)"
+    },
+    "ldg_1793648899249": {
+      "id": "ldg_1793648899249",
+      "userId": "usr_alade_01",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 20000,
+      "fee": 500,
+      "openingBalance": 27317700,
+      "closingBalance": 27297200,
+      "status": "pending",
+      "reference": "WTH-NIP-899249",
+      "timestamp": 1793648899249,
+      "notes": "Payout ₦20,000 to Zenith Bank Plc (2089140022)"
+    },
+    "ldg_1793648899266": {
+      "id": "ldg_1793648899266",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 250000,
+      "fee": 0,
+      "openingBalance": 27297200,
+      "closingBalance": 27297200,
+      "status": "completed",
+      "reference": "SETTLE-1793648899263",
+      "timestamp": 1793648899266,
+      "notes": "Providus NIP virtual settlement confirmed (SETTLE-1793648899263)"
+    },
+    "ldg_1793648899285": {
+      "id": "ldg_1793648899285",
+      "userId": "usr_alade_01",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 100000,
+      "fee": 500,
+      "openingBalance": 27297200,
+      "closingBalance": 27196700,
+      "status": "pending",
+      "reference": "WTH-NIP-899284",
+      "timestamp": 1793648899285,
+      "notes": "Payout ₦100,000 to Zenith Bank Plc (2089140022)"
+    },
+    "ldg_1793648899301": {
+      "id": "ldg_1793648899301",
+      "userId": "usr_alade_01",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 100500,
+      "fee": 0,
+      "openingBalance": 27196700,
+      "closingBalance": 27196700,
+      "status": "completed",
+      "reference": "REV-WTH-NIP-899284",
+      "timestamp": 1793648899301,
+      "notes": "Reversal & refund: ₦100,500 returned to wallet (Account name mismatch on NIBSS switch)"
+    },
+    "ldg_1793648899316": {
+      "id": "ldg_1793648899316",
+      "userId": "usr_alade_01",
+      "type": "SHOP_ORDER",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 1420,
+      "fee": 0,
+      "openingBalance": 42890.5,
+      "closingBalance": 42890.5,
+      "status": "completed",
+      "reference": "ORD-HK-14866",
+      "timestamp": 1793648899316,
+      "notes": "Hong Kong Tech Wholesale: Apple Gadgets"
+    },
+    "ldg_1793648899351": {
+      "id": "ldg_1793648899351",
+      "userId": "usr_alade_01",
+      "type": "PAY_SUPPLIER",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "CNY",
+      "amount": 5000,
+      "fee": 0,
+      "openingBalance": 188877.04,
+      "closingBalance": 183877.04,
+      "status": "completed",
+      "reference": "FLYE-ALIPAY-899351",
+      "timestamp": 1793648899351,
+      "notes": "Transfer ¥5,000 to Shenzhen Kaida Technology Ltd via alipay"
+    },
+    "ldg_1793648899383": {
+      "id": "ldg_1793648899383",
+      "userId": "usr_alade_01",
+      "type": "PAY_SUPPLIER",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "CNY",
+      "amount": 3000,
+      "fee": 0,
+      "openingBalance": 183877.04,
+      "closingBalance": 180877.04,
+      "status": "completed",
+      "reference": "FLYE-WECHAT-899383",
+      "timestamp": 1793648899383,
+      "notes": "Transfer ¥3,000 to Yiwu Plastic Wholesale Group via wechat"
+    },
+    "ldg_1793648899663": {
+      "id": "ldg_1793648899663",
+      "userId": "usr_alade_01",
+      "type": "SHOP_ORDER",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 1420,
+      "fee": 0,
+      "openingBalance": 42890.5,
+      "closingBalance": 42890.5,
+      "status": "completed",
+      "reference": "ORD-HK-64393",
+      "timestamp": 1793648899663,
+      "notes": "Hong Kong Tech Wholesale: Apple Gadgets"
+    },
+    "ldg_1793648899684": {
+      "id": "ldg_1793648899684",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 1500000,
+      "fee": 0,
+      "openingBalance": 27196700,
+      "closingBalance": 27196700,
+      "status": "completed",
+      "reference": "SETTLE-E2E-1793648899681",
+      "timestamp": 1793648899684,
+      "notes": "Providus NIP virtual settlement confirmed (SETTLE-E2E-1793648899681)"
+    },
+    "ldg_1793648899702": {
+      "id": "ldg_1793648899702",
+      "userId": "usr_alade_01",
+      "type": "FX_SWAP",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "CNY",
+      "amount": 500000,
+      "convertedAmount": 2313.52,
+      "fee": 0,
+      "rate": 0.004627039627039627,
+      "openingBalance": 27196700,
+      "closingBalance": 26696700,
+      "status": "completed",
+      "reference": "SWP-NGN-CNY-7280",
+      "timestamp": 1793648899702,
+      "notes": "Instant swap NGN 500,000 to CNY 2,313.52 @ locked rate 0.0046"
+    },
+    "ldg_1793648899720": {
+      "id": "ldg_1793648899720",
+      "userId": "usr_alade_01",
+      "type": "PAY_SUPPLIER",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "CNY",
+      "amount": 2000,
+      "fee": 0,
+      "openingBalance": 183190.56,
+      "closingBalance": 181190.56,
+      "status": "completed",
+      "reference": "FLYE-WECHAT-899720",
+      "timestamp": 1793648899720,
+      "notes": "Transfer ¥2,000 to Foshan Ceramic Tiles Industrial Co. via wechat"
+    },
+    "ldg_1793648899739": {
+      "id": "ldg_1793648899739",
+      "userId": "usr_alade_01",
+      "type": "HOTEL_BOOKING",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 560,
+      "fee": 0,
+      "openingBalance": 42890.5,
+      "closingBalance": 42330.5,
+      "status": "completed",
+      "reference": "WST-GUA-160749",
+      "timestamp": 1793648899739,
+      "notes": "Reservation: The Westin Pazhou Guangzhou (3 nights)"
+    },
+    "ldg_1793648899985": {
+      "id": "ldg_1793648899985",
+      "userId": "usr_1793648899937",
+      "type": "FUND",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 1500,
+      "fee": 0,
+      "openingBalance": 0,
+      "closingBalance": 1500,
+      "status": "completed",
+      "reference": "ADJ-ADMIN-899985",
+      "timestamp": 1793648899985,
+      "notes": "Manual CREDIT by Admin (adm-001): Settlement reconciliation for offshore procurement order #PR-9921"
+    },
+    "ldg_1793648900093": {
+      "id": "ldg_1793648900093",
+      "userId": "usr_1793648899937",
+      "type": "SHOP_ORDER",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 180,
+      "fee": 0,
+      "openingBalance": 1500,
+      "closingBalance": 1500,
+      "status": "completed",
+      "reference": "REV-ord_test_1793648900071",
+      "timestamp": 1793648900093,
+      "notes": "Shop order refund: USD 180 credited back"
+    },
+    "ldg_1793648900253": {
+      "id": "ldg_1793648900253",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 1500000,
+      "fee": 0,
+      "openingBalance": 26696700,
+      "closingBalance": 26696700,
+      "status": "completed",
+      "reference": "PROV-SESS_1793648900211",
+      "timestamp": 1793648900253,
+      "notes": "Providus NIP virtual settlement confirmed (PROV-SESS_1793648900211)"
+    },
+    "ldg_1793648900276_16": {
+      "id": "ldg_1793648900276_16",
+      "userId": "usr_1793648900231",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 1500000,
+      "fee": 0,
+      "openingBalance": 0,
+      "closingBalance": 1500000,
+      "status": "completed",
+      "reference": "FLYE-FUND-1793648900276",
+      "timestamp": 1793648900276,
+      "notes": "Wallet credited with ₦1,500,000 via Instant Rail"
+    },
+    "ldg_1793648900297": {
+      "id": "ldg_1793648900297",
+      "userId": "usr_1793648900231",
+      "type": "FX_SWAP",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "CNY",
+      "amount": 500000,
+      "convertedAmount": 2313.52,
+      "fee": 0,
+      "rate": 0.004627039627039627,
+      "openingBalance": 1500000,
+      "closingBalance": 1000000,
+      "status": "completed",
+      "reference": "SWP-NGN-CNY-3265",
+      "timestamp": 1793648900297,
+      "notes": "Instant swap NGN 500,000 to CNY 2,313.52 @ locked rate 0.0046"
+    },
+    "ldg_1793648900319": {
+      "id": "ldg_1793648900319",
+      "userId": "usr_1793648900231",
+      "type": "PAY_SUPPLIER",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "CNY",
+      "amount": 1500,
+      "fee": 0,
+      "openingBalance": 2313.52,
+      "closingBalance": 813.52,
+      "status": "completed",
+      "reference": "FLYE-PAY-900319",
+      "timestamp": 1793648900319,
+      "notes": "Transfer ¥1,500 to Shenzhen Foxconn Micro Optics Ltd via undefined"
+    },
+    "ldg_1793648900334": {
+      "id": "ldg_1793648900334",
+      "userId": "usr_1793648900231",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 100000,
+      "fee": 500,
+      "openingBalance": 1000000,
+      "closingBalance": 899500,
+      "status": "pending",
+      "reference": "WTH-NIP-900334",
+      "timestamp": 1793648900334,
+      "notes": "Payout ₦100,000 to undefined (1012345678)"
+    },
+    "ldg_1793648900390": {
+      "id": "ldg_1793648900390",
+      "userId": "usr_1793648900231",
+      "type": "FUND",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 1500,
+      "fee": 0,
+      "openingBalance": 0,
+      "closingBalance": 1500,
+      "status": "completed",
+      "reference": "ADJ-ADMIN-900390",
+      "timestamp": 1793648900391,
+      "notes": "Manual CREDIT by Admin (adm-001): Freight settlement and agent float"
+    },
+    "ldg_1793648900407": {
+      "id": "ldg_1793648900407",
+      "userId": "usr_1793648900231",
+      "type": "CARGO_FREIGHT",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 285,
+      "fee": 0,
+      "openingBalance": 1500,
+      "closingBalance": 1215,
+      "status": "completed",
+      "reference": "WAYBILL-SF-EXPRESS-1793648900211-1",
+      "timestamp": 1793648900407,
+      "notes": "Freight settlement for Waybill #SF-EXPRESS-1793648900211-1"
+    },
+    "ldg_1793648900501": {
+      "id": "ldg_1793648900501",
+      "userId": "usr_1793648900231",
+      "type": "AGENT_PAYMENT",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 300,
+      "fee": 0,
+      "openingBalance": 1215,
+      "closingBalance": 915,
+      "status": "completed",
+      "reference": "AGT-ESCROW-900501",
+      "timestamp": 1793648900501,
+      "notes": "Agent service fee escrow: Factory Audit & Pre-Shipment Inspection for Commercial 5kW Hybrid Solar Inverters"
+    },
+    "ldg_1793648900522": {
+      "id": "ldg_1793648900522",
+      "userId": "usr_1793648900231",
+      "type": "SUPPLIER_SUB",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 50,
+      "fee": 0,
+      "openingBalance": 915,
+      "closingBalance": 915,
+      "status": "completed",
+      "reference": "SUB-SUPPLIER-conn",
+      "timestamp": 1793648900522,
+      "notes": "30-Day VIP Supplier Contact Pass for #sup-foxconn"
+    },
+    "ldg_1793648900559": {
+      "id": "ldg_1793648900559",
+      "userId": "usr_1793648900231",
+      "type": "FUND",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 3000,
+      "fee": 0,
+      "openingBalance": 915,
+      "closingBalance": 3915,
+      "status": "completed",
+      "reference": "ADJ-ADMIN-900559",
+      "timestamp": 1793648900559,
+      "notes": "Manual CREDIT by Admin (adm-001): Tech shop inventory order float"
+    },
+    "ldg_1793648900582": {
+      "id": "ldg_1793648900582",
+      "userId": "usr_1793648900231",
+      "type": "SHOP_ORDER",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 1420,
+      "fee": 0,
+      "openingBalance": 3915,
+      "closingBalance": 3915,
+      "status": "completed",
+      "reference": "ORD-HK-83804",
+      "timestamp": 1793648900582,
+      "notes": "Hong Kong Tech Wholesale: Apple iPhone 16 Pro Max (512GB)"
+    },
+    "ldg_1793648900603": {
+      "id": "ldg_1793648900603",
+      "userId": "usr_1793648900231",
+      "type": "SHOP_ORDER",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 1420,
+      "fee": 0,
+      "openingBalance": 3915,
+      "closingBalance": 3915,
+      "status": "completed",
+      "reference": "REV-ORD-HK-83804",
+      "timestamp": 1793648900603,
+      "notes": "Shop order refund: USD 1,420 credited back"
+    },
+    "ldg_1793648900620": {
+      "id": "ldg_1793648900620",
+      "userId": "usr_1793648900231",
+      "type": "HOTEL_BOOKING",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 240,
+      "fee": 0,
+      "openingBalance": 3915,
+      "closingBalance": 3675,
+      "status": "completed",
+      "reference": "WST-GUA-222527",
+      "timestamp": 1793648900620,
+      "notes": "Reservation: Canton Fair Garden Hotel (2 nights)"
+    },
+    "ldg_1793648900635": {
+      "id": "ldg_1793648900635",
+      "userId": "usr_1793648900231",
+      "type": "HOTEL_BOOKING",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 240,
+      "fee": 0,
+      "openingBalance": 3675,
+      "closingBalance": 3915,
+      "status": "completed",
+      "reference": "REV-WST-GUA-222527",
+      "timestamp": 1793648900635,
+      "notes": "Hotel booking refund: USD 240 credited back"
     }
   },
   "shipments": {
@@ -6153,6 +8712,303 @@
       "costEstimate": 4200,
       "costCurrency": "USD",
       "title": "40ft Container: Small Commodities & Solar Inverters"
+    },
+    "shp_1793648839260": {
+      "id": "shp_1793648839260",
+      "trackingNumber": "SF-EXPRESS-1793648839101-1",
+      "userId": "usr_1793648839118",
+      "receiverName": "Chief Babatunde Alade",
+      "originWarehouse": "Guangzhou",
+      "destination": "Nigeria (Lagos MM2 Hub)",
+      "weightKg": 12.5,
+      "mode": "Air Freight",
+      "currentStatus": "Packed",
+      "timeline": [
+        {
+          "status": "Origin Received",
+          "location": "Guangzhou International Cargo Hub",
+          "timestamp": "11:47 AM",
+          "notes": "Parcel pre-alert registered by client. Sender: Shenzhen Anker Factory Direct"
+        },
+        {
+          "status": "Freight Paid",
+          "location": "Lagos Clearing Escrow",
+          "timestamp": "11:47 AM",
+          "notes": "Freight cleared in full (USD 285). Ready for customs release."
+        },
+        {
+          "status": "Packed",
+          "location": "Guangzhou Consolidation Staging Bay",
+          "timestamp": "11:47 AM",
+          "notes": "Consolidated into master trade container"
+        }
+      ],
+      "updatedAt": 1793648839311,
+      "cbm": 0.063,
+      "costEstimate": 125,
+      "costCurrency": "USD",
+      "title": "500x GaN 65W Power Adapters",
+      "freightPaid": true
+    },
+    "shp_1793648839276": {
+      "id": "shp_1793648839276",
+      "trackingNumber": "ZTO-1793648839101-2",
+      "userId": "usr_1793648839118",
+      "receiverName": "Chief Babatunde Alade",
+      "originWarehouse": "Guangzhou",
+      "destination": "Nigeria (Lagos MM2 Hub)",
+      "weightKg": 6,
+      "mode": "Air Freight",
+      "currentStatus": "Packed",
+      "timeline": [
+        {
+          "status": "Origin Received",
+          "location": "Guangzhou International Cargo Hub",
+          "timestamp": "11:47 AM",
+          "notes": "Parcel pre-alert registered by client. Sender: Dongguan Foxlink Wire & Cable Ltd"
+        },
+        {
+          "status": "Packed",
+          "location": "Guangzhou Consolidation Staging Bay",
+          "timestamp": "11:47 AM",
+          "notes": "Consolidated into master trade container"
+        }
+      ],
+      "updatedAt": 1793648839311,
+      "cbm": 0.03,
+      "costEstimate": 60,
+      "costCurrency": "USD",
+      "title": "200x Braided USB-C 240W Cables",
+      "freightPaid": false
+    },
+    "shp_consol_1793648839311": {
+      "id": "shp_consol_1793648839311",
+      "trackingNumber": "FM-CONSOL-50604",
+      "userId": "usr_1793648839118",
+      "receiverName": "Chief Babatunde Alade",
+      "originWarehouse": "Guangzhou",
+      "destination": "Nigeria (Lagos MM2 Hub)",
+      "weightKg": 18.5,
+      "cbm": 0.093,
+      "mode": "Air Freight",
+      "currentStatus": "In Transit/Customs",
+      "timeline": [
+        {
+          "status": "Packed",
+          "location": "Guangzhou Cargo Consolidation Center",
+          "timestamp": "11:47 AM",
+          "notes": "Consolidated 2 parcels: 500x GaN 65W Power Adapters, 200x Braided USB-C 240W Cables"
+        },
+        {
+          "status": "In Transit/Customs",
+          "location": "Guangzhou Baiyun Airfreight Terminal",
+          "timestamp": "11:47 AM",
+          "notes": "Cleared export customs and loaded onto cargo freighter flight ET-901"
+        }
+      ],
+      "updatedAt": 1793648839321,
+      "costEstimate": 175.75,
+      "costCurrency": "USD",
+      "title": "Consolidated Master Container (2 Parcels)",
+      "freightPaid": false
+    },
+    "shp_1793648888163": {
+      "id": "shp_1793648888163",
+      "trackingNumber": "SF-EXPRESS-1793648887963-1",
+      "userId": "usr_1793648887979",
+      "receiverName": "Chief Babatunde Alade",
+      "originWarehouse": "Guangzhou",
+      "destination": "Nigeria (Lagos MM2 Hub)",
+      "weightKg": 12.5,
+      "mode": "Air Freight",
+      "currentStatus": "Packed",
+      "timeline": [
+        {
+          "status": "Origin Received",
+          "location": "Guangzhou International Cargo Hub",
+          "timestamp": "11:48 AM",
+          "notes": "Parcel pre-alert registered by client. Sender: Shenzhen Anker Factory Direct"
+        },
+        {
+          "status": "Freight Paid",
+          "location": "Lagos Clearing Escrow",
+          "timestamp": "11:48 AM",
+          "notes": "Freight cleared in full (USD 285). Ready for customs release."
+        },
+        {
+          "status": "Packed",
+          "location": "Guangzhou Consolidation Staging Bay",
+          "timestamp": "11:48 AM",
+          "notes": "Consolidated into master trade container"
+        }
+      ],
+      "updatedAt": 1793648888221,
+      "cbm": 0.063,
+      "costEstimate": 125,
+      "costCurrency": "USD",
+      "title": "500x GaN 65W Power Adapters",
+      "freightPaid": true
+    },
+    "shp_1793648888180": {
+      "id": "shp_1793648888180",
+      "trackingNumber": "ZTO-1793648887963-2",
+      "userId": "usr_1793648887979",
+      "receiverName": "Chief Babatunde Alade",
+      "originWarehouse": "Guangzhou",
+      "destination": "Nigeria (Lagos MM2 Hub)",
+      "weightKg": 6,
+      "mode": "Air Freight",
+      "currentStatus": "Packed",
+      "timeline": [
+        {
+          "status": "Origin Received",
+          "location": "Guangzhou International Cargo Hub",
+          "timestamp": "11:48 AM",
+          "notes": "Parcel pre-alert registered by client. Sender: Dongguan Foxlink Wire & Cable Ltd"
+        },
+        {
+          "status": "Packed",
+          "location": "Guangzhou Consolidation Staging Bay",
+          "timestamp": "11:48 AM",
+          "notes": "Consolidated into master trade container"
+        }
+      ],
+      "updatedAt": 1793648888221,
+      "cbm": 0.03,
+      "costEstimate": 60,
+      "costCurrency": "USD",
+      "title": "200x Braided USB-C 240W Cables",
+      "freightPaid": false
+    },
+    "shp_consol_1793648888221": {
+      "id": "shp_consol_1793648888221",
+      "trackingNumber": "FM-CONSOL-37202",
+      "userId": "usr_1793648887979",
+      "receiverName": "Chief Babatunde Alade",
+      "originWarehouse": "Guangzhou",
+      "destination": "Nigeria (Lagos MM2 Hub)",
+      "weightKg": 18.5,
+      "cbm": 0.093,
+      "mode": "Air Freight",
+      "currentStatus": "In Transit/Customs",
+      "timeline": [
+        {
+          "status": "Packed",
+          "location": "Guangzhou Cargo Consolidation Center",
+          "timestamp": "11:48 AM",
+          "notes": "Consolidated 2 parcels: 500x GaN 65W Power Adapters, 200x Braided USB-C 240W Cables"
+        },
+        {
+          "status": "In Transit/Customs",
+          "location": "Guangzhou Baiyun Airfreight Terminal",
+          "timestamp": "11:48 AM",
+          "notes": "Cleared export customs and loaded onto cargo freighter flight ET-901"
+        }
+      ],
+      "updatedAt": 1793648888238,
+      "costEstimate": 175.75,
+      "costCurrency": "USD",
+      "title": "Consolidated Master Container (2 Parcels)",
+      "freightPaid": false
+    },
+    "shp_1793648900355": {
+      "id": "shp_1793648900355",
+      "trackingNumber": "SF-EXPRESS-1793648900211-1",
+      "userId": "usr_1793648900231",
+      "receiverName": "Chief Babatunde Alade",
+      "originWarehouse": "Guangzhou",
+      "destination": "Nigeria (Lagos MM2 Hub)",
+      "weightKg": 12.5,
+      "mode": "Air Freight",
+      "currentStatus": "Packed",
+      "timeline": [
+        {
+          "status": "Origin Received",
+          "location": "Guangzhou International Cargo Hub",
+          "timestamp": "11:48 AM",
+          "notes": "Parcel pre-alert registered by client. Sender: Shenzhen Anker Factory Direct"
+        },
+        {
+          "status": "Freight Paid",
+          "location": "Lagos Clearing Escrow",
+          "timestamp": "11:48 AM",
+          "notes": "Freight cleared in full (USD 285). Ready for customs release."
+        },
+        {
+          "status": "Packed",
+          "location": "Guangzhou Consolidation Staging Bay",
+          "timestamp": "11:48 AM",
+          "notes": "Consolidated into master trade container"
+        }
+      ],
+      "updatedAt": 1793648900423,
+      "cbm": 0.063,
+      "costEstimate": 125,
+      "costCurrency": "USD",
+      "title": "500x GaN 65W Power Adapters",
+      "freightPaid": true
+    },
+    "shp_1793648900371": {
+      "id": "shp_1793648900371",
+      "trackingNumber": "ZTO-1793648900211-2",
+      "userId": "usr_1793648900231",
+      "receiverName": "Chief Babatunde Alade",
+      "originWarehouse": "Guangzhou",
+      "destination": "Nigeria (Lagos MM2 Hub)",
+      "weightKg": 6,
+      "mode": "Air Freight",
+      "currentStatus": "Packed",
+      "timeline": [
+        {
+          "status": "Origin Received",
+          "location": "Guangzhou International Cargo Hub",
+          "timestamp": "11:48 AM",
+          "notes": "Parcel pre-alert registered by client. Sender: Dongguan Foxlink Wire & Cable Ltd"
+        },
+        {
+          "status": "Packed",
+          "location": "Guangzhou Consolidation Staging Bay",
+          "timestamp": "11:48 AM",
+          "notes": "Consolidated into master trade container"
+        }
+      ],
+      "updatedAt": 1793648900424,
+      "cbm": 0.03,
+      "costEstimate": 60,
+      "costCurrency": "USD",
+      "title": "200x Braided USB-C 240W Cables",
+      "freightPaid": false
+    },
+    "shp_consol_1793648900424": {
+      "id": "shp_consol_1793648900424",
+      "trackingNumber": "FM-CONSOL-62922",
+      "userId": "usr_1793648900231",
+      "receiverName": "Chief Babatunde Alade",
+      "originWarehouse": "Guangzhou",
+      "destination": "Nigeria (Lagos MM2 Hub)",
+      "weightKg": 18.5,
+      "cbm": 0.093,
+      "mode": "Air Freight",
+      "currentStatus": "In Transit/Customs",
+      "timeline": [
+        {
+          "status": "Packed",
+          "location": "Guangzhou Cargo Consolidation Center",
+          "timestamp": "11:48 AM",
+          "notes": "Consolidated 2 parcels: 500x GaN 65W Power Adapters, 200x Braided USB-C 240W Cables"
+        },
+        {
+          "status": "In Transit/Customs",
+          "location": "Guangzhou Baiyun Airfreight Terminal",
+          "timestamp": "11:48 AM",
+          "notes": "Cleared export customs and loaded onto cargo freighter flight ET-901"
+        }
+      ],
+      "updatedAt": 1793648900442,
+      "costEstimate": 175.75,
+      "costCurrency": "USD",
+      "title": "Consolidated Master Container (2 Parcels)",
+      "freightPaid": false
     }
   },
   "supplier_payments": {
@@ -6347,6 +9203,94 @@
       "paymentProofUrl": "https://cdn.flyemass.com/proofs/wechat_remit_8891.pdf",
       "safeDeclarationRef": "SAFE-2026-CAN-0928174",
       "disbursedAt": 1793647695514
+    },
+    "pay_1793648839232": {
+      "id": "pay_1793648839232",
+      "userId": "usr_1793648839118",
+      "paymentMethod": "Alipay",
+      "receiverAccount": "Merchant Account",
+      "receiverName": "Shenzhen Foxconn Micro Optics Ltd",
+      "amountRMB": 1500,
+      "equivalentNGN": 321750,
+      "status": "pending",
+      "createdAt": 1793648839233,
+      "reference": "FLYE-PAY-839232",
+      "notes": "Sample batch tooling deposit for 100W GaN chargers"
+    },
+    "pay_1793648888124": {
+      "id": "pay_1793648888124",
+      "userId": "usr_1793648887979",
+      "paymentMethod": "Alipay",
+      "receiverAccount": "Merchant Account",
+      "receiverName": "Shenzhen Foxconn Micro Optics Ltd",
+      "amountRMB": 1500,
+      "equivalentNGN": 321750,
+      "status": "pending",
+      "createdAt": 1793648888124,
+      "reference": "FLYE-PAY-888124",
+      "notes": "Sample batch tooling deposit for 100W GaN chargers"
+    },
+    "pay_1793648899351": {
+      "id": "pay_1793648899351",
+      "userId": "usr_alade_01",
+      "paymentMethod": "alipay",
+      "receiverAccount": "kaida-direct@alipay.cn",
+      "receiverName": "Shenzhen Kaida Technology Ltd",
+      "amountRMB": 5000,
+      "equivalentNGN": 1072500,
+      "status": "disbursed",
+      "createdAt": 1793648899351,
+      "reference": "FLYE-ALIPAY-899351",
+      "notes": "Smart Wearables Batch Q4",
+      "clearingSessionId": "CN-CLR-202611-998124",
+      "paymentProofUrl": "https://cdn.flyemass.com/proofs/cnaps_settle_998124.pdf",
+      "safeDeclarationRef": "SAFE-2026-GD-0091823",
+      "disbursedAt": 1793648899367
+    },
+    "pay_1793648899383": {
+      "id": "pay_1793648899383",
+      "userId": "usr_alade_01",
+      "paymentMethod": "wechat",
+      "receiverAccount": "yiwu-plastics-wx",
+      "receiverName": "Yiwu Plastic Wholesale Group",
+      "amountRMB": 3000,
+      "equivalentNGN": 643500,
+      "status": "refunded",
+      "createdAt": 1793648899383,
+      "reference": "FLYE-WECHAT-899383",
+      "notes": "Sample Moulds Batch",
+      "refundReason": "Factory production line closed for maintenance",
+      "refundedAt": 1793648899396
+    },
+    "pay_1793648899720": {
+      "id": "pay_1793648899720",
+      "userId": "usr_alade_01",
+      "paymentMethod": "wechat",
+      "receiverAccount": "foshan-tiles@wechat",
+      "receiverName": "Foshan Ceramic Tiles Industrial Co.",
+      "amountRMB": 2000,
+      "equivalentNGN": 429000,
+      "status": "disbursed",
+      "createdAt": 1793648899720,
+      "reference": "FLYE-WECHAT-899720",
+      "notes": "Sample Batch Order #2026",
+      "clearingSessionId": "CN-NIP-202611-FOSHAN-8891",
+      "paymentProofUrl": "https://cdn.flyemass.com/proofs/wechat_remit_8891.pdf",
+      "safeDeclarationRef": "SAFE-2026-CAN-0928174",
+      "disbursedAt": 1793648899762
+    },
+    "pay_1793648900319": {
+      "id": "pay_1793648900319",
+      "userId": "usr_1793648900231",
+      "paymentMethod": "Alipay",
+      "receiverAccount": "Merchant Account",
+      "receiverName": "Shenzhen Foxconn Micro Optics Ltd",
+      "amountRMB": 1500,
+      "equivalentNGN": 321750,
+      "status": "pending",
+      "createdAt": 1793648900319,
+      "reference": "FLYE-PAY-900319",
+      "notes": "Sample batch tooling deposit for 100W GaN chargers"
     }
   },
   "withdrawals": {
@@ -7041,6 +9985,121 @@
       "transferReference": "WTH-NIP-695181",
       "createdAt": 1793647695182,
       "failureReason": "Account name mismatch on NIBSS switch"
+    },
+    "wth_1793648839249": {
+      "id": "wth_1793648839249",
+      "userId": "usr_1793648839118",
+      "accountNumber": "1012345678",
+      "amountNGN": 100000,
+      "feeNGN": 500,
+      "status": "pending",
+      "transferReference": "WTH-NIP-839249",
+      "createdAt": 1793648839249
+    },
+    "wth_1793648888145": {
+      "id": "wth_1793648888145",
+      "userId": "usr_1793648887979",
+      "accountNumber": "1012345678",
+      "amountNGN": 100000,
+      "feeNGN": 500,
+      "status": "pending",
+      "transferReference": "WTH-NIP-888145",
+      "createdAt": 1793648888145
+    },
+    "wth_1793648899110": {
+      "id": "wth_1793648899110",
+      "userId": "usr_alade_01",
+      "bankName": "Zenith Bank Plc",
+      "accountNumber": "2089140022",
+      "accountName": "Chief Babatunde Alade",
+      "amountNGN": 50000,
+      "feeNGN": 500,
+      "status": "pending",
+      "transferReference": "WTH-NIP-899110",
+      "createdAt": 1793648899110
+    },
+    "wth_1793648899160": {
+      "id": "wth_1793648899160",
+      "userId": "usr_alade_01",
+      "bankName": "Zenith Bank Plc",
+      "accountNumber": "2089140022",
+      "accountName": "Chief Babatunde Alade",
+      "amountNGN": 20000,
+      "feeNGN": 500,
+      "status": "pending",
+      "transferReference": "WTH-NIP-899160",
+      "createdAt": 1793648899161
+    },
+    "wth_1793648899187": {
+      "id": "wth_1793648899187",
+      "userId": "usr_alade_01",
+      "bankName": "Zenith Bank Plc",
+      "accountNumber": "2089140022",
+      "accountName": "Chief Babatunde Alade",
+      "amountNGN": 20000,
+      "feeNGN": 500,
+      "status": "pending",
+      "transferReference": "WTH-NIP-899187",
+      "createdAt": 1793648899187
+    },
+    "wth_1793648899211": {
+      "id": "wth_1793648899211",
+      "userId": "usr_alade_01",
+      "bankName": "Zenith Bank Plc",
+      "accountNumber": "2089140022",
+      "accountName": "Chief Babatunde Alade",
+      "amountNGN": 20000,
+      "feeNGN": 500,
+      "status": "pending",
+      "transferReference": "WTH-NIP-899211",
+      "createdAt": 1793648899211
+    },
+    "wth_1793648899230": {
+      "id": "wth_1793648899230",
+      "userId": "usr_alade_01",
+      "bankName": "Zenith Bank Plc",
+      "accountNumber": "2089140022",
+      "accountName": "Chief Babatunde Alade",
+      "amountNGN": 20000,
+      "feeNGN": 500,
+      "status": "pending",
+      "transferReference": "WTH-NIP-899230",
+      "createdAt": 1793648899230
+    },
+    "wth_1793648899249": {
+      "id": "wth_1793648899249",
+      "userId": "usr_alade_01",
+      "bankName": "Zenith Bank Plc",
+      "accountNumber": "2089140022",
+      "accountName": "Chief Babatunde Alade",
+      "amountNGN": 20000,
+      "feeNGN": 500,
+      "status": "pending",
+      "transferReference": "WTH-NIP-899249",
+      "createdAt": 1793648899249
+    },
+    "wth_1793648899284": {
+      "id": "wth_1793648899284",
+      "userId": "usr_alade_01",
+      "bankName": "Zenith Bank Plc",
+      "accountNumber": "2089140022",
+      "accountName": "Chief Babatunde Alade",
+      "amountNGN": 100000,
+      "feeNGN": 500,
+      "status": "failed",
+      "transferReference": "WTH-NIP-899284",
+      "createdAt": 1793648899285,
+      "failureReason": "Account name mismatch on NIBSS switch"
+    },
+    "wth_1793648900334": {
+      "id": "wth_1793648900334",
+      "userId": "usr_1793648900231",
+      "accountNumber": "1012345678",
+      "amountNGN": 100000,
+      "feeNGN": 500,
+      "status": "pending",
+      "transferReference": "WTH-NIP-900334",
+      "createdAt": 1793648900334
     }
   },
   "agent_requests": {
@@ -7061,6 +10120,74 @@
       "status": "quote_ready",
       "createdAt": 1793553345841,
       "adminNotes": "Field inspector Chen assigned for Nov 8 inspection"
+    },
+    "rfq_1793648839329": {
+      "id": "rfq_1793648839329",
+      "userId": "usr_1793648839118",
+      "clientName": "Chief Babatunde Alade",
+      "serviceType": "Factory Audit & Pre-Shipment Inspection",
+      "productName": "Commercial 5kW Hybrid Solar Inverters",
+      "category": "Renewable Clean Energy",
+      "targetQuantity": 50,
+      "targetUnitUSD": 450,
+      "supplierCity": "Foshan",
+      "status": "quote_ready",
+      "inspectionRequired": true,
+      "cantonFairBooth": "Pazhou Hall 15.2, Booth B14",
+      "createdAt": 1793648839329,
+      "quoteAmountUSD": 300,
+      "quoteAmountNGN": 445500,
+      "adminNotes": "Assigned Senior Field Inspector Zhang Wei for physical factory test.",
+      "assignedAgent": "Zhang Wei (Bilingual Ground Agent)",
+      "quotedAt": 1793648839338
+    },
+    "rfq_1793648888251": {
+      "id": "rfq_1793648888251",
+      "userId": "usr_1793648887979",
+      "clientName": "Chief Babatunde Alade",
+      "serviceType": "Factory Audit & Pre-Shipment Inspection",
+      "productName": "Commercial 5kW Hybrid Solar Inverters",
+      "category": "Renewable Clean Energy",
+      "targetQuantity": 50,
+      "targetUnitUSD": 450,
+      "supplierCity": "Foshan",
+      "status": "po_issued",
+      "inspectionRequired": true,
+      "cantonFairBooth": "Pazhou Hall 15.2, Booth B14",
+      "createdAt": 1793648888251,
+      "quoteAmountUSD": 300,
+      "quoteAmountNGN": 445500,
+      "adminNotes": "Assigned Senior Field Inspector Zhang Wei for physical factory test.",
+      "assignedAgent": "Zhang Wei (Bilingual Ground Agent)",
+      "quotedAt": 1793648888266,
+      "escrowReference": "AGT-ESCROW-888280",
+      "escrowAmount": 300,
+      "escrowCurrency": "USD",
+      "paidAt": 1793648888281
+    },
+    "rfq_1793648900465": {
+      "id": "rfq_1793648900465",
+      "userId": "usr_1793648900231",
+      "clientName": "Chief Babatunde Alade",
+      "serviceType": "Factory Audit & Pre-Shipment Inspection",
+      "productName": "Commercial 5kW Hybrid Solar Inverters",
+      "category": "Renewable Clean Energy",
+      "targetQuantity": 50,
+      "targetUnitUSD": 450,
+      "supplierCity": "Foshan",
+      "status": "po_issued",
+      "inspectionRequired": true,
+      "cantonFairBooth": "Pazhou Hall 15.2, Booth B14",
+      "createdAt": 1793648900466,
+      "quoteAmountUSD": 300,
+      "quoteAmountNGN": 445500,
+      "adminNotes": "Assigned Senior Field Inspector Zhang Wei for physical factory test.",
+      "assignedAgent": "Zhang Wei (Bilingual Ground Agent)",
+      "quotedAt": 1793648900483,
+      "escrowReference": "AGT-ESCROW-900501",
+      "escrowAmount": 300,
+      "escrowCurrency": "USD",
+      "paidAt": 1793648900501
     }
   },
   "supplier_subscriptions": {
@@ -7070,6 +10197,24 @@
       "supplierId": "sup-1",
       "purchasedAt": 1793207745841,
       "activeUntil": 1795799745841,
+      "feeUSD": 50,
+      "status": "active"
+    },
+    "sub_sup-foxconn_usr_1793648887979": {
+      "id": "sub_sup-foxconn_usr_1793648887979",
+      "userId": "usr_1793648887979",
+      "supplierId": "sup-foxconn",
+      "purchasedAt": 1793648888294,
+      "activeUntil": 1796240888294,
+      "feeUSD": 50,
+      "status": "active"
+    },
+    "sub_sup-foxconn_usr_1793648900231": {
+      "id": "sub_sup-foxconn_usr_1793648900231",
+      "userId": "usr_1793648900231",
+      "supplierId": "sup-foxconn",
+      "purchasedAt": 1793648900522,
+      "activeUntil": 1796240900522,
       "feeUSD": 50,
       "status": "active"
     }
@@ -7468,6 +10613,193 @@
       "createdAt": 1793647695447,
       "orderNumber": "ORD-HK-94125",
       "trackingNumber": "FM-HK-LOS-63920"
+    },
+    "ord_tech_1793648888331": {
+      "id": "ord_tech_1793648888331",
+      "userId": "usr_1793648887979",
+      "items": [
+        {
+          "product": {
+            "id": "prod-iphone-16-pro",
+            "title": "Apple iPhone 16 Pro Max (512GB)",
+            "subtitle": "Desert Titanium • Hong Kong / China Dual Physical SIM",
+            "category": "iPhone",
+            "priceUSD": 1420,
+            "priceNGN": 2108700,
+            "priceCNY": 10280,
+            "image": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80",
+            "rating": 4.9,
+            "reviewsCount": 312,
+            "specs": [
+              "A18 Pro Chip",
+              "Grade 5 Titanium",
+              "48MP Fusion Camera",
+              "Dual Nano-SIM (HK Spec)"
+            ],
+            "inStock": true,
+            "stockCount": 7,
+            "tag": "Best Seller for Lagos Wholesale",
+            "colors": [
+              {
+                "name": "Desert Titanium",
+                "hex": "#C2AD97"
+              }
+            ],
+            "storageOptions": [
+              "256GB",
+              "512GB",
+              "1TB"
+            ]
+          },
+          "quantity": 1
+        }
+      ],
+      "totalAmount": 1420,
+      "currency": "USD",
+      "deliveryAddress": "Plot 12, Victoria Island Business District, Lagos",
+      "paymentWalletUsed": "USD",
+      "fulfillmentStatus": "cancelled",
+      "createdAt": 1793648888331,
+      "orderNumber": "ORD-HK-52190",
+      "trackingNumber": "FM-HK-LOS-53545",
+      "cancellationReason": "Customer requested order consolidation adjustment",
+      "cancelledAt": 1793648888344
+    },
+    "ord_tech_1793648899315": {
+      "id": "ord_tech_1793648899315",
+      "userId": "usr_alade_01",
+      "items": [
+        {
+          "productId": "prod-iphone-16-pro",
+          "quantity": 1
+        }
+      ],
+      "totalAmount": 1420,
+      "currency": "USD",
+      "deliveryAddress": "Lagos Island, Lagos, Nigeria",
+      "paymentWalletUsed": "USD",
+      "fulfillmentStatus": "processing",
+      "createdAt": 1793648899316,
+      "orderNumber": "ORD-HK-14866",
+      "trackingNumber": "FM-HK-LOS-40659"
+    },
+    "ord_tech_1793648899663": {
+      "id": "ord_tech_1793648899663",
+      "userId": "usr_alade_01",
+      "items": [
+        {
+          "productId": "prod-iphone-16-pro",
+          "quantity": 1
+        }
+      ],
+      "totalAmount": 1420,
+      "currency": "USD",
+      "deliveryAddress": "Victoria Island, Lagos",
+      "paymentWalletUsed": "USD",
+      "fulfillmentStatus": "processing",
+      "createdAt": 1793648899663,
+      "orderNumber": "ORD-HK-64393",
+      "trackingNumber": "FM-HK-LOS-34398"
+    },
+    "ord_test_1793648900071": {
+      "id": "ord_test_1793648900071",
+      "userId": "usr_1793648899937",
+      "items": [
+        {
+          "product": {
+            "id": "prod-iphone-16-pro",
+            "title": "Apple iPhone 16 Pro Max (512GB)",
+            "subtitle": "Desert Titanium • Hong Kong / China Dual Physical SIM",
+            "category": "iPhone",
+            "priceUSD": 1420,
+            "priceNGN": 2108700,
+            "priceCNY": 10280,
+            "image": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80",
+            "rating": 4.9,
+            "reviewsCount": 312,
+            "specs": [
+              "A18 Pro Chip",
+              "Grade 5 Titanium",
+              "48MP Fusion Camera",
+              "Dual Nano-SIM (HK Spec)"
+            ],
+            "inStock": true,
+            "stockCount": 3,
+            "tag": "Best Seller for Lagos Wholesale",
+            "colors": [
+              {
+                "name": "Desert Titanium",
+                "hex": "#C2AD97"
+              }
+            ],
+            "storageOptions": [
+              "256GB",
+              "512GB",
+              "1TB"
+            ]
+          },
+          "quantity": 2
+        }
+      ],
+      "totalAmount": 180,
+      "currency": "USD",
+      "deliveryAddress": "Victoria Island, Lagos",
+      "paymentWalletUsed": "USD",
+      "fulfillmentStatus": "cancelled",
+      "createdAt": 1793648900071,
+      "cancellationReason": "Customer initiated flight rescheduling before dispatch",
+      "cancelledAt": 1793648900093
+    },
+    "ord_tech_1793648900581": {
+      "id": "ord_tech_1793648900581",
+      "userId": "usr_1793648900231",
+      "items": [
+        {
+          "product": {
+            "id": "prod-iphone-16-pro",
+            "title": "Apple iPhone 16 Pro Max (512GB)",
+            "subtitle": "Desert Titanium • Hong Kong / China Dual Physical SIM",
+            "category": "iPhone",
+            "priceUSD": 1420,
+            "priceNGN": 2108700,
+            "priceCNY": 10280,
+            "image": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80",
+            "rating": 4.9,
+            "reviewsCount": 312,
+            "specs": [
+              "A18 Pro Chip",
+              "Grade 5 Titanium",
+              "48MP Fusion Camera",
+              "Dual Nano-SIM (HK Spec)"
+            ],
+            "inStock": true,
+            "stockCount": 5,
+            "tag": "Best Seller for Lagos Wholesale",
+            "colors": [
+              {
+                "name": "Desert Titanium",
+                "hex": "#C2AD97"
+              }
+            ],
+            "storageOptions": [
+              "256GB",
+              "512GB",
+              "1TB"
+            ]
+          },
+          "quantity": 1
+        }
+      ],
+      "totalAmount": 1420,
+      "currency": "USD",
+      "deliveryAddress": "Plot 12, Victoria Island Business District, Lagos",
+      "paymentWalletUsed": "USD",
+      "fulfillmentStatus": "cancelled",
+      "createdAt": 1793648900582,
+      "orderNumber": "ORD-HK-83804",
+      "trackingNumber": "FM-HK-LOS-83358",
+      "cancellationReason": "Customer requested order consolidation adjustment",
+      "cancelledAt": 1793648900603
     }
   },
   "hotel_bookings": {
@@ -7539,6 +10871,83 @@
       "status": "confirmed",
       "taxiCardZh": "师傅您好，请带我到：广州广交会威斯汀酒店。谢谢！",
       "createdAt": 1793647695486
+    },
+    "bk_1793648888355": {
+      "id": "bk_1793648888355",
+      "userId": "usr_1793648887979",
+      "hotelId": "htl_canton_fair_garden",
+      "hotelName": "Canton Fair Garden Hotel",
+      "hotel": {
+        "id": "htl_canton_fair_garden",
+        "name": "Canton Fair Garden Hotel",
+        "chineseName": "广交会花园大酒店",
+        "city": "Guangzhou",
+        "district": "Haizhu District",
+        "pricePerNightUSD": 120,
+        "taxiCardZh": "请带我去：广州市海珠区阅江中路380号广交会花园大酒店。谢谢！"
+      },
+      "checkIn": "Nov 12, 2026",
+      "checkOut": "Nov 14, 2026",
+      "nights": 2,
+      "totalUSD": 240,
+      "currency": "USD",
+      "amountDebited": 240,
+      "guestName": "Chief Babatunde Alade",
+      "confirmationCode": "WST-GUA-150043",
+      "status": "cancelled",
+      "taxiCardZh": "师傅您好，请带我到：广交会花园大酒店。谢谢！",
+      "createdAt": 1793648888356,
+      "cancellationReason": "Flight schedule adjusted"
+    },
+    "bk_1793648899738": {
+      "id": "bk_1793648899738",
+      "userId": "usr_alade_01",
+      "hotelId": "htl_westin_can",
+      "hotelName": "The Westin Pazhou Guangzhou",
+      "hotel": {
+        "id": "htl_westin_can",
+        "name": "The Westin Pazhou Guangzhou",
+        "chineseName": "广州广交会威斯汀酒店",
+        "city": "Guangzhou"
+      },
+      "checkIn": "Nov 12, 2026",
+      "checkOut": "Nov 15, 2026",
+      "nights": 3,
+      "totalUSD": 560,
+      "currency": "USD",
+      "amountDebited": 560,
+      "guestName": "Chief Babatunde Alade",
+      "confirmationCode": "WST-GUA-160749",
+      "status": "confirmed",
+      "taxiCardZh": "师傅您好，请带我到：广州广交会威斯汀酒店。谢谢！",
+      "createdAt": 1793648899739
+    },
+    "bk_1793648900620": {
+      "id": "bk_1793648900620",
+      "userId": "usr_1793648900231",
+      "hotelId": "htl_canton_fair_garden",
+      "hotelName": "Canton Fair Garden Hotel",
+      "hotel": {
+        "id": "htl_canton_fair_garden",
+        "name": "Canton Fair Garden Hotel",
+        "chineseName": "广交会花园大酒店",
+        "city": "Guangzhou",
+        "district": "Haizhu District",
+        "pricePerNightUSD": 120,
+        "taxiCardZh": "请带我去：广州市海珠区阅江中路380号广交会花园大酒店。谢谢！"
+      },
+      "checkIn": "Nov 12, 2026",
+      "checkOut": "Nov 14, 2026",
+      "nights": 2,
+      "totalUSD": 240,
+      "currency": "USD",
+      "amountDebited": 240,
+      "guestName": "Chief Babatunde Alade",
+      "confirmationCode": "WST-GUA-222527",
+      "status": "cancelled",
+      "taxiCardZh": "师傅您好，请带我到：广交会花园大酒店。谢谢！",
+      "createdAt": 1793648900620,
+      "cancellationReason": "Flight schedule adjusted"
     }
   },
   "products": {
@@ -7560,7 +10969,7 @@
         "Dual Nano-SIM (HK Spec)"
       ],
       "inStock": true,
-      "stockCount": 7,
+      "stockCount": 5,
       "tag": "Best Seller for Lagos Wholesale",
       "colors": [
         {
@@ -7615,7 +11024,7 @@
       "category": "Supplier Escrow",
       "priority": "High",
       "ticketNumber": "TKT-8901",
-      "updatedAt": 1793647695526,
+      "updatedAt": 1793648899774,
       "messages": [
         {
           "senderId": "usr_alade_01",
@@ -7672,8 +11081,82 @@
           "text": "Remittance slip uploaded. Clearing Session: CN-NIP-202611-FOSHAN-8891.",
           "isAdmin": true,
           "timestamp": "11:28 AM"
+        },
+        {
+          "senderId": "usr_alade_01",
+          "senderName": "Chief Babatunde Alade",
+          "text": "Requesting confirmation of the Foshan Ceramic tiles payment proof.",
+          "isAdmin": false,
+          "timestamp": "11:48 AM"
+        },
+        {
+          "senderId": "adm-001",
+          "senderName": "FlyeMass China Trade Desk",
+          "text": "Remittance slip uploaded. Clearing Session: CN-NIP-202611-FOSHAN-8891.",
+          "isAdmin": true,
+          "timestamp": "11:48 AM"
         }
       ]
+    },
+    "tkt_1793648888381": {
+      "id": "tkt_1793648888381",
+      "ticketNumber": "FM-5725",
+      "userId": "usr_1793648887979",
+      "userName": "Chief Babatunde Alade",
+      "subject": "Requesting fast-track customs clearance for container FM-CONSOL-8819",
+      "category": "Air Freight Waybill",
+      "status": "resolved",
+      "priority": "High",
+      "messages": [
+        {
+          "senderId": "usr_1793648887979",
+          "senderName": "Chief Babatunde Alade",
+          "text": "Cargo is arriving at Lagos MM2 tomorrow morning. Please assign on-ground clearing agent.",
+          "isAdmin": false,
+          "timestamp": "11:48 AM"
+        },
+        {
+          "senderId": "adm-004",
+          "senderName": "FlyeMass Concierge Supervisor",
+          "text": "Ticket marked as RESOLVED: Cleared through customs; clearing agent assigned for airport pickup.",
+          "isAdmin": true,
+          "timestamp": "11:48 AM"
+        }
+      ],
+      "createdAt": 1793648888382,
+      "updatedAt": 1793648888382,
+      "resolvedAt": 1793648888394,
+      "resolutionNotes": "Cleared through customs; clearing agent assigned for airport pickup."
+    },
+    "tkt_1793648900652": {
+      "id": "tkt_1793648900652",
+      "ticketNumber": "FM-9749",
+      "userId": "usr_1793648900231",
+      "userName": "Chief Babatunde Alade",
+      "subject": "Requesting fast-track customs clearance for container FM-CONSOL-8819",
+      "category": "Air Freight Waybill",
+      "status": "resolved",
+      "priority": "High",
+      "messages": [
+        {
+          "senderId": "usr_1793648900231",
+          "senderName": "Chief Babatunde Alade",
+          "text": "Cargo is arriving at Lagos MM2 tomorrow morning. Please assign on-ground clearing agent.",
+          "isAdmin": false,
+          "timestamp": "11:48 AM"
+        },
+        {
+          "senderId": "adm-004",
+          "senderName": "FlyeMass Concierge Supervisor",
+          "text": "Ticket marked as RESOLVED: Cleared through customs; clearing agent assigned for airport pickup.",
+          "isAdmin": true,
+          "timestamp": "11:48 AM"
+        }
+      ],
+      "createdAt": 1793648900652,
+      "updatedAt": 1793648900652,
+      "resolvedAt": 1793648900672,
+      "resolutionNotes": "Cleared through customs; clearing agent assigned for airport pickup."
     }
   },
   "banners": [
@@ -7725,7 +11208,13 @@
     "SETTLE-E2E-1793644982780": true,
     "SETTLE-1793644993120": true,
     "SETTLE-1793647695147": true,
-    "SETTLE-E2E-1793647695456": true
+    "SETTLE-E2E-1793647695456": true,
+    "PROV-SESS_1793648684617": true,
+    "PROV-SESS_1793648839101": true,
+    "PROV-SESS_1793648887963": true,
+    "SETTLE-1793648899263": true,
+    "SETTLE-E2E-1793648899681": true,
+    "PROV-SESS_1793648900211": true
   },
   "audit_logs": [
     {
@@ -10407,6 +13896,1280 @@
       "ipAddress": "127.0.0.1",
       "previousHash": "72326420aad4eeab141551c4624ea53fa93f04310663b865ce6f6d55f6656708",
       "hash": "61ee434174d937e266716446df6069713fc1e62127dffc8f81e6bfee998268d1"
+    },
+    {
+      "id": "log_1793648640739_2305",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "USER_REGISTERED",
+      "targetCollection": "users",
+      "targetId": "usr_1793648640739",
+      "details": "Registered new client account (alade_corp_1793648640721@flyemass.io)",
+      "timestamp": 1793648640739,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "61ee434174d937e266716446df6069713fc1e62127dffc8f81e6bfee998268d1",
+      "hash": "e2c2e1b0d12f90bcf52a00a4f557a8c439c8610655b53ee0650cdbbe49e2b89e"
+    },
+    {
+      "id": "log_1793648684634_980",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "USER_REGISTERED",
+      "targetCollection": "users",
+      "targetId": "usr_1793648684634",
+      "details": "Registered new client account (alade_corp_1793648684617@flyemass.io)",
+      "timestamp": 1793648684634,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "e2c2e1b0d12f90bcf52a00a4f557a8c439c8610655b53ee0650cdbbe49e2b89e",
+      "hash": "8e8236177abd14b1fa6cdd7f1607cbe203c3c04f2945269cc96f955757794c48"
+    },
+    {
+      "id": "log_1793648684657_342",
+      "adminId": "sys",
+      "adminName": "Providus Webhook Engine",
+      "action": "PAYMENT_CREDITED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648684657",
+      "details": "Credited ₦1500000 via Providus webhook",
+      "timestamp": 1793648684657,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "8e8236177abd14b1fa6cdd7f1607cbe203c3c04f2945269cc96f955757794c48",
+      "hash": "37ca321f21ed73503d95655e54b1b527b2d378c68df511c4581440585912760f"
+    },
+    {
+      "id": "log_1793648684705_7868",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WALLET_FUNDED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648684678_79",
+      "details": "Credited NGN 1500000 via undefined",
+      "timestamp": 1793648684705,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "37ca321f21ed73503d95655e54b1b527b2d378c68df511c4581440585912760f",
+      "hash": "849e5b352bdc738fa48db0290f2cf95f0f0dd0982bed850cad00bec876ec2763"
+    },
+    {
+      "id": "log_1793648839118_9687",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "USER_REGISTERED",
+      "targetCollection": "users",
+      "targetId": "usr_1793648839118",
+      "details": "Registered new client account (alade_corp_1793648839101@flyemass.io)",
+      "timestamp": 1793648839118,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "849e5b352bdc738fa48db0290f2cf95f0f0dd0982bed850cad00bec876ec2763",
+      "hash": "32be5885f2fca4649501849ba88f8b2ede198bf42fa0138afabfd665c19b2f1e"
+    },
+    {
+      "id": "log_1793648839151_5639",
+      "adminId": "sys",
+      "adminName": "Providus Webhook Engine",
+      "action": "PAYMENT_CREDITED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648839151",
+      "details": "Credited ₦1500000 via Providus webhook",
+      "timestamp": 1793648839151,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "32be5885f2fca4649501849ba88f8b2ede198bf42fa0138afabfd665c19b2f1e",
+      "hash": "f543563a8a246a8ce21bf13dc8a5fa36c39333f6b3077d8dd58811cb5e911c89"
+    },
+    {
+      "id": "log_1793648839195_6633",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WALLET_FUNDED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648839171_298",
+      "details": "Credited NGN 1500000 via undefined",
+      "timestamp": 1793648839195,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "f543563a8a246a8ce21bf13dc8a5fa36c39333f6b3077d8dd58811cb5e911c89",
+      "hash": "4e3ac772c1ebbfc4fb757f7138c530d75653025cc420b428a1138471c9cea061"
+    },
+    {
+      "id": "log_1793648839219_9333",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_SWAP_EXECUTED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648839218",
+      "details": "Swapped NGN 500000 to CNY 2313.52",
+      "timestamp": 1793648839219,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "4e3ac772c1ebbfc4fb757f7138c530d75653025cc420b428a1138471c9cea061",
+      "hash": "7f8e857a18325930b86ded33d2861157917f976d8ca75778f5eadf2dada89d8a"
+    },
+    {
+      "id": "log_1793648839233_7975",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_PAYMENT_DISBURSED",
+      "targetCollection": "supplier_payments",
+      "targetId": "pay_1793648839232",
+      "details": "Disbursed ¥1500 to Shenzhen Foxconn Micro Optics Ltd",
+      "timestamp": 1793648839233,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "7f8e857a18325930b86ded33d2861157917f976d8ca75778f5eadf2dada89d8a",
+      "hash": "a9eade4df8833f625d92c79a7fc29513804709587c6deb27406f9bb6a88ef92b"
+    },
+    {
+      "id": "log_1793648839249_1047",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WITHDRAWAL_INITIATED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1793648839249",
+      "details": "Initiated withdrawal of ₦100000 to undefined",
+      "timestamp": 1793648839249,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "a9eade4df8833f625d92c79a7fc29513804709587c6deb27406f9bb6a88ef92b",
+      "hash": "f9ee2b56f18cc20b7f9e50b05d22c144f4c5987c9ef80b128c9d6fb513f8ab62"
+    },
+    {
+      "id": "log_1793648839266_2067",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHIPMENT_REGISTERED",
+      "targetCollection": "shipments",
+      "targetId": "shp_1793648839260",
+      "details": "Registered parcel SF-EXPRESS-1793648839101-1",
+      "timestamp": 1793648839266,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "f9ee2b56f18cc20b7f9e50b05d22c144f4c5987c9ef80b128c9d6fb513f8ab62",
+      "hash": "5616b5fcf4b20aae1c73093341d0d5b965147e8a0a7ecc204c3b0fbb23331369"
+    },
+    {
+      "id": "log_1793648839276_6765",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHIPMENT_REGISTERED",
+      "targetCollection": "shipments",
+      "targetId": "shp_1793648839276",
+      "details": "Registered parcel ZTO-1793648839101-2",
+      "timestamp": 1793648839276,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "5616b5fcf4b20aae1c73093341d0d5b965147e8a0a7ecc204c3b0fbb23331369",
+      "hash": "6528ccfcc5d189e437a4e63333fae9222319ffe5f60d71334ab02aecff4b66c4"
+    },
+    {
+      "id": "log_1793648839288_8151",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "MANUAL_BALANCE_ADJUST",
+      "targetCollection": "wallets_ledger",
+      "targetId": "usr_1793648839118",
+      "details": "CREDIT USD 500 (Freight settlement float)",
+      "timestamp": 1793648839288,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "6528ccfcc5d189e437a4e63333fae9222319ffe5f60d71334ab02aecff4b66c4",
+      "hash": "35f90ee7a109b5ccd588423dd018cd996b901c5101d9a43d1d9398f45c95865d"
+    },
+    {
+      "id": "log_1793648839301_5032",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FREIGHT_PAID",
+      "targetCollection": "shipments",
+      "targetId": "shp_1793648839260",
+      "details": "Cleared freight of USD 285 for SF-EXPRESS-1793648839101-1",
+      "timestamp": 1793648839301,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "35f90ee7a109b5ccd588423dd018cd996b901c5101d9a43d1d9398f45c95865d",
+      "hash": "7b19f3082df23b7e63b866eea9129ad5e35e71bcdf3f357f390425d418888e80"
+    },
+    {
+      "id": "log_1793648839311_2765",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHIPMENT_CONSOLIDATED",
+      "targetCollection": "shipments",
+      "targetId": "shp_consol_1793648839311",
+      "details": "Consolidated 2 packages into FM-CONSOL-50604",
+      "timestamp": 1793648839311,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "7b19f3082df23b7e63b866eea9129ad5e35e71bcdf3f357f390425d418888e80",
+      "hash": "3b81b02c47b95120e1253ff12b0df59abd7ce5fb70f1cde85925f75f0029e743"
+    },
+    {
+      "id": "log_1793648839321_949",
+      "adminId": "adm-002",
+      "adminName": "adm-002",
+      "action": "WAYPOINT_ADVANCED",
+      "targetCollection": "shipments",
+      "targetId": "shp_consol_1793648839311",
+      "details": "Status updated to In Transit/Customs (FM-CONSOL-50604)",
+      "timestamp": 1793648839321,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "3b81b02c47b95120e1253ff12b0df59abd7ce5fb70f1cde85925f75f0029e743",
+      "hash": "90d3e1293ef7ef083c4e6e27f6e336a3f226dbb12262ecb3914e9d7d2c2ce042"
+    },
+    {
+      "id": "log_1793648839329_4049",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "AGENT_REQUEST_CREATED",
+      "targetCollection": "agent_requests",
+      "targetId": "rfq_1793648839329",
+      "details": "Submitted RFQ: Commercial 5kW Hybrid Solar Inverters (Foshan)",
+      "timestamp": 1793648839329,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "90d3e1293ef7ef083c4e6e27f6e336a3f226dbb12262ecb3914e9d7d2c2ce042",
+      "hash": "dc55092ce35f5aed8bce51b0762fda95a29e4ed44c3cfb68bc16c27c46ec0e63"
+    },
+    {
+      "id": "log_1793648839338_8366",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "AGENT_QUOTE_ISSUED",
+      "targetCollection": "agent_requests",
+      "targetId": "rfq_1793648839329",
+      "details": "Quoted $300 USD for Commercial 5kW Hybrid Solar Inverters",
+      "timestamp": 1793648839338,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "dc55092ce35f5aed8bce51b0762fda95a29e4ed44c3cfb68bc16c27c46ec0e63",
+      "hash": "de6988e1cac9ea010bccaec53654d29fc08c0c4c452bdef71803aa269e50a5b1"
+    },
+    {
+      "id": "log_1793648887979_1992",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "USER_REGISTERED",
+      "targetCollection": "users",
+      "targetId": "usr_1793648887979",
+      "details": "Registered new client account (alade_corp_1793648887963@flyemass.io)",
+      "timestamp": 1793648887979,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "de6988e1cac9ea010bccaec53654d29fc08c0c4c452bdef71803aa269e50a5b1",
+      "hash": "abeefe0b4c17c71235b00752a5ae13837e9f35c245de3bca350d1a179b517b18"
+    },
+    {
+      "id": "log_1793648888003_6430",
+      "adminId": "sys",
+      "adminName": "Providus Webhook Engine",
+      "action": "PAYMENT_CREDITED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648888003",
+      "details": "Credited ₦1500000 via Providus webhook",
+      "timestamp": 1793648888003,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "abeefe0b4c17c71235b00752a5ae13837e9f35c245de3bca350d1a179b517b18",
+      "hash": "c016a8ddb7888c0de202d5f7e55dd961e8f2853dac04923c577a5e7b3684e927"
+    },
+    {
+      "id": "log_1793648888023_876",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WALLET_FUNDED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648888023_402",
+      "details": "Credited NGN 1500000 via undefined",
+      "timestamp": 1793648888023,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "c016a8ddb7888c0de202d5f7e55dd961e8f2853dac04923c577a5e7b3684e927",
+      "hash": "79424815320875e25c712c550fa98acacd983b8b9265dbb3d6dec0529b4d80cc"
+    },
+    {
+      "id": "log_1793648888089_7333",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_SWAP_EXECUTED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648888089",
+      "details": "Swapped NGN 500000 to CNY 2313.52",
+      "timestamp": 1793648888089,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "79424815320875e25c712c550fa98acacd983b8b9265dbb3d6dec0529b4d80cc",
+      "hash": "d497dc8bfcb02d0583776ae1922be0c9fc0197bf6c3158df7bf0b6875643a0ea"
+    },
+    {
+      "id": "log_1793648888124_3489",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_PAYMENT_DISBURSED",
+      "targetCollection": "supplier_payments",
+      "targetId": "pay_1793648888124",
+      "details": "Disbursed ¥1500 to Shenzhen Foxconn Micro Optics Ltd",
+      "timestamp": 1793648888124,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "d497dc8bfcb02d0583776ae1922be0c9fc0197bf6c3158df7bf0b6875643a0ea",
+      "hash": "19e87fd6fe74511d01a2c13acde07ad28e8c9e19f235469c0a686fd5920f8891"
+    },
+    {
+      "id": "log_1793648888145_7549",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WITHDRAWAL_INITIATED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1793648888145",
+      "details": "Initiated withdrawal of ₦100000 to undefined",
+      "timestamp": 1793648888145,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "19e87fd6fe74511d01a2c13acde07ad28e8c9e19f235469c0a686fd5920f8891",
+      "hash": "4577645c6058ef575a970b4b7fdb61c1ac57b7e076a3733d0088337da90cf2f7"
+    },
+    {
+      "id": "log_1793648888163_750",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHIPMENT_REGISTERED",
+      "targetCollection": "shipments",
+      "targetId": "shp_1793648888163",
+      "details": "Registered parcel SF-EXPRESS-1793648887963-1",
+      "timestamp": 1793648888163,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "4577645c6058ef575a970b4b7fdb61c1ac57b7e076a3733d0088337da90cf2f7",
+      "hash": "0b3c0ba390dbd41da188d528c5c6ef1cd9afd4356e48f7c41caf8cb462e3dd40"
+    },
+    {
+      "id": "log_1793648888180_5103",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHIPMENT_REGISTERED",
+      "targetCollection": "shipments",
+      "targetId": "shp_1793648888180",
+      "details": "Registered parcel ZTO-1793648887963-2",
+      "timestamp": 1793648888180,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "0b3c0ba390dbd41da188d528c5c6ef1cd9afd4356e48f7c41caf8cb462e3dd40",
+      "hash": "d1c449a134105f09fdb61d5a556ba2492ced8318c237709bce82bc2e37a1a563"
+    },
+    {
+      "id": "log_1793648888196_4624",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "MANUAL_BALANCE_ADJUST",
+      "targetCollection": "wallets_ledger",
+      "targetId": "usr_1793648887979",
+      "details": "CREDIT USD 1,500 (Freight settlement and agent float)",
+      "timestamp": 1793648888196,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "d1c449a134105f09fdb61d5a556ba2492ced8318c237709bce82bc2e37a1a563",
+      "hash": "e34b2b8de4bc5f9869209d06ace6f265d200bef8dfb7f2cea1af4bb0e7ea46cf"
+    },
+    {
+      "id": "log_1793648888208_8540",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FREIGHT_PAID",
+      "targetCollection": "shipments",
+      "targetId": "shp_1793648888163",
+      "details": "Cleared freight of USD 285 for SF-EXPRESS-1793648887963-1",
+      "timestamp": 1793648888208,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "e34b2b8de4bc5f9869209d06ace6f265d200bef8dfb7f2cea1af4bb0e7ea46cf",
+      "hash": "4146440486b44e14340b3508caa19676a366bfba94babfae4d3d56da0c7ad1d5"
+    },
+    {
+      "id": "log_1793648888222_5012",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHIPMENT_CONSOLIDATED",
+      "targetCollection": "shipments",
+      "targetId": "shp_consol_1793648888221",
+      "details": "Consolidated 2 packages into FM-CONSOL-37202",
+      "timestamp": 1793648888222,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "4146440486b44e14340b3508caa19676a366bfba94babfae4d3d56da0c7ad1d5",
+      "hash": "357fd4a0225035fc4aefcd01a127fdcd6e7852e6210e0b07ebce77360389f18e"
+    },
+    {
+      "id": "log_1793648888238_8197",
+      "adminId": "adm-002",
+      "adminName": "adm-002",
+      "action": "WAYPOINT_ADVANCED",
+      "targetCollection": "shipments",
+      "targetId": "shp_consol_1793648888221",
+      "details": "Status updated to In Transit/Customs (FM-CONSOL-37202)",
+      "timestamp": 1793648888238,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "357fd4a0225035fc4aefcd01a127fdcd6e7852e6210e0b07ebce77360389f18e",
+      "hash": "1ba2947f1813776f5c21822b1ec47e980d2da7fdd0dd14e70fbad93841ce9684"
+    },
+    {
+      "id": "log_1793648888251_762",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "AGENT_REQUEST_CREATED",
+      "targetCollection": "agent_requests",
+      "targetId": "rfq_1793648888251",
+      "details": "Submitted RFQ: Commercial 5kW Hybrid Solar Inverters (Foshan)",
+      "timestamp": 1793648888251,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "1ba2947f1813776f5c21822b1ec47e980d2da7fdd0dd14e70fbad93841ce9684",
+      "hash": "84893942babd4682f5ef1ee469dbe4e0a4fb465e608167d735da9fd8d49fdfdb"
+    },
+    {
+      "id": "log_1793648888266_5228",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "AGENT_QUOTE_ISSUED",
+      "targetCollection": "agent_requests",
+      "targetId": "rfq_1793648888251",
+      "details": "Quoted $300 USD for Commercial 5kW Hybrid Solar Inverters",
+      "timestamp": 1793648888266,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "84893942babd4682f5ef1ee469dbe4e0a4fb465e608167d735da9fd8d49fdfdb",
+      "hash": "708bdf551af3e77453966e40175c5b32f2dd97d06a92a047d575f04ac2694b6c"
+    },
+    {
+      "id": "log_1793648888281_5768",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "AGENT_QUOTE_ACCEPTED",
+      "targetCollection": "agent_requests",
+      "targetId": "rfq_1793648888251",
+      "details": "Accepted quote and paid USD 300 to escrow",
+      "timestamp": 1793648888281,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "708bdf551af3e77453966e40175c5b32f2dd97d06a92a047d575f04ac2694b6c",
+      "hash": "1adb78eb1851a5b556b73a36e1b1a0cc8351f447173b97751f077dc4c6b5574e"
+    },
+    {
+      "id": "log_1793648888294_7012",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_SUB_PURCHASED",
+      "targetCollection": "supplier_subscriptions",
+      "targetId": "sub_sup-foxconn_usr_1793648887979",
+      "details": "Purchased 30-day contact pass for sup-foxconn",
+      "timestamp": 1793648888294,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "1adb78eb1851a5b556b73a36e1b1a0cc8351f447173b97751f077dc4c6b5574e",
+      "hash": "483aa4d867c4eb690be4b1e2888016517020f9137b2505e18882c6bc0b6cc671"
+    },
+    {
+      "id": "log_1793648888320_3822",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "MANUAL_BALANCE_ADJUST",
+      "targetCollection": "wallets_ledger",
+      "targetId": "usr_1793648887979",
+      "details": "CREDIT USD 3,000 (Tech shop inventory order float)",
+      "timestamp": 1793648888320,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "483aa4d867c4eb690be4b1e2888016517020f9137b2505e18882c6bc0b6cc671",
+      "hash": "fbc0cd55632570626cad67d64f2c5ce7c14ab31510ddd6a5f2c6d4fc9837f76a"
+    },
+    {
+      "id": "log_1793648888332_2329",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHOP_ORDER_PLACED",
+      "targetCollection": "shop_orders",
+      "targetId": "ord_tech_1793648888331",
+      "details": "Placed order #ORD-HK-52190 (USD 1420)",
+      "timestamp": 1793648888332,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "fbc0cd55632570626cad67d64f2c5ce7c14ab31510ddd6a5f2c6d4fc9837f76a",
+      "hash": "0332594055904a365ad27a8c7f299919aaf9930a1899e4c308cf830cb8209ed9"
+    },
+    {
+      "id": "log_1793648888344_4889",
+      "adminId": "sys",
+      "adminName": "adm-001",
+      "action": "SHOP_ORDER_CANCELLED",
+      "targetCollection": "shop_orders",
+      "targetId": "ord_tech_1793648888331",
+      "details": "Order #ORD-HK-52190 cancelled & refunded (USD 1420)",
+      "timestamp": 1793648888344,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "0332594055904a365ad27a8c7f299919aaf9930a1899e4c308cf830cb8209ed9",
+      "hash": "4847dd541a58b256952e853860b338ff553beeb1ffa4d39a2125a792ca6c96c3"
+    },
+    {
+      "id": "log_1793648888356_6742",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "HOTEL_BOOKED",
+      "targetCollection": "hotel_bookings",
+      "targetId": "bk_1793648888355",
+      "details": "Booked Canton Fair Garden Hotel for Chief Babatunde Alade",
+      "timestamp": 1793648888356,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "4847dd541a58b256952e853860b338ff553beeb1ffa4d39a2125a792ca6c96c3",
+      "hash": "3b6b4921ccc30d55fa12ef27fc1d1d209da3f666202cd3d605bde0d1d28faa29"
+    },
+    {
+      "id": "log_1793648888368_5550",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "HOTEL_CANCELLED",
+      "targetCollection": "hotel_bookings",
+      "targetId": "bk_1793648888355",
+      "details": "Cancelled booking WST-GUA-150043",
+      "timestamp": 1793648888368,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "3b6b4921ccc30d55fa12ef27fc1d1d209da3f666202cd3d605bde0d1d28faa29",
+      "hash": "f6f7c3ca8dd2372acc2b5ee192c4e709a0c2d38cd4358661c378ac8bf5863012"
+    },
+    {
+      "id": "log_1793648888382_7007",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "TICKET_CREATED",
+      "targetCollection": "support_tickets",
+      "targetId": "tkt_1793648888381",
+      "details": "Opened ticket #FM-5725: Requesting fast-track customs clearance for container FM-CONSOL-8819",
+      "timestamp": 1793648888382,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "f6f7c3ca8dd2372acc2b5ee192c4e709a0c2d38cd4358661c378ac8bf5863012",
+      "hash": "ae4a606db6d490b86e559e1666998e99ce48d92ddc40feeb5214dd0ef34b5678"
+    },
+    {
+      "id": "log_1793648888394_3508",
+      "adminId": "adm-004",
+      "adminName": "adm-004",
+      "action": "TICKET_RESOLVED",
+      "targetCollection": "support_tickets",
+      "targetId": "tkt_1793648888381",
+      "details": "Resolved ticket #FM-5725",
+      "timestamp": 1793648888394,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "ae4a606db6d490b86e559e1666998e99ce48d92ddc40feeb5214dd0ef34b5678",
+      "hash": "017daba0c1d83794a0380fe3994f3d6e1e4447f2c8b055d147d9269e939c61f2"
+    },
+    {
+      "id": "log_1793648899082_9774",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "PIN_UPDATED",
+      "targetCollection": "users",
+      "targetId": "usr_alade_01",
+      "details": "Established new 6-digit cryptographic PIN",
+      "timestamp": 1793648899082,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "017daba0c1d83794a0380fe3994f3d6e1e4447f2c8b055d147d9269e939c61f2",
+      "hash": "41a1fbeb67f4ac84869ce30a80dfd78e77925f3cef0b448074723a6572d33891"
+    },
+    {
+      "id": "log_1793648899110_8967",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WITHDRAWAL_INITIATED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1793648899110",
+      "details": "Initiated withdrawal of ₦50000 to Zenith Bank Plc",
+      "timestamp": 1793648899110,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "41a1fbeb67f4ac84869ce30a80dfd78e77925f3cef0b448074723a6572d33891",
+      "hash": "359dffe704dbdb183f448e5538eb78e23982058abb4cab3b1bd0d4c4848ae932"
+    },
+    {
+      "id": "log_1793648899134_5910",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_SWAP_EXECUTED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648899134",
+      "details": "Swapped NGN 1000000 to CNY 4627.04",
+      "timestamp": 1793648899134,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "359dffe704dbdb183f448e5538eb78e23982058abb4cab3b1bd0d4c4848ae932",
+      "hash": "7b9bdd178603012eabdb1cd41292dab75cc5b25a804a16b840421a6a16c8b93d"
+    },
+    {
+      "id": "log_1793648899161_5337",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WITHDRAWAL_INITIATED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1793648899160",
+      "details": "Initiated withdrawal of ₦20000 to Zenith Bank Plc",
+      "timestamp": 1793648899161,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "7b9bdd178603012eabdb1cd41292dab75cc5b25a804a16b840421a6a16c8b93d",
+      "hash": "6908271ea81da59c354f3cb8bdd06e668193fa5cfaa11f824ab7873dea3e5b87"
+    },
+    {
+      "id": "log_1793648899188_4620",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WITHDRAWAL_INITIATED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1793648899187",
+      "details": "Initiated withdrawal of ₦20000 to Zenith Bank Plc",
+      "timestamp": 1793648899188,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "6908271ea81da59c354f3cb8bdd06e668193fa5cfaa11f824ab7873dea3e5b87",
+      "hash": "993ad08e542823dff08439dd3a66c05f1c663be76d56a2ea414d2ababc893bd7"
+    },
+    {
+      "id": "log_1793648899211_1255",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WITHDRAWAL_INITIATED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1793648899211",
+      "details": "Initiated withdrawal of ₦20000 to Zenith Bank Plc",
+      "timestamp": 1793648899211,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "993ad08e542823dff08439dd3a66c05f1c663be76d56a2ea414d2ababc893bd7",
+      "hash": "5f50240c69d82f4266a92c5d23ae6f1e6b4d8a1c9bba81b416c54a3f89173920"
+    },
+    {
+      "id": "log_1793648899231_2427",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WITHDRAWAL_INITIATED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1793648899230",
+      "details": "Initiated withdrawal of ₦20000 to Zenith Bank Plc",
+      "timestamp": 1793648899231,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "5f50240c69d82f4266a92c5d23ae6f1e6b4d8a1c9bba81b416c54a3f89173920",
+      "hash": "17349c262e96a307840e25399c2232763872cc4e274019f5fb22836b904531b0"
+    },
+    {
+      "id": "log_1793648899249_7375",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WITHDRAWAL_INITIATED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1793648899249",
+      "details": "Initiated withdrawal of ₦20000 to Zenith Bank Plc",
+      "timestamp": 1793648899249,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "17349c262e96a307840e25399c2232763872cc4e274019f5fb22836b904531b0",
+      "hash": "f263a71eeef2539d1d8894f7e4603fe5c27395f6198a2d165635c2df9a31fc01"
+    },
+    {
+      "id": "log_1793648899266_3314",
+      "adminId": "sys",
+      "adminName": "Providus Webhook Engine",
+      "action": "PAYMENT_CREDITED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648899266",
+      "details": "Credited ₦250000 via Providus webhook",
+      "timestamp": 1793648899266,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "f263a71eeef2539d1d8894f7e4603fe5c27395f6198a2d165635c2df9a31fc01",
+      "hash": "dea2eb881a33bf571c0a862c370997b8d3ed78cb31bc06c5b7ac8c9782450df7"
+    },
+    {
+      "id": "log_1793648899285_3723",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WITHDRAWAL_INITIATED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1793648899284",
+      "details": "Initiated withdrawal of ₦100000 to Zenith Bank Plc",
+      "timestamp": 1793648899285,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "dea2eb881a33bf571c0a862c370997b8d3ed78cb31bc06c5b7ac8c9782450df7",
+      "hash": "2831fd3cb654c30d26983a21cc0ff56cbc7c5a65c77ce877b62cda2132201b7f"
+    },
+    {
+      "id": "log_1793648899301_11",
+      "adminId": "adm-001",
+      "adminName": "Treasury Desk",
+      "action": "WITHDRAWAL_REFUNDED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1793648899284",
+      "details": "Refunded ₦100500 to user",
+      "timestamp": 1793648899301,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "2831fd3cb654c30d26983a21cc0ff56cbc7c5a65c77ce877b62cda2132201b7f",
+      "hash": "83bc4ca0ca1128d2f57dde185676a969637af351fa7a4447dfee2b2d83ebdb50"
+    },
+    {
+      "id": "log_1793648899316_3739",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHOP_ORDER_PLACED",
+      "targetCollection": "shop_orders",
+      "targetId": "ord_tech_1793648899315",
+      "details": "Placed order #ORD-HK-14866 (USD 1420)",
+      "timestamp": 1793648899316,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "83bc4ca0ca1128d2f57dde185676a969637af351fa7a4447dfee2b2d83ebdb50",
+      "hash": "4bf5e942f3e29791f72d9e1f8654400b6524a5f9b90627d334e08ab10a79b6c3"
+    },
+    {
+      "id": "log_1793648899351_8056",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_PAYMENT_DISBURSED",
+      "targetCollection": "supplier_payments",
+      "targetId": "pay_1793648899351",
+      "details": "Disbursed ¥5000 to Shenzhen Kaida Technology Ltd",
+      "timestamp": 1793648899351,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "4bf5e942f3e29791f72d9e1f8654400b6524a5f9b90627d334e08ab10a79b6c3",
+      "hash": "069f90e21b575ecf270f8960bb12219f21375444a726f88d61d6aae0a24747b7"
+    },
+    {
+      "id": "log_1793648899367_1733",
+      "adminId": "sys",
+      "adminName": "China Desk",
+      "action": "SUPPLIER_PAYMENT_DISBURSED",
+      "targetCollection": "supplier_payments",
+      "targetId": "pay_1793648899351",
+      "details": "Disbursed ¥5000 to Shenzhen Kaida Technology Ltd (SAFE: SAFE-2026-GD-0091823)",
+      "timestamp": 1793648899367,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "069f90e21b575ecf270f8960bb12219f21375444a726f88d61d6aae0a24747b7",
+      "hash": "92853a9d07498188b65c5454cd2cbe3850b394676e16b59d1a42c05f6ae462ad"
+    },
+    {
+      "id": "log_1793648899383_6249",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_PAYMENT_DISBURSED",
+      "targetCollection": "supplier_payments",
+      "targetId": "pay_1793648899383",
+      "details": "Disbursed ¥3000 to Yiwu Plastic Wholesale Group",
+      "timestamp": 1793648899383,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "92853a9d07498188b65c5454cd2cbe3850b394676e16b59d1a42c05f6ae462ad",
+      "hash": "a16d57fd91a56ca4f1a4073d881c5cc20d60610425abeebe54d15dee15778cd8"
+    },
+    {
+      "id": "log_1793648899396_7549",
+      "adminId": "sys",
+      "adminName": "Finance Officer",
+      "action": "SUPPLIER_PAYMENT_REFUNDED",
+      "targetCollection": "supplier_payments",
+      "targetId": "pay_1793648899383",
+      "details": "Refunded ¥3000 to Chief Babatunde Alade",
+      "timestamp": 1793648899396,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "a16d57fd91a56ca4f1a4073d881c5cc20d60610425abeebe54d15dee15778cd8",
+      "hash": "2a4aa3bfc63e383479525fd126bc066472f176cc1ee5ddb5cf2731f1cb54975a"
+    },
+    {
+      "id": "log_1793648899410_1344",
+      "adminId": "sys",
+      "adminName": "Emergency Key Handler",
+      "action": "SUPER_ADMIN_RESTORED",
+      "targetCollection": "users",
+      "targetId": "adm-001",
+      "details": "Emergency recovery executed for adm-001",
+      "timestamp": 1793648899410,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "2a4aa3bfc63e383479525fd126bc066472f176cc1ee5ddb5cf2731f1cb54975a",
+      "hash": "ef520c4f9eb71329e57575dbdd781958d4846093092cd1aae80fbf829ebc05bc"
+    },
+    {
+      "id": "log_1793648899597_1922",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "PIN_UPDATED",
+      "targetCollection": "users",
+      "targetId": "usr_alade_01",
+      "details": "Established new 6-digit cryptographic PIN",
+      "timestamp": 1793648899597,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "ef520c4f9eb71329e57575dbdd781958d4846093092cd1aae80fbf829ebc05bc",
+      "hash": "fe748e4e4037e5ddfc08de592ec88fc21ff298c06fcbe786e09b692aeb7070a1"
+    },
+    {
+      "id": "log_1793648899663_1301",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHOP_ORDER_PLACED",
+      "targetCollection": "shop_orders",
+      "targetId": "ord_tech_1793648899663",
+      "details": "Placed order #ORD-HK-64393 (USD 1420)",
+      "timestamp": 1793648899663,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "fe748e4e4037e5ddfc08de592ec88fc21ff298c06fcbe786e09b692aeb7070a1",
+      "hash": "37a9815852a2be4f75b8d19ff9979ed958173e951cb2ce9deeb463437238733d"
+    },
+    {
+      "id": "log_1793648899684_2892",
+      "adminId": "sys",
+      "adminName": "Providus Webhook Engine",
+      "action": "PAYMENT_CREDITED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648899684",
+      "details": "Credited ₦1500000 via Providus webhook",
+      "timestamp": 1793648899684,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "37a9815852a2be4f75b8d19ff9979ed958173e951cb2ce9deeb463437238733d",
+      "hash": "388d03c2011ad8461a2aa5a850befb6aff92450a7ce9a1c2529f305e1979fe42"
+    },
+    {
+      "id": "log_1793648899702_8126",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_SWAP_EXECUTED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648899702",
+      "details": "Swapped NGN 500000 to CNY 2313.52",
+      "timestamp": 1793648899702,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "388d03c2011ad8461a2aa5a850befb6aff92450a7ce9a1c2529f305e1979fe42",
+      "hash": "77964574b202ac1d644b62c32550fa0df6210dcf10d58bc94f264f500587605c"
+    },
+    {
+      "id": "log_1793648899720_5562",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_PAYMENT_DISBURSED",
+      "targetCollection": "supplier_payments",
+      "targetId": "pay_1793648899720",
+      "details": "Disbursed ¥2000 to Foshan Ceramic Tiles Industrial Co.",
+      "timestamp": 1793648899720,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "77964574b202ac1d644b62c32550fa0df6210dcf10d58bc94f264f500587605c",
+      "hash": "de84e852318e90bd54afd2a5f2d490e12c041706205568db293f443f3febbc23"
+    },
+    {
+      "id": "log_1793648899739_1108",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "HOTEL_BOOKED",
+      "targetCollection": "hotel_bookings",
+      "targetId": "bk_1793648899738",
+      "details": "Booked The Westin Pazhou Guangzhou for Chief Babatunde Alade",
+      "timestamp": 1793648899739,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "de84e852318e90bd54afd2a5f2d490e12c041706205568db293f443f3febbc23",
+      "hash": "581bab6e567757dcd4ebb3544df13eb97c770043c7e904588add2b8123946f41"
+    },
+    {
+      "id": "log_1793648899750_3405",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "TICKET_MESSAGE",
+      "targetCollection": "support_tickets",
+      "targetId": "tkt_8901",
+      "details": "Sent message: \"Requesting confirmation of the...\"",
+      "timestamp": 1793648899750,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "581bab6e567757dcd4ebb3544df13eb97c770043c7e904588add2b8123946f41",
+      "hash": "a9fed5da6ebb8b89226e105b900f8354c44418769d857b576f934624df4ab500"
+    },
+    {
+      "id": "log_1793648899762_4155",
+      "adminId": "sys",
+      "adminName": "China Desk",
+      "action": "SUPPLIER_PAYMENT_DISBURSED",
+      "targetCollection": "supplier_payments",
+      "targetId": "pay_1793648899720",
+      "details": "Disbursed ¥2000 to Foshan Ceramic Tiles Industrial Co. (SAFE: SAFE-2026-CAN-0928174)",
+      "timestamp": 1793648899762,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "a9fed5da6ebb8b89226e105b900f8354c44418769d857b576f934624df4ab500",
+      "hash": "4563fad761f9788fa3d76e02f66eda01f576f78d719571761bed362076a02533"
+    },
+    {
+      "id": "log_1793648899774_8503",
+      "adminId": "sys",
+      "adminName": "FlyeMass China Trade Desk",
+      "action": "TICKET_MESSAGE",
+      "targetCollection": "support_tickets",
+      "targetId": "tkt_8901",
+      "details": "Sent message: \"Remittance slip uploaded. Clea...\"",
+      "timestamp": 1793648899774,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "4563fad761f9788fa3d76e02f66eda01f576f78d719571761bed362076a02533",
+      "hash": "687bb3bef0b56ca18ed77d870cdea8fc7afb35927f5cfd4b339f7002486a9ca7"
+    },
+    {
+      "id": "log_1793648899937_6279",
+      "adminId": "sys",
+      "adminName": "Audit Tester",
+      "action": "USER_REGISTERED",
+      "targetCollection": "users",
+      "targetId": "usr_1793648899937",
+      "details": "Registered new client account (tester_1793648899918@flyemass.io)",
+      "timestamp": 1793648899937,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "687bb3bef0b56ca18ed77d870cdea8fc7afb35927f5cfd4b339f7002486a9ca7",
+      "hash": "72fe6166f5c0a1d79786524eff5abf68c702a7e89b71705a815b1771b16a18be"
+    },
+    {
+      "id": "log_1793648899958_6980",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "USER_SUSPENSION_TOGGLED",
+      "targetCollection": "users",
+      "targetId": "usr_1793648899937",
+      "details": "Set isSuspended: true (Suspicious currency movement velocity)",
+      "timestamp": 1793648899958,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "72fe6166f5c0a1d79786524eff5abf68c702a7e89b71705a815b1771b16a18be",
+      "hash": "454e3cf0b8d472fec679b7947a95ce5f4768df33784c62be8a74a93e4f56bf49"
+    },
+    {
+      "id": "log_1793648899972_345",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "USER_SUSPENSION_TOGGLED",
+      "targetCollection": "users",
+      "targetId": "usr_1793648899937",
+      "details": "Set isSuspended: false (Audit verification cleared)",
+      "timestamp": 1793648899972,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "454e3cf0b8d472fec679b7947a95ce5f4768df33784c62be8a74a93e4f56bf49",
+      "hash": "3b9e4e3917e6ab81e77880d8f9e8090650a8e5d0e96c59769c015e00183cf7b3"
+    },
+    {
+      "id": "log_1793648899985_8185",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "MANUAL_BALANCE_ADJUST",
+      "targetCollection": "wallets_ledger",
+      "targetId": "usr_1793648899937",
+      "details": "CREDIT USD 1,500 (Settlement reconciliation for offshore procurement order #PR-9921)",
+      "timestamp": 1793648899985,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "3b9e4e3917e6ab81e77880d8f9e8090650a8e5d0e96c59769c015e00183cf7b3",
+      "hash": "21b069cb7307c481b911414da9371b766896474709f05c361516b63d775caa0e"
+    },
+    {
+      "id": "log_1793648900011_9360",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "NOTIFICATION_DISPATCHED",
+      "targetCollection": "notifications",
+      "targetId": "notif_1793648900011",
+      "details": "Dispatched: \"Customs Clearance Update\" to all",
+      "timestamp": 1793648900011,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "21b069cb7307c481b911414da9371b766896474709f05c361516b63d775caa0e",
+      "hash": "26f539b7c09045608d1a7156bf253fdc6a00d6f4132bc17df59592eaccb0f85c"
+    },
+    {
+      "id": "log_1793648900025_2414",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "SUPPLIER_REGISTERED",
+      "targetCollection": "suppliers",
+      "targetId": "sup_1793648900025",
+      "details": "Registered supplier: Shenzhen Skyworth Display Optics Ltd (Shenzhen)",
+      "timestamp": 1793648900025,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "26f539b7c09045608d1a7156bf253fdc6a00d6f4132bc17df59592eaccb0f85c",
+      "hash": "bb44f88b102c2eebab976bc7d769f8b7aa287886375c6378c698f8cd77d927b9"
+    },
+    {
+      "id": "log_1793648900043_7663",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "HOTEL_REGISTERED",
+      "targetCollection": "hotels",
+      "targetId": "htl_1793648900043",
+      "details": "Registered business hotel: Canton Fair Garden Hotel (Guangzhou)",
+      "timestamp": 1793648900043,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "bb44f88b102c2eebab976bc7d769f8b7aa287886375c6378c698f8cd77d927b9",
+      "hash": "078333e64117b68fa5645cbc2bebc841abf8bc00e8cba5e8482be0ea861017d0"
+    },
+    {
+      "id": "log_1793648900093_8708",
+      "adminId": "sys",
+      "adminName": "adm-001",
+      "action": "SHOP_ORDER_CANCELLED",
+      "targetCollection": "shop_orders",
+      "targetId": "ord_test_1793648900071",
+      "details": "Order #ord_test_1793648900071 cancelled & refunded (USD 180)",
+      "timestamp": 1793648900093,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "078333e64117b68fa5645cbc2bebc841abf8bc00e8cba5e8482be0ea861017d0",
+      "hash": "b194832d17fec7497abd426349f91df0817d5f1060dd653a68faac125c198764"
+    },
+    {
+      "id": "log_1793648900232_4501",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "USER_REGISTERED",
+      "targetCollection": "users",
+      "targetId": "usr_1793648900231",
+      "details": "Registered new client account (alade_corp_1793648900211@flyemass.io)",
+      "timestamp": 1793648900232,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "b194832d17fec7497abd426349f91df0817d5f1060dd653a68faac125c198764",
+      "hash": "73834ebb23006ff9b44d28feb11cd904891999a4100c3a2d48b44b561cb696f2"
+    },
+    {
+      "id": "log_1793648900253_8259",
+      "adminId": "sys",
+      "adminName": "Providus Webhook Engine",
+      "action": "PAYMENT_CREDITED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648900253",
+      "details": "Credited ₦1500000 via Providus webhook",
+      "timestamp": 1793648900253,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "73834ebb23006ff9b44d28feb11cd904891999a4100c3a2d48b44b561cb696f2",
+      "hash": "81e202565648985cc88f0b9a83bf06b092690ba19040ec2a7081e5f15a19c91d"
+    },
+    {
+      "id": "log_1793648900276_6896",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WALLET_FUNDED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648900276_16",
+      "details": "Credited NGN 1500000 via undefined",
+      "timestamp": 1793648900276,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "81e202565648985cc88f0b9a83bf06b092690ba19040ec2a7081e5f15a19c91d",
+      "hash": "bfd07d7383eed55cf06d3985a72de02f2c252a163446ccab5b2f4d8941742a66"
+    },
+    {
+      "id": "log_1793648900297_7382",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_SWAP_EXECUTED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1793648900297",
+      "details": "Swapped NGN 500000 to CNY 2313.52",
+      "timestamp": 1793648900297,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "bfd07d7383eed55cf06d3985a72de02f2c252a163446ccab5b2f4d8941742a66",
+      "hash": "67f6e846fc0bc702cd37cb518219caa68136683072a1b68231ea6bb11cac4de7"
+    },
+    {
+      "id": "log_1793648900319_7461",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_PAYMENT_DISBURSED",
+      "targetCollection": "supplier_payments",
+      "targetId": "pay_1793648900319",
+      "details": "Disbursed ¥1500 to Shenzhen Foxconn Micro Optics Ltd",
+      "timestamp": 1793648900319,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "67f6e846fc0bc702cd37cb518219caa68136683072a1b68231ea6bb11cac4de7",
+      "hash": "ec7e73cc7a7230249b3a4212efa4ba34fe2078754d348ed409c7d3d7bcb43ef1"
+    },
+    {
+      "id": "log_1793648900334_9543",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WITHDRAWAL_INITIATED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1793648900334",
+      "details": "Initiated withdrawal of ₦100000 to undefined",
+      "timestamp": 1793648900334,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "ec7e73cc7a7230249b3a4212efa4ba34fe2078754d348ed409c7d3d7bcb43ef1",
+      "hash": "51a75b08d078d16c403f1b7b5ad7d386647ba27ad068ff6a41d25729b3fb582e"
+    },
+    {
+      "id": "log_1793648900355_378",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHIPMENT_REGISTERED",
+      "targetCollection": "shipments",
+      "targetId": "shp_1793648900355",
+      "details": "Registered parcel SF-EXPRESS-1793648900211-1",
+      "timestamp": 1793648900355,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "51a75b08d078d16c403f1b7b5ad7d386647ba27ad068ff6a41d25729b3fb582e",
+      "hash": "afefcbf25664186967fc95fc77e57a34e3503137666a8d876cef34f5460bde46"
+    },
+    {
+      "id": "log_1793648900371_108",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHIPMENT_REGISTERED",
+      "targetCollection": "shipments",
+      "targetId": "shp_1793648900371",
+      "details": "Registered parcel ZTO-1793648900211-2",
+      "timestamp": 1793648900371,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "afefcbf25664186967fc95fc77e57a34e3503137666a8d876cef34f5460bde46",
+      "hash": "e4f7cc94b6275c1a576e646d6e6f6d89a5957a803bc26fec09f89989cd7310de"
+    },
+    {
+      "id": "log_1793648900391_574",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "MANUAL_BALANCE_ADJUST",
+      "targetCollection": "wallets_ledger",
+      "targetId": "usr_1793648900231",
+      "details": "CREDIT USD 1,500 (Freight settlement and agent float)",
+      "timestamp": 1793648900391,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "e4f7cc94b6275c1a576e646d6e6f6d89a5957a803bc26fec09f89989cd7310de",
+      "hash": "edd4dce4d363f7c768a55e10d51b3030858e63d6beeee0dd180166fb660aacbb"
+    },
+    {
+      "id": "log_1793648900407_4907",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FREIGHT_PAID",
+      "targetCollection": "shipments",
+      "targetId": "shp_1793648900355",
+      "details": "Cleared freight of USD 285 for SF-EXPRESS-1793648900211-1",
+      "timestamp": 1793648900407,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "edd4dce4d363f7c768a55e10d51b3030858e63d6beeee0dd180166fb660aacbb",
+      "hash": "f9045f60b3414f5cb60cf558a958602ff52a2261de48633e155a576e1f84ba47"
+    },
+    {
+      "id": "log_1793648900424_3769",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHIPMENT_CONSOLIDATED",
+      "targetCollection": "shipments",
+      "targetId": "shp_consol_1793648900424",
+      "details": "Consolidated 2 packages into FM-CONSOL-62922",
+      "timestamp": 1793648900424,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "f9045f60b3414f5cb60cf558a958602ff52a2261de48633e155a576e1f84ba47",
+      "hash": "fee8dbfacdd74673e1011c2fa6f13e8d859d8e19f6ad35968acacde0b80bc8cd"
+    },
+    {
+      "id": "log_1793648900442_2066",
+      "adminId": "adm-002",
+      "adminName": "adm-002",
+      "action": "WAYPOINT_ADVANCED",
+      "targetCollection": "shipments",
+      "targetId": "shp_consol_1793648900424",
+      "details": "Status updated to In Transit/Customs (FM-CONSOL-62922)",
+      "timestamp": 1793648900442,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "fee8dbfacdd74673e1011c2fa6f13e8d859d8e19f6ad35968acacde0b80bc8cd",
+      "hash": "302657e90a460b7d0bc6d71d9dd23ae9c4bdd322d961075cdd1d0ef9a966dd25"
+    },
+    {
+      "id": "log_1793648900466_591",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "AGENT_REQUEST_CREATED",
+      "targetCollection": "agent_requests",
+      "targetId": "rfq_1793648900465",
+      "details": "Submitted RFQ: Commercial 5kW Hybrid Solar Inverters (Foshan)",
+      "timestamp": 1793648900466,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "302657e90a460b7d0bc6d71d9dd23ae9c4bdd322d961075cdd1d0ef9a966dd25",
+      "hash": "8459383f07134a4504ff698a9c1cec281553f74627e66f17589433591c3aa562"
+    },
+    {
+      "id": "log_1793648900483_3497",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "AGENT_QUOTE_ISSUED",
+      "targetCollection": "agent_requests",
+      "targetId": "rfq_1793648900465",
+      "details": "Quoted $300 USD for Commercial 5kW Hybrid Solar Inverters",
+      "timestamp": 1793648900483,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "8459383f07134a4504ff698a9c1cec281553f74627e66f17589433591c3aa562",
+      "hash": "9b59b02a26b66ca44e4b033b15a26b0e88bc22762695be859143c4434681b4a6"
+    },
+    {
+      "id": "log_1793648900501_4538",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "AGENT_QUOTE_ACCEPTED",
+      "targetCollection": "agent_requests",
+      "targetId": "rfq_1793648900465",
+      "details": "Accepted quote and paid USD 300 to escrow",
+      "timestamp": 1793648900501,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "9b59b02a26b66ca44e4b033b15a26b0e88bc22762695be859143c4434681b4a6",
+      "hash": "758629d3cdeaea480e8cc87971707080dd3740f9fa9095f21310ed6771fed141"
+    },
+    {
+      "id": "log_1793648900522_1735",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_SUB_PURCHASED",
+      "targetCollection": "supplier_subscriptions",
+      "targetId": "sub_sup-foxconn_usr_1793648900231",
+      "details": "Purchased 30-day contact pass for sup-foxconn",
+      "timestamp": 1793648900522,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "758629d3cdeaea480e8cc87971707080dd3740f9fa9095f21310ed6771fed141",
+      "hash": "aa5400340bd505205a1358e2f5954376d9e21fbb893d4b785e7afef56334b6b1"
+    },
+    {
+      "id": "log_1793648900559_1180",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "MANUAL_BALANCE_ADJUST",
+      "targetCollection": "wallets_ledger",
+      "targetId": "usr_1793648900231",
+      "details": "CREDIT USD 3,000 (Tech shop inventory order float)",
+      "timestamp": 1793648900559,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "aa5400340bd505205a1358e2f5954376d9e21fbb893d4b785e7afef56334b6b1",
+      "hash": "fa3ad41dfa7c7fe5b2a89bada1426a0164bc6b646e4b81ae7c932cc349908392"
+    },
+    {
+      "id": "log_1793648900582_451",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHOP_ORDER_PLACED",
+      "targetCollection": "shop_orders",
+      "targetId": "ord_tech_1793648900581",
+      "details": "Placed order #ORD-HK-83804 (USD 1420)",
+      "timestamp": 1793648900582,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "fa3ad41dfa7c7fe5b2a89bada1426a0164bc6b646e4b81ae7c932cc349908392",
+      "hash": "3d4d25d4657cb318f6bb1c72e9e73bd113af08c89a4b8350f3ef14420afecaeb"
+    },
+    {
+      "id": "log_1793648900603_1262",
+      "adminId": "sys",
+      "adminName": "adm-001",
+      "action": "SHOP_ORDER_CANCELLED",
+      "targetCollection": "shop_orders",
+      "targetId": "ord_tech_1793648900581",
+      "details": "Order #ORD-HK-83804 cancelled & refunded (USD 1420)",
+      "timestamp": 1793648900603,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "3d4d25d4657cb318f6bb1c72e9e73bd113af08c89a4b8350f3ef14420afecaeb",
+      "hash": "8534957ac7bb4f639158ef2465f08abf5333876eeeec605b87b1d9de57600411"
+    },
+    {
+      "id": "log_1793648900620_2804",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "HOTEL_BOOKED",
+      "targetCollection": "hotel_bookings",
+      "targetId": "bk_1793648900620",
+      "details": "Booked Canton Fair Garden Hotel for Chief Babatunde Alade",
+      "timestamp": 1793648900620,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "8534957ac7bb4f639158ef2465f08abf5333876eeeec605b87b1d9de57600411",
+      "hash": "cee4da28d3beaaad07beca0a1b5f2c21c8531490ad34655bf151cec92d3bbd59"
+    },
+    {
+      "id": "log_1793648900635_8300",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "HOTEL_CANCELLED",
+      "targetCollection": "hotel_bookings",
+      "targetId": "bk_1793648900620",
+      "details": "Cancelled booking WST-GUA-222527",
+      "timestamp": 1793648900635,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "cee4da28d3beaaad07beca0a1b5f2c21c8531490ad34655bf151cec92d3bbd59",
+      "hash": "e7d2711b807a2b2d74c7774019b7043ab93626663f8fbf13b04423116f1811c3"
+    },
+    {
+      "id": "log_1793648900652_9224",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "TICKET_CREATED",
+      "targetCollection": "support_tickets",
+      "targetId": "tkt_1793648900652",
+      "details": "Opened ticket #FM-9749: Requesting fast-track customs clearance for container FM-CONSOL-8819",
+      "timestamp": 1793648900652,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "e7d2711b807a2b2d74c7774019b7043ab93626663f8fbf13b04423116f1811c3",
+      "hash": "387ed97476241a32edc0ff3ba556d88ce499281c62ef869072e950b9d7933c3a"
+    },
+    {
+      "id": "log_1793648900672_25",
+      "adminId": "adm-004",
+      "adminName": "adm-004",
+      "action": "TICKET_RESOLVED",
+      "targetCollection": "support_tickets",
+      "targetId": "tkt_1793648900652",
+      "details": "Resolved ticket #FM-9749",
+      "timestamp": 1793648900672,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "387ed97476241a32edc0ff3ba556d88ce499281c62ef869072e950b9d7933c3a",
+      "hash": "1685021ecaa26f97172e9ec1a3be39613c24c94f0c0510a5d9c9ebfab19dcbc6"
     }
   ],
   "idempotency_keys": {},
@@ -10433,6 +15196,77 @@
     "primaryAdminId": "adm-001"
   },
   "notifications": [
+    {
+      "id": "notif_1793648900483",
+      "userId": "usr_1793648900231",
+      "title": "Quotation Ready: Commercial 5kW Hybrid Solar Inverters",
+      "message": "Your factory inspection/sourcing quote for $300 USD is ready for review!",
+      "type": "procurement",
+      "timestamp": 1793648900483,
+      "read": false,
+      "linkRoute": "procure"
+    },
+    {
+      "id": "notif_1793648900442",
+      "userId": "usr_1793648900231",
+      "title": "Shipment Milestone: In Transit/Customs",
+      "message": "Your cargo #FM-CONSOL-62922 is now: In Transit/Customs (Guangzhou Baiyun Airfreight Terminal).",
+      "type": "shipping",
+      "timestamp": 1793648900442,
+      "read": false,
+      "linkRoute": "track"
+    },
+    {
+      "id": "notif_1793648900011",
+      "title": "Customs Clearance Update",
+      "message": "Guangzhou cargo container FX-8809 has docked at Lagos MM2 Port.",
+      "time": "Just now",
+      "timestamp": 1793648900011,
+      "read": false,
+      "type": "shipping",
+      "targetUserId": "all",
+      "linkRoute": "logistics"
+    },
+    {
+      "id": "notif_1793648888266",
+      "userId": "usr_1793648887979",
+      "title": "Quotation Ready: Commercial 5kW Hybrid Solar Inverters",
+      "message": "Your factory inspection/sourcing quote for $300 USD is ready for review!",
+      "type": "procurement",
+      "timestamp": 1793648888266,
+      "read": false,
+      "linkRoute": "procure"
+    },
+    {
+      "id": "notif_1793648888238",
+      "userId": "usr_1793648887979",
+      "title": "Shipment Milestone: In Transit/Customs",
+      "message": "Your cargo #FM-CONSOL-37202 is now: In Transit/Customs (Guangzhou Baiyun Airfreight Terminal).",
+      "type": "shipping",
+      "timestamp": 1793648888238,
+      "read": false,
+      "linkRoute": "track"
+    },
+    {
+      "id": "notif_1793648839338",
+      "userId": "usr_1793648839118",
+      "title": "Quotation Ready: Commercial 5kW Hybrid Solar Inverters",
+      "message": "Your factory inspection/sourcing quote for $300 USD is ready for review!",
+      "type": "procurement",
+      "timestamp": 1793648839338,
+      "read": false,
+      "linkRoute": "procure"
+    },
+    {
+      "id": "notif_1793648839321",
+      "userId": "usr_1793648839118",
+      "title": "Shipment Milestone: In Transit/Customs",
+      "message": "Your cargo #FM-CONSOL-50604 is now: In Transit/Customs (Guangzhou Baiyun Airfreight Terminal).",
+      "type": "shipping",
+      "timestamp": 1793648839321,
+      "read": false,
+      "linkRoute": "track"
+    },
     {
       "id": "notif_1793647686680",
       "title": "Customs Clearance Update",
@@ -10602,6 +15436,19 @@
       "id": "sup_1793647686692",
       "verifiedYears": 1,
       "createdAt": 1793647686692
+    },
+    "sup_1793648900025": {
+      "name": "Shenzhen Skyworth Display Optics Ltd",
+      "chineseName": "深圳创维显示光学有限公司",
+      "category": "Electronics & Displays",
+      "city": "Shenzhen",
+      "verified": true,
+      "inspectionPassed": true,
+      "minimumOrderUSD": 3000,
+      "turnaroundDays": 7,
+      "id": "sup_1793648900025",
+      "verifiedYears": 1,
+      "createdAt": 1793648900025
     }
   },
   "hotels": {
@@ -10682,6 +15529,19 @@
       "airportTransfer": true,
       "id": "htl_1793647686707",
       "createdAt": 1793647686707
+    },
+    "htl_1793648900043": {
+      "name": "Canton Fair Garden Hotel",
+      "chineseName": "广交会花园大酒店",
+      "city": "Guangzhou",
+      "district": "Haizhu",
+      "pricePerNightUSD": 140,
+      "rating": 4.9,
+      "englishStaff": true,
+      "halalCertified": true,
+      "airportTransfer": true,
+      "id": "htl_1793648900043",
+      "createdAt": 1793648900043
     }
   }
 }

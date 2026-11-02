@@ -52,12 +52,17 @@ export const AdminSupportScreen: React.FC = () => {
     setDbState({ ...db.getState() });
   };
 
-  const handleResolveTicket = (ticketId: string) => {
+  const handleResolveTicket = async (ticketId: string) => {
     const tkt = dbState.support_tickets[ticketId];
     if (tkt) {
-      db.updateTicketStatus(ticketId, 'resolved');
-      firebaseSync.recordAudit('Support Agent', 'RESOLVE_TICKET', 'support_tickets', ticketId, 'Marked as resolved');
-      showToast(`Ticket #${tkt.ticketNumber || ticketId} marked as RESOLVED`, 'success');
+      try {
+        await db.resolveSupportTicket(ticketId, 'Inquiry resolved by trade concierge desk', 'adm-002');
+        showToast(`Ticket #${tkt.ticketNumber || ticketId} marked as RESOLVED & notification broadcast!`, 'success');
+        setDbState({ ...db.getState() });
+      } catch (err: any) {
+        db.updateTicketStatus(ticketId, 'resolved');
+        showToast(`Ticket #${tkt.ticketNumber || ticketId} marked as RESOLVED`, 'info');
+      }
     }
   };
 

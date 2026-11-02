@@ -87,28 +87,38 @@ export const AdminAgentsScreen: React.FC = () => {
     }));
   };
 
-  const handleSendQuote = (e: React.FormEvent) => {
+  const handleSendQuote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!quoteModalRfq) return;
     const numUSD = Number(quoteUSD) || 250;
     const numNGN = Math.round(numUSD * 1485);
 
-    db.updateAgentQuote(quoteModalRfq.id, numUSD, numNGN, quoteNotes);
-    firebaseSync.recordAudit('Agent Desk Lead', 'FORMULATE_QUOTE', 'agent_requests', quoteModalRfq.id, `Sent quote of $${numUSD} USD for ${quoteModalRfq.productName}`);
-    showToast(`Formal quote of $${numUSD} USD sent to ${quoteModalRfq.clientName}!`, 'success');
-    setQuoteModalRfq(null);
+    try {
+      await db.quoteAgentRequest(quoteModalRfq.id, numUSD, numNGN, quoteNotes, 'Zhang Wei (Bilingual Ground Agent)', 'adm-001');
+      showToast(`Formal quote of $${numUSD} USD sent to ${quoteModalRfq.clientName}!`, 'success');
+      setQuoteModalRfq(null);
+      setRfqs(db.getAgentRequests());
+    } catch (err: any) {
+      showToast(err.message || 'Failed to send quote', 'error');
+    }
   };
 
-  const handleAdvanceStatus = (rfq: AgentRequestDocument) => {
-    const nextStatus = rfq.status === 'submitted' ? 'quote_ready' :
-                       rfq.status === 'quote_ready' ? 'quote_accepted' :
-                       rfq.status === 'quote_accepted' ? 'in_progress' : 'completed';
-    
-    const doc = db.getDocument('agent_requests', rfq.id);
-    if (doc) {
-      doc.status = nextStatus;
-      setRfqs(db.getAgentRequests());
-      showToast(`RFQ #${rfq.id} advanced to ${nextStatus}`, 'info');
+  const handleAdvanceStatus = async (rfq: AgentRequestDocument) => {
+    if (rfq.status === 'po_issued' || rfq.status === 'quote_accepted' || rfq.status === 'in_progress') {
+      try {
+        await db.completeAgentRequest(rfq.id, 'Ground inspection completed successfully. PDF report filed.', 'adm-001');
+        setRfqs(db.getAgentRequests());
+        showToast(`RFQ #${rfq.id} marked as COMPLETED & escrow disbursed!`, 'success');
+      } catch (err: any) {
+        showToast(err.message || 'Failed to complete request', 'error');
+      }
+    } else {
+      const doc = db.getDocument('agent_requests', rfq.id);
+      if (doc) {
+        doc.status = 'quote_ready';
+        setRfqs(db.getAgentRequests());
+        showToast(`RFQ #${rfq.id} status updated!`, 'info');
+      }
     }
   };
 

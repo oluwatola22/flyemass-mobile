@@ -1518,6 +1518,178 @@ class DatabaseService {
     if (!res.ok) throw new Error(data.error || 'Failed to create hotel');
     return data;
   }
+
+  public async registerShipment(data: any): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/shipments/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (result.shipment) {
+        this.state.shipments[result.shipment.id] = result.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      // Local fallback
+      const shp = this.recordShipment(data);
+      return { success: true, shipment: shp };
+    }
+  }
+
+  public async consolidateShipments(shipmentIds: string[], destinationHub?: string, mode?: string, userId?: string): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/shipments/consolidate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ shipmentIds, destinationHub, mode, userId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Consolidation failed');
+    if (result.consolidation) {
+      this.state.shipments[result.consolidation.id] = result.consolidation;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async updateShipmentWaypoint(shipmentId: string, status: string, location?: string, notes?: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/shipments/update-waypoint`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'logistics_manager'
+      },
+      body: JSON.stringify({ shipmentId, status, location, notes, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to update waypoint');
+    if (result.shipment) {
+      this.state.shipments[result.shipment.id] = result.shipment;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async createAgentRequest(rfqData: any): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/agents/request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rfqData)
+      });
+      const result = await res.json();
+      if (result.request) {
+        this.state.agent_requests[result.request.id] = result.request;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e) {
+      const rfq = this.recordAgentRequest(rfqData);
+      return { success: true, request: rfq };
+    }
+  }
+
+  public async quoteAgentRequest(requestId: string, quoteAmountUSD: number, quoteAmountNGN: number, adminNotes?: string, assignedAgent?: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/agents/quote`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'operations'
+      },
+      body: JSON.stringify({ requestId, quoteAmountUSD, quoteAmountNGN, adminNotes, assignedAgent, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to quote agent request');
+    if (result.request) {
+      this.state.agent_requests[result.request.id] = result.request;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async acceptAgentQuote(requestId: string, pin: string, paymentWalletUsed: string = 'USD', userId?: string): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/agents/accept-quote`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requestId, pin, paymentWalletUsed, userId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to accept quote');
+    if (result.request) {
+      this.state.agent_requests[result.request.id] = result.request;
+    }
+    if (result.balances && userId && this.state.users[userId]) {
+      this.state.users[userId].balances = result.balances;
+    }
+    this.persist();
+    this.notifyListeners();
+    return result;
+  }
+
+  public async completeAgentRequest(requestId: string, reportSummary?: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/agents/complete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'operations'
+      },
+      body: JSON.stringify({ requestId, reportSummary, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to complete agent request');
+    if (result.request) {
+      this.state.agent_requests[result.request.id] = result.request;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async createSupportTicket(subject: string, category: string = 'General Trade', priority: string = 'Medium', message: string = '', userId?: string): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/support/tickets/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject, category, priority, message, userId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to create support ticket');
+    if (result.ticket) {
+      this.state.support_tickets[result.ticket.id] = result.ticket;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async resolveSupportTicket(ticketId: string, resolutionNotes?: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/support/tickets/resolve`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'support_agent'
+      },
+      body: JSON.stringify({ ticketId, resolutionNotes, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to resolve support ticket');
+    if (result.ticket) {
+      this.state.support_tickets[result.ticket.id] = result.ticket;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
 }
 
 export const db = new DatabaseService();

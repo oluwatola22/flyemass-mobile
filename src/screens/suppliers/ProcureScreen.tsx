@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
+import { db } from '../../services/db';
 import { 
   FileCheck2, 
   Plus, 
@@ -12,13 +13,18 @@ import {
   Search, 
   ChevronRight, 
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Lock
 } from 'lucide-react';
-import { RFQQuotation } from '../../types';
+import { AgentRequestDocument } from '../../types';
 
 export const ProcureScreen: React.FC = () => {
-  const { rfqQuotations, submitRFQ, navigate, showToast } = useApp();
+  const { navigate, showToast, activeUserId } = useApp();
   const [showModal, setShowModal] = useState(false);
+  const [agentRequests, setAgentRequests] = useState<AgentRequestDocument[]>(() => db.getAgentRequests());
+  const [acceptingRfq, setAcceptingRfq] = useState<AgentRequestDocument | null>(null);
+  const [pinInput, setPinInput] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
   
   // RFQ Form state
   const [productName, setProductName] = useState('');
@@ -29,34 +35,69 @@ export const ProcureScreen: React.FC = () => {
   const [inspectionRequired, setInspectionRequired] = useState(true);
   const [cantonFairBooth, setCantonFairBooth] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    return db.subscribe(() => setAgentRequests(db.getAgentRequests()));
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productName.trim()) {
       showToast('Please specify product name', 'error');
       return;
     }
 
-    submitRFQ({
-      productName,
-      category,
-      targetQuantity: Number(targetQuantity),
-      targetUnitUSD: Number(targetUnitUSD),
-      supplierCity,
-      inspectionRequired,
-      cantonFairBooth: cantonFairBooth || undefined
-    });
+    try {
+      await db.createAgentRequest({
+        productName,
+        category,
+        targetQuantity: Number(targetQuantity),
+        targetUnitUSD: Number(targetUnitUSD),
+        supplierCity,
+        inspectionRequired,
+        cantonFairBooth: cantonFairBooth || undefined,
+        serviceType: 'Factory Direct RFQ & Procurement',
+        userId: activeUserId || 'usr_alade_01'
+      });
 
-    setShowModal(false);
-    setProductName('');
-    setCantonFairBooth('');
+      setShowModal(false);
+      setProductName('');
+      setCantonFairBooth('');
+      setAgentRequests(db.getAgentRequests());
+      showToast('Factory RFQ submitted to China sourcing desk!', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to submit RFQ', 'error');
+    }
   };
 
-  const getStatusColor = (status: RFQQuotation['status']) => {
+  const handleAcceptQuote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!acceptingRfq) return;
+    if (pinInput.length !== 6) {
+      showToast('Please enter your 6-digit transaction PIN', 'error');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      await db.acceptAgentQuote(acceptingRfq.id, pinInput, 'USD', activeUserId || 'usr_alade_01');
+      showToast(`Quote of $${acceptingRfq.quoteAmountUSD} USD accepted! Funds locked in escrow.`, 'success');
+      setAcceptingRfq(null);
+      setPinInput('');
+      setAgentRequests(db.getAgentRequests());
+    } catch (err: any) {
+      showToast(err.message || 'Failed to accept quote', 'error');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const getStatusBadge = (status: AgentRequestDocument['status']) => {
     switch (status) {
-      case 'PO Issued': return 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
-      case 'Sample Approved': return 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400';
-      case 'Factory Negotiating': return 'bg-amber-500/10 border-amber-500/30 text-amber-400';
-      default: return 'bg-slate-800 border-slate-700 text-slate-300';
+      case 'po_issued':
+      case 'quote_accepted': return { color: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400', label: 'PO Issued (Escrow Locked)' };
+      case 'completed': return { color: 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300', label: 'Completed & Delivered' };
+      case 'quote_ready': return { color: 'bg-amber-500/10 border-amber-500/30 text-amber-400', label: 'Quote Ready for Review' };
+      default: return { color: 'bg-slate-800 border-slate-700 text-slate-300', label: 'Pending Sourcing Review' };
     }
   };
 
@@ -93,7 +134,7 @@ export const ProcureScreen: React.FC = () => {
           <button
             className="py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold shadow-md transition-all"
           >
-            Quotation Manager ({rfqQuotations.length})
+            Quotation Manager ({agentRequests.length})
           </button>
           <button
             onClick={() => navigate('agent')}
@@ -112,63 +153,149 @@ export const ProcureScreen: React.FC = () => {
             <span className="text-[11px] text-emerald-400 font-mono">0% Commission Escrow</span>
           </div>
 
-          {rfqQuotations.map((rfq) => (
-            <div
-              key={rfq.id}
-              className="p-4 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all space-y-3"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-xs font-bold text-white">
-                  {rfq.rfqCode}
-                </span>
-                <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-bold ${getStatusColor(rfq.status)}`}>
-                  {rfq.status}
-                </span>
-              </div>
+          {agentRequests.map((rfq) => {
+            const badge = getStatusBadge(rfq.status);
+            return (
+              <div
+                key={rfq.id}
+                className="p-4 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs font-bold text-white">
+                    {rfq.id.toUpperCase()}
+                  </span>
+                  <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-bold ${badge.color}`}>
+                    {badge.label}
+                  </span>
+                </div>
 
-              <div>
-                <h4 className="text-xs font-extrabold text-white">{rfq.productName}</h4>
-                <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
-                  <span>Hub: <strong className="text-emerald-400">{rfq.supplierCity}</strong></span>
-                  <span>•</span>
-                  <span>Target: <strong className="text-white">{rfq.targetQuantity.toLocaleString()} units</strong></span>
-                  <span>•</span>
-                  <span>Target Unit: <strong className="font-mono text-amber-400">${rfq.targetUnitUSD}</strong></span>
+                <div>
+                  <h4 className="text-xs font-extrabold text-white">{rfq.productName}</h4>
+                  <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
+                    <span>Hub: <strong className="text-emerald-400">{rfq.supplierCity}</strong></span>
+                    <span>•</span>
+                    <span>Target: <strong className="text-white">{rfq.targetQuantity.toLocaleString()} units</strong></span>
+                    <span>•</span>
+                    <span>Target Unit: <strong className="font-mono text-amber-400">${rfq.targetUnitUSD}</strong></span>
+                  </div>
+                </div>
+
+                {/* Formal Quote Display Card if quoted */}
+                {rfq.quoteAmountUSD && (
+                  <div className="p-3 rounded-2xl bg-slate-950 border border-amber-500/30 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase font-bold text-amber-400">Official China Desk Quotation</span>
+                      <span className="text-xs font-mono font-extrabold text-white">${rfq.quoteAmountUSD} USD (₦{rfq.quoteAmountNGN?.toLocaleString()})</span>
+                    </div>
+                    {rfq.adminNotes && (
+                      <p className="text-[10px] text-slate-300 italic">"{rfq.adminNotes}"</p>
+                    )}
+                    {rfq.assignedAgent && (
+                      <p className="text-[9px] text-slate-400">Assigned Inspector: <strong className="text-emerald-400">{rfq.assignedAgent}</strong></p>
+                    )}
+
+                    {rfq.status === 'quote_ready' && (
+                      <button
+                        onClick={() => setAcceptingRfq(rfq)}
+                        className="w-full py-2.5 mt-1 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>Accept Quote & Lock Escrow (${rfq.quoteAmountUSD})</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {rfq.cantonFairBooth && (
+                  <div className="p-2 rounded-xl bg-slate-950/80 border border-slate-800/80 text-[10px] text-slate-400">
+                    <span className="text-emerald-400 font-bold">Canton Fair Booth: </span>
+                    {rfq.cantonFairBooth}
+                  </div>
+                )}
+
+                <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                  <span className="text-[10px] text-slate-500">{new Date(rfq.createdAt).toLocaleDateString()}</span>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        showToast(`Quotation breakdown for ${rfq.id} sent to your email`, 'success');
+                      }}
+                      className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[10px] font-semibold text-slate-300"
+                    >
+                      View Sheet
+                    </button>
+
+                    <button
+                      onClick={() => navigate('support-chat')}
+                      className="px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-[10px] font-bold"
+                    >
+                      Chat Agent
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              {rfq.cantonFairBooth && (
-                <div className="p-2 rounded-xl bg-slate-950/80 border border-slate-800/80 text-[10px] text-slate-400">
-                  <span className="text-emerald-400 font-bold">Canton Fair Booth: </span>
-                  {rfq.cantonFairBooth}
-                </div>
-              )}
-
-              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                <span className="text-[10px] text-slate-500">{rfq.date}</span>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      showToast(`Quotation breakdown for ${rfq.rfqCode} sent to your email`, 'success');
-                    }}
-                    className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[10px] font-semibold text-slate-300"
-                  >
-                    View Sheet
-                  </button>
-
-                  <button
-                    onClick={() => navigate('support-chat')}
-                    className="px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-[10px] font-bold"
-                  >
-                    Chat Agent
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
+
+      {/* Accept Quote Modal */}
+      {acceptingRfq && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl relative space-y-4">
+            <button
+              onClick={() => setAcceptingRfq(null)}
+              className="absolute right-4 top-4 text-slate-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div>
+              <h3 className="text-base font-extrabold text-white">Accept Sourcing Quote</h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Funds will be held in double-entry escrow and released upon milestone completion.
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5">
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-400">Product / Assignment:</span>
+                <span className="font-semibold text-white">{acceptingRfq.productName}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-400">Escrow Required:</span>
+                <span className="font-mono font-bold text-emerald-400">${acceptingRfq.quoteAmountUSD} USD</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleAcceptQuote} className="space-y-3.5">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                  6-Digit Transaction PIN
+                </label>
+                <input
+                  type="password"
+                  maxLength={6}
+                  value={pinInput}
+                  onChange={(e) => setPinInput(e.target.value)}
+                  placeholder="Enter 6-digit PIN"
+                  className="w-full px-3.5 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-center tracking-[0.4em] font-mono text-base text-white focus:border-emerald-500 outline-none"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isProcessing}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg active:scale-95 transition-all disabled:opacity-50"
+              >
+                {isProcessing ? 'Securing Escrow...' : `Confirm & Lock $${acceptingRfq.quoteAmountUSD} Escrow`}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* RFQ Creation Modal */}
       {showModal && (

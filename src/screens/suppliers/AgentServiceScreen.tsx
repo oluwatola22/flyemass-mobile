@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
+import { db } from '../../services/db';
 import { 
   Users, 
   ShieldCheck, 
@@ -15,17 +16,35 @@ import {
 } from 'lucide-react';
 
 export const AgentServiceScreen: React.FC = () => {
-  const { showToast, goBack, navigate } = useApp();
+  const { showToast, goBack, navigate, activeUserId } = useApp();
   const [serviceType, setServiceType] = useState<'audit' | 'canton' | 'procure'>('audit');
   const [city, setCity] = useState<'Guangzhou' | 'Shenzhen' | 'Yiwu' | 'Foshan'>('Guangzhou');
   const [targetFactory, setTargetFactory] = useState('Shenzhen Huaqiangbei Electronics Industrial Park');
   const [requestedDate, setRequestedDate] = useState('2026-11-10');
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    showToast('Agent request received! Our China ground manager will contact you within 30 minutes.', 'success');
+    setIsSubmitting(true);
+    try {
+      await db.createAgentRequest({
+        serviceType: serviceType === 'audit' ? 'Factory Audit & Inspection' : serviceType === 'canton' ? 'Canton Fair VIP Guide' : '1688 Sourcing & Sample Pickup',
+        productName: targetFactory,
+        category: 'Ground Agent Assignment',
+        targetQuantity: 1,
+        targetUnitUSD: 250,
+        supplierCity: city,
+        inspectionRequired: true,
+        userId: activeUserId || 'usr_alade_01'
+      });
+      setSubmitted(true);
+      showToast('Ground agent request registered in China sourcing queue!', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to submit agent request', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
