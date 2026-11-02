@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Header } from '../../components/layout/Header';
+import { AdminLayout } from '../../components/admin/AdminLayout';
 import { db, DatabaseState } from '../../services/db';
 import { 
   Database, 
@@ -114,10 +114,8 @@ export const DatabaseViewerScreen: React.FC = () => {
   const currentMeta = collectionInfo.find((c) => c.key === activeCollection);
 
   return (
-    <div className="min-h-full pb-24 bg-slate-950 text-white">
-      <Header title="Backend Schema & Database" />
-
-      <div className="p-4 space-y-4">
+    <AdminLayout activeTab="db">
+      <div className="space-y-6 pb-12">
         {/* Top Architecture Banner */}
         <div className="p-4 rounded-3xl bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-900 border border-indigo-500/30 shadow-xl space-y-2">
           <div className="flex items-center justify-between">
@@ -269,6 +267,6 @@ export const DatabaseViewerScreen: React.FC = () => {
           </button>
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 };

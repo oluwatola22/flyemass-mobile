@@ -289,7 +289,15 @@ class DatabaseService {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        return {
+          users: { ...INITIAL_DATABASE.users, ...(parsed.users || {}) },
+          wallets_ledger: { ...INITIAL_DATABASE.wallets_ledger, ...(parsed.wallets_ledger || {}) },
+          shipments: { ...INITIAL_DATABASE.shipments, ...(parsed.shipments || {}) },
+          supplier_payments: { ...INITIAL_DATABASE.supplier_payments, ...(parsed.supplier_payments || {}) },
+          shop_orders: { ...INITIAL_DATABASE.shop_orders, ...(parsed.shop_orders || {}) },
+          support_tickets: { ...INITIAL_DATABASE.support_tickets, ...(parsed.support_tickets || {}) }
+        };
       }
     } catch (e) {
       console.warn('Failed to parse database state from localStorage', e);

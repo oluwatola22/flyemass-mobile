@@ -186,10 +186,10 @@ const ROUTE_TO_PATH: Record<ScreenRoute, string> = {
 const getInitialRoute = (): ScreenRoute => {
   if (typeof window === 'undefined') return 'home';
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
-  for (const [route, p] of Object.entries(ROUTE_TO_PATH)) {
-    if (p === path) return route as ScreenRoute;
-  }
-  if (path === '/admin') return 'admin-dashboard';
+  
+  if (path === '' || path === '/' || path === '/app' || path === '/home') return 'home';
+  if (path === '/admin' || path === '/admin/dashboard') return 'admin-dashboard';
+  if (path === '/admin/db') return 'schema-inspector';
   if (path.startsWith('/admin/users')) return 'admin-users';
   if (path.startsWith('/admin/logistics')) return 'admin-logistics';
   if (path.startsWith('/admin/payments')) return 'admin-payments';
@@ -199,7 +199,10 @@ const getInitialRoute = (): ScreenRoute => {
   if (path.startsWith('/admin/support')) return 'admin-support';
   if (path.startsWith('/admin/team')) return 'admin-team';
   if (path.startsWith('/admin/login')) return 'admin-login';
-  if (path.startsWith('/admin/db')) return 'schema-inspector';
+
+  for (const [route, p] of Object.entries(ROUTE_TO_PATH)) {
+    if (p === path) return route as ScreenRoute;
+  }
   return 'home';
 };
 

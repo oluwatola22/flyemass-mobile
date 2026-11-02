@@ -86,6 +86,7 @@ import { AdminHotelsScreen } from '../../screens/admin/AdminHotelsScreen';
 import { AdminAgentsScreen } from '../../screens/admin/AdminAgentsScreen';
 import { AdminSupportScreen } from '../../screens/admin/AdminSupportScreen';
 import { AdminTeamScreen } from '../../screens/admin/AdminTeamScreen';
+import { DevEnvironmentSwitcher } from '../dev/DevEnvironmentSwitcher';
 
 export const MobileShell: React.FC = () => {
   const { 
@@ -261,13 +262,14 @@ export const MobileShell: React.FC = () => {
     setTimeout(() => window.location.reload(), 400);
   };
 
-  const isAdminRoute = currentRoute.startsWith('admin-');
+  const isAdminRoute = currentRoute.startsWith('admin-') || currentRoute === 'schema-inspector';
 
   if (isAdminRoute) {
     return (
       <div className={`min-h-screen bg-slate-950 text-slate-100 ${themeMode === 'light' ? 'light-mode' : ''}`}>
         {renderCurrentScreen()}
         <Toast />
+        <DevEnvironmentSwitcher />
       </div>
     );
   }
@@ -405,6 +407,7 @@ export const MobileShell: React.FC = () => {
           <Toast />
         </div>
       </div>
+      <DevEnvironmentSwitcher />
     </div>
   );
 };
