@@ -30,8 +30,10 @@ export interface DatabaseState {
   audit_logs: any[];
 }
 
+import { getBackendBaseUrl } from '../utils/environment';
+
 const STORAGE_KEY = 'flyemass_nosql_db_v2';
-const BACKEND_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BACKEND_URL) || 'http://localhost:5050';
+const BACKEND_BASE = getBackendBaseUrl();
 
 export const INITIAL_DATABASE: DatabaseState = {
   users: {
@@ -707,14 +709,11 @@ class DatabaseService {
       });
       return await res.json();
     } catch (e) {
-      // Offline fallback
-      const u = this.state.users[userId];
-      if (u) {
-        const num = Number(amount);
-        u.balances[currency as 'NGN'] = (u.balances[currency as 'NGN'] || 0) + num;
-        this.persist();
-      }
-      return { success: true };
+      // Strict Financial Invariant: NEVER credit customer wallet locally or offline without authoritative backend verification
+      return { 
+        success: false, 
+        error: 'Authoritative backend connection required. Unverified offline wallet deposits are rejected.' 
+      };
     }
   }
 

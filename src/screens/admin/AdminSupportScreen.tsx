@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { getMobileAppUrl } from '../../utils/environment';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { db, DatabaseState } from '../../services/db';
 import { firebaseSync } from '../../services/firebase';
@@ -159,12 +160,12 @@ export const AdminSupportScreen: React.FC = () => {
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => window.open(`http://localhost:3030?userId=${activeTicket.userId}`, '_blank')}
+                      onClick={() => window.open(getMobileAppUrl(`?userId=${activeTicket.userId}`), '_blank')}
                       className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-400 font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-500/10 active:scale-95"
-                      title="Open Client View (http://localhost:3030)"
+                      title={`Open Client View (${getMobileAppUrl()})`}
                     >
                       <Smartphone className="w-3.5 h-3.5" />
-                      <span>Open Client View (http://localhost:3030)</span>
+                      <span>Open Client View</span>
                       <ExternalLink className="w-3 h-3 ml-0.5" />
                     </button>
                     {activeTicket.status !== 'resolved' && (

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { PinPad } from '../../components/ui/PinPad';
 import { db } from '../../services/db';
-import { Building2, ArrowUpRight, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Building2, ArrowUpRight, ShieldCheck, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { Currency } from '../../types';
 
 export const WithdrawScreen: React.FC = () => {
@@ -11,12 +11,41 @@ export const WithdrawScreen: React.FC = () => {
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>('NGN');
   const [amount, setAmount] = useState('2500000');
   const [bankName, setBankName] = useState('Zenith Bank Plc');
-  const [accountNumber, setAccountNumber] = useState('2089140021');
+  const [accountNumber, setAccountNumber] = useState('2089140022');
   const [accountName, setAccountName] = useState('Chief Babatunde Alade');
+  const [isVerifyingNuban, setIsVerifyingNuban] = useState(false);
+  const [nibssError, setNibssError] = useState<string | null>(null);
   const [showPinModal, setShowPinModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const wallet = wallets.find((w) => w.currency === selectedCurrency) || wallets[0];
+  const fee = selectedCurrency === 'NGN' ? (db.getSystemSettings()?.fees?.withdrawalFlatNGN || 500) : 0;
+
+  useEffect(() => {
+    const cleanAcc = accountNumber.replace(/\D/g, '');
+    if (selectedCurrency === 'NGN' && cleanAcc.length === 10) {
+      setIsVerifyingNuban(true);
+      setNibssError(null);
+      const bankCode = bankName.toLowerCase().includes('zenith') ? '057' 
+        : bankName.toLowerCase().includes('guaranty') || bankName.toLowerCase().includes('gtb') ? '058'
+        : bankName.toLowerCase().includes('access') ? '044'
+        : bankName.toLowerCase().includes('first') ? '011'
+        : bankName.toLowerCase().includes('providus') ? '101'
+        : '057';
+
+      db.enquireAccount(bankCode, cleanAcc).then((res) => {
+        setIsVerifyingNuban(false);
+        if (res && res.success && res.accountName) {
+          setAccountName(res.accountName);
+          setNibssError(null);
+        } else if (res && res.error) {
+          setNibssError(res.error);
+        }
+      }).catch(() => {
+        setIsVerifyingNuban(false);
+      });
+    }
+  }, [accountNumber, bankName, selectedCurrency]);
 
   const handleWithdraw = () => {
     const num = parseFloat(amount);
@@ -31,9 +60,12 @@ export const WithdrawScreen: React.FC = () => {
         showToast('Please enter a valid 10-digit NUBAN account number', 'error');
         return;
       }
-      const fee = 500;
+      if (nibssError) {
+        showToast(`Cannot proceed: ${nibssError}`, 'error');
+        return;
+      }
       if (num + fee > wallet.balance) {
-        showToast(`Insufficient balance including ₦${fee} flat withdrawal fee`, 'error');
+        showToast(`Insufficient balance including ₦${fee.toLocaleString()} flat withdrawal fee`, 'error');
         return;
       }
     } else {
@@ -148,11 +180,26 @@ export const WithdrawScreen: React.FC = () => {
           </div>
 
           <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800 text-xs flex items-center justify-between">
-            <div>
-              <span className="text-[10px] text-slate-400 block">Beneficiary Name</span>
-              <span className="font-bold text-emerald-400">{accountName}</span>
+            <div className="flex-1 mr-2">
+              <span className="text-[10px] text-slate-400 block">Beneficiary Name (NIBSS Verified)</span>
+              {isVerifyingNuban ? (
+                <div className="flex items-center gap-1.5 text-xs text-amber-400 font-medium mt-0.5">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Querying NIBSS Instant switch...</span>
+                </div>
+              ) : nibssError ? (
+                <span className="font-semibold text-rose-400 text-xs block">{nibssError}</span>
+              ) : (
+                <span className="font-bold text-emerald-400">{accountName}</span>
+              )}
             </div>
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            {isVerifyingNuban ? (
+              <Loader2 className="w-4 h-4 text-amber-400 animate-spin shrink-0" />
+            ) : nibssError ? (
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            ) : (
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            )}
           </div>
         </div>
 
@@ -170,7 +217,7 @@ export const WithdrawScreen: React.FC = () => {
           <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
             <PinPad
               title="Authorize Withdrawal"
-              subtitle={`Payout ${wallet.symbol}${parseFloat(amount).toLocaleString()} to ${bankName} (Fee: ₦500)`}
+              subtitle={`Payout ${wallet.symbol}${parseFloat(amount).toLocaleString()} to ${bankName} ${fee > 0 ? `(Authoritative Fee: ₦${fee.toLocaleString()})` : ''}`}
               onComplete={handlePinSuccess}
               onCancel={() => setShowPinModal(false)}
             />

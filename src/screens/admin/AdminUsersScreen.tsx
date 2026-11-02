@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { getMobileAppUrl } from '../../utils/environment';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { db, DatabaseState } from '../../services/db';
 import { firebaseSync } from '../../services/firebase';
@@ -226,12 +227,12 @@ export const AdminUsersScreen: React.FC = () => {
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => window.open(`http://localhost:3030?userId=${user.uid}`, '_blank')}
+                          onClick={() => window.open(getMobileAppUrl(`?userId=${user.uid}`), '_blank')}
                           className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold transition-all inline-flex items-center gap-1.5"
-                          title={`Open Client View for ${user.fullName} (http://localhost:3030)`}
+                          title={`Open Client View for ${user.fullName} (${getMobileAppUrl()})`}
                         >
                           <Smartphone className="w-3.5 h-3.5" />
-                          <span>Open Client View (http://localhost:3030)</span>
+                          <span>Open Client View</span>
                           <ExternalLink className="w-3 h-3 ml-0.5" />
                         </button>
                         <button
@@ -266,12 +267,12 @@ export const AdminUsersScreen: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => window.open(`http://localhost:3030?userId=${selectedUser.uid}`, '_blank')}
+                  onClick={() => window.open(getMobileAppUrl(`?userId=${selectedUser.uid}`), '_blank')}
                   className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-400 font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-500/10 active:scale-95"
-                  title="Open Client View (http://localhost:3030)"
+                  title={`Open Client View (${getMobileAppUrl()})`}
                 >
                   <Smartphone className="w-3.5 h-3.5" />
-                  <span>Open Client View (http://localhost:3030)</span>
+                  <span>Open Client View</span>
                   <ExternalLink className="w-3.5 h-3.5 ml-0.5" />
                 </button>
                 <button

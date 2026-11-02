@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { getMobileAppUrl } from '../../utils/environment';
 import { db } from '../../services/db';
 import { INITIAL_ADMINS, AdminUser, AdminRole, firebaseSync } from '../../services/firebase';
 import { 
@@ -134,12 +135,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
           {/* Cross-Navigation Link to Mobile Client App on Port 3030 */}
           <div className="flex items-center gap-1.5">
             <button
-              onClick={() => window.open('http://localhost:3030', '_blank')}
+              onClick={() => window.open(getMobileAppUrl(), '_blank')}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-extrabold text-[11px] shadow-sm shadow-emerald-500/20 active:scale-95 transition-all"
-              title="Open Client Mobile App in New Window (http://localhost:3030)"
+              title={`Open Client Mobile App in New Window (${getMobileAppUrl()})`}
             >
               <Smartphone className="w-3.5 h-3.5" />
-              <span>📱 Open Client View (http://localhost:3030)</span>
+              <span>📱 Open Client View</span>
               <ExternalLink className="w-3 h-3 ml-0.5" />
             </button>
           </div>

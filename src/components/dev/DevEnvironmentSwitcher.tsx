@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { getMobileAppUrl, getAdminAppUrl, isProduction } from '../../utils/environment';
 import { 
   Smartphone, 
   LayoutDashboard, 
@@ -24,6 +25,9 @@ export const DevEnvironmentSwitcher: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [showSubNav, setShowSubNav] = useState(false);
 
+  // Strictly disabled in production deployment builds
+  if (isProduction) return null;
+
   const isAdmin = currentRoute.startsWith('admin-') || currentRoute === 'schema-inspector';
   const currentPath = window.location.pathname || (isAdmin ? '/admin' : '/');
 
@@ -31,8 +35,8 @@ export const DevEnvironmentSwitcher: React.FC = () => {
   const isPort5173 = typeof window !== 'undefined' && window.location.port === '5173';
   const isCurrentAdmin = isPort5173 || isAdmin;
 
-  const mobileUrl = 'http://localhost:3030';
-  const adminUrl = 'http://localhost:5173';
+  const mobileUrl = getMobileAppUrl();
+  const adminUrl = getAdminAppUrl();
 
   const handleOpenMobile = () => {
     if (!isMobilePort) {

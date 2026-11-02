@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { getAdminAppUrl } from '../../utils/environment';
 import { BottomNav } from './BottomNav';
 import { QuickActionSheet } from '../ui/QuickActionSheet';
 import { Toast } from '../ui/Toast';
@@ -326,12 +327,12 @@ export const MobileShell: React.FC = () => {
         {/* Device Frame & Refresh Controls */}
         <div className="flex items-center gap-2 shrink-0">
           <button
-            onClick={() => window.open('http://localhost:5173', '_blank')}
+            onClick={() => window.open(getAdminAppUrl(), '_blank')}
             className="p-1.5 rounded-xl bg-gradient-to-r from-indigo-500/20 to-cyan-500/20 hover:from-indigo-500/30 hover:to-cyan-500/30 border border-indigo-500/40 text-indigo-400 font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-indigo-500/10 active:scale-95"
-            title="Open Web Admin Dashboard (http://localhost:5173)"
+            title={`Open Web Admin Dashboard (${getAdminAppUrl()})`}
           >
             <LayoutDashboard className="w-4 h-4 text-indigo-400" />
-            <span className="hidden sm:inline font-extrabold">🛡️ Admin (http://localhost:5173)</span>
+            <span className="hidden sm:inline font-extrabold">🛡️ Admin</span>
           </button>
 
           <button
