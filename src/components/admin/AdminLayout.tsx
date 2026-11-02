@@ -132,14 +132,28 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
           </div>
 
           {/* Quick Switch to Mobile Client App */}
-          <button
-            onClick={() => navigate('home')}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-[11px] shadow-sm shadow-emerald-500/20 active:scale-95 transition-all"
-            title="Preview Mobile Client Application"
-          >
-            <Smartphone className="w-3.5 h-3.5" />
-            <span>Switch to Mobile App</span>
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => {
+                navigate('home');
+                window.history.pushState({ route: 'home' }, '', '/app');
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-[11px] shadow-sm shadow-emerald-500/20 active:scale-95 transition-all"
+              title="Preview Mobile Client Application (/app)"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>📱 View Client Mobile App (/app)</span>
+            </button>
+            <a
+              href="/app"
+              target="_blank"
+              rel="noreferrer"
+              className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-white transition-colors border border-slate-700/60 flex items-center justify-center"
+              title="Open Mobile App in New Tab (/app)"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
         </div>
       </div>
 

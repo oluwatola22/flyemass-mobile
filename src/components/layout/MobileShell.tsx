@@ -262,18 +262,6 @@ export const MobileShell: React.FC = () => {
     setTimeout(() => window.location.reload(), 400);
   };
 
-  const isAdminRoute = currentRoute.startsWith('admin-') || currentRoute === 'schema-inspector';
-
-  if (isAdminRoute) {
-    return (
-      <div className={`min-h-screen bg-slate-950 text-slate-100 ${themeMode === 'light' ? 'light-mode' : ''}`}>
-        {renderCurrentScreen()}
-        <Toast />
-        <DevEnvironmentSwitcher />
-      </div>
-    );
-  }
-
   return (
     <div className={`min-h-screen bg-slate-950 flex flex-col items-center justify-start text-slate-100 ${themeMode === 'light' ? 'light-mode' : ''}`}>
       {/* Top Reviewer Bar / Route Switcher */}
@@ -407,7 +395,6 @@ export const MobileShell: React.FC = () => {
           <Toast />
         </div>
       </div>
-      <DevEnvironmentSwitcher />
     </div>
   );
 };

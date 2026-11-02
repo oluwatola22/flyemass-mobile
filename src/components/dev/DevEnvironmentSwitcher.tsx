@@ -29,10 +29,10 @@ export const DevEnvironmentSwitcher: React.FC = () => {
 
   const handleOpenMobile = () => {
     navigate('home');
-    if (window.location.pathname !== '/') {
-      window.history.pushState({ route: 'home' }, '', '/');
+    if (window.location.pathname !== '/app' && window.location.pathname !== '/') {
+      window.history.pushState({ route: 'home' }, '', '/app');
     }
-    showToast('Switched to Client Mobile App view (/)', 'info');
+    showToast('Switched to Client Mobile App view (/app)', 'info');
   };
 
   const handleOpenAdmin = () => {
@@ -60,7 +60,7 @@ export const DevEnvironmentSwitcher: React.FC = () => {
           title="Expand Environment Switcher"
         >
           <span className={`w-2 h-2 rounded-full ${isAdmin ? 'bg-indigo-400 animate-pulse' : 'bg-emerald-400 animate-pulse'}`} />
-          <span>{isAdmin ? '⚙️ Web Admin' : '📱 Mobile App'}</span>
+          <span>{isAdmin ? '🛡️ Web Admin' : '🔗 Mobile App'}</span>
           <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
         </button>
       </div>
@@ -77,9 +77,9 @@ export const DevEnvironmentSwitcher: React.FC = () => {
             <span className={`w-2 h-2 rounded-full ${isAdmin ? 'bg-indigo-400 animate-pulse' : 'bg-emerald-400 animate-pulse'}`} />
             <span className="text-[11px] font-bold text-slate-300">
               {isAdmin ? (
-                <span className="text-indigo-400">Web Admin Center</span>
+                <span className="text-indigo-400 font-extrabold">Web Admin Center</span>
               ) : (
-                <span className="text-emerald-400">Mobile Client App</span>
+                <span className="text-emerald-400 font-extrabold">Mobile Client View</span>
               )}
             </span>
             <span className="hidden sm:inline text-[10px] text-slate-500 font-mono">
@@ -100,7 +100,7 @@ export const DevEnvironmentSwitcher: React.FC = () => {
               }`}
             >
               <Smartphone className="w-3.5 h-3.5" />
-              <span>📱 Open Mobile App (/)</span>
+              <span>🔗 Open Mobile App Client View</span>
             </button>
 
             {/* Button 2: Web Admin */}
@@ -114,7 +114,7 @@ export const DevEnvironmentSwitcher: React.FC = () => {
               }`}
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
-              <span>⚙️ Open Web Admin (/admin)</span>
+              <span>🛡️ Open Web Admin Dashboard</span>
             </button>
           </div>
 

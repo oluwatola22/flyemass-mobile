@@ -94,6 +94,9 @@ interface AppContextType {
   setUserPin: (pin: string) => void;
   login: () => void;
   logout: () => void;
+  activeUserId: string;
+  switchUser: (userId: string) => void;
+  viewAsClient: (userId: string, targetScreen?: ScreenRoute) => void;
   userProfile: {
     name: string;
     email: string;
@@ -200,6 +203,13 @@ const getInitialRoute = (): ScreenRoute => {
   if (path.startsWith('/admin/team')) return 'admin-team';
   if (path.startsWith('/admin/login')) return 'admin-login';
 
+  if (path.startsWith('/app/')) {
+    const sub = path.replace('/app/', '');
+    for (const [route, p] of Object.entries(ROUTE_TO_PATH)) {
+      if (p === `/${sub}`) return route as ScreenRoute;
+    }
+  }
+
   for (const [route, p] of Object.entries(ROUTE_TO_PATH)) {
     if (p === path) return route as ScreenRoute;
   }
@@ -212,9 +222,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentRoute, setCurrentRoute] = useState<ScreenRoute>(() => getInitialRoute());
   const [routeHistory, setRouteHistory] = useState<ScreenRoute[]>(() => [getInitialRoute()]);
   const [routeParam, setRouteParam] = useState<string | null>(null);
+
+  const [activeUserId, setActiveUserId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const uid = urlParams.get('userId');
+      if (uid && db.getUser(uid)) return uid;
+    }
+    return 'usr_alade_01';
+  });
   
   const [wallets, setWallets] = useState<WalletBalance[]>(() => {
-    const user = db.getUser('usr_alade_01');
+    const user = db.getUser(activeUserId) || db.getUser('usr_alade_01');
     if (user && user.balances) {
       return [
         { currency: 'NGN', balance: user.balances.NGN, symbol: '₦', name: 'Nigerian Naira' },
@@ -248,27 +267,76 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [userPin, setUserPin] = useState<string>('2468');
 
-  const [userProfile] = useState({
-    name: 'Chief Babatunde Alade',
-    email: 'babatunde@aladeholding.ng',
-    phone: '+234 803 555 9201',
-    company: 'Alade Global Enterprises Ltd',
-    rcNumber: 'RC-1849204',
-    tier: 'Tier 3 Enterprise Verified',
-    flyeTag: '@alade_trade',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
+  const [userProfile, setUserProfile] = useState(() => {
+    const u = db.getUser(activeUserId) || db.getUser('usr_alade_01');
+    return {
+      name: u?.fullName || 'Chief Babatunde Alade',
+      email: u?.email || 'babatunde@aladeholding.ng',
+      phone: u?.phone || '+234 803 555 9201',
+      company: u?.businessName || 'Alade Global Enterprises Ltd',
+      rcNumber: u?.role === 'client' ? 'RC-1849204' : 'GZ-LIC-992144',
+      tier: u?.verifiedBadge ? 'Tier 3 Enterprise Verified' : 'Tier 1 Basic',
+      flyeTag: `@${(u?.fullName || 'alade').toLowerCase().replace(/\s+/g, '_')}`,
+      avatar: u?.role === 'agent'
+        ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'
+        : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
+    };
   });
+
+  const switchUser = (userId: string) => {
+    setActiveUserId(userId);
+    const u = db.getUser(userId);
+    if (u) {
+      setWallets([
+        { currency: 'NGN', balance: u.balances.NGN, symbol: '₦', name: 'Nigerian Naira' },
+        { currency: 'CNY', balance: u.balances.CNY, symbol: '¥', name: 'Chinese Yuan' },
+        { currency: 'USD', balance: u.balances.USD, symbol: '$', name: 'US Dollar' }
+      ]);
+      setUserProfile({
+        name: u.fullName,
+        email: u.email,
+        phone: u.phone,
+        company: u.businessName,
+        rcNumber: u.role === 'client' ? 'RC-1849204' : 'GZ-LIC-992144',
+        tier: u.verifiedBadge ? 'Tier 3 Enterprise Verified' : 'Tier 1 Basic',
+        flyeTag: `@${u.fullName.toLowerCase().replace(/\s+/g, '_')}`,
+        avatar: u.role === 'agent'
+          ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'
+          : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
+      });
+    }
+  };
+
+  const viewAsClient = (userId: string, targetScreen: ScreenRoute = 'home') => {
+    switchUser(userId);
+    navigate(targetScreen);
+    const targetPath = `/app?userId=${userId}`;
+    window.history.pushState({ route: targetScreen, userId }, '', targetPath);
+    showToast(`Switched view to client: ${db.getUser(userId)?.fullName || userId}`, 'info');
+  };
 
   // Real-time synchronization with NoSQL DB and Firestore
   useEffect(() => {
     const syncFromDb = () => {
-      const user = db.getUser('usr_alade_01');
+      const user = db.getUser(activeUserId) || db.getUser('usr_alade_01');
       if (user && user.balances) {
         setWallets([
           { currency: 'NGN', balance: user.balances.NGN, symbol: '₦', name: 'Nigerian Naira' },
           { currency: 'CNY', balance: user.balances.CNY, symbol: '¥', name: 'Chinese Yuan' },
           { currency: 'USD', balance: user.balances.USD, symbol: '$', name: 'US Dollar' }
         ]);
+        setUserProfile({
+          name: user.fullName,
+          email: user.email,
+          phone: user.phone,
+          company: user.businessName,
+          rcNumber: user.role === 'client' ? 'RC-1849204' : 'GZ-LIC-992144',
+          tier: user.verifiedBadge ? 'Tier 3 Enterprise Verified' : 'Tier 1 Basic',
+          flyeTag: `@${user.fullName.toLowerCase().replace(/\s+/g, '_')}`,
+          avatar: user.role === 'agent'
+            ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'
+            : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
+        });
       }
 
       const dbShipments = db.getShipments();
@@ -363,6 +431,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Browser History & URL route synchronization
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const uid = urlParams.get('userId');
+      if (uid && db.getUser(uid)) {
+        setActiveUserId(uid);
+      }
+
       if (e.state && e.state.route) {
         setCurrentRoute(e.state.route);
         if (e.state.param !== undefined) {
@@ -459,7 +533,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newFromBal = fromWallet.balance - fromAmount;
     const newToBal = (toWallet?.balance || 0) + toAmount;
 
-    db.updateUserBalances('usr_alade_01', {
+    db.updateUserBalances(activeUserId, {
       [from]: newFromBal,
       [to]: newToBal
     });
@@ -491,7 +565,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     db.recordLedgerEntry({
-      userId: 'usr_alade_01',
+      userId: activeUserId,
       type: 'FX_SWAP',
       sourceCurrency: from,
       targetCurrency: to,
@@ -510,7 +584,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetWallet = wallets.find((w) => w.currency === currency);
     const newBal = (targetWallet?.balance || 0) + amount;
 
-    db.updateUserBalances('usr_alade_01', {
+    db.updateUserBalances(activeUserId, {
       [currency]: newBal
     });
 
@@ -536,7 +610,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     db.recordLedgerEntry({
-      userId: 'usr_alade_01',
+      userId: activeUserId,
       type: 'FUND',
       sourceCurrency: currency,
       targetCurrency: currency,
@@ -558,7 +632,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const newBal = cnyWallet.balance - amountCNY;
-    db.updateUserBalances('usr_alade_01', {
+    db.updateUserBalances(activeUserId, {
       CNY: newBal
     });
 
@@ -590,7 +664,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       : 'Alipay';
 
     db.recordLedgerEntry({
-      userId: 'usr_alade_01',
+      userId: activeUserId,
       type: 'PAY_SUPPLIER',
       sourceCurrency: 'CNY',
       targetCurrency: 'CNY',
@@ -602,7 +676,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     db.recordSupplierPayment({
-      userId: 'usr_alade_01',
+      userId: activeUserId,
       paymentMethod: paymentMethodClean,
       receiverAccount: '13800138000',
       receiverName: supplierName,
@@ -627,7 +701,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const newBal = ngnWallet.balance - totalDeduction;
-    db.updateUserBalances('usr_alade_01', {
+    db.updateUserBalances(activeUserId, {
       NGN: newBal
     });
 
@@ -826,7 +900,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     const newBal = walletToDebit.balance - requiredAmount;
-    db.updateUserBalances('usr_alade_01', {
+    db.updateUserBalances(activeUserId, {
       [paidWith]: newBal
     });
 

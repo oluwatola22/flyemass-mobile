@@ -21,11 +21,12 @@ import {
   DollarSign,
   Building,
   Eye,
-  FileText
+  FileText,
+  Smartphone
 } from 'lucide-react';
 
 export const AdminUsersScreen: React.FC = () => {
-  const { showToast } = useApp();
+  const { showToast, viewAsClient } = useApp();
   const [dbState, setDbState] = useState<DatabaseState>(db.getState());
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'client' | 'agent' | 'admin'>('all');
@@ -223,13 +224,23 @@ export const AdminUsersScreen: React.FC = () => {
                     </td>
 
                     <td className="py-3.5 px-4 text-right">
-                      <button
-                        onClick={() => setSelectedUser(user)}
-                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all inline-flex items-center gap-1.5"
-                      >
-                        <Eye className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>Inspect & Adjust</span>
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => viewAsClient(user.uid)}
+                          className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold transition-all inline-flex items-center gap-1.5"
+                          title="Open Client Mobile View as this user"
+                        >
+                          <Smartphone className="w-3.5 h-3.5" />
+                          <span className="hidden xl:inline">View as Client</span>
+                        </button>
+                        <button
+                          onClick={() => setSelectedUser(user)}
+                          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all inline-flex items-center gap-1.5"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Inspect & Adjust</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -252,12 +263,34 @@ export const AdminUsersScreen: React.FC = () => {
                 </h3>
                 <p className="text-xs text-slate-400">{selectedUser.businessName} • {selectedUser.email}</p>
               </div>
-              <button
-                onClick={() => setSelectedUser(null)}
-                className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    viewAsClient(selectedUser.uid);
+                    setSelectedUser(null);
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-500/10 active:scale-95"
+                  title="Switch to Mobile App as this user"
+                >
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <span>📱 View as Client on Mobile</span>
+                </button>
+                <a
+                  href={`/app?userId=${selectedUser.uid}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-white transition-colors border border-slate-700/60"
+                  title="Open in new window (/app?userId=...)"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+                <button
+                  onClick={() => setSelectedUser(null)}
+                  className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {/* Current Balances Breakdown Cards */}

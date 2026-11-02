@@ -15,11 +15,12 @@ import {
   ShieldCheck, 
   User, 
   AlertCircle,
-  Tag
+  Tag,
+  Smartphone
 } from 'lucide-react';
 
 export const AdminSupportScreen: React.FC = () => {
-  const { showToast } = useApp();
+  const { showToast, viewAsClient } = useApp();
   const [dbState, setDbState] = useState<DatabaseState>(db.getState());
   const [selectedTicketId, setSelectedTicketId] = useState<string>('tkt_8901');
   const [replyText, setReplyText] = useState('');
@@ -156,6 +157,14 @@ export const AdminSupportScreen: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => viewAsClient(activeTicket.userId, 'support-tickets')}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-500/10 active:scale-95"
+                      title="Open user's support ticket view in mobile app"
+                    >
+                      <Smartphone className="w-3.5 h-3.5" />
+                      <span>📱 View in App</span>
+                    </button>
                     {activeTicket.status !== 'resolved' && (
                       <button
                         onClick={() => handleResolveTicket(activeTicket.id)}
