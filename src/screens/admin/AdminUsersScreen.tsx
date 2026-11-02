@@ -226,12 +226,13 @@ export const AdminUsersScreen: React.FC = () => {
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => viewAsClient(user.uid)}
+                          onClick={() => window.open(`http://localhost:3030?userId=${user.uid}`, '_blank')}
                           className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold transition-all inline-flex items-center gap-1.5"
-                          title="Open Client Mobile View as this user"
+                          title={`Open Client View for ${user.fullName} (http://localhost:3030)`}
                         >
                           <Smartphone className="w-3.5 h-3.5" />
-                          <span className="hidden xl:inline">View as Client</span>
+                          <span>Open Client View (http://localhost:3030)</span>
+                          <ExternalLink className="w-3 h-3 ml-0.5" />
                         </button>
                         <button
                           onClick={() => setSelectedUser(user)}
@@ -265,25 +266,14 @@ export const AdminUsersScreen: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
-                    viewAsClient(selectedUser.uid);
-                    setSelectedUser(null);
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-500/10 active:scale-95"
-                  title="Switch to Mobile App as this user"
+                  onClick={() => window.open(`http://localhost:3030?userId=${selectedUser.uid}`, '_blank')}
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-400 font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-500/10 active:scale-95"
+                  title="Open Client View (http://localhost:3030)"
                 >
                   <Smartphone className="w-3.5 h-3.5" />
-                  <span>📱 View as Client on Mobile</span>
+                  <span>Open Client View (http://localhost:3030)</span>
+                  <ExternalLink className="w-3.5 h-3.5 ml-0.5" />
                 </button>
-                <a
-                  href={`/app?userId=${selectedUser.uid}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-white transition-colors border border-slate-700/60"
-                  title="Open in new window (/app?userId=...)"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </a>
                 <button
                   onClick={() => setSelectedUser(null)}
                   className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"

@@ -296,12 +296,12 @@ export const MobileShell: React.FC = () => {
         {/* Device Frame & Refresh Controls */}
         <div className="flex items-center gap-2 shrink-0">
           <button
-            onClick={() => navigate('admin-dashboard')}
-            className="p-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-teal-500/30 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-emerald-500/10"
-            title="Open Web Admin Command Center"
+            onClick={() => window.open('http://localhost:5173', '_blank')}
+            className="p-1.5 rounded-xl bg-gradient-to-r from-indigo-500/20 to-cyan-500/20 hover:from-indigo-500/30 hover:to-cyan-500/30 border border-indigo-500/40 text-indigo-400 font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-indigo-500/10 active:scale-95"
+            title="Open Web Admin Dashboard (http://localhost:5173)"
           >
-            <LayoutDashboard className="w-4 h-4 text-emerald-400" />
-            <span className="hidden sm:inline">Admin Center</span>
+            <LayoutDashboard className="w-4 h-4 text-indigo-400" />
+            <span className="hidden sm:inline font-extrabold">🛡️ Admin (http://localhost:5173)</span>
           </button>
 
           <button

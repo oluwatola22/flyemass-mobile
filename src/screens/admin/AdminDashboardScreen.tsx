@@ -20,7 +20,9 @@ import {
   ShoppingBag, 
   ArrowLeftRight,
   ShieldAlert,
-  Sparkles
+  Sparkles,
+  Smartphone,
+  ExternalLink
 } from 'lucide-react';
 
 export const AdminDashboardScreen: React.FC = () => {
@@ -83,6 +85,15 @@ export const AdminDashboardScreen: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => window.open('http://localhost:3030', '_blank')}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-400 font-extrabold text-xs shadow-sm shadow-emerald-500/10 active:scale-95 transition-all"
+              title="Open Client View (http://localhost:3030)"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Open Client View (http://localhost:3030)</span>
+              <ExternalLink className="w-3 h-3 ml-0.5" />
+            </button>
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
               <span>Real-Time Stream: <strong>Active</strong></span>

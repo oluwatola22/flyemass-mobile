@@ -2,11 +2,17 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
-// https://vitejs.dev/config/
+// Dedicated Vite configuration for Client Mobile App (Port 3000)
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    port: 5173,
+    port: 3000,
     host: true,
+    strictPort: true
   },
+  build: {
+    rollupOptions: {
+      input: 'index.html'
+    }
+  }
 });

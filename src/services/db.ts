@@ -283,6 +283,44 @@ class DatabaseService {
 
   constructor() {
     this.state = this.loadState();
+    this.initSync();
+  }
+
+  private initSync() {
+    if (typeof window === 'undefined') return;
+    try {
+      const eventSource = new EventSource('http://localhost:5050/api/db/stream');
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data && data.state) {
+            this.state = data.state;
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+            } catch (err) {}
+            this.notifyListeners();
+          }
+        } catch (e) {
+          console.warn('Failed to parse sync event', e);
+        }
+      };
+      eventSource.onerror = () => {
+        // Auto-reconnect managed by EventSource
+      };
+    } catch (e) {
+      // Local fallback active
+    }
+  }
+
+  private syncRemote() {
+    if (typeof window === 'undefined') return;
+    try {
+      fetch('http://localhost:5050/api/db/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: this.state })
+      }).catch(() => {});
+    } catch (e) {}
   }
 
   private loadState(): DatabaseState {
@@ -309,6 +347,7 @@ class DatabaseService {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
       this.notifyListeners();
+      this.syncRemote();
     } catch (e) {
       console.error('Failed to persist database state', e);
     }

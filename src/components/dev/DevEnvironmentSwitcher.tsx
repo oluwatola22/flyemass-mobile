@@ -27,24 +27,35 @@ export const DevEnvironmentSwitcher: React.FC = () => {
   const isAdmin = currentRoute.startsWith('admin-') || currentRoute === 'schema-inspector';
   const currentPath = window.location.pathname || (isAdmin ? '/admin' : '/');
 
+  const isMobilePort = typeof window !== 'undefined' && (window.location.port === '3030' || window.location.port === '3000');
+  const isPort5173 = typeof window !== 'undefined' && window.location.port === '5173';
+  const isCurrentAdmin = isPort5173 || isAdmin;
+
+  const mobileUrl = 'http://localhost:3030';
+  const adminUrl = 'http://localhost:5173';
+
   const handleOpenMobile = () => {
-    navigate('home');
-    if (window.location.pathname !== '/app' && window.location.pathname !== '/') {
-      window.history.pushState({ route: 'home' }, '', '/app');
+    if (!isMobilePort) {
+      window.open(mobileUrl, '_blank');
+      showToast(`Opened Client Mobile App on ${mobileUrl}`, 'info');
+    } else {
+      navigate('home');
+      showToast(`Viewing Client Mobile App Home (${mobileUrl})`, 'info');
     }
-    showToast('Switched to Client Mobile App view (/app)', 'info');
   };
 
   const handleOpenAdmin = () => {
-    navigate('admin-dashboard');
-    if (window.location.pathname !== '/admin') {
-      window.history.pushState({ route: 'admin-dashboard' }, '', '/admin');
+    if (!isPort5173) {
+      window.open(adminUrl, '_blank');
+      showToast(`Opened Web Admin Dashboard on ${adminUrl}`, 'success');
+    } else {
+      navigate('admin-dashboard');
+      showToast(`Viewing Web Admin Command Center (${adminUrl})`, 'info');
     }
-    showToast('Switched to Web Admin Dashboard (/admin)', 'success');
   };
 
-  const handleCopyUrl = (path: string) => {
-    const fullUrl = `${window.location.origin}${path}`;
+  const handleCopyUrl = (port: string) => {
+    const fullUrl = `http://localhost:${port}`;
     navigator.clipboard?.writeText(fullUrl);
     setCopied(true);
     showToast(`Copied ${fullUrl} to clipboard!`, 'success');
@@ -59,8 +70,8 @@ export const DevEnvironmentSwitcher: React.FC = () => {
           className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/95 backdrop-blur-xl border border-slate-700 text-slate-200 hover:text-white shadow-2xl hover:border-emerald-500/60 transition-all text-xs font-semibold"
           title="Expand Environment Switcher"
         >
-          <span className={`w-2 h-2 rounded-full ${isAdmin ? 'bg-indigo-400 animate-pulse' : 'bg-emerald-400 animate-pulse'}`} />
-          <span>{isAdmin ? '🛡️ Web Admin' : '🔗 Mobile App'}</span>
+          <span className={`w-2 h-2 rounded-full ${isCurrentAdmin ? 'bg-indigo-400 animate-pulse' : 'bg-emerald-400 animate-pulse'}`} />
+          <span>{isCurrentAdmin ? '🛡️ Admin (:5173)' : '📱 Mobile (:3030)'}</span>
           <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
         </button>
       </div>
@@ -74,54 +85,53 @@ export const DevEnvironmentSwitcher: React.FC = () => {
         <div className="flex items-center justify-between gap-2 flex-wrap">
           {/* Active Status Badge */}
           <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-950/80 border border-slate-800 shrink-0">
-            <span className={`w-2 h-2 rounded-full ${isAdmin ? 'bg-indigo-400 animate-pulse' : 'bg-emerald-400 animate-pulse'}`} />
+            <span className={`w-2 h-2 rounded-full ${isCurrentAdmin ? 'bg-indigo-400 animate-pulse' : 'bg-emerald-400 animate-pulse'}`} />
             <span className="text-[11px] font-bold text-slate-300">
-              {isAdmin ? (
-                <span className="text-indigo-400 font-extrabold">Web Admin Center</span>
+              {isCurrentAdmin ? (
+                <span className="text-indigo-400 font-extrabold">Web Admin Center (:5173)</span>
               ) : (
-                <span className="text-emerald-400 font-extrabold">Mobile Client View</span>
+                <span className="text-emerald-400 font-extrabold">Mobile Client View (:3030)</span>
               )}
-            </span>
-            <span className="hidden sm:inline text-[10px] text-slate-500 font-mono">
-              ({currentPath})
             </span>
           </div>
 
           {/* Primary View Switcher Buttons */}
           <div className="flex items-center gap-1.5">
-            {/* Button 1: Mobile App */}
+            {/* Button 1: Mobile App (Port 3030) */}
             <button
               id="btn-open-mobile"
               onClick={handleOpenMobile}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all text-xs ${
-                !isAdmin
+                !isCurrentAdmin
                   ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/25 ring-2 ring-emerald-400/40'
                   : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-750 border border-slate-700'
               }`}
+              title="Open Client Mobile App (http://localhost:3030)"
             >
               <Smartphone className="w-3.5 h-3.5" />
-              <span>🔗 Open Mobile App Client View</span>
+              <span>🔗 Open Mobile App (http://localhost:3030)</span>
             </button>
 
-            {/* Button 2: Web Admin */}
+            {/* Button 2: Web Admin (Port 5173) */}
             <button
               id="btn-open-admin"
               onClick={handleOpenAdmin}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all text-xs ${
-                isAdmin
+                isCurrentAdmin
                   ? 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-md shadow-indigo-500/25 ring-2 ring-indigo-400/40'
                   : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-750 border border-slate-700'
               }`}
+              title="Open Web Admin Dashboard (http://localhost:5173)"
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
-              <span>🛡️ Open Web Admin Dashboard</span>
+              <span>🛡️ Open Web Admin (http://localhost:5173)</span>
             </button>
           </div>
 
           {/* Utility Tools */}
           <div className="flex items-center gap-1 shrink-0 ml-auto sm:ml-0">
             <button
-              onClick={() => handleCopyUrl(isAdmin ? '/admin' : '/')}
+              onClick={() => handleCopyUrl(isCurrentAdmin ? '5173' : '3030')}
               className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-all border border-slate-700/60"
               title="Copy current direct URL"
             >
