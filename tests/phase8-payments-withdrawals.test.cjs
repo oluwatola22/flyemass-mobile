@@ -101,6 +101,9 @@ async function runPhase8Suite() {
   const testUser = 'usr_alade_01';
   const pin = '998877';
 
+  // Ensure test PIN is configured
+  await post('/api/auth/set-pin', { userId: testUser, newPin: pin });
+
   // Fund test user NGN and CNY wallets to ensure sufficient liquidity
   await post('/api/wallets/fund', {
     userId: testUser,

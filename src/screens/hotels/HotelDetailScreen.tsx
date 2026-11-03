@@ -62,8 +62,8 @@ export const HotelDetailScreen: React.FC = () => {
   const nights = rawNights > 0 ? rawNights : 1;
 
   // Authoritative calculations
-  const baseNightlyUSD = hotel.pricePerNightUSD;
-  const surchargeUSD = selectedRoom.nightlySurchargeUSD || 0;
+  const baseNightlyUSD = hotel?.pricePerNightUSD || 120;
+  const surchargeUSD = selectedRoom?.nightlySurchargeUSD || 0;
   const nightlyTotalUSD = baseNightlyUSD + surchargeUSD;
   const totalUSD = nightlyTotalUSD * nights;
   const totalCNY = Math.round(totalUSD * 7.24);
@@ -73,8 +73,8 @@ export const HotelDetailScreen: React.FC = () => {
   const debitAmount = paymentCurrency === 'NGN' ? totalNGN : paymentCurrency === 'CNY' ? totalCNY : totalUSD;
   const hasSufficient = (currentWallet?.balance || 0) >= debitAmount;
 
-  const chineseAddressText = hotel.chineseAddress || `中国广东省广州市${hotel.district}`;
-  const taxiCardZh = hotel.taxiCardZh || `师傅您好，请带我到：${hotel.chineseName || hotel.name}（${chineseAddressText}）。谢谢！`;
+  const chineseAddressText = hotel?.chineseAddress || (hotel?.district ? `中国广东省广州市${hotel.district}` : '中国广东省广州市');
+  const taxiCardZh = hotel?.taxiCardZh || `师傅您好，请带我到：${hotel?.chineseName || hotel?.name || '中国商务酒店'}（${chineseAddressText}）。谢谢！`;
 
   const handleCopyTaxiCard = () => {
     navigator.clipboard?.writeText(taxiCardZh);
@@ -137,8 +137,8 @@ export const HotelDetailScreen: React.FC = () => {
         {/* Cover Photo & Badges */}
         <div className="relative h-56 rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl">
           <img
-            src={hotel.image}
-            alt={hotel.name}
+            src={hotel.image || hotel.images?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80'}
+            alt={hotel.name || 'Partner Hotel'}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />

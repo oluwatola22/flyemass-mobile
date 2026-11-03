@@ -2570,7 +2570,13 @@ class DatabaseService {
 
   public getHotels(): any[] {
     const list = Object.values(this.state.hotels || {});
-    return list;
+    return list.map((h: any) => ({
+      ...h,
+      tags: Array.isArray(h.tags) ? h.tags : ['Trade Hub Partner', 'English Concierge'],
+      amenities: Array.isArray(h.amenities) ? h.amenities : ['High-Speed Wi-Fi', 'Western Breakfast', 'Airport Transfer'],
+      images: Array.isArray(h.images) && h.images.length > 0 ? h.images : [h.image || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'],
+      image: h.image || (Array.isArray(h.images) && h.images.length > 0 ? h.images[0] : 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80')
+    }));
   }
 
   public getWebhookEvents(): any[] {
@@ -2638,10 +2644,15 @@ class DatabaseService {
 
   public getRentalProperties(propertyType?: string): any[] {
     const list = Object.values(this.state.rental_properties || {});
+    const sanitized = list.map((p: any) => ({
+      ...p,
+      amenities: Array.isArray(p.amenities) ? p.amenities : ['High-Speed Internet', 'Air Conditioning', 'Elevator Access'],
+      images: Array.isArray(p.images) && p.images.length > 0 ? p.images : ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80']
+    }));
     if (propertyType && propertyType !== 'all') {
-      return list.filter(p => p.propertyType === propertyType);
+      return sanitized.filter(p => p.propertyType === propertyType);
     }
-    return list;
+    return sanitized;
   }
 
   public async createRentalProperty(property: any, adminId: string = 'adm-001'): Promise<any> {

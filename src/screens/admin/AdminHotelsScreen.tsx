@@ -551,13 +551,17 @@ export const AdminHotelsScreen: React.FC = () => {
                 >
                   <div>
                     <div className="relative h-40 bg-slate-950">
-                      <img src={hotel.image} alt={hotel.name} className="w-full h-full object-cover" />
+                      <img
+                        src={hotel.image || hotel.images?.[0] || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'}
+                        alt={hotel.name || 'Partner Hotel'}
+                        className="w-full h-full object-cover"
+                      />
                       <div className="absolute top-2 left-2 bg-slate-900/90 px-2 py-0.5 rounded-lg text-[9px] font-bold text-emerald-400 border border-slate-800">
-                        {hotel.city} Trade Hub
+                        {hotel.city || 'China'} Trade Hub
                       </div>
                       <div className="absolute top-2 right-2 bg-slate-900/90 px-2 py-0.5 rounded-lg text-[9px] font-bold text-amber-400 flex items-center gap-1 border border-slate-800">
                         <Star className="w-3 h-3 fill-amber-400" />
-                        <span>{hotel.rating}</span>
+                        <span>{hotel.rating || 4.8}</span>
                       </div>
                     </div>
 
@@ -773,12 +777,16 @@ export const AdminHotelsScreen: React.FC = () => {
                 >
                   <div>
                     <div className="relative h-40 bg-slate-950">
-                      <img src={prop.images[0]} alt={prop.title} className="w-full h-full object-cover" />
+                      <img
+                        src={prop.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80'}
+                        alt={prop.title || 'Rental Listing'}
+                        className="w-full h-full object-cover"
+                      />
                       <div className="absolute top-2 left-2 bg-slate-900/90 px-2 py-0.5 rounded-lg text-[9px] font-bold text-white border border-slate-800">
-                        {prop.district} • {prop.floorAreaSqm} m²
+                        {prop.district || 'Guangzhou'} • {prop.floorAreaSqm || 60} m²
                       </div>
                       <div className="absolute top-2 right-2 bg-slate-900/90 px-2 py-0.5 rounded-lg text-[9px] font-bold text-emerald-400 border border-slate-800 uppercase">
-                        {prop.propertyType}
+                        {prop.propertyType || 'rental'}
                       </div>
                     </div>
 

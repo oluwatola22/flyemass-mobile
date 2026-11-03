@@ -92,40 +92,46 @@ export const HotelsScreen: React.FC = () => {
   }, []);
 
   // Filter Hotels
-  const filteredHotels = hotelsList.filter((hotel) => {
-    const matchesCity = selectedCity === 'All' || hotel.city.toLowerCase() === selectedCity.toLowerCase();
-    const query = searchQuery.toLowerCase();
+  const filteredHotels = (hotelsList || []).filter((hotel) => {
+    if (!hotel) return false;
+    const hotelCity = hotel.city || '';
+    const matchesCity = selectedCity === 'All' || hotelCity.toLowerCase() === selectedCity.toLowerCase();
+    const query = searchQuery ? searchQuery.toLowerCase().trim() : '';
     const matchesSearch =
-      !searchQuery ||
-      hotel.name.toLowerCase().includes(query) ||
-      hotel.district.toLowerCase().includes(query) ||
-      hotel.city.toLowerCase().includes(query) ||
+      !query ||
+      (hotel.name && hotel.name.toLowerCase().includes(query)) ||
+      (hotel.district && hotel.district.toLowerCase().includes(query)) ||
+      (hotel.city && hotel.city.toLowerCase().includes(query)) ||
       (hotel.chineseName && hotel.chineseName.includes(searchQuery));
     return matchesCity && matchesSearch;
   });
 
   // Filter Apartments / Houses
-  const filteredApartments = rentalProps.filter((p) => {
+  const filteredApartments = (rentalProps || []).filter((p) => {
+    if (!p) return false;
     const isResidential = p.propertyType === 'apartment' || p.propertyType === 'house';
-    const matchesDistrict = selectedDistrict === 'All' || p.district.toLowerCase().includes(selectedDistrict.toLowerCase());
-    const query = searchQuery.toLowerCase();
+    const districtStr = p.district || '';
+    const matchesDistrict = selectedDistrict === 'All' || districtStr.toLowerCase().includes(selectedDistrict.toLowerCase());
+    const query = searchQuery ? searchQuery.toLowerCase().trim() : '';
     const matchesSearch =
-      !searchQuery ||
-      p.title.toLowerCase().includes(query) ||
-      p.district.toLowerCase().includes(query) ||
+      !query ||
+      (p.title && p.title.toLowerCase().includes(query)) ||
+      (p.district && p.district.toLowerCase().includes(query)) ||
       (p.chineseTitle && p.chineseTitle.includes(searchQuery));
     return isResidential && matchesDistrict && matchesSearch;
   });
 
   // Filter Offices
-  const filteredOffices = rentalProps.filter((p) => {
+  const filteredOffices = (rentalProps || []).filter((p) => {
+    if (!p) return false;
     const isOffice = p.propertyType === 'office';
-    const matchesDistrict = selectedDistrict === 'All' || p.district.toLowerCase().includes(selectedDistrict.toLowerCase());
-    const query = searchQuery.toLowerCase();
+    const districtStr = p.district || '';
+    const matchesDistrict = selectedDistrict === 'All' || districtStr.toLowerCase().includes(selectedDistrict.toLowerCase());
+    const query = searchQuery ? searchQuery.toLowerCase().trim() : '';
     const matchesSearch =
-      !searchQuery ||
-      p.title.toLowerCase().includes(query) ||
-      p.district.toLowerCase().includes(query) ||
+      !query ||
+      (p.title && p.title.toLowerCase().includes(query)) ||
+      (p.district && p.district.toLowerCase().includes(query)) ||
       (p.chineseTitle && p.chineseTitle.includes(searchQuery));
     return isOffice && matchesDistrict && matchesSearch;
   });
@@ -318,45 +324,49 @@ export const HotelsScreen: React.FC = () => {
                     {/* Hotel Photo */}
                     <div className="relative h-44 w-full overflow-hidden bg-slate-950">
                       <img
-                        src={hotel.image}
-                        alt={hotel.name}
+                        src={hotel.image || hotel.images?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80'}
+                        alt={hotel.name || 'Trade Hotel'}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
 
                       <div className="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-bold text-white border border-slate-800">
-                        {hotel.city} • {hotel.district}
+                        {hotel.city || 'China'} • {hotel.district || 'Trade Zone'}
                       </div>
 
                       <div className="absolute top-3 right-3 bg-slate-900/90 backdrop-blur-md px-2 py-1 rounded-xl text-[10px] font-bold text-amber-400 flex items-center gap-1 border border-slate-800">
                         <Star className="w-3 h-3 fill-amber-400" />
-                        <span>{hotel.rating}</span>
+                        <span>{hotel.rating || 4.8}</span>
                       </div>
 
                       <div className="absolute bottom-3 left-3 right-3">
-                        <h3 className="text-sm font-bold text-white leading-tight">{hotel.name}</h3>
-                        <p className="text-[11px] text-slate-300 font-sans mt-0.5">{hotel.chineseName}</p>
+                        <h3 className="text-sm font-bold text-white leading-tight">{hotel.name || 'Partner Hotel'}</h3>
+                        {hotel.chineseName && <p className="text-[11px] text-slate-300 font-sans mt-0.5">{hotel.chineseName}</p>}
                       </div>
                     </div>
 
                     {/* Body */}
                     <div className="p-4 space-y-3">
-                      <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                        <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span>{hotel.distanceToMarket}</span>
-                      </div>
+                      {hotel.distanceToMarket && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                          <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <span>{hotel.distanceToMarket}</span>
+                        </div>
+                      )}
 
                       {/* Amenities / Tags */}
-                      <div className="flex gap-1.5 flex-wrap">
-                        {hotel.tags.slice(0, 3).map((t) => (
-                          <span
-                            key={t}
-                            className="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-[10px] text-slate-300"
-                          >
-                            {t}
-                          </span>
-                        ))}
-                      </div>
+                      {((hotel.tags && hotel.tags.length > 0) ? hotel.tags : (hotel.amenities || [])).length > 0 && (
+                        <div className="flex gap-1.5 flex-wrap">
+                          {((hotel.tags && hotel.tags.length > 0) ? hotel.tags : (hotel.amenities || [])).slice(0, 3).map((t) => (
+                            <span
+                              key={t}
+                              className="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-[10px] text-slate-300"
+                            >
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
 
                       {/* Room types preview */}
                       {hotel.roomTypes && hotel.roomTypes.length > 0 && (
@@ -370,12 +380,14 @@ export const HotelsScreen: React.FC = () => {
                       <div className="pt-2 border-t border-slate-800/80 flex items-baseline justify-between">
                         <div>
                           <span className="text-base font-extrabold text-white num-tabular">
-                            ${hotel.pricePerNightUSD}
+                            ${hotel.pricePerNightUSD || 120}
                           </span>
                           <span className="text-xs text-slate-400 font-medium"> / night</span>
-                          <span className="text-[10px] text-emerald-400 ml-2 num-tabular">
-                            (¥{hotel.pricePerNightCNY} CNY)
-                          </span>
+                          {hotel.pricePerNightCNY && (
+                            <span className="text-[10px] text-emerald-400 ml-2 num-tabular">
+                              (¥{hotel.pricePerNightCNY} CNY)
+                            </span>
+                          )}
                         </div>
 
                         <button
@@ -454,23 +466,23 @@ export const HotelsScreen: React.FC = () => {
                       {/* Photo */}
                       <div className="relative h-44 w-full bg-slate-950">
                         <img
-                          src={prop.images[0]}
-                          alt={prop.title}
+                          src={prop.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80'}
+                          alt={prop.title || 'Apartment'}
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
 
                         <div className="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-bold text-white border border-slate-800">
-                          {prop.district} • {prop.floorAreaSqm} m²
+                          {prop.district || 'Guangzhou'} • {prop.floorAreaSqm || 60} m²
                         </div>
 
                         <div className="absolute top-3 right-3 bg-emerald-500/90 px-2.5 py-1 rounded-xl text-[10px] font-black text-slate-950">
-                          {prop.bedrooms} Bed • {prop.isFurnished ? 'Furnished' : 'Unfurnished'}
+                          {prop.bedrooms || 1} Bed • {prop.isFurnished ? 'Furnished' : 'Unfurnished'}
                         </div>
 
                         <div className="absolute bottom-3 left-3 right-3">
-                          <h3 className="text-sm font-bold text-white leading-tight">{prop.title}</h3>
-                          <p className="text-[11px] text-slate-300 font-sans mt-0.5">{prop.chineseTitle}</p>
+                          <h3 className="text-sm font-bold text-white leading-tight">{prop.title || 'Guangzhou Apartment'}</h3>
+                          {prop.chineseTitle && <p className="text-[11px] text-slate-300 font-sans mt-0.5">{prop.chineseTitle}</p>}
                         </div>
                       </div>
 
@@ -478,20 +490,22 @@ export const HotelsScreen: React.FC = () => {
                       <div className="p-4 space-y-3">
                         <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
                           <MapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                          <span className="truncate">{prop.address}</span>
+                          <span className="truncate">{prop.address || prop.englishAddress || prop.district}</span>
                         </div>
 
                         {/* Amenities */}
-                        <div className="flex gap-1.5 flex-wrap">
-                          {prop.amenities.slice(0, 4).map((a) => (
-                            <span
-                              key={a}
-                              className="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-[10px] text-slate-300"
-                            >
-                              {a}
-                            </span>
-                          ))}
-                        </div>
+                        {(prop.amenities || []).length > 0 && (
+                          <div className="flex gap-1.5 flex-wrap">
+                            {(prop.amenities || []).slice(0, 4).map((a) => (
+                              <span
+                                key={a}
+                                className="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-[10px] text-slate-300"
+                              >
+                                {a}
+                              </span>
+                            ))}
+                          </div>
+                        )}
 
                         {/* Upfront Move-in Calculation Box */}
                         <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1">
@@ -591,23 +605,23 @@ export const HotelsScreen: React.FC = () => {
                       {/* Photo */}
                       <div className="relative h-44 w-full bg-slate-950">
                         <img
-                          src={prop.images[0]}
-                          alt={prop.title}
+                          src={prop.images?.[0] || 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80'}
+                          alt={prop.title || 'Commercial Office'}
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
 
                         <div className="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-bold text-white border border-slate-800">
-                          {prop.district} • {prop.floorAreaSqm} m²
+                          {prop.district || 'Guangzhou'} • {prop.floorAreaSqm || 100} m²
                         </div>
 
                         <div className="absolute top-3 right-3 bg-teal-500/90 px-2.5 py-1 rounded-xl text-[10px] font-black text-slate-950">
-                          {prop.deskCapacity} Desks Capacity
+                          {prop.deskCapacity || 20} Desks Capacity
                         </div>
 
                         <div className="absolute bottom-3 left-3 right-3">
-                          <h3 className="text-sm font-bold text-white leading-tight">{prop.title}</h3>
-                          <p className="text-[11px] text-slate-300 font-sans mt-0.5">{prop.chineseTitle}</p>
+                          <h3 className="text-sm font-bold text-white leading-tight">{prop.title || 'Turnkey Office'}</h3>
+                          {prop.chineseTitle && <p className="text-[11px] text-slate-300 font-sans mt-0.5">{prop.chineseTitle}</p>}
                         </div>
                       </div>
 
@@ -615,20 +629,22 @@ export const HotelsScreen: React.FC = () => {
                       <div className="p-4 space-y-3">
                         <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
                           <MapPin className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                          <span className="truncate">{prop.address}</span>
+                          <span className="truncate">{prop.address || prop.englishAddress || prop.district}</span>
                         </div>
 
                         {/* Commercial Amenities */}
-                        <div className="flex gap-1.5 flex-wrap">
-                          {prop.amenities.map((a) => (
-                            <span
-                              key={a}
-                              className="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-[10px] text-slate-300"
-                            >
-                              {a}
-                            </span>
-                          ))}
-                        </div>
+                        {(prop.amenities || []).length > 0 && (
+                          <div className="flex gap-1.5 flex-wrap">
+                            {(prop.amenities || []).map((a) => (
+                              <span
+                                key={a}
+                                className="px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-[10px] text-slate-300"
+                              >
+                                {a}
+                              </span>
+                            ))}
+                          </div>
+                        )}
 
                         {/* Upfront Move-in Calculation Box */}
                         <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1">

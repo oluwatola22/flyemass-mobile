@@ -1243,9 +1243,34 @@ try {
             };
           }
         }
+        for (const [k, h] of Object.entries(mergedHotels)) {
+          if (!h.tags || !Array.isArray(h.tags)) {
+            h.tags = ['Trade Hub Partner', 'English Concierge'];
+          }
+          if (!h.amenities || !Array.isArray(h.amenities)) {
+            h.amenities = ['High-Speed Wi-Fi', 'Western Breakfast', 'Airport Transfer'];
+          }
+          if (!h.images || !Array.isArray(h.images) || h.images.length === 0) {
+            h.images = [h.image || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'];
+          }
+          if (!h.image) {
+            h.image = h.images[0];
+          }
+        }
         return mergedHotels;
       })(),
-      rental_properties: { ...INITIAL_DATABASE.rental_properties, ...(parsed.rental_properties || {}) },
+      rental_properties: (() => {
+        const mergedRentals = { ...INITIAL_DATABASE.rental_properties, ...(parsed.rental_properties || {}) };
+        for (const [k, p] of Object.entries(mergedRentals)) {
+          if (!p.amenities || !Array.isArray(p.amenities)) {
+            p.amenities = ['High-Speed Internet', 'Air Conditioning', 'Elevator Access'];
+          }
+          if (!p.images || !Array.isArray(p.images) || p.images.length === 0) {
+            p.images = ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80'];
+          }
+        }
+        return mergedRentals;
+      })(),
       property_inquiries: { ...INITIAL_DATABASE.property_inquiries, ...(parsed.property_inquiries || {}) },
       webhook_events: parsed.webhook_events || INITIAL_DATABASE.webhook_events || [],
       products: { ...INITIAL_DATABASE.products, ...(parsed.products || {}) },
