@@ -285,16 +285,33 @@ export const INITIAL_SHIPMENTS: Shipment[] = [
 export const TECH_PRODUCTS: TechProduct[] = [
   {
     id: 'prod-iphone-16-pro',
-    title: 'Apple iPhone 16 Pro Max (512GB)',
+    title: 'Apple iPhone 16 Pro Max',
     subtitle: 'Desert Titanium • Hong Kong / China Dual Physical SIM',
     category: 'iPhone',
+    condition: 'Brand New',
     priceUSD: 1420,
     priceNGN: 2108700,
     priceCNY: 10280,
     image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?auto=format&fit=crop&w=600&q=80'
+    ],
     rating: 4.9,
     reviewsCount: 312,
-    specs: ['A18 Pro Chip', 'Grade 5 Titanium', '48MP Fusion Camera', 'Dual Nano-SIM (HK Spec)'],
+    specs: ['A18 Pro Chip (3nm)', 'Grade 5 Titanium', '48MP Fusion Camera', 'Dual Nano-SIM (HK Spec)'],
+    technicalSpecs: {
+      chip: 'Apple A18 Pro (6-core CPU, 6-core GPU, 16-core NPU)',
+      ram: '8GB Unified LPDDR5X',
+      camera: '48MP Fusion Main + 48MP Ultra-Wide + 12MP 5x Telephoto',
+      display: '6.9" Super Retina XDR OLED (120Hz ProMotion, 2000 nits)',
+      batteryHealth: '100% (Brand New Sealed)',
+      biometrics: 'Face ID',
+      waterResistance: 'IP68 (6 meters up to 30 mins)',
+      warranty: '1-Year Apple Global Limited Warranty',
+      deliveryEstimate: '2-4 Days Express Air Cargo (HK -> Lagos)'
+    },
     inStock: true,
     stockCount: 18,
     tag: 'Best Seller for Lagos Wholesale',
@@ -304,20 +321,90 @@ export const TECH_PRODUCTS: TechProduct[] = [
       { name: 'Black Titanium', hex: '#2F3133' },
       { name: 'White Titanium', hex: '#F0F0F2' }
     ],
-    storageOptions: ['256GB', '512GB', '1TB']
+    storageOptions: ['256GB', '512GB', '1TB'],
+    variants: [
+      { id: 'v-ip16pm-256-dt', color: 'Desert Titanium', colorHex: '#C2AD97', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 6, isActive: true },
+      { id: 'v-ip16pm-512-dt', color: 'Desert Titanium', colorHex: '#C2AD97', storage: '512GB', priceAdjustmentNGN: 250000, stockCount: 5, isActive: true },
+      { id: 'v-ip16pm-1tb-dt', color: 'Desert Titanium', colorHex: '#C2AD97', storage: '1TB', priceAdjustmentNGN: 550000, stockCount: 3, isActive: true },
+      { id: 'v-ip16pm-256-nt', color: 'Natural Titanium', colorHex: '#9A958E', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 4, isActive: true }
+    ],
+    warrantyInfo: 'Official 1-Year Apple Warranty + FlyeMass Cargo Escrow Guarantee',
+    deliveryInfo: 'HK Flight ETA: 2-4 business days to Ikeja Hub or Doorstep Delivery across Nigeria',
+    isPublished: true
+  },
+  {
+    id: 'prod-iphone-15-pro',
+    title: 'Apple iPhone 15 Pro',
+    subtitle: 'Blue Titanium • Grade-A Apple Certified Refurbished',
+    category: 'iPhone',
+    condition: 'Refurbished',
+    priceUSD: 976,
+    priceNGN: 1450000,
+    priceCNY: 7070,
+    image: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80'
+    ],
+    rating: 4.8,
+    reviewsCount: 164,
+    specs: ['A17 Pro Chip', 'Grade 5 Aerospace Titanium', 'Action Button', 'USB-C 10Gbps'],
+    technicalSpecs: {
+      chip: 'Apple A17 Pro (6-core CPU, 6-core GPU)',
+      ram: '8GB LPDDR5',
+      camera: '48MP Main + 12MP Ultra-Wide + 12MP 3x Telephoto',
+      display: '6.1" Super Retina XDR OLED (120Hz ProMotion)',
+      batteryHealth: '98% (Grade-A Tested)',
+      biometrics: 'Face ID',
+      waterResistance: 'IP68',
+      warranty: '6-Month FlyeMass Escrow Warranty',
+      deliveryEstimate: '2-4 Days Express Air Cargo'
+    },
+    inStock: true,
+    stockCount: 14,
+    tag: 'Certified Refurbished Deal',
+    colors: [
+      { name: 'Blue Titanium', hex: '#2D3A4B' },
+      { name: 'Natural Titanium', hex: '#9A958E' },
+      { name: 'Black Titanium', hex: '#2F3133' }
+    ],
+    storageOptions: ['128GB', '256GB', '512GB'],
+    variants: [
+      { id: 'v-ip15p-128-bt', color: 'Blue Titanium', colorHex: '#2D3A4B', storage: '128GB', priceAdjustmentNGN: 0, stockCount: 6, isActive: true },
+      { id: 'v-ip15p-256-bt', color: 'Blue Titanium', colorHex: '#2D3A4B', storage: '256GB', priceAdjustmentNGN: 150000, stockCount: 5, isActive: true },
+      { id: 'v-ip15p-256-nt', color: 'Natural Titanium', colorHex: '#9A958E', storage: '256GB', priceAdjustmentNGN: 150000, stockCount: 3, isActive: true }
+    ],
+    warrantyInfo: '6-Month Comprehensive Hardware Replacement Guarantee',
+    deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+    isPublished: true
   },
   {
     id: 'prod-macbook-pro-16',
     title: 'MacBook Pro 16" (M4 Max / 36GB / 1TB)',
     subtitle: 'Space Black • US English International Keyboard',
-    category: 'Mac',
+    category: 'MacBook',
+    condition: 'Brand New',
     priceUSD: 3499,
     priceNGN: 5196015,
     priceCNY: 25330,
     image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=600&q=80'
+    ],
     rating: 5.0,
     reviewsCount: 89,
     specs: ['M4 Max 14-core CPU', '32-core GPU', 'Liquid Retina XDR', '22-hr Battery Life'],
+    technicalSpecs: {
+      chip: 'Apple M4 Max (14-core CPU, 32-core GPU)',
+      ram: '36GB Unified Memory',
+      display: '16.2" Liquid Retina XDR (3456 x 2234, 1600 nits)',
+      camera: '12MP Center Stage Camera',
+      batteryHealth: '100% (Sealed)',
+      biometrics: 'Touch ID',
+      warranty: '1-Year Apple Global Warranty',
+      deliveryEstimate: '3-5 Days Direct Air Cargo'
+    },
     inStock: true,
     stockCount: 6,
     tag: 'Enterprise Elite',
@@ -325,20 +412,85 @@ export const TECH_PRODUCTS: TechProduct[] = [
       { name: 'Space Black', hex: '#1E1E22' },
       { name: 'Silver', hex: '#E3E4E5' }
     ],
-    storageOptions: ['1TB SSD', '2TB SSD', '4TB SSD']
+    storageOptions: ['1TB SSD', '2TB SSD', '4TB SSD'],
+    variants: [
+      { id: 'v-mbp16-1tb-sb', color: 'Space Black', colorHex: '#1E1E22', storage: '1TB SSD', priceAdjustmentNGN: 0, stockCount: 4, isActive: true },
+      { id: 'v-mbp16-2tb-sb', color: 'Space Black', colorHex: '#1E1E22', storage: '2TB SSD', priceAdjustmentNGN: 600000, stockCount: 2, isActive: true }
+    ],
+    warrantyInfo: '1-Year Apple Global Limited Warranty + Tech Escrow',
+    deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+    isPublished: true
+  },
+  {
+    id: 'prod-macbook-air-13',
+    title: 'MacBook Air 13" (M3 / 16GB / 512GB)',
+    subtitle: 'Midnight • Ultra-thin Fanless Design',
+    category: 'MacBook',
+    condition: 'Brand New',
+    priceUSD: 1299,
+    priceNGN: 1929000,
+    priceCNY: 9400,
+    image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=600&q=80'
+    ],
+    rating: 4.9,
+    reviewsCount: 110,
+    specs: ['Apple M3 8-Core CPU', '10-Core GPU', '18-Hour Battery', 'MagSafe 3 Charging'],
+    technicalSpecs: {
+      chip: 'Apple M3 (8-core CPU, 10-core GPU)',
+      ram: '16GB Unified Memory',
+      display: '13.6" Liquid Retina Display (500 nits)',
+      camera: '1080p FaceTime HD',
+      batteryHealth: '100% (Sealed)',
+      biometrics: 'Touch ID',
+      warranty: '1-Year Apple Global Warranty',
+      deliveryEstimate: '2-4 Days Express Air Cargo'
+    },
+    inStock: true,
+    stockCount: 10,
+    tag: 'Ultra Portable',
+    colors: [
+      { name: 'Midnight', hex: '#1D2533' },
+      { name: 'Starlight', hex: '#F0ECE1' },
+      { name: 'Space Gray', hex: '#53565A' }
+    ],
+    storageOptions: ['256GB SSD', '512GB SSD'],
+    variants: [
+      { id: 'v-mba13-256-mn', color: 'Midnight', colorHex: '#1D2533', storage: '256GB SSD', priceAdjustmentNGN: 0, stockCount: 6, isActive: true },
+      { id: 'v-mba13-512-mn', color: 'Midnight', colorHex: '#1D2533', storage: '512GB SSD', priceAdjustmentNGN: 250000, stockCount: 4, isActive: true }
+    ],
+    warrantyInfo: '1-Year Apple Global Warranty',
+    deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+    isPublished: true
   },
   {
     id: 'prod-ipad-pro-m4',
     title: 'iPad Pro 13" M4 Ultra Retina XDR',
     subtitle: 'Standard Glass • Wi-Fi + 5G Cellular',
     category: 'iPad',
+    condition: 'Brand New',
     priceUSD: 1499,
     priceNGN: 2226015,
     priceCNY: 10850,
     image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=600&q=80'
+    ],
     rating: 4.8,
     reviewsCount: 140,
     specs: ['Tandem OLED Display', 'M4 9-Core Chip', '5.1mm Ultra-Thin', 'Cellular eSIM/Nano'],
+    technicalSpecs: {
+      chip: 'Apple M4 (9-core CPU, 10-core GPU, 16-core NPU)',
+      ram: '8GB Unified Memory',
+      display: '13" Ultra Retina XDR Tandem OLED (1000 nits full screen, 1600 nits peak)',
+      camera: '12MP Wide + LiDAR Scanner',
+      batteryHealth: '100%',
+      biometrics: 'Face ID',
+      waterResistance: 'N/A',
+      warranty: '1-Year Apple Global Warranty',
+      deliveryEstimate: '2-4 Days Express Air Cargo'
+    },
     inStock: true,
     stockCount: 12,
     tag: 'Trending in Ikeja Computer Village',
@@ -346,20 +498,42 @@ export const TECH_PRODUCTS: TechProduct[] = [
       { name: 'Space Black', hex: '#212124' },
       { name: 'Silver', hex: '#E5E5E7' }
     ],
-    storageOptions: ['256GB', '512GB', '1TB']
+    storageOptions: ['256GB', '512GB', '1TB'],
+    variants: [
+      { id: 'v-ippm4-256-sb', color: 'Space Black', colorHex: '#212124', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 7, isActive: true },
+      { id: 'v-ippm4-512-sb', color: 'Space Black', colorHex: '#212124', storage: '512GB', priceAdjustmentNGN: 350000, stockCount: 5, isActive: true }
+    ],
+    warrantyInfo: '1-Year Apple Global Limited Warranty',
+    deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+    isPublished: true
   },
   {
     id: 'prod-watch-ultra-2',
     title: 'Apple Watch Ultra 2 (GPS + Cellular)',
     subtitle: 'Black Titanium Case with Dark Green Alpine Loop',
-    category: 'Watch',
+    category: 'Apple Watch',
+    condition: 'Brand New',
     priceUSD: 799,
     priceNGN: 1186515,
     priceCNY: 5785,
     image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80'
+    ],
     rating: 4.9,
     reviewsCount: 204,
     specs: ['S9 SiP with Double Tap', '3000 nits Peak Display', '100m Water Resistant', '72hr Low Power'],
+    technicalSpecs: {
+      chip: 'Apple S9 SiP (64-bit dual-core, 4-core Neural Engine)',
+      ram: '64GB Internal Storage',
+      display: '49mm Always-On Retina LTPO OLED (3000 nits)',
+      camera: 'N/A',
+      batteryHealth: '100%',
+      biometrics: 'Electrical heart sensor (ECG) + Blood Oxygen sensor',
+      waterResistance: '100 meters (dive certified to 40m)',
+      warranty: '1-Year Apple Global Warranty',
+      deliveryEstimate: '2-4 Days Express Air Cargo'
+    },
     inStock: true,
     stockCount: 24,
     tag: 'Factory Direct Sealed',
@@ -367,29 +541,129 @@ export const TECH_PRODUCTS: TechProduct[] = [
       { name: 'Black Titanium', hex: '#2C2D30' },
       { name: 'Natural Titanium', hex: '#A5A29D' }
     ],
-    storageOptions: ['49mm Universal']
+    storageOptions: ['49mm Universal'],
+    variants: [
+      { id: 'v-wultra2-bt', color: 'Black Titanium', colorHex: '#2C2D30', storage: '49mm Universal', priceAdjustmentNGN: 0, stockCount: 12, isActive: true },
+      { id: 'v-wultra2-nt', color: 'Natural Titanium', colorHex: '#A5A29D', storage: '49mm Universal', priceAdjustmentNGN: 0, stockCount: 12, isActive: true }
+    ],
+    warrantyInfo: '1-Year Apple Global Warranty',
+    deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+    isPublished: true
+  },
+  {
+    id: 'prod-airpods-pro-2',
+    title: 'AirPods Pro 2 (USB-C MagSafe)',
+    subtitle: 'Active Noise Cancellation • Transparency Mode',
+    category: 'AirPods',
+    condition: 'Brand New',
+    priceUSD: 249,
+    priceNGN: 370000,
+    priceCNY: 1800,
+    image: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&w=600&q=80'
+    ],
+    rating: 4.9,
+    reviewsCount: 380,
+    specs: ['Apple H2 Chip', '2x Active Noise Cancellation', 'Adaptive Audio', 'MagSafe Charging Case (USB-C)'],
+    technicalSpecs: {
+      chip: 'Apple H2 headphone chip + U1 in charging case',
+      display: 'N/A',
+      batteryHealth: '100%',
+      waterResistance: 'IP54 dust, sweat, and water resistant',
+      warranty: '1-Year Apple Global Warranty',
+      deliveryEstimate: '2-4 Days Express Air Cargo'
+    },
+    inStock: true,
+    stockCount: 30,
+    tag: 'High Velocity Retailer Favorite',
+    colors: [
+      { name: 'White', hex: '#FFFFFF' }
+    ],
+    storageOptions: ['USB-C MagSafe Case'],
+    variants: [
+      { id: 'v-app2-wh', color: 'White', colorHex: '#FFFFFF', storage: 'USB-C MagSafe Case', priceAdjustmentNGN: 0, stockCount: 30, isActive: true }
+    ],
+    warrantyInfo: '1-Year Apple Global Limited Warranty',
+    deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+    isPublished: true
   },
   {
     id: 'prod-airpods-max-usb-c',
     title: 'AirPods Max (USB-C 2024 Edition)',
     subtitle: 'Midnight Blue • Active Noise Cancellation',
-    category: 'Audio',
+    category: 'AirPods',
+    condition: 'Brand New',
     priceUSD: 549,
     priceNGN: 815265,
     priceCNY: 3975,
     image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80'
+    ],
     rating: 4.7,
     reviewsCount: 95,
     specs: ['Lossless Audio via USB-C', 'Personalized Spatial Audio', 'Knit-Mesh Canopy', 'Smart Case Included'],
+    technicalSpecs: {
+      chip: 'Dual Apple H1 headphone chips',
+      batteryHealth: '100%',
+      biometrics: 'N/A',
+      warranty: '1-Year Apple Global Warranty',
+      deliveryEstimate: '2-4 Days Express Air Cargo'
+    },
     inStock: true,
     stockCount: 15,
-    tag: 'High Demand',
+    tag: 'New Edition',
     colors: [
       { name: 'Midnight', hex: '#1D2533' },
       { name: 'Starlight', hex: '#F0ECE1' },
       { name: 'Blue', hex: '#486985' }
     ],
-    storageOptions: ['Standard']
+    storageOptions: ['Standard'],
+    variants: [
+      { id: 'v-apm-mn', color: 'Midnight', colorHex: '#1D2533', storage: 'Standard', priceAdjustmentNGN: 0, stockCount: 6, isActive: true },
+      { id: 'v-apm-sl', color: 'Starlight', colorHex: '#F0ECE1', storage: 'Standard', priceAdjustmentNGN: 0, stockCount: 5, isActive: true },
+      { id: 'v-apm-bl', color: 'Blue', colorHex: '#486985', storage: 'Standard', priceAdjustmentNGN: 0, stockCount: 4, isActive: true }
+    ],
+    warrantyInfo: '1-Year Apple Global Warranty',
+    deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+    isPublished: true
+  },
+  {
+    id: 'prod-apple-pencil-pro',
+    title: 'Apple Pencil Pro',
+    subtitle: 'Squeeze • Barrel Roll • Haptic Feedback • Find My',
+    category: 'Accessories',
+    condition: 'Brand New',
+    priceUSD: 129,
+    priceNGN: 191500,
+    priceCNY: 935,
+    image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=600&q=80'
+    ],
+    rating: 4.9,
+    reviewsCount: 78,
+    specs: ['Squeeze Gesture Sensor', 'Barrel Roll Gyroscope', 'Custom Haptic Engine', 'Magnetic Pairing & Charging'],
+    technicalSpecs: {
+      chip: 'Custom Apple Sensor Array',
+      batteryHealth: '100%',
+      warranty: '1-Year Apple Global Warranty',
+      deliveryEstimate: '2-4 Days Express Air Cargo'
+    },
+    inStock: true,
+    stockCount: 20,
+    tag: 'iPad Pro / Air Essential',
+    colors: [
+      { name: 'White', hex: '#FFFFFF' }
+    ],
+    storageOptions: ['Standard'],
+    variants: [
+      { id: 'v-app-wh', color: 'White', colorHex: '#FFFFFF', storage: 'Standard', priceAdjustmentNGN: 0, stockCount: 20, isActive: true }
+    ],
+    warrantyInfo: '1-Year Apple Global Warranty',
+    deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+    isPublished: true
   }
 ];
 

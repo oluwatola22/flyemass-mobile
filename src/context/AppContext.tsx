@@ -48,10 +48,12 @@ interface AppContextType {
   transactions: Transaction[];
   shipments: Shipment[];
   cart: CartItem[];
-  addToCart: (product: TechProduct, selectedColor?: string, selectedStorage?: string) => void;
-  updateCartQuantity: (productId: string, delta: number) => void;
-  removeFromCart: (productId: string) => void;
+  addToCart: (product: TechProduct, selectedColor?: string, selectedStorage?: string, variant?: any, quantity?: number) => void;
+  updateCartQuantity: (productId: string, delta: number, variantId?: string) => void;
+  removeFromCart: (productId: string, variantId?: string) => void;
   clearCart: () => void;
+  shopCurrency: 'NGN' | 'CNY' | 'USD';
+  setShopCurrency: (curr: 'NGN' | 'CNY' | 'USD') => void;
   savedProductIds: string[];
   toggleSaveProduct: (productId: string) => void;
   compareProductIds: string[];
@@ -288,6 +290,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
   
   const [activeCurrency, setActiveCurrency] = useState<Currency>('NGN');
+  const [shopCurrency, setShopCurrency] = useState<'NGN' | 'CNY' | 'USD'>('NGN');
   const [isBalanceHidden, setIsBalanceHidden] = useState<boolean>(false);
   const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
   const [shipments, setShipments] = useState<Shipment[]>(INITIAL_SHIPMENTS);
@@ -492,6 +495,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             };
           })
         );
+      }
+
+      const userFavs = db.getUserFavorites(activeUserId);
+      if (userFavs && userFavs.length > 0) {
+        setSavedProductIds(userFavs);
       }
 
       const dbOrders = db.getShopOrders();
@@ -807,67 +815,91 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const addToCart = (product: TechProduct, selectedColor?: string, selectedStorage?: string) => {
+  const addToCart = (product: TechProduct, selectedColor?: string, selectedStorage?: string, variant?: any, quantity: number = 1) => {
+    const color = selectedColor || variant?.color || product.colors[0]?.name;
+    const storage = selectedStorage || variant?.storage || product.storageOptions[0];
+    const variantId = variant?.id || (product.variants?.find(v => v.color === color && v.storage === storage)?.id);
+    const priceAdjustmentNGN = variant?.priceAdjustmentNGN !== undefined 
+      ? variant.priceAdjustmentNGN 
+      : (product.variants?.find(v => v.id === variantId)?.priceAdjustmentNGN || 0);
+    const unitPriceNGN = (product.priceNGN || 0) + priceAdjustmentNGN;
+
     setCart((prev) => {
       const existing = prev.find(
         (item) =>
           item.product.id === product.id &&
-          item.selectedColor === (selectedColor || product.colors[0]?.name) &&
-          item.selectedStorage === (selectedStorage || product.storageOptions[0])
+          (variantId ? item.variantId === variantId : (item.selectedColor === color && item.selectedStorage === storage))
       );
 
+      let updated: CartItem[];
       if (existing) {
-        return prev.map((item) =>
-          item === existing ? { ...item, quantity: item.quantity + 1 } : item
+        updated = prev.map((item) =>
+          item === existing ? { ...item, quantity: item.quantity + quantity } : item
         );
+      } else {
+        updated = [
+          ...prev,
+          {
+            id: `ci-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            product,
+            quantity,
+            variantId,
+            selectedColor: color,
+            selectedStorage: storage,
+            priceAdjustmentNGN,
+            unitPriceNGN
+          }
+        ];
       }
-
-      return [
-        ...prev,
-        {
-          product,
-          quantity: 1,
-          selectedColor: selectedColor || product.colors[0]?.name,
-          selectedStorage: selectedStorage || product.storageOptions[0]
-        }
-      ];
+      db.syncCloudCart(activeUserId, updated).catch(() => {});
+      return updated;
     });
-    showToast(`Added ${product.title} to Cart`, 'success');
+    showToast(`Added ${quantity > 1 ? `${quantity}x ` : ''}${product.title} to Cart`, 'success');
   };
 
-  const updateCartQuantity = (productId: string, delta: number) => {
-    setCart((prev) =>
-      prev
+  const updateCartQuantity = (productIdOrCartItemId: string, delta: number, variantId?: string) => {
+    setCart((prev) => {
+      const updated = prev
         .map((item) => {
-          if (item.product.id === productId) {
+          const isMatch = (item.id && item.id === productIdOrCartItemId) ||
+            (item.product.id === productIdOrCartItemId && (variantId ? item.variantId === variantId : true));
+          if (isMatch) {
             const newQty = item.quantity + delta;
             return newQty > 0 ? { ...item, quantity: newQty } : null;
           }
           return item;
         })
-        .filter(Boolean) as CartItem[]
-    );
+        .filter(Boolean) as CartItem[];
+      db.syncCloudCart(activeUserId, updated).catch(() => {});
+      return updated;
+    });
   };
 
-  const removeFromCart = (productId: string) => {
-    setCart((prev) => prev.filter((item) => item.product.id !== productId));
+  const removeFromCart = (productIdOrCartItemId: string, variantId?: string) => {
+    setCart((prev) => {
+      const updated = prev.filter((item) => {
+        if (item.id && item.id === productIdOrCartItemId) return false;
+        if (item.product.id === productIdOrCartItemId && (variantId ? item.variantId === variantId : true)) return false;
+        return true;
+      });
+      db.syncCloudCart(activeUserId, updated).catch(() => {});
+      return updated;
+    });
     showToast('Item removed from cart', 'info');
   };
 
   const clearCart = () => {
     setCart([]);
+    db.syncCloudCart(activeUserId, []).catch(() => {});
   };
 
   const toggleSaveProduct = (productId: string) => {
     setSavedProductIds((prev) => {
       const exists = prev.includes(productId);
-      if (exists) {
-        showToast('Item removed from Wishlist', 'info');
-        return prev.filter((id) => id !== productId);
-      } else {
-        showToast('Item added to Wishlist!', 'success');
-        return [...prev, productId];
-      }
+      const updated = exists ? prev.filter((id) => id !== productId) : [...prev, productId];
+      db.toggleUserFavorite(activeUserId, productId).catch(() => {});
+      showToast(exists ? 'Item removed from Wishlist' : 'Item added to Wishlist!', exists ? 'info' : 'success');
+      return updated;
     });
   };
 
@@ -892,11 +924,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const placeShopOrder = (paidWith: Currency, destinationAddress: string, pin?: string): boolean => {
     if (cart.length === 0) return false;
     
-    const totalUSD = cart.reduce((sum, item) => sum + item.product.priceUSD * item.quantity, 0);
-    const totalNGN = cart.reduce((sum, item) => sum + item.product.priceNGN * item.quantity, 0);
-    
+    const settings = db.getShopSettings();
+    const deliveryFeeNGN = settings.deliveryFeeNGN || 5000;
+    const rates = db.getState().system_settings?.rates || { USD_NGN: 1485, USD_CNY: 7.24 };
+
+    // Accurate subtotal with variant price adjustments
+    const subtotalNGN = cart.reduce((sum, item) => {
+      const base = item.product.priceNGN || (item.product.priceUSD * rates.USD_NGN);
+      const adj = item.priceAdjustmentNGN || 0;
+      return sum + ((base + adj) * item.quantity);
+    }, 0);
+
+    const totalNGN = subtotalNGN + deliveryFeeNGN;
+    const totalUSD = Math.round(totalNGN / rates.USD_NGN);
+    const totalCNY = Math.round((totalNGN / rates.USD_NGN) * rates.USD_CNY);
+
     const walletToDebit = wallets.find((w) => w.currency === paidWith);
-    const requiredAmount = paidWith === 'USD' ? totalUSD : paidWith === 'NGN' ? totalNGN : totalUSD * 7.24;
+    const requiredAmount = paidWith === 'USD' ? totalUSD : paidWith === 'CNY' ? totalCNY : totalNGN;
 
     if (!walletToDebit || walletToDebit.balance < requiredAmount) {
       showToast(`Insufficient ${paidWith} balance to complete purchase`, 'error');
@@ -918,17 +962,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
     );
 
-    // Call backend authoritative endpoint
+    // Call authoritative endpoint
     db.checkoutShopWithPin(activeUserId, cart, requiredAmount, paidWith, destinationAddress, pin);
 
-    // Decrement stock in catalog
+    // Decrement variant stock
     cart.forEach(item => {
-      db.updateProductStock(item.product.id, -item.quantity);
+      if (item.variantId) {
+        db.updateVariantStock(item.product.id, item.variantId, -item.quantity);
+      } else {
+        db.updateProductStock(item.product.id, -item.quantity);
+      }
     });
+
+    const orderNumber = `ORD-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+    const trackingNumber = `FM-HK-LOS-${Math.floor(10000 + Math.random() * 90000)}`;
 
     const newOrder: ShopOrder = {
       id: `ord-tech-${Date.now()}`,
-      orderNumber: `ORD-HK-${Math.floor(10000 + Math.random() * 90000)}`,
+      orderNumber,
       items: [...cart],
       totalUSD,
       totalNGN,
@@ -937,7 +988,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'Processing',
       step: 0,
       destinationAddress,
-      trackingNumber: `FM-HK-LOS-${Math.floor(10000 + Math.random() * 90000)}`
+      trackingNumber
     };
 
     setShopOrders((prev) => [newOrder, ...prev]);
@@ -946,33 +997,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     db.recordShopOrder({
       userId: activeUserId,
       items: [...cart],
+      subtotalNGN,
+      deliveryFeeNGN,
       totalAmount: requiredAmount,
       currency: paidWith,
       deliveryAddress: destinationAddress,
       paymentWalletUsed: paidWith,
-      fulfillmentStatus: 'processing',
+      fulfillmentStatus: 'pending',
       orderNumber: newOrder.orderNumber,
-      trackingNumber: newOrder.trackingNumber
-    });
-
-    db.recordLedgerEntry({
-      userId: activeUserId,
-      type: 'SHOP_ORDER',
-      sourceCurrency: paidWith,
-      targetCurrency: paidWith,
-      amount: requiredAmount,
-      fee: 0,
-      openingBalance: openingBal,
-      closingBalance: newBal,
-      status: 'completed',
-      reference: newOrder.orderNumber,
-      notes: `Tech Wholesale: ${cart[0].product.title}`
+      trackingNumber: newOrder.trackingNumber,
+      courierName: 'FlyeMass Express Air Cargo',
+      timeline: [
+        {
+          status: 'pending',
+          title: 'Order Confirmed',
+          description: 'Payment verified and inventory allocated in Hong Kong Logistics Hub',
+          timestamp: Date.now(),
+          location: 'Hong Kong Logistics Hub'
+        }
+      ]
     });
 
     clearCart();
 
     addTransaction({
-      title: `Tech Store: ${cart[0].product.title} (${cart.length} items)`,
+      title: `Apple Shop: ${cart[0].product.title}${cart.length > 1 ? ` (+${cart.length - 1} items)` : ''}`,
       category: 'Tech Store',
       amount: requiredAmount,
       currency: paidWith,
@@ -1254,6 +1303,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateCartQuantity,
         removeFromCart,
         clearCart,
+        shopCurrency,
+        setShopCurrency,
         savedProductIds,
         toggleSaveProduct,
         compareProductIds,

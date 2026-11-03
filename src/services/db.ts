@@ -10,8 +10,11 @@ import {
   SystemSettingsDocument,
   ShopOrderDocument,
   SupportTicketDocument,
-  TechProduct
+  TechProduct,
+  CartItem,
+  DeviceShopSettings
 } from '../types';
+import { TECH_PRODUCTS } from '../data/mockData';
 
 export interface DatabaseState {
   users: Record<string, UserDocument>;
@@ -28,6 +31,9 @@ export interface DatabaseState {
   property_inquiries?: Record<string, any>;
   webhook_events?: any[];
   products: Record<string, TechProduct>;
+  device_shop_settings?: DeviceShopSettings;
+  user_favorites?: Record<string, string[]>;
+  device_cart_items?: Record<string, CartItem[]>;
   support_tickets: Record<string, SupportTicketDocument>;
   banners: BannerDocument[];
   system_settings: SystemSettingsDocument;
@@ -986,116 +992,19 @@ export const INITIAL_DATABASE: DatabaseState = {
   },
 
   products: {
-    'prod-iphone-16-pro': {
-      id: 'prod-iphone-16-pro',
-      title: 'Apple iPhone 16 Pro Max (512GB)',
-      subtitle: 'Desert Titanium • Hong Kong / China Dual Physical SIM',
-      category: 'iPhone',
-      priceUSD: 1420,
-      priceNGN: 2108700,
-      priceCNY: 10280,
-      image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
-      rating: 4.9,
-      reviewsCount: 312,
-      specs: ['A18 Pro Chip', 'Grade 5 Titanium', '48MP Fusion Camera', 'Dual Nano-SIM (HK Spec)'],
-      inStock: true,
-      stockCount: 18,
-      tag: 'Best Seller for Lagos Wholesale',
-      colors: [
-        { name: 'Desert Titanium', hex: '#C2AD97' },
-        { name: 'Natural Titanium', hex: '#9A958E' },
-        { name: 'Black Titanium', hex: '#2F3133' },
-        { name: 'White Titanium', hex: '#F0F0F2' }
-      ],
-      storageOptions: ['256GB', '512GB', '1TB']
-    },
-    'prod-macbook-pro-16': {
-      id: 'prod-macbook-pro-16',
-      title: 'MacBook Pro 16" (M4 Max / 36GB / 1TB)',
-      subtitle: 'Space Black • US English International Keyboard',
-      category: 'Mac',
-      priceUSD: 3499,
-      priceNGN: 5196015,
-      priceCNY: 25330,
-      image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80',
-      rating: 5.0,
-      reviewsCount: 89,
-      specs: ['M4 Max 14-core CPU', '32-core GPU', 'Liquid Retina XDR', '22-hr Battery Life'],
-      inStock: true,
-      stockCount: 6,
-      tag: 'Enterprise Elite',
-      colors: [
-        { name: 'Space Black', hex: '#1E1E22' },
-        { name: 'Silver', hex: '#E3E4E5' }
-      ],
-      storageOptions: ['1TB SSD', '2TB SSD', '4TB SSD']
-    },
-    'prod-ipad-pro-m4': {
-      id: 'prod-ipad-pro-m4',
-      title: 'iPad Pro 13" M4 Ultra Retina XDR',
-      subtitle: 'Standard Glass • Wi-Fi + 5G Cellular',
-      category: 'iPad',
-      priceUSD: 1299,
-      priceNGN: 1929015,
-      priceCNY: 9400,
-      image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=600&q=80',
-      rating: 4.8,
-      reviewsCount: 145,
-      specs: ['M4 Ultra Chip', 'OLED Tandem Display', 'Apple Pencil Pro Support', 'Thunderbolt 4'],
-      inStock: true,
-      stockCount: 12,
-      tag: 'Hot Item',
-      colors: [
-        { name: 'Space Black', hex: '#1E1E22' },
-        { name: 'Silver', hex: '#E3E4E5' }
-      ],
-      storageOptions: ['256GB', '512GB', '1TB']
-    },
-    'prod-apple-watch-ultra-2': {
-      id: 'prod-apple-watch-ultra-2',
-      title: 'Apple Watch Ultra 2 GPS + Cellular',
-      subtitle: '49mm Titanium Case • Black Ocean Band',
-      category: 'Watch',
-      priceUSD: 799,
-      priceNGN: 1186515,
-      priceCNY: 5780,
-      image: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=600&q=80',
-      rating: 4.9,
-      reviewsCount: 220,
-      specs: ['S9 SiP with 64-bit dual-core', '3000 nits Peak Brightness', 'Precision Dual-Frequency GPS', '100m Water Resistance'],
-      inStock: true,
-      stockCount: 24,
-      tag: 'High Demand',
-      colors: [
-        { name: 'Natural Titanium', hex: '#9A958E' },
-        { name: 'Black Titanium', hex: '#2F3133' }
-      ],
-      storageOptions: ['64GB GPS + Cellular']
-    },
-    'prod-airpods-max-usb-c': {
-      id: 'prod-airpods-max-usb-c',
-      title: 'AirPods Max (USB-C)',
-      subtitle: 'Midnight • Lossless Audio with Personalized Spatial Audio',
-      category: 'Audio',
-      priceUSD: 549,
-      priceNGN: 815265,
-      priceCNY: 3975,
-      image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80',
-      rating: 4.7,
-      reviewsCount: 178,
-      specs: ['Apple-designed Dynamic Driver', 'Active Noise Cancellation', 'USB-C Charging Port', 'Smart Case Sleep Mode'],
-      inStock: true,
-      stockCount: 15,
-      tag: 'New Colorway',
-      colors: [
-        { name: 'Midnight', hex: '#1C2024' },
-        { name: 'Starlight', hex: '#E5DED0' },
-        { name: 'Space Gray', hex: '#53565A' },
-        { name: 'Silver', hex: '#E3E4E5' }
-      ],
-      storageOptions: ['USB-C Universal']
-    }
+    ...TECH_PRODUCTS.reduce((acc, p) => {
+      acc[p.id] = p;
+      return acc;
+    }, {} as Record<string, TechProduct>),
+    'prod-apple-watch-ultra-2': TECH_PRODUCTS.find(p => p.id === 'prod-watch-ultra-2') || TECH_PRODUCTS[0]
   },
+  device_shop_settings: {
+    deliveryFeeNGN: 5000,
+    updatedAt: Date.now(),
+    updatedBy: 'system'
+  },
+  user_favorites: {},
+  device_cart_items: {},
 
   audit_logs: [
     {
@@ -1192,7 +1101,18 @@ class DatabaseService {
           rental_properties: { ...(INITIAL_DATABASE.rental_properties || {}), ...(parsed.rental_properties || {}) },
           property_inquiries: { ...(INITIAL_DATABASE.property_inquiries || {}), ...(parsed.property_inquiries || {}) },
           webhook_events: parsed.webhook_events || INITIAL_DATABASE.webhook_events || [],
-          products: { ...INITIAL_DATABASE.products, ...(parsed.products || {}) },
+          products: {
+            ...INITIAL_DATABASE.products,
+            ...Object.fromEntries(
+              Object.entries(parsed.products || {}).map(([id, prod]: [string, any]) => [
+                id,
+                { ...(INITIAL_DATABASE.products[id] || {}), ...prod }
+              ])
+            )
+          },
+          device_shop_settings: { ...(INITIAL_DATABASE.device_shop_settings || {}), ...(parsed.device_shop_settings || {}) },
+          user_favorites: parsed.user_favorites || {},
+          device_cart_items: parsed.device_cart_items || {},
           support_tickets: { ...INITIAL_DATABASE.support_tickets, ...(parsed.support_tickets || {}) },
           banners: parsed.banners || INITIAL_DATABASE.banners,
           system_settings: parsed.system_settings || INITIAL_DATABASE.system_settings
@@ -1930,6 +1850,100 @@ class DatabaseService {
     } catch (e) {
       return { success: true };
     }
+  }
+
+  public getShopSettings(): DeviceShopSettings {
+    if (!this.state.device_shop_settings) {
+      this.state.device_shop_settings = {
+        deliveryFeeNGN: 5000,
+        updatedAt: Date.now(),
+        updatedBy: 'system'
+      };
+    }
+    return this.state.device_shop_settings;
+  }
+
+  public async updateShopSettings(feeNGN: number, adminId: string = 'adm-001'): Promise<any> {
+    if (!this.state.device_shop_settings) {
+      this.state.device_shop_settings = { deliveryFeeNGN: feeNGN, updatedAt: Date.now(), updatedBy: adminId };
+    } else {
+      this.state.device_shop_settings.deliveryFeeNGN = feeNGN;
+      this.state.device_shop_settings.updatedAt = Date.now();
+      this.state.device_shop_settings.updatedBy = adminId;
+    }
+    this.persist();
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/shop/settings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-id': adminId,
+          'x-admin-role': 'super_admin'
+        },
+        body: JSON.stringify({ deliveryFeeNGN: feeNGN })
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: true, settings: this.state.device_shop_settings };
+    }
+  }
+
+  public getUserFavorites(userId: string): string[] {
+    if (!this.state.user_favorites) this.state.user_favorites = {};
+    return this.state.user_favorites[userId] || [];
+  }
+
+  public async toggleUserFavorite(userId: string, productId: string): Promise<string[]> {
+    if (!this.state.user_favorites) this.state.user_favorites = {};
+    const favs = this.state.user_favorites[userId] || [];
+    const exists = favs.includes(productId);
+    const updated = exists ? favs.filter(id => id !== productId) : [...favs, productId];
+    this.state.user_favorites[userId] = updated;
+    this.persist();
+    try {
+      await fetch(`${BACKEND_BASE}/api/shop/saved/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, productId })
+      });
+    } catch (e) {}
+    return updated;
+  }
+
+  public getCloudCart(userId: string): CartItem[] {
+    if (!this.state.device_cart_items) this.state.device_cart_items = {};
+    return this.state.device_cart_items[userId] || [];
+  }
+
+  public async syncCloudCart(userId: string, items: CartItem[]): Promise<any> {
+    if (!this.state.device_cart_items) this.state.device_cart_items = {};
+    this.state.device_cart_items[userId] = items;
+    this.persist();
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/shop/cart/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, items })
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: true, items };
+    }
+  }
+
+  public updateVariantStock(productId: string, variantId?: string, delta: number = 0): void {
+    const prod = this.state.products[productId];
+    if (!prod) return;
+    if (variantId && prod.variants) {
+      const v = prod.variants.find((item: any) => item.id === variantId);
+      if (v) {
+        v.stockCount = Math.max(0, (v.stockCount || 0) + delta);
+      }
+      prod.stockCount = prod.variants.reduce((acc: number, curr: any) => acc + (curr.stockCount || 0), 0);
+    } else {
+      prod.stockCount = Math.max(0, (prod.stockCount || 0) + delta);
+    }
+    this.persist();
   }
 
   // ==========================================

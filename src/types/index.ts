@@ -430,18 +430,46 @@ export interface SystemSettingsDocument {
 /**
  * /shop_orders/{orderId}
  */
+export interface OrderTimelineEvent {
+  status: string;
+  title: string;
+  description: string;
+  timestamp: number;
+  location?: string;
+}
+
+export interface DeviceShopSettings {
+  deliveryFeeNGN: number;
+  updatedAt: number;
+  updatedBy: string;
+}
+
 export interface ShopOrderDocument {
   id: string;
   userId: string;
   items: CartItem[];
+  subtotalNGN?: number;
+  deliveryFeeNGN?: number;
   totalAmount: number;
   currency: string;
   deliveryAddress: string;
+  destinationAddress?: string;
   paymentWalletUsed: string;
-  fulfillmentStatus: 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  paidWith?: string;
+  totalNGN?: number;
+  fulfillmentStatus: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+  status?: string;
+  date?: string;
   createdAt: number;
+  updatedAt?: number;
   orderNumber?: string;
   trackingNumber?: string;
+  courierName?: string;
+  timeline?: OrderTimelineEvent[];
+  deliveryNotes?: string;
+  internalNotes?: string;
+  cancellationReason?: string;
+  cancelledAt?: number;
 }
 
 /**
@@ -599,30 +627,67 @@ export interface WarehouseAddress {
   type: 'Air Freight Cargo' | 'Sea Freight Cargo' | 'Express Center';
 }
 
+export type ProductCondition = 'Brand New' | 'Refurbished' | 'Fair / Pre-owned';
+
+export interface ProductVariant {
+  id: string;
+  color: string;
+  colorHex: string;
+  storage: string;
+  priceAdjustmentNGN: number;
+  stockCount: number;
+  isActive: boolean;
+}
+
+export interface TechnicalSpecs {
+  chip?: string;
+  ram?: string;
+  camera?: string;
+  display?: string;
+  batteryHealth?: string | number;
+  biometrics?: string;
+  waterResistance?: string;
+  warranty?: string;
+  deliveryEstimate?: string;
+  [key: string]: any;
+}
+
 export interface TechProduct {
   id: string;
   title: string;
   subtitle: string;
-  category: 'iPhone' | 'iPad' | 'Mac' | 'Watch' | 'Audio';
+  category: 'iPhone' | 'iPad' | 'Mac' | 'MacBook' | 'Watch' | 'Apple Watch' | 'Audio' | 'AirPods' | 'Accessories' | string;
+  condition?: ProductCondition;
   priceUSD: number;
   priceNGN: number;
   priceCNY: number;
   image: string;
+  images?: string[];
   rating: number;
   reviewsCount: number;
   specs: string[];
+  technicalSpecs?: TechnicalSpecs;
   inStock: boolean;
   stockCount: number;
   tag: string;
   colors: { name: string; hex: string }[];
   storageOptions: string[];
+  variants?: ProductVariant[];
+  warrantyInfo?: string;
+  deliveryInfo?: string;
+  isPublished?: boolean;
+  createdAt?: number;
 }
 
 export interface CartItem {
+  id?: string;
   product: TechProduct;
   quantity: number;
+  variantId?: string;
   selectedColor?: string;
   selectedStorage?: string;
+  priceAdjustmentNGN?: number;
+  unitPriceNGN?: number;
 }
 
 export interface ShopOrder {
@@ -633,10 +698,26 @@ export interface ShopOrder {
   totalNGN: number;
   paidWith: Currency;
   date: string;
-  status: 'Processing' | 'HK Dispatched' | 'Flight Mid-air' | 'Lagos Ikeja Ready' | 'Delivered';
+  status: 'Processing' | 'HK Dispatched' | 'Flight Mid-air' | 'Lagos Ikeja Ready' | 'Delivered' | string;
   step: number;
   destinationAddress: string;
   trackingNumber: string;
+  userId?: string;
+  subtotalNGN?: number;
+  deliveryFeeNGN?: number;
+  totalAmount?: number;
+  currency?: string;
+  deliveryAddress?: string;
+  paymentWalletUsed?: string;
+  fulfillmentStatus?: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded' | string;
+  createdAt?: number;
+  updatedAt?: number;
+  courierName?: string;
+  timeline?: OrderTimelineEvent[];
+  deliveryNotes?: string;
+  internalNotes?: string;
+  cancellationReason?: string;
+  cancelledAt?: number;
 }
 
 export interface Supplier {

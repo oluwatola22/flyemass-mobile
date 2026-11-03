@@ -1041,41 +1041,397 @@ const INITIAL_DATABASE = {
   products: {
     'prod-iphone-16-pro': {
       id: 'prod-iphone-16-pro',
-      title: 'Apple iPhone 16 Pro Max (512GB)',
+      title: 'Apple iPhone 16 Pro Max',
       subtitle: 'Desert Titanium • Hong Kong / China Dual Physical SIM',
       category: 'iPhone',
+      condition: 'Brand New',
       priceUSD: 1420,
       priceNGN: 2108700,
       priceCNY: 10280,
       image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
+        'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80'
+      ],
       rating: 4.9,
       reviewsCount: 312,
-      specs: ['A18 Pro Chip', 'Grade 5 Titanium', '48MP Fusion Camera', 'Dual Nano-SIM (HK Spec)'],
+      specs: ['A18 Pro Chip (3nm)', 'Grade 5 Titanium', '48MP Fusion Camera', 'Dual Nano-SIM (HK Spec)'],
+      technicalSpecs: {
+        chip: 'Apple A18 Pro (6-core CPU, 6-core GPU, 16-core NPU)',
+        ram: '8GB Unified LPDDR5X',
+        camera: '48MP Fusion Main + 48MP Ultra-Wide + 12MP 5x Telephoto',
+        display: '6.9" Super Retina XDR OLED (120Hz ProMotion, 2000 nits)',
+        batteryHealth: '100% (Brand New Sealed)',
+        biometrics: 'Face ID',
+        waterResistance: 'IP68 (6 meters up to 30 mins)',
+        warranty: '1-Year Apple Global Limited Warranty',
+        deliveryEstimate: '2-4 Days Express Air Cargo (HK -> Lagos)'
+      },
       inStock: true,
       stockCount: 18,
       tag: 'Best Seller for Lagos Wholesale',
-      colors: [{ name: 'Desert Titanium', hex: '#C2AD97' }],
-      storageOptions: ['256GB', '512GB', '1TB']
+      colors: [
+        { name: 'Desert Titanium', hex: '#C2AD97' },
+        { name: 'Natural Titanium', hex: '#9A958E' },
+        { name: 'Black Titanium', hex: '#2F3133' },
+        { name: 'White Titanium', hex: '#F0F0F2' }
+      ],
+      storageOptions: ['256GB', '512GB', '1TB'],
+      variants: [
+        { id: 'v-ip16pm-256-dt', color: 'Desert Titanium', colorHex: '#C2AD97', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 6, isActive: true },
+        { id: 'v-ip16pm-512-dt', color: 'Desert Titanium', colorHex: '#C2AD97', storage: '512GB', priceAdjustmentNGN: 250000, stockCount: 5, isActive: true },
+        { id: 'v-ip16pm-1tb-dt', color: 'Desert Titanium', colorHex: '#C2AD97', storage: '1TB', priceAdjustmentNGN: 550000, stockCount: 3, isActive: true },
+        { id: 'v-ip16pm-256-nt', color: 'Natural Titanium', colorHex: '#9A958E', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 4, isActive: true }
+      ],
+      warrantyInfo: 'Official 1-Year Apple Warranty + FlyeMass Cargo Escrow Guarantee',
+      deliveryInfo: 'HK Flight ETA: 2-4 business days to Ikeja Hub or Doorstep Delivery across Nigeria',
+      isPublished: true
+    },
+    'prod-iphone-15-pro': {
+      id: 'prod-iphone-15-pro',
+      title: 'Apple iPhone 15 Pro',
+      subtitle: 'Blue Titanium • Grade-A Apple Certified Refurbished',
+      category: 'iPhone',
+      condition: 'Refurbished',
+      priceUSD: 976,
+      priceNGN: 1450000,
+      priceCNY: 7070,
+      image: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80'
+      ],
+      rating: 4.8,
+      reviewsCount: 164,
+      specs: ['A17 Pro Chip', 'Grade 5 Aerospace Titanium', 'Action Button', 'USB-C 10Gbps'],
+      technicalSpecs: {
+        chip: 'Apple A17 Pro (6-core CPU, 6-core GPU)',
+        ram: '8GB LPDDR5',
+        camera: '48MP Main + 12MP Ultra-Wide + 12MP 3x Telephoto',
+        display: '6.1" Super Retina XDR OLED (120Hz ProMotion)',
+        batteryHealth: '98% (Grade-A Tested)',
+        biometrics: 'Face ID',
+        waterResistance: 'IP68',
+        warranty: '6-Month FlyeMass Escrow Warranty',
+        deliveryEstimate: '2-4 Days Express Air Cargo'
+      },
+      inStock: true,
+      stockCount: 14,
+      tag: 'Certified Refurbished Deal',
+      colors: [
+        { name: 'Blue Titanium', hex: '#2D3A4B' },
+        { name: 'Natural Titanium', hex: '#9A958E' },
+        { name: 'Black Titanium', hex: '#2F3133' }
+      ],
+      storageOptions: ['128GB', '256GB', '512GB'],
+      variants: [
+        { id: 'v-ip15p-128-bt', color: 'Blue Titanium', colorHex: '#2D3A4B', storage: '128GB', priceAdjustmentNGN: 0, stockCount: 6, isActive: true },
+        { id: 'v-ip15p-256-bt', color: 'Blue Titanium', colorHex: '#2D3A4B', storage: '256GB', priceAdjustmentNGN: 150000, stockCount: 5, isActive: true }
+      ],
+      warrantyInfo: '6-Month Comprehensive Hardware Replacement Guarantee',
+      deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+      isPublished: true
     },
     'prod-macbook-pro-16': {
       id: 'prod-macbook-pro-16',
       title: 'MacBook Pro 16" (M4 Max / 36GB / 1TB)',
       subtitle: 'Space Black • US English International Keyboard',
-      category: 'Mac',
+      category: 'MacBook',
+      condition: 'Brand New',
       priceUSD: 3499,
       priceNGN: 5196015,
       priceCNY: 25330,
       image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80'
+      ],
       rating: 5.0,
       reviewsCount: 89,
       specs: ['M4 Max 14-core CPU', '32-core GPU', 'Liquid Retina XDR', '22-hr Battery Life'],
+      technicalSpecs: {
+        chip: 'Apple M4 Max (14-core CPU, 32-core GPU)',
+        ram: '36GB Unified Memory',
+        display: '16.2" Liquid Retina XDR (3456 x 2234, 1600 nits)',
+        camera: '12MP Center Stage Camera',
+        batteryHealth: '100% (Sealed)',
+        biometrics: 'Touch ID',
+        warranty: '1-Year Apple Global Warranty',
+        deliveryEstimate: '3-5 Days Direct Air Cargo'
+      },
       inStock: true,
       stockCount: 6,
       tag: 'Enterprise Elite',
-      colors: [{ name: 'Space Black', hex: '#1E1E22' }],
-      storageOptions: ['1TB SSD', '2TB SSD']
+      colors: [
+        { name: 'Space Black', hex: '#1E1E22' },
+        { name: 'Silver', hex: '#E3E4E5' }
+      ],
+      storageOptions: ['1TB SSD', '2TB SSD', '4TB SSD'],
+      variants: [
+        { id: 'v-mbp16-1tb-sb', color: 'Space Black', colorHex: '#1E1E22', storage: '1TB SSD', priceAdjustmentNGN: 0, stockCount: 4, isActive: true },
+        { id: 'v-mbp16-2tb-sb', color: 'Space Black', colorHex: '#1E1E22', storage: '2TB SSD', priceAdjustmentNGN: 600000, stockCount: 2, isActive: true }
+      ],
+      warrantyInfo: '1-Year Apple Global Limited Warranty + Tech Escrow',
+      deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+      isPublished: true
+    },
+    'prod-macbook-air-13': {
+      id: 'prod-macbook-air-13',
+      title: 'MacBook Air 13" (M3 / 16GB / 512GB)',
+      subtitle: 'Midnight • Ultra-thin Fanless Design',
+      category: 'MacBook',
+      condition: 'Brand New',
+      priceUSD: 1299,
+      priceNGN: 1929000,
+      priceCNY: 9400,
+      image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=600&q=80',
+      images: ['https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=600&q=80'],
+      rating: 4.9,
+      reviewsCount: 110,
+      specs: ['Apple M3 8-Core CPU', '10-Core GPU', '18-Hour Battery', 'MagSafe 3 Charging'],
+      technicalSpecs: {
+        chip: 'Apple M3 (8-core CPU, 10-core GPU)',
+        ram: '16GB Unified Memory',
+        display: '13.6" Liquid Retina Display (500 nits)',
+        camera: '1080p FaceTime HD',
+        batteryHealth: '100% (Sealed)',
+        biometrics: 'Touch ID',
+        warranty: '1-Year Apple Global Warranty',
+        deliveryEstimate: '2-4 Days Express Air Cargo'
+      },
+      inStock: true,
+      stockCount: 10,
+      tag: 'Ultra Portable',
+      colors: [
+        { name: 'Midnight', hex: '#1D2533' },
+        { name: 'Starlight', hex: '#F0ECE1' }
+      ],
+      storageOptions: ['256GB SSD', '512GB SSD'],
+      variants: [
+        { id: 'v-mba13-256-mn', color: 'Midnight', colorHex: '#1D2533', storage: '256GB SSD', priceAdjustmentNGN: 0, stockCount: 6, isActive: true },
+        { id: 'v-mba13-512-mn', color: 'Midnight', colorHex: '#1D2533', storage: '512GB SSD', priceAdjustmentNGN: 250000, stockCount: 4, isActive: true }
+      ],
+      warrantyInfo: '1-Year Apple Global Warranty',
+      deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+      isPublished: true
+    },
+    'prod-ipad-pro-m4': {
+      id: 'prod-ipad-pro-m4',
+      title: 'iPad Pro 13" M4 Ultra Retina XDR',
+      subtitle: 'Standard Glass • Wi-Fi + 5G Cellular',
+      category: 'iPad',
+      condition: 'Brand New',
+      priceUSD: 1499,
+      priceNGN: 2226015,
+      priceCNY: 10850,
+      image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=600&q=80',
+      images: ['https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=600&q=80'],
+      rating: 4.8,
+      reviewsCount: 140,
+      specs: ['Tandem OLED Display', 'M4 9-Core Chip', '5.1mm Ultra-Thin', 'Cellular eSIM/Nano'],
+      technicalSpecs: {
+        chip: 'Apple M4 (9-core CPU, 10-core GPU, 16-core NPU)',
+        ram: '8GB Unified Memory',
+        display: '13" Ultra Retina XDR Tandem OLED (1000 nits full screen, 1600 nits peak)',
+        camera: '12MP Wide + LiDAR Scanner',
+        batteryHealth: '100%',
+        biometrics: 'Face ID',
+        warranty: '1-Year Apple Global Warranty',
+        deliveryEstimate: '2-4 Days Express Air Cargo'
+      },
+      inStock: true,
+      stockCount: 12,
+      tag: 'Trending in Ikeja Computer Village',
+      colors: [
+        { name: 'Space Black', hex: '#212124' },
+        { name: 'Silver', hex: '#E5E5E7' }
+      ],
+      storageOptions: ['256GB', '512GB', '1TB'],
+      variants: [
+        { id: 'v-ippm4-256-sb', color: 'Space Black', colorHex: '#212124', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 7, isActive: true },
+        { id: 'v-ippm4-512-sb', color: 'Space Black', colorHex: '#212124', storage: '512GB', priceAdjustmentNGN: 350000, stockCount: 5, isActive: true }
+      ],
+      warrantyInfo: '1-Year Apple Global Limited Warranty',
+      deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+      isPublished: true
+    },
+    'prod-watch-ultra-2': {
+      id: 'prod-watch-ultra-2',
+      title: 'Apple Watch Ultra 2 (GPS + Cellular)',
+      subtitle: 'Black Titanium Case with Dark Green Alpine Loop',
+      category: 'Apple Watch',
+      condition: 'Brand New',
+      priceUSD: 799,
+      priceNGN: 1186515,
+      priceCNY: 5785,
+      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80',
+      images: ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80'],
+      rating: 4.9,
+      reviewsCount: 204,
+      specs: ['S9 SiP with Double Tap', '3000 nits Peak Display', '100m Water Resistant', '72hr Low Power'],
+      technicalSpecs: {
+        chip: 'Apple S9 SiP (64-bit dual-core, 4-core Neural Engine)',
+        ram: '64GB Internal Storage',
+        display: '49mm Always-On Retina LTPO OLED (3000 nits)',
+        batteryHealth: '100%',
+        biometrics: 'Electrical heart sensor (ECG) + Blood Oxygen sensor',
+        waterResistance: '100 meters (dive certified to 40m)',
+        warranty: '1-Year Apple Global Warranty',
+        deliveryEstimate: '2-4 Days Express Air Cargo'
+      },
+      inStock: true,
+      stockCount: 24,
+      tag: 'Factory Direct Sealed',
+      colors: [
+        { name: 'Black Titanium', hex: '#2C2D30' },
+        { name: 'Natural Titanium', hex: '#A5A29D' }
+      ],
+      storageOptions: ['49mm Universal'],
+      variants: [
+        { id: 'v-wultra2-bt', color: 'Black Titanium', colorHex: '#2C2D30', storage: '49mm Universal', priceAdjustmentNGN: 0, stockCount: 12, isActive: true },
+        { id: 'v-wultra2-nt', color: 'Natural Titanium', colorHex: '#A5A29D', storage: '49mm Universal', priceAdjustmentNGN: 0, stockCount: 12, isActive: true }
+      ],
+      warrantyInfo: '1-Year Apple Global Warranty',
+      deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+      isPublished: true
+    },
+    'prod-apple-watch-ultra-2': {
+      id: 'prod-apple-watch-ultra-2',
+      title: 'Apple Watch Ultra 2 (GPS + Cellular)',
+      subtitle: 'Black Titanium Case with Dark Green Alpine Loop',
+      category: 'Apple Watch',
+      condition: 'Brand New',
+      priceUSD: 799,
+      priceNGN: 1186515,
+      priceCNY: 5785,
+      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80',
+      images: ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80'],
+      rating: 4.9,
+      reviewsCount: 204,
+      specs: ['S9 SiP with Double Tap', '3000 nits Peak Display', '100m Water Resistant', '72hr Low Power'],
+      technicalSpecs: {
+        chip: 'Apple S9 SiP',
+        batteryHealth: '100%',
+        waterResistance: '100 meters',
+        warranty: '1-Year Apple Global Warranty'
+      },
+      inStock: true,
+      stockCount: 24,
+      tag: 'Factory Direct Sealed',
+      colors: [{ name: 'Black Titanium', hex: '#2C2D30' }],
+      storageOptions: ['49mm Universal'],
+      variants: [
+        { id: 'v-wultra2-alias', color: 'Black Titanium', colorHex: '#2C2D30', storage: '49mm Universal', priceAdjustmentNGN: 0, stockCount: 24, isActive: true }
+      ],
+      isPublished: true
+    },
+    'prod-airpods-pro-2': {
+      id: 'prod-airpods-pro-2',
+      title: 'AirPods Pro 2 (USB-C MagSafe)',
+      subtitle: 'Active Noise Cancellation • Transparency Mode',
+      category: 'AirPods',
+      condition: 'Brand New',
+      priceUSD: 249,
+      priceNGN: 370000,
+      priceCNY: 1800,
+      image: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&w=600&q=80',
+      images: ['https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&w=600&q=80'],
+      rating: 4.9,
+      reviewsCount: 380,
+      specs: ['Apple H2 Chip', '2x Active Noise Cancellation', 'Adaptive Audio', 'MagSafe Charging Case (USB-C)'],
+      technicalSpecs: {
+        chip: 'Apple H2 headphone chip',
+        batteryHealth: '100%',
+        waterResistance: 'IP54 dust, sweat, and water resistant',
+        warranty: '1-Year Apple Global Warranty',
+        deliveryEstimate: '2-4 Days Express Air Cargo'
+      },
+      inStock: true,
+      stockCount: 30,
+      tag: 'High Velocity Retailer Favorite',
+      colors: [{ name: 'White', hex: '#FFFFFF' }],
+      storageOptions: ['USB-C MagSafe Case'],
+      variants: [
+        { id: 'v-app2-wh', color: 'White', colorHex: '#FFFFFF', storage: 'USB-C MagSafe Case', priceAdjustmentNGN: 0, stockCount: 30, isActive: true }
+      ],
+      warrantyInfo: '1-Year Apple Global Limited Warranty',
+      deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+      isPublished: true
+    },
+    'prod-airpods-max-usb-c': {
+      id: 'prod-airpods-max-usb-c',
+      title: 'AirPods Max (USB-C 2024 Edition)',
+      subtitle: 'Midnight Blue • Active Noise Cancellation',
+      category: 'AirPods',
+      condition: 'Brand New',
+      priceUSD: 549,
+      priceNGN: 815265,
+      priceCNY: 3975,
+      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
+      images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80'],
+      rating: 4.7,
+      reviewsCount: 95,
+      specs: ['Lossless Audio via USB-C', 'Personalized Spatial Audio', 'Knit-Mesh Canopy', 'Smart Case Included'],
+      technicalSpecs: {
+        chip: 'Dual Apple H1 headphone chips',
+        batteryHealth: '100%',
+        warranty: '1-Year Apple Global Warranty',
+        deliveryEstimate: '2-4 Days Express Air Cargo'
+      },
+      inStock: true,
+      stockCount: 15,
+      tag: 'New Edition',
+      colors: [
+        { name: 'Midnight', hex: '#1D2533' },
+        { name: 'Starlight', hex: '#F0ECE1' }
+      ],
+      storageOptions: ['Standard'],
+      variants: [
+        { id: 'v-apm-mn', color: 'Midnight', colorHex: '#1D2533', storage: 'Standard', priceAdjustmentNGN: 0, stockCount: 8, isActive: true },
+        { id: 'v-apm-sl', color: 'Starlight', colorHex: '#F0ECE1', storage: 'Standard', priceAdjustmentNGN: 0, stockCount: 7, isActive: true }
+      ],
+      warrantyInfo: '1-Year Apple Global Warranty',
+      deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+      isPublished: true
+    },
+    'prod-apple-pencil-pro': {
+      id: 'prod-apple-pencil-pro',
+      title: 'Apple Pencil Pro',
+      subtitle: 'Squeeze • Barrel Roll • Haptic Feedback • Find My',
+      category: 'Accessories',
+      condition: 'Brand New',
+      priceUSD: 129,
+      priceNGN: 191500,
+      priceCNY: 935,
+      image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=600&q=80',
+      images: ['https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=600&q=80'],
+      rating: 4.9,
+      reviewsCount: 78,
+      specs: ['Squeeze Gesture Sensor', 'Barrel Roll Gyroscope', 'Custom Haptic Engine', 'Magnetic Pairing & Charging'],
+      technicalSpecs: {
+        chip: 'Custom Apple Sensor Array',
+        batteryHealth: '100%',
+        warranty: '1-Year Apple Global Warranty',
+        deliveryEstimate: '2-4 Days Express Air Cargo'
+      },
+      inStock: true,
+      stockCount: 20,
+      tag: 'iPad Pro / Air Essential',
+      colors: [{ name: 'White', hex: '#FFFFFF' }],
+      storageOptions: ['Standard'],
+      variants: [
+        { id: 'v-app-wh', color: 'White', colorHex: '#FFFFFF', storage: 'Standard', priceAdjustmentNGN: 0, stockCount: 20, isActive: true }
+      ],
+      warrantyInfo: '1-Year Apple Global Warranty',
+      deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+      isPublished: true
     }
   },
+  device_shop_settings: {
+    deliveryFeeNGN: 5000,
+    updatedAt: Date.now(),
+    updatedBy: 'system'
+  },
+  user_favorites: {},
+  device_cart_items: {},
 
   support_tickets: {
     'tkt_8901': {
@@ -1273,7 +1629,29 @@ try {
       })(),
       property_inquiries: { ...INITIAL_DATABASE.property_inquiries, ...(parsed.property_inquiries || {}) },
       webhook_events: parsed.webhook_events || INITIAL_DATABASE.webhook_events || [],
-      products: { ...INITIAL_DATABASE.products, ...(parsed.products || {}) },
+      products: (() => {
+        const merged = { ...INITIAL_DATABASE.products, ...(parsed.products || {}) };
+        for (const [k, initP] of Object.entries(INITIAL_DATABASE.products)) {
+          if (merged[k]) {
+            merged[k] = {
+              ...initP,
+              ...merged[k],
+              variants: (merged[k].variants && merged[k].variants.length > 0) ? merged[k].variants : initP.variants,
+              technicalSpecs: { ...(initP.technicalSpecs || {}), ...(merged[k].technicalSpecs || {}) }
+            };
+          }
+        }
+        return merged;
+      })(),
+      device_shop_settings: {
+        deliveryFeeNGN: 5000,
+        updatedAt: Date.now(),
+        updatedBy: 'system',
+        ...(INITIAL_DATABASE.device_shop_settings || {}),
+        ...(parsed.device_shop_settings || {})
+      },
+      user_favorites: parsed.user_favorites || INITIAL_DATABASE.user_favorites || {},
+      device_cart_items: parsed.device_cart_items || INITIAL_DATABASE.device_cart_items || {},
       support_tickets: { ...INITIAL_DATABASE.support_tickets, ...(parsed.support_tickets || {}) },
       banners: parsed.banners || INITIAL_DATABASE.banners,
       system_settings: {
@@ -3098,7 +3476,7 @@ const server = http.createServer(async (req, res) => {
     // 19. TECH STORE INVENTORY & CHECKOUT CONCURRENCY
     // -------------------------------------------------------------
     if (pathname === '/api/shop/checkout' && req.method === 'POST') {
-      const { userId, items, totalAmount, currency, deliveryAddress, pin } = await readJsonBody(req);
+      const { userId, items, totalAmount, currency, deliveryAddress, pin, deliveryFee, includeDeliveryFee } = await readJsonBody(req);
       const user = dbState.users[userId || 'usr_alade_01'];
       if (!user) return sendJson(res, 404, { error: 'User not found' });
 
@@ -3109,25 +3487,57 @@ const server = http.createServer(async (req, res) => {
       }
 
       const curr = currency || 'USD';
+      const rates = dbState.system_settings?.rates || { USD_NGN: 1485, USD_CNY: 7.24 };
 
       // Authoritative Price Revalidation: calculate actual catalog price to prevent client tampering
       let calculatedUSD = 0;
+      let calculatedNGN = 0;
+
       if (Array.isArray(items)) {
         for (const item of items) {
           const prodId = item.product?.id || item.productId;
           const p = dbState.products && dbState.products[prodId];
           if (p) {
             const qty = Number(item.quantity) || 1;
-            calculatedUSD += (p.priceUSD || 0) * qty;
+            let priceAdjustmentNGN = 0;
+            if (p.variants && p.variants.length > 0) {
+              const v = p.variants.find(x => x.id === item.variantId || (x.storage === item.selectedStorage && x.color === item.selectedColor));
+              if (v) priceAdjustmentNGN = v.priceAdjustmentNGN || 0;
+            }
+            const unitNGN = (p.priceNGN || Math.round((p.priceUSD || 0) * (rates.USD_NGN || 1485))) + priceAdjustmentNGN;
+            const unitUSD = (p.priceUSD || 0) + Math.round(priceAdjustmentNGN / (rates.USD_NGN || 1485));
+            calculatedNGN += unitNGN * qty;
+            calculatedUSD += unitUSD * qty;
           }
         }
       }
 
-      let requiredDebit = calculatedUSD > 0 ? calculatedUSD : Number(totalAmount);
-      if (curr === 'NGN') {
-        requiredDebit = Math.round(requiredDebit * (dbState.system_settings.rates.USD_NGN || 1485));
+      const configDeliveryFeeNGN = (dbState.device_shop_settings && typeof dbState.device_shop_settings.deliveryFeeNGN === 'number')
+        ? dbState.device_shop_settings.deliveryFeeNGN
+        : 5000;
+
+      let feeNGN = 0;
+      if (deliveryFee !== undefined) {
+        feeNGN = Number(deliveryFee) || 0;
+      } else if (includeDeliveryFee === true || (curr === 'NGN' && calculatedNGN > 0)) {
+        feeNGN = configDeliveryFeeNGN;
+      }
+
+      let requiredDebit = 0;
+      if (curr === 'USD') {
+        if (feeNGN > 0) {
+          const feeUSD = Math.round(feeNGN / (rates.USD_NGN || 1485));
+          requiredDebit = calculatedUSD + feeUSD;
+        } else {
+          requiredDebit = calculatedUSD > 0 ? calculatedUSD : Number(totalAmount);
+        }
       } else if (curr === 'CNY') {
-        requiredDebit = Math.round(requiredDebit * (dbState.system_settings.rates.USD_CNY || 7.24));
+        const totalNGN = calculatedNGN + feeNGN;
+        requiredDebit = Math.round((totalNGN / (rates.USD_NGN || 1485)) * (rates.USD_CNY || 7.24));
+      } else {
+        // NGN
+        requiredDebit = calculatedNGN + feeNGN;
+        if (requiredDebit <= 0 && totalAmount) requiredDebit = Number(totalAmount);
       }
 
       if (isNaN(requiredDebit) || requiredDebit <= 0) return sendJson(res, 400, { error: 'Invalid order amount' });
@@ -3146,34 +3556,55 @@ const server = http.createServer(async (req, res) => {
             const prodId = item.product?.id || item.productId;
             if (prodId && dbState.products && dbState.products[prodId]) {
               const p = dbState.products[prodId];
-              const qty = item.quantity || 1;
-              if (p.stockCount < qty) {
+              const qty = Number(item.quantity) || 1;
+              if (item.variantId && p.variants && p.variants.length > 0) {
+                const v = p.variants.find(x => x.id === item.variantId);
+                if (v) {
+                  if (!v.isActive) throw new Error(`Selected variant of "${p.title}" is currently unavailable`);
+                  if (v.stockCount < qty) throw new Error(`Item "${p.title} (${v.storage} - ${v.color})" is out of stock (available: ${v.stockCount})`);
+                } else if (p.stockCount < qty) {
+                  throw new Error(`Item "${p.title}" is out of stock (available: ${p.stockCount})`);
+                }
+              } else if (p.stockCount < qty) {
                 throw new Error(`Item "${p.title}" is out of stock (available: ${p.stockCount})`);
               }
             }
           }
 
-          // Decrement stock atomically
+          // Decrement stock atomically per variant or product
           for (const item of items) {
             const prodId = item.product?.id || item.productId;
             if (prodId && dbState.products && dbState.products[prodId]) {
               const p = dbState.products[prodId];
-              p.stockCount -= (item.quantity || 1);
-              p.inStock = p.stockCount > 0;
+              const qty = Number(item.quantity) || 1;
+              let variantDeducted = false;
+              if (item.variantId && p.variants && p.variants.length > 0) {
+                const v = p.variants.find(x => x.id === item.variantId);
+                if (v) {
+                  v.stockCount = Math.max(0, v.stockCount - qty);
+                  p.stockCount = p.variants.reduce((sum, x) => sum + x.stockCount, 0);
+                  p.inStock = p.stockCount > 0;
+                  variantDeducted = true;
+                }
+              }
+              if (!variantDeducted) {
+                p.stockCount = Math.max(0, (p.stockCount || 0) - qty);
+                p.inStock = p.stockCount > 0;
+              }
             }
           }
         }
 
         const openingBalance = user.balances[curr];
         const orderId = `ord_tech_${Date.now()}`;
-        const orderNumber = `ORD-HK-${Math.floor(10000 + Math.random() * 90000)}`;
+        const orderNumber = `ORD-2026-${Math.floor(10000 + Math.random() * 90000)}`;
         const trackingNumber = `FM-HK-LOS-${Math.floor(10000 + Math.random() * 90000)}`;
 
         recordDoubleEntry({
           reference: orderNumber,
           userId: user.uid,
           transactionType: 'SHOP_ORDER',
-          description: `Hong Kong Tech Wholesale: ${items?.[0]?.product?.title || 'Apple Gadgets'}`,
+          description: `Apple Tech Wholesale: ${items?.[0]?.product?.title || 'Apple Gadgets'}`,
           postings: [
             { account: `liabilities:customer:${user.uid}:${curr.toLowerCase()}`, currency: curr, debit: requiredDebit, credit: 0 },
             { account: 'revenue:sales:tech_gadgets', currency: curr, debit: 0, credit: requiredDebit }
@@ -3186,16 +3617,34 @@ const server = http.createServer(async (req, res) => {
           id: orderId,
           userId: user.uid,
           items: items || [],
+          subtotalNGN: calculatedNGN,
+          deliveryFeeNGN: feeNGN,
           totalAmount: requiredDebit,
           currency: curr,
           deliveryAddress: deliveryAddress || 'Lagos, Nigeria',
           paymentWalletUsed: curr,
-          fulfillmentStatus: 'processing',
+          fulfillmentStatus: 'pending',
           createdAt: Date.now(),
+          updatedAt: Date.now(),
           orderNumber,
-          trackingNumber
+          trackingNumber,
+          courierName: 'FlyeMass Express Air Cargo',
+          timeline: [
+            {
+              status: 'pending',
+              title: 'Order Confirmed',
+              description: 'Payment verified and order allocated in Hong Kong Logistics Hub',
+              timestamp: Date.now(),
+              location: 'Hong Kong Logistics Hub'
+            }
+          ]
         };
         dbState.shop_orders[orderId] = orderDoc;
+
+        // Clear cart for user
+        if (dbState.device_cart_items && dbState.device_cart_items[user.uid]) {
+          dbState.device_cart_items[user.uid] = [];
+        }
 
         const ledgerId = `ldg_${Date.now()}`;
         ledgerEntry = {
@@ -3211,9 +3660,21 @@ const server = http.createServer(async (req, res) => {
           status: 'completed',
           reference: orderNumber,
           timestamp: Date.now(),
-          notes: `Hong Kong Tech Wholesale: ${items?.[0]?.product?.title || 'Apple Gadgets'}`
+          notes: `Apple Tech Wholesale: ${items?.[0]?.product?.title || 'Apple Gadgets'}`
         };
         dbState.wallets_ledger[ledgerId] = ledgerEntry;
+
+        // In-app notification
+        if (!dbState.notifications) dbState.notifications = [];
+        dbState.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          userId: user.uid,
+          title: '🛒 Apple Order Placed!',
+          message: `Your order #${orderNumber} (${curr} ${requiredDebit.toLocaleString()}) has been confirmed. Tracking: ${trackingNumber}`,
+          type: 'shop_order',
+          read: false,
+          timestamp: Date.now()
+        });
 
         recordAudit(user.fullName, 'SHOP_ORDER_PLACED', 'shop_orders', orderId, `Placed order #${orderNumber} (${curr} ${requiredDebit})`, req);
       });
@@ -3247,17 +3708,32 @@ const server = http.createServer(async (req, res) => {
           transactionType: 'SHOP_ORDER_REFUND',
           description: `Order #${order.orderNumber || order.id} cancellation refund: ${reason || 'Customer requested cancellation'}`,
           postings: [
-            { account: `liabilities:shop_escrow:${curr.toLowerCase()}`, currency: curr, debit: amount, credit: 0 },
+            { account: `revenue:sales:tech_gadgets`, currency: curr, debit: amount, credit: 0 },
             { account: `liabilities:customer:${user.uid}:${curr.toLowerCase()}`, currency: curr, debit: 0, credit: amount }
           ]
         });
 
-        // Restore stock
+        // Restore variant or product stock
         if (order.items && Array.isArray(order.items)) {
           for (const itm of order.items) {
-            const prodId = itm.product?.id;
+            const prodId = itm.product?.id || itm.productId;
             if (prodId && dbState.products[prodId]) {
-              dbState.products[prodId].stockCount = (dbState.products[prodId].stockCount || 0) + (itm.quantity || 1);
+              const p = dbState.products[prodId];
+              const qty = Number(itm.quantity) || 1;
+              let variantRestored = false;
+              if (itm.variantId && p.variants && p.variants.length > 0) {
+                const v = p.variants.find(x => x.id === itm.variantId);
+                if (v) {
+                  v.stockCount += qty;
+                  p.stockCount = p.variants.reduce((sum, x) => sum + x.stockCount, 0);
+                  p.inStock = p.stockCount > 0;
+                  variantRestored = true;
+                }
+              }
+              if (!variantRestored) {
+                p.stockCount = (p.stockCount || 0) + qty;
+                p.inStock = p.stockCount > 0;
+              }
             }
           }
         }
@@ -3266,6 +3742,14 @@ const server = http.createServer(async (req, res) => {
         order.fulfillmentStatus = 'cancelled';
         order.cancellationReason = reason || 'Customer requested cancellation';
         order.cancelledAt = Date.now();
+        if (!order.timeline) order.timeline = [];
+        order.timeline.push({
+          status: 'cancelled',
+          title: 'Order Cancelled & Refunded',
+          description: order.cancellationReason,
+          timestamp: Date.now(),
+          location: 'FlyeMass Operations'
+        });
 
         const ledgerId = `ldg_${Date.now()}`;
         dbState.wallets_ledger[ledgerId] = {
@@ -3284,6 +3768,17 @@ const server = http.createServer(async (req, res) => {
           notes: `Shop order refund: ${curr} ${amount.toLocaleString()} credited back`
         };
 
+        if (!dbState.notifications) dbState.notifications = [];
+        dbState.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          userId: user.uid,
+          title: '💳 Apple Order Refunded',
+          message: `Order #${order.orderNumber || order.id} was cancelled. ${curr} ${amount.toLocaleString()} has been credited to your wallet.`,
+          type: 'shop_order',
+          read: false,
+          timestamp: Date.now()
+        });
+
         recordAudit(adminId || user.fullName, 'SHOP_ORDER_CANCELLED', 'shop_orders', order.id, `Order #${order.orderNumber || order.id} cancelled & refunded (${curr} ${amount})`, req);
       });
 
@@ -3292,23 +3787,173 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { success: true, order, balances: user.balances });
     }
 
-    if (pathname === '/api/admin/shop/orders/fulfill' && req.method === 'POST') {
+    if ((pathname === '/api/admin/shop/orders/fulfill' || pathname === '/api/admin/shop/orders/status') && req.method === 'POST') {
       if (!verifyAdminRole(req, ['super_admin', 'logistics_manager', 'operations'])) {
         return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
       }
-      const { orderId, trackingNumber, status, notes } = await readJsonBody(req);
+      const { orderId, trackingNumber, status, fulfillmentStatus, notes, courierName, deliveryNotes, internalNotes } = await readJsonBody(req);
       const order = dbState.shop_orders[orderId];
       if (!order) return sendJson(res, 404, { error: 'Order not found' });
 
-      order.fulfillmentStatus = status || 'shipped';
+      const newStatus = fulfillmentStatus || status || (pathname.endsWith('/fulfill') ? 'shipped' : 'processing');
+      order.fulfillmentStatus = newStatus;
       if (trackingNumber) order.trackingNumber = trackingNumber;
-      if (notes) order.fulfillmentNotes = notes;
+      if (courierName) order.courierName = courierName;
+      if (deliveryNotes || notes) order.deliveryNotes = deliveryNotes || notes;
+      if (internalNotes) order.internalNotes = internalNotes;
       order.updatedAt = Date.now();
 
-      recordAudit('Shop Operations', 'ORDER_FULFILLED', 'shop_orders', order.id, `Status updated to ${order.fulfillmentStatus}`, req);
+      if (!order.timeline) order.timeline = [];
+      const statusTitles = {
+        pending: 'Order Placed',
+        processing: 'Processing in HK Facility',
+        shipped: 'Dispatched via Air Cargo',
+        delivered: 'Delivered to Customer',
+        cancelled: 'Order Cancelled'
+      };
+      order.timeline.push({
+        status: newStatus,
+        title: statusTitles[newStatus] || `Status Updated: ${newStatus}`,
+        description: order.deliveryNotes || `Order transitioned to ${newStatus}`,
+        timestamp: Date.now(),
+        location: (newStatus === 'shipped') ? 'Hong Kong Int Airport Hub' : (newStatus === 'delivered') ? 'Lagos Destination' : 'Hong Kong Hub Desk'
+      });
+
+      // Dispatch customer notification on shipping / delivery
+      if (!dbState.notifications) dbState.notifications = [];
+      if (newStatus === 'shipped') {
+        dbState.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          userId: order.userId,
+          title: '✈️ Apple Order Dispatched!',
+          message: `Your order #${order.orderNumber} has been dispatched via ${order.courierName || 'FlyeMass Air Cargo'}. Tracking: ${order.trackingNumber}`,
+          type: 'shop_order',
+          read: false,
+          timestamp: Date.now()
+        });
+      } else if (newStatus === 'delivered') {
+        dbState.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          userId: order.userId,
+          title: '🎉 Apple Order Delivered!',
+          message: `Your order #${order.orderNumber} has arrived and been successfully delivered!`,
+          type: 'shop_order',
+          read: false,
+          timestamp: Date.now()
+        });
+      }
+
+      recordAudit(req.headers['x-admin-id'] || 'Shop Operations', 'ORDER_FULFILLED', 'shop_orders', order.id, `Status updated to ${order.fulfillmentStatus}`, req);
       persistState();
       broadcastUpdate();
       return sendJson(res, 200, { success: true, order });
+    }
+
+    // -------------------------------------------------------------
+    // SHOP PRODUCT CATALOG
+    // -------------------------------------------------------------
+    if ((pathname === '/api/shop/catalog' || pathname === '/api/shop/products') && req.method === 'GET') {
+      const products = Object.values(dbState.products || {});
+      return sendJson(res, 200, { success: true, products });
+    }
+
+    // -------------------------------------------------------------
+    // SHOP SETTINGS (GLOBAL DELIVERY FEE)
+    // -------------------------------------------------------------
+    if (pathname === '/api/shop/settings' && req.method === 'GET') {
+      const settings = dbState.device_shop_settings || { deliveryFeeNGN: 5000, updatedAt: Date.now(), updatedBy: 'system' };
+      return sendJson(res, 200, { success: true, settings });
+    }
+
+    if (pathname === '/api/admin/shop/settings' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'logistics_manager', 'operations'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { deliveryFeeNGN } = await readJsonBody(req);
+      if (typeof deliveryFeeNGN !== 'number' || deliveryFeeNGN < 0) {
+        return sendJson(res, 400, { error: 'Valid numeric deliveryFeeNGN required' });
+      }
+      dbState.device_shop_settings = {
+        deliveryFeeNGN,
+        updatedAt: Date.now(),
+        updatedBy: req.headers['x-admin-id'] || 'adm-001'
+      };
+      recordAudit(req.headers['x-admin-id'] || 'Admin Shop', 'UPDATE_SHOP_SETTINGS', 'device_shop_settings', 'global', `Updated delivery fee to ₦${deliveryFeeNGN.toLocaleString()}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, settings: dbState.device_shop_settings });
+    }
+
+    // -------------------------------------------------------------
+    // USER FAVORITES (WISHLIST)
+    // -------------------------------------------------------------
+    if (pathname === '/api/shop/saved' && req.method === 'GET') {
+      const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+      const userId = urlObj.searchParams.get('userId') || 'usr_alade_01';
+      if (!dbState.user_favorites) dbState.user_favorites = {};
+      const favorites = dbState.user_favorites[userId] || [];
+      return sendJson(res, 200, { success: true, favorites, savedProductIds: favorites });
+    }
+
+    if (pathname === '/api/shop/saved/toggle' && req.method === 'POST') {
+      const { userId, productId } = await readJsonBody(req);
+      if (!userId || !productId) {
+        return sendJson(res, 400, { error: 'userId and productId required' });
+      }
+      if (!dbState.user_favorites) dbState.user_favorites = {};
+      const favs = dbState.user_favorites[userId] || [];
+      const exists = favs.includes(productId);
+      const updated = exists ? favs.filter(id => id !== productId) : [...favs, productId];
+      dbState.user_favorites[userId] = updated;
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, isSaved: !exists, favorites: updated, savedProductIds: updated });
+    }
+
+    // -------------------------------------------------------------
+    // CLOUD CART PERSISTENCE & INVENTORY VALIDATION
+    // -------------------------------------------------------------
+    if (pathname === '/api/shop/cart' && req.method === 'GET') {
+      const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+      const userId = urlObj.searchParams.get('userId') || 'usr_alade_01';
+      if (!dbState.device_cart_items) dbState.device_cart_items = {};
+      const items = dbState.device_cart_items[userId] || [];
+      return sendJson(res, 200, { success: true, items });
+    }
+
+    if (pathname === '/api/shop/cart/sync' && req.method === 'POST') {
+      const { userId, items } = await readJsonBody(req);
+      if (!userId || !Array.isArray(items)) {
+        return sendJson(res, 400, { error: 'userId and items array required' });
+      }
+      if (!dbState.device_cart_items) dbState.device_cart_items = {};
+
+      const validated = items.map(item => {
+        const prodId = item.product?.id || item.productId;
+        const p = dbState.products && dbState.products[prodId];
+        let isAvailable = true;
+        let availableStock = 0;
+        if (!p) {
+          isAvailable = false;
+        } else if (item.variantId && p.variants && p.variants.length > 0) {
+          const v = p.variants.find(x => x.id === item.variantId);
+          isAvailable = !!(v && v.isActive && v.stockCount >= (item.quantity || 1));
+          availableStock = v ? v.stockCount : 0;
+        } else {
+          isAvailable = !!(p.inStock && p.stockCount >= (item.quantity || 1));
+          availableStock = p.stockCount || 0;
+        }
+        return {
+          ...item,
+          isAvailable,
+          availableStock
+        };
+      });
+
+      dbState.device_cart_items[userId] = validated;
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, items: validated });
     }
 
     if ((pathname === '/api/shipments/cancel' || pathname === '/api/admin/shipments/refund') && req.method === 'POST') {
@@ -5439,13 +6084,22 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
     // 30. PRODUCT STOCK ADJUSTMENT
     // -------------------------------------------------------------
     if (pathname === '/api/shop/update-stock' && req.method === 'POST') {
-      const { productId, delta } = await readJsonBody(req);
+      const { productId, variantId, delta } = await readJsonBody(req);
       if (!productId || typeof delta !== 'number') {
         return sendJson(res, 400, { error: 'productId and numeric delta required' });
       }
       const prod = dbState.products && dbState.products[productId];
       if (!prod) return sendJson(res, 404, { error: 'Product not found' });
-      prod.stockCount = Math.max(0, (prod.stockCount || 0) + delta);
+
+      if (variantId && prod.variants && prod.variants.length > 0) {
+        const v = prod.variants.find(x => x.id === variantId);
+        if (v) {
+          v.stockCount = Math.max(0, (v.stockCount || 0) + delta);
+        }
+        prod.stockCount = prod.variants.reduce((sum, x) => sum + x.stockCount, 0);
+      } else {
+        prod.stockCount = Math.max(0, (prod.stockCount || 0) + delta);
+      }
       prod.inStock = prod.stockCount > 0;
       recordAudit(req.headers['x-admin-id'] || 'Admin Shop', 'UPDATE_STOCK', 'products', productId, `Adjusted stock by ${delta} to ${prod.stockCount}`, req);
       persistState();
