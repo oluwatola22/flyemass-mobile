@@ -644,7 +644,12 @@ const INITIAL_DATABASE = {
       supplierEscrowPercent: 0.5,
       airFreightPerKgUSD: 10.00,
       seaFreightPerCbmUSD: 145.00,
-      supplier30DayPassUSD: 50.00
+      supplier30DayPassUSD: 50.00,
+      sourcingCommissionPercent: 5.0,
+      minSourcingCommissionCNY: 500,
+      supplierVerificationUSD: 150,
+      factoryAuditUSD: 250,
+      qualityControlUSD: 200
     }
   },
 
@@ -3263,30 +3268,119 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { success: true, shipment });
     }
 
+    // -------------------------------------------------------------
+    // AGENT SERVICES & SOURCING WORKFLOWS (Phase 10)
+    // -------------------------------------------------------------
+    if (pathname === '/api/agents/settings' && req.method === 'GET') {
+      const fees = dbState.system_settings.fees;
+      return sendJson(res, 200, {
+        success: true,
+        settings: {
+          sourcingCommissionPercent: fees.sourcingCommissionPercent || 5.0,
+          minSourcingCommissionCNY: fees.minSourcingCommissionCNY || 500,
+          supplierVerificationUSD: fees.supplierVerificationUSD || 150,
+          factoryAuditUSD: fees.factoryAuditUSD || 250,
+          qualityControlUSD: fees.qualityControlUSD || 200
+        }
+      });
+    }
+
+    if (pathname === '/api/admin/agents/settings' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+
+      const { sourcingCommissionPercent, minSourcingCommissionCNY, supplierVerificationUSD, factoryAuditUSD, qualityControlUSD, adminId } = await readJsonBody(req);
+      const fees = dbState.system_settings.fees;
+
+      if (sourcingCommissionPercent !== undefined) fees.sourcingCommissionPercent = parseFloat(sourcingCommissionPercent);
+      if (minSourcingCommissionCNY !== undefined) fees.minSourcingCommissionCNY = parseFloat(minSourcingCommissionCNY);
+      if (supplierVerificationUSD !== undefined) fees.supplierVerificationUSD = parseFloat(supplierVerificationUSD);
+      if (factoryAuditUSD !== undefined) fees.factoryAuditUSD = parseFloat(factoryAuditUSD);
+      if (qualityControlUSD !== undefined) fees.qualityControlUSD = parseFloat(qualityControlUSD);
+
+      recordAudit(adminId || 'Super Admin', 'AGENT_SETTINGS_UPDATED', 'system_settings', 'fees', `Updated agent rates: Sourcing ${fees.sourcingCommissionPercent}%, Verification $${fees.supplierVerificationUSD}, Audit $${fees.factoryAuditUSD}, QC $${fees.qualityControlUSD}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, fees });
+    }
+
     if (pathname === '/api/agents/request' && req.method === 'POST') {
-      const { serviceType, productName, category, targetQuantity, targetUnitUSD, supplierCity, inspectionRequired, cantonFairBooth, userId } = await readJsonBody(req);
+      const body = await readJsonBody(req);
+      const {
+        serviceType, serviceKind, productName, category, targetQuantity, targetUnitUSD, targetUnitCNY, totalBudgetCNY,
+        productUrl, specifications, referencePhotos,
+        supplierName, supplierLocation, supplierCity, supplierContact, supplierWechat, preferredDate, inspectionRequirements,
+        inspectionRequired, cantonFairBooth, userId
+      } = body;
       const uid = userId || 'usr_alade_01';
       const user = dbState.users[uid];
       const rfqId = `rfq_${Date.now()}`;
 
+      // Generate unique AGT- code
+      const kindPrefix = serviceKind === 'sourcing' ? 'SRC' :
+                         serviceKind === 'supplier_verification' ? 'VER' :
+                         serviceKind === 'factory_audit' ? 'AUD' :
+                         serviceKind === 'quality_control' ? 'QC' : 'REQ';
+      const rand5 = Math.floor(10000 + Math.random() * 90000);
+      const reference = `AGT-${kindPrefix}-2026-${rand5}`;
+
       const newRfq = {
         id: rfqId,
+        reference,
         userId: uid,
         clientName: user ? user.fullName : 'Enterprise Client',
-        serviceType: serviceType || 'Factory Direct RFQ & Procurement',
+        customerPhone: user?.phone || '+234 803 555 9201',
+        customerEmail: user?.email || 'client@flyemass.com',
+        serviceType: serviceType || (serviceKind === 'sourcing' ? 'Product Sourcing & Procurement' : 'Factory Inspection'),
+        serviceKind: serviceKind || undefined,
         productName: productName || 'Hardware Commodity',
         category: category || 'Electronics & Tech',
         targetQuantity: parseInt(targetQuantity) || 100,
         targetUnitUSD: parseFloat(targetUnitUSD) || 10.0,
+        targetUnitCNY: parseFloat(targetUnitCNY) || (parseFloat(targetUnitUSD) ? parseFloat(targetUnitUSD) * 7.24 : 70.0),
+        totalBudgetCNY: parseFloat(totalBudgetCNY) || (parseInt(targetQuantity) || 100) * (parseFloat(targetUnitCNY) || 70.0),
+        productUrl: productUrl || undefined,
+        specifications: specifications || undefined,
+        referencePhotos: Array.isArray(referencePhotos) ? referencePhotos : [],
+        supplierName: supplierName || undefined,
+        supplierLocation: supplierLocation || undefined,
         supplierCity: supplierCity || 'Guangzhou',
-        status: 'pending_quote',
+        supplierContact: supplierContact || undefined,
+        supplierWechat: supplierWechat || undefined,
+        preferredDate: preferredDate || undefined,
+        inspectionRequirements: inspectionRequirements || undefined,
         inspectionRequired: inspectionRequired !== false,
         cantonFairBooth: cantonFairBooth || null,
-        createdAt: Date.now()
+        status: serviceKind ? 'pending_review' : 'pending_quote',
+        paymentStatus: 'unpaid',
+        timeline: [
+          {
+            status: serviceKind ? 'pending_review' : 'pending_quote',
+            timestamp: Date.now(),
+            location: `${supplierCity || 'Guangzhou'} Trade Desk`,
+            notes: `Request submitted by client. Reference: ${reference}. Assigned to China trade team for review.`
+          }
+        ],
+        createdAt: Date.now(),
+        updatedAt: Date.now()
       };
 
       dbState.agent_requests[rfqId] = newRfq;
-      recordAudit(user ? user.fullName : 'Client', 'AGENT_REQUEST_CREATED', 'agent_requests', rfqId, `Submitted RFQ: ${newRfq.productName} (${newRfq.supplierCity})`, req);
+
+      if (!dbState.notifications) dbState.notifications = [];
+      dbState.notifications.unshift({
+        id: `notif_${Date.now()}`,
+        userId: uid,
+        title: `Request Registered: ${newRfq.reference}`,
+        message: `Your ${newRfq.serviceType} request for "${newRfq.productName}" is under review by our China desk.`,
+        type: 'procurement',
+        timestamp: Date.now(),
+        read: false,
+        linkRoute: 'agent'
+      });
+
+      recordAudit(user ? user.fullName : 'Client', 'AGENT_REQUEST_CREATED', 'agent_requests', rfqId, `Submitted ${newRfq.serviceType}: ${newRfq.productName} (#${newRfq.reference})`, req);
       persistState();
       broadcastUpdate();
       return sendJson(res, 201, { success: true, request: newRfq });
@@ -3297,16 +3391,50 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
       }
 
-      const { requestId, quoteAmountUSD, quoteAmountNGN, adminNotes, assignedAgent, adminId } = await readJsonBody(req);
+      const body = await readJsonBody(req);
+      const {
+        requestId, quoteAmountUSD, quoteAmountNGN, quoteAmountCNY,
+        productCostCNY, sourcingCommissionCNY, sourcingCommissionPercent, chinaShippingCNY, totalPayableCNY,
+        serviceFeeUSD, leadTimeDays, supplierFindings, quotationNotes, adminNotes, assignedAgent, adminId
+      } = body;
+
       const rfq = dbState.agent_requests[requestId];
       if (!rfq) return sendJson(res, 404, { error: 'Agent request not found' });
 
-      rfq.quoteAmountUSD = parseFloat(quoteAmountUSD) || 250;
-      rfq.quoteAmountNGN = parseFloat(quoteAmountNGN) || Math.round(rfq.quoteAmountUSD * 1485);
-      rfq.adminNotes = adminNotes || 'Official quotation formulated by China ground manager';
+      // Support both sourcing breakdown and inspection quote
+      rfq.productCostCNY = productCostCNY !== undefined ? parseFloat(productCostCNY) : rfq.productCostCNY;
+      rfq.sourcingCommissionCNY = sourcingCommissionCNY !== undefined ? parseFloat(sourcingCommissionCNY) : rfq.sourcingCommissionCNY;
+      rfq.sourcingCommissionPercent = sourcingCommissionPercent !== undefined ? parseFloat(sourcingCommissionPercent) : rfq.sourcingCommissionPercent;
+      rfq.chinaShippingCNY = chinaShippingCNY !== undefined ? parseFloat(chinaShippingCNY) : rfq.chinaShippingCNY;
+      rfq.totalPayableCNY = totalPayableCNY !== undefined ? parseFloat(totalPayableCNY) : rfq.totalPayableCNY;
+      rfq.serviceFeeUSD = serviceFeeUSD !== undefined ? parseFloat(serviceFeeUSD) : rfq.serviceFeeUSD;
+
+      // Currency equivalents
+      const totalCNY = rfq.totalPayableCNY || (parseFloat(quoteAmountCNY) || 0);
+      let calculatedUSD = quoteAmountUSD ? parseFloat(quoteAmountUSD) : (totalCNY > 0 ? Math.round((totalCNY / 7.24) * 100) / 100 : (rfq.serviceFeeUSD || 250));
+      let calculatedNGN = quoteAmountNGN ? parseFloat(quoteAmountNGN) : Math.round(calculatedUSD * 1485);
+
+      rfq.quoteAmountUSD = calculatedUSD;
+      rfq.quoteAmountNGN = calculatedNGN;
+      rfq.quoteAmountCNY = totalCNY > 0 ? totalCNY : Math.round(calculatedUSD * 7.24 * 100) / 100;
+      rfq.leadTimeDays = parseInt(leadTimeDays) || 7;
+      rfq.supplierFindings = supplierFindings || undefined;
+      rfq.adminNotes = adminNotes || quotationNotes || 'Official quotation formulated by China ground manager';
       rfq.assignedAgent = assignedAgent || 'Zhang Wei (Bilingual Ground Agent)';
-      rfq.status = 'quote_ready';
+      
+      // Status transition: awaiting_payment for Phase 10, quote_ready for Phase 6 backwards compatibility
+      rfq.status = rfq.serviceKind ? 'awaiting_payment' : 'quote_ready';
+      rfq.paymentStatus = 'awaiting_payment';
       rfq.quotedAt = Date.now();
+      rfq.updatedAt = Date.now();
+
+      if (!rfq.timeline) rfq.timeline = [];
+      rfq.timeline.push({
+        status: 'awaiting_payment',
+        location: `${rfq.supplierCity || 'China'} Trade Desk`,
+        timestamp: Date.now(),
+        notes: `Quotation issued: $${rfq.quoteAmountUSD} USD (≈ ₦${rfq.quoteAmountNGN.toLocaleString()} NGN / ¥${rfq.quoteAmountCNY.toLocaleString()} CNY). Lead time: ${rfq.leadTimeDays} days.`
+      });
 
       // Notify customer
       if (rfq.userId && dbState.users[rfq.userId]) {
@@ -3314,16 +3442,16 @@ const server = http.createServer(async (req, res) => {
         dbState.notifications.unshift({
           id: `notif_${Date.now()}`,
           userId: rfq.userId,
-          title: `Quotation Ready: ${rfq.productName}`,
-          message: `Your factory inspection/sourcing quote for $${rfq.quoteAmountUSD} USD is ready for review!`,
+          title: `Quotation Ready: ${rfq.reference || rfq.productName}`,
+          message: `Your quote for $${rfq.quoteAmountUSD} USD (¥${rfq.quoteAmountCNY} CNY) is ready for review and wallet authorization!`,
           type: 'procurement',
           timestamp: Date.now(),
           read: false,
-          linkRoute: 'procure'
+          linkRoute: 'agent'
         });
       }
 
-      recordAudit(adminId || 'Agent Desk', 'AGENT_QUOTE_ISSUED', 'agent_requests', rfq.id, `Quoted $${rfq.quoteAmountUSD} USD for ${rfq.productName}`, req);
+      recordAudit(adminId || 'Agent Desk', 'AGENT_QUOTE_ISSUED', 'agent_requests', rfq.id, `Quoted $${rfq.quoteAmountUSD} USD for ${rfq.productName} (#${rfq.reference || rfq.id})`, req);
       persistState();
       broadcastUpdate();
       return sendJson(res, 200, { success: true, request: rfq });
@@ -3333,22 +3461,34 @@ const server = http.createServer(async (req, res) => {
       const { requestId, pin, paymentWalletUsed, userId } = await readJsonBody(req);
       const rfq = dbState.agent_requests[requestId];
       if (!rfq) return sendJson(res, 404, { error: 'Agent request not found' });
-      if (rfq.status !== 'quote_ready') {
-        return sendJson(res, 400, { error: 'RFQ is not in quote_ready status' });
+
+      if (rfq.paymentStatus === 'paid') {
+        return sendJson(res, 400, { error: 'Agent request has already been paid in full' });
+      }
+
+      if (rfq.status !== 'quote_ready' && rfq.status !== 'awaiting_payment' && rfq.paymentStatus !== 'awaiting_payment') {
+        return sendJson(res, 400, { error: 'RFQ is not awaiting payment' });
       }
 
       const uid = userId || rfq.userId || 'usr_alade_01';
       const user = dbState.users[uid];
       if (!user) return sendJson(res, 404, { error: 'User not found' });
 
+      // PIN check
       const pinCheck = verifyUserTransactionPin(user, pin);
       if (!pinCheck.valid) {
         return sendJson(res, pinCheck.status || 401, { error: pinCheck.error });
       }
 
       const curr = (paymentWalletUsed || 'USD').toUpperCase();
-      const requiredAmount = curr === 'NGN' ? (rfq.quoteAmountNGN || rfq.quoteAmountUSD * 1485) : rfq.quoteAmountUSD;
-      const ref = `AGT-ESCROW-${Date.now().toString().slice(-6)}`;
+      let requiredAmount = rfq.quoteAmountUSD || 250;
+      if (curr === 'NGN') {
+        requiredAmount = rfq.quoteAmountNGN || Math.round(requiredAmount * 1485);
+      } else if (curr === 'CNY') {
+        requiredAmount = rfq.totalPayableCNY || rfq.quoteAmountCNY || Math.round(requiredAmount * 7.24 * 100) / 100;
+      }
+
+      const ref = `AGTPAY-2026-${Math.floor(10000 + Math.random() * 90000)}`;
 
       await withUserLock(user.uid, async () => {
         const openingBalance = user.balances[curr] || 0;
@@ -3360,7 +3500,7 @@ const server = http.createServer(async (req, res) => {
           reference: ref,
           userId: user.uid,
           transactionType: 'AGENT_SERVICE_ESCROW',
-          description: `Escrow hold for agent ground service: ${rfq.productName} (#${rfq.id})`,
+          description: `Escrow hold for agent service: ${rfq.productName} (#${rfq.reference || rfq.id})`,
           postings: [
             { account: `liabilities:customer:${user.uid}:${curr.toLowerCase()}`, currency: curr, debit: requiredAmount, credit: 0 },
             { account: `liabilities:agent_escrow:${curr.toLowerCase()}`, currency: curr, debit: 0, credit: requiredAmount }
@@ -3370,11 +3510,82 @@ const server = http.createServer(async (req, res) => {
         user.balances[curr] -= requiredAmount;
         const closingBalance = user.balances[curr];
 
-        rfq.status = 'po_issued';
+        rfq.status = rfq.serviceKind ? 'in_progress' : 'po_issued';
+        rfq.paymentStatus = 'paid';
         rfq.escrowReference = ref;
+        rfq.paymentReference = ref;
         rfq.escrowAmount = requiredAmount;
         rfq.escrowCurrency = curr;
+        rfq.paidAmount = requiredAmount;
+        rfq.paidWith = curr;
         rfq.paidAt = Date.now();
+        rfq.updatedAt = Date.now();
+
+        // Automatic Cargo Shipment Creation for Sourcing
+        if (rfq.serviceKind === 'sourcing' || rfq.serviceType?.toLowerCase().includes('sourc')) {
+          const shipId = `shp_${Date.now()}`;
+          const randNum = Math.floor(10000 + Math.random() * 90000);
+          const shipmentCode = `SL-2026-${randNum}`;
+          const trackingCode = `FMCN${Math.floor(10000000 + Math.random() * 90000000)}`;
+          const pickupOtp = String(Math.floor(100000 + Math.random() * 900000));
+
+          const newShipment = {
+            id: shipId,
+            shipmentCode,
+            trackingCode,
+            trackingNumber: `SF${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+            chineseCourierTracking: `SF${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+            userId: user.uid,
+            receiverName: user.fullName || 'Chief Babatunde Alade',
+            customerPhone: user.phone || '+234 803 555 9201',
+            originWarehouse: rfq.supplierCity || 'Guangzhou',
+            destination: 'Nigeria (Lagos Ikeja MMIA Cargo Hub)',
+            destinationHub: 'Ikeja MMIA Cargo Hub',
+            deliveryType: 'pickup',
+            pickupHub: 'Ikeja MMIA Cargo Hub',
+            shippingMode: 'Air Express',
+            mode: 'Air Freight',
+            courierCompany: 'SF Express',
+            packageDescription: `${rfq.productName} (${rfq.targetQuantity} units)`,
+            title: `${rfq.productName} (Sourced Batch)`,
+            sender: rfq.supplierName || 'China Direct Supplier',
+            cartonsCount: Math.ceil(rfq.targetQuantity / 50) || 1,
+            weightKg: Math.max(5, Math.round((rfq.targetQuantity || 10) * 0.2)),
+            declaredValueRMB: rfq.totalPayableCNY || (rfq.targetQuantity * (rfq.targetUnitCNY || 100)),
+            currentStatus: 'registered',
+            status: 'registered',
+            paymentStatus: 'unbilled',
+            freightPaid: false,
+            costEstimate: 120,
+            costCurrency: 'USD',
+            pickupOtp,
+            linkedAgentRequestId: rfq.id,
+            linkedAgentReference: rfq.reference,
+            timeline: [
+              {
+                status: 'registered',
+                location: `${rfq.supplierCity || 'Guangzhou'} International Receiving Dock`,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                notes: `Cargo linked to Sourcing Request #${rfq.reference || rfq.id}. Awaiting supplier dispatch.`
+              }
+            ],
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+          };
+
+          dbState.shipments[shipId] = newShipment;
+          rfq.linkedShipmentId = shipId;
+          rfq.linkedShipmentCode = shipmentCode;
+          rfq.linkedTrackingCode = trackingCode;
+        }
+
+        if (!rfq.timeline) rfq.timeline = [];
+        rfq.timeline.push({
+          status: 'in_progress',
+          location: `${rfq.supplierCity || 'China'} Trade Desk`,
+          timestamp: Date.now(),
+          notes: `Payment of ${curr} ${requiredAmount.toLocaleString()} confirmed via ${curr} wallet. Status: In Progress.`
+        });
 
         const ledgerId = `ldg_${Date.now()}`;
         dbState.wallets_ledger[ledgerId] = {
@@ -3390,15 +3601,75 @@ const server = http.createServer(async (req, res) => {
           status: 'completed',
           reference: ref,
           timestamp: Date.now(),
-          notes: `Agent service fee escrow: ${rfq.serviceType} for ${rfq.productName}`
+          notes: `Agent service fee escrow: ${rfq.serviceType} for ${rfq.productName} (#${rfq.reference || rfq.id})`
         };
 
-        recordAudit(user.fullName, 'AGENT_QUOTE_ACCEPTED', 'agent_requests', rfq.id, `Accepted quote and paid ${curr} ${requiredAmount} to escrow`, req);
+        recordAudit(user.fullName, 'AGENT_QUOTE_ACCEPTED', 'agent_requests', rfq.id, `Accepted quote and paid ${curr} ${requiredAmount} into escrow (Ref: ${ref})`, req);
       });
 
       persistState();
       broadcastUpdate();
-      return sendJson(res, 200, { success: true, request: rfq, balances: user.balances });
+      return sendJson(res, 200, { success: true, request: rfq, balances: user.balances, paymentReference: ref });
+    }
+
+    if (pathname === '/api/admin/agents/update-status' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'logistics_manager'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+
+      const body = await readJsonBody(req);
+      const {
+        requestId, status, operationalNotes, agentLocation, adminId,
+        purchaseDetails, supplierInvoiceUrl,
+        businessRegistrationFindings, legitimacyNotes,
+        factoryAuditFindings, factoryPhotos,
+        qualityControlFindings, qcInspectionEvidence,
+        inspectionReportUrl
+      } = body;
+
+      const rfq = dbState.agent_requests[requestId];
+      if (!rfq) return sendJson(res, 404, { error: 'Agent request not found' });
+
+      if (status) rfq.status = status;
+      if (operationalNotes) rfq.operationalNotes = operationalNotes;
+      if (purchaseDetails) rfq.purchaseDetails = purchaseDetails;
+      if (supplierInvoiceUrl) rfq.supplierInvoiceUrl = supplierInvoiceUrl;
+      if (businessRegistrationFindings) rfq.businessRegistrationFindings = businessRegistrationFindings;
+      if (legitimacyNotes) rfq.legitimacyNotes = legitimacyNotes;
+      if (factoryAuditFindings) rfq.factoryAuditFindings = factoryAuditFindings;
+      if (Array.isArray(factoryPhotos)) rfq.factoryPhotos = factoryPhotos;
+      if (qualityControlFindings) rfq.qualityControlFindings = qualityControlFindings;
+      if (Array.isArray(qcInspectionEvidence)) rfq.qcInspectionEvidence = qcInspectionEvidence;
+      if (inspectionReportUrl) rfq.inspectionReportUrl = inspectionReportUrl;
+
+      if (!rfq.timeline) rfq.timeline = [];
+      rfq.timeline.push({
+        status: status || rfq.status,
+        location: agentLocation || rfq.supplierCity || 'China Desk',
+        timestamp: Date.now(),
+        notes: operationalNotes || `Milestone update recorded by operations desk.`
+      });
+      rfq.updatedAt = Date.now();
+
+      // Notify customer
+      if (rfq.userId && dbState.users[rfq.userId]) {
+        if (!dbState.notifications) dbState.notifications = [];
+        dbState.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          userId: rfq.userId,
+          title: `Agent Update: ${rfq.reference || rfq.productName}`,
+          message: operationalNotes || `Progress update for request #${rfq.reference || rfq.id}.`,
+          type: 'procurement',
+          timestamp: Date.now(),
+          read: false,
+          linkRoute: 'agent'
+        });
+      }
+
+      recordAudit(adminId || 'Agent Desk', 'AGENT_STATUS_UPDATED', 'agent_requests', rfq.id, `Updated request #${rfq.reference || rfq.id} to ${rfq.status}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, request: rfq });
     }
 
     if (pathname === '/api/admin/agents/complete' && req.method === 'POST') {
@@ -3406,15 +3677,16 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
       }
 
-      const { requestId, reportSummary, adminId } = await readJsonBody(req);
+      const { requestId, reportSummary, inspectionReportUrl, adminId } = await readJsonBody(req);
       const rfq = dbState.agent_requests[requestId];
       if (!rfq) return sendJson(res, 404, { error: 'Agent request not found' });
 
       rfq.status = 'completed';
       rfq.completedAt = Date.now();
-      rfq.reportSummary = reportSummary || 'Ground inspection and factory audit completed successfully. PDF report filed.';
+      rfq.reportSummary = reportSummary || 'Ground inspection and factory audit completed successfully. Verified deliverables filed.';
+      if (inspectionReportUrl) rfq.inspectionReportUrl = inspectionReportUrl;
 
-      // Disburse escrow to service clearing account
+      // Disburse escrow to service revenue double-entry ledger
       if (rfq.escrowAmount && rfq.escrowCurrency) {
         const curr = rfq.escrowCurrency;
         const amt = rfq.escrowAmount;
@@ -3430,10 +3702,146 @@ const server = http.createServer(async (req, res) => {
         });
       }
 
+      if (!rfq.timeline) rfq.timeline = [];
+      rfq.timeline.push({
+        status: 'completed',
+        location: `${rfq.supplierCity || 'China'} Trade Desk`,
+        timestamp: Date.now(),
+        notes: `Agent service marked complete by operations desk. Final report released.`
+      });
+      rfq.updatedAt = Date.now();
+
+      // Notify customer
+      if (rfq.userId && dbState.users[rfq.userId]) {
+        if (!dbState.notifications) dbState.notifications = [];
+        dbState.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          userId: rfq.userId,
+          title: `Service Completed: ${rfq.reference || rfq.productName}`,
+          message: `Your agent request #${rfq.reference || rfq.id} has been completed! View your final inspection report.`,
+          type: 'procurement',
+          timestamp: Date.now(),
+          read: false,
+          linkRoute: 'agent'
+        });
+      }
+
       recordAudit(adminId || 'Agent Desk', 'AGENT_REQUEST_COMPLETED', 'agent_requests', rfq.id, `Marked request ${rfq.id} completed`, req);
       persistState();
       broadcastUpdate();
       return sendJson(res, 200, { success: true, request: rfq });
+    }
+
+    if (pathname === '/api/admin/agents/cancel-refund' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'compliance'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+
+      const { requestId, reason, adminId, forceOverride } = await readJsonBody(req);
+      const rfq = dbState.agent_requests[requestId];
+      if (!rfq) return sendJson(res, 404, { error: 'Agent request not found' });
+
+      if (rfq.status === 'completed' && !forceOverride) {
+        return sendJson(res, 400, { error: 'Cannot refund a completed agent request without supervisor authorization' });
+      }
+
+      if (rfq.paymentStatus === 'refunded' || rfq.status === 'refunded') {
+        return sendJson(res, 400, { error: 'Request has already been refunded. Double refund prevented.' });
+      }
+
+      const uid = rfq.userId;
+      const user = dbState.users[uid];
+      if (!user) return sendJson(res, 404, { error: 'Customer account not found' });
+
+      const refundRef = `AGTREF-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+
+      if (rfq.paymentStatus === 'paid' && rfq.paidAmount && rfq.paidWith) {
+        const curr = rfq.paidWith;
+        const amount = rfq.paidAmount;
+
+        await withUserLock(user.uid, async () => {
+          const openingBalance = user.balances[curr] || 0;
+
+          recordDoubleEntry({
+            reference: refundRef,
+            userId: user.uid,
+            transactionType: 'AGENT_SERVICE_REFUND',
+            description: `Refund for cancelled/rejected agent request #${rfq.reference || rfq.id}: ${reason || 'Administrative cancellation'}`,
+            postings: [
+              { account: `liabilities:agent_escrow:${curr.toLowerCase()}`, currency: curr, debit: amount, credit: 0 },
+              { account: `liabilities:customer:${user.uid}:${curr.toLowerCase()}`, currency: curr, debit: 0, credit: amount }
+            ]
+          });
+
+          user.balances[curr] = (user.balances[curr] || 0) + amount;
+          const closingBalance = user.balances[curr];
+
+          const ledgerId = `ldg_${Date.now()}`;
+          dbState.wallets_ledger[ledgerId] = {
+            id: ledgerId,
+            userId: user.uid,
+            type: 'AGENT_REFUND',
+            sourceCurrency: curr,
+            targetCurrency: curr,
+            amount,
+            fee: 0,
+            openingBalance,
+            closingBalance,
+            status: 'completed',
+            reference: refundRef,
+            timestamp: Date.now(),
+            notes: `Refund for agent request #${rfq.reference || rfq.id}: ${reason || 'Cancelled by staff'}`
+          };
+
+          rfq.status = 'refunded';
+          rfq.paymentStatus = 'refunded';
+          rfq.refundReference = refundRef;
+          rfq.refundAmount = amount;
+          rfq.refundCurrency = curr;
+          rfq.refundReason = reason || 'Administrative cancellation';
+          rfq.refundedAt = Date.now();
+          rfq.cancelledAt = Date.now();
+          rfq.cancellationReason = reason || 'Administrative cancellation';
+
+          if (!rfq.timeline) rfq.timeline = [];
+          rfq.timeline.push({
+            status: 'refunded',
+            location: `${rfq.supplierCity || 'China'} Trade Desk`,
+            timestamp: Date.now(),
+            notes: `Request cancelled & refunded: ${curr} ${amount.toLocaleString()} restored to customer wallet. Ref: ${refundRef}. Reason: ${reason || 'Cancelled'}`
+          });
+        });
+      } else {
+        rfq.status = 'cancelled';
+        rfq.cancelledAt = Date.now();
+        rfq.cancellationReason = reason || 'Cancelled by customer/staff';
+        if (!rfq.timeline) rfq.timeline = [];
+        rfq.timeline.push({
+          status: 'cancelled',
+          location: `${rfq.supplierCity || 'China'} Trade Desk`,
+          timestamp: Date.now(),
+          notes: `Request cancelled before payment. Reason: ${reason || 'Cancelled'}`
+        });
+      }
+
+      if (!dbState.notifications) dbState.notifications = [];
+      dbState.notifications.unshift({
+        id: `notif_${Date.now()}`,
+        userId: user.uid,
+        title: `Agent Request ${rfq.paymentStatus === 'refunded' ? 'Refunded' : 'Cancelled'}`,
+        message: rfq.paymentStatus === 'refunded'
+          ? `Refund of ${rfq.refundCurrency} ${rfq.refundAmount?.toLocaleString()} has been credited to your wallet for request #${rfq.reference || rfq.id}.`
+          : `Your agent request #${rfq.reference || rfq.id} has been cancelled.`,
+        type: 'procurement',
+        timestamp: Date.now(),
+        read: false,
+        linkRoute: 'agent'
+      });
+
+      recordAudit(adminId || 'Agent Desk', 'AGENT_REQUEST_REFUNDED', 'agent_requests', rfq.id, `Refunded ${rfq.refundCurrency || ''} ${rfq.refundAmount || 0} for ${rfq.productName}. Reason: ${reason}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, request: rfq, balances: user.balances, refundReference: refundRef });
     }
 
     // -------------------------------------------------------------

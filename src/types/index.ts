@@ -293,31 +293,104 @@ export interface SupplierSubscriptionDocument {
   status: 'active' | 'expired';
 }
 
+export type AgentServiceKind = 'sourcing' | 'supplier_verification' | 'factory_audit' | 'quality_control';
+
+export interface AgentRequestTimelineEvent {
+  status: string;
+  timestamp: number | string;
+  notes: string;
+  agent?: string;
+  location?: string;
+}
+
 export interface AgentRequestDocument {
   id: string;
+  reference?: string; // e.g. AGT-SRC-2026-XXXXX
   userId: string;
   clientName: string;
+  customerPhone?: string;
+  customerEmail?: string;
   serviceType: string;
+  serviceKind?: AgentServiceKind;
   productName: string;
   category: string;
   targetQuantity: number;
-  targetUnitUSD: number;
+  targetUnitUSD?: number;
+  targetUnitCNY?: number;
+  totalBudgetCNY?: number;
+  productUrl?: string;
+  specifications?: string;
+  referencePhotos?: string[];
+
+  // Inspection & Supplier specifics
+  supplierName?: string;
+  supplierLocation?: string;
   supplierCity: string;
+  supplierContact?: string;
+  supplierWechat?: string;
+  preferredDate?: string;
+  inspectionRequirements?: string[] | string;
   inspectionRequired: boolean;
   cantonFairBooth?: string;
+
+  // Quotation Breakdown
+  productCostCNY?: number;
+  sourcingCommissionCNY?: number;
+  sourcingCommissionPercent?: number;
+  chinaShippingCNY?: number;
+  totalPayableCNY?: number;
   quoteAmountUSD?: number;
   quoteAmountNGN?: number;
-  status: 'submitted' | 'pending_quote' | 'quote_ready' | 'quote_accepted' | 'po_issued' | 'in_progress' | 'completed';
-  createdAt: number;
+  quoteAmountCNY?: number;
+  serviceFeeUSD?: number;
+  leadTimeDays?: number;
+  supplierFindings?: string;
   adminNotes?: string;
   assignedAgent?: string;
   quotedAt?: number;
+
+  // Payment & Escrow
+  status: 'submitted' | 'pending_review' | 'pending_quote' | 'awaiting_payment' | 'quote_ready' | 'quote_accepted' | 'po_issued' | 'in_progress' | 'completed' | 'cancelled' | 'refunded';
+  paymentStatus?: 'unpaid' | 'awaiting_payment' | 'paid' | 'refunded';
   paidAt?: number;
-  completedAt?: number;
+  paidWith?: 'USD' | 'NGN' | 'CNY';
+  paidAmount?: number;
+  paymentReference?: string;
   escrowReference?: string;
   escrowAmount?: number;
   escrowCurrency?: string;
+
+  // Shipment link (for Sourcing)
+  linkedShipmentId?: string;
+  linkedShipmentCode?: string;
+  linkedTrackingCode?: string;
+
+  // China Fulfilment & Inspection Evidence
+  purchaseDetails?: string;
+  supplierInvoiceUrl?: string;
+  businessRegistrationFindings?: string;
+  legitimacyNotes?: string;
+  factoryAuditFindings?: string;
+  factoryPhotos?: string[];
+  qualityControlFindings?: string;
+  qcInspectionEvidence?: string[];
+  inspectionReportUrl?: string;
+  operationalNotes?: string;
   reportSummary?: string;
+  completedAt?: number;
+  timeline?: AgentRequestTimelineEvent[];
+
+  // Refund Tracking
+  refundReference?: string;
+  refundAmount?: number;
+  refundCurrency?: string;
+  refundReason?: string;
+  refundedAt?: number;
+  cancelledAt?: number;
+  cancellationReason?: string;
+
+  createdAt: number;
+  updatedAt?: number;
 }
 
 export interface BannerDocument {
@@ -346,6 +419,11 @@ export interface SystemSettingsDocument {
     airFreightPerKgUSD: number;
     seaFreightPerCbmUSD: number;
     supplier30DayPassUSD: number;
+    sourcingCommissionPercent?: number;
+    minSourcingCommissionCNY?: number;
+    supplierVerificationUSD?: number;
+    factoryAuditUSD?: number;
+    qualityControlUSD?: number;
   };
 }
 

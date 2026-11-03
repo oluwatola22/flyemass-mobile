@@ -411,7 +411,12 @@ export const INITIAL_DATABASE: DatabaseState = {
       supplierEscrowPercent: 0.5,
       airFreightPerKgUSD: 10.00,
       seaFreightPerCbmUSD: 145.00,
-      supplier30DayPassUSD: 50.00
+      supplier30DayPassUSD: 50.00,
+      sourcingCommissionPercent: 5.0,
+      minSourcingCommissionCNY: 500,
+      supplierVerificationUSD: 150,
+      factoryAuditUSD: 250,
+      qualityControlUSD: 200
     }
   },
 
@@ -1772,7 +1777,61 @@ class DatabaseService {
     }
   }
 
-  public async quoteAgentRequest(requestId: string, quoteAmountUSD: number, quoteAmountNGN: number, adminNotes?: string, assignedAgent?: string, adminId: string = 'adm-001'): Promise<any> {
+  public async getAgentSettings(): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/agents/settings`);
+      const result = await res.json();
+      if (result.settings) return result.settings;
+    } catch (e) {
+      // fallback to local state
+    }
+    return this.state.system_settings?.fees || {
+      sourcingCommissionPercent: 5.0,
+      minSourcingCommissionCNY: 500,
+      supplierVerificationUSD: 150,
+      factoryAuditUSD: 250,
+      qualityControlUSD: 200
+    };
+  }
+
+  public async updateAgentSettings(settings: any, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/agents/settings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ settings, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to update agent settings');
+    if (result.fees && this.state.system_settings) {
+      this.state.system_settings.fees = { ...this.state.system_settings.fees, ...result.fees };
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async quoteAgentRequest(
+    requestId: string,
+    quoteAmountUSDOrData: any,
+    quoteAmountNGN?: number,
+    adminNotes?: string,
+    assignedAgent?: string,
+    adminId: string = 'adm-001'
+  ): Promise<any> {
+    let payload: any = { requestId, adminId };
+    if (typeof quoteAmountUSDOrData === 'object' && quoteAmountUSDOrData !== null) {
+      payload = { ...payload, ...quoteAmountUSDOrData };
+    } else {
+      payload.quoteAmountUSD = quoteAmountUSDOrData;
+      payload.quoteAmountNGN = quoteAmountNGN;
+      payload.adminNotes = adminNotes;
+      payload.assignedAgent = assignedAgent;
+    }
+
     const res = await fetch(`${BACKEND_BASE}/api/admin/agents/quote`, {
       method: 'POST',
       headers: {
@@ -1780,7 +1839,7 @@ class DatabaseService {
         'x-admin-id': adminId,
         'x-admin-role': 'operations'
       },
-      body: JSON.stringify({ requestId, quoteAmountUSD, quoteAmountNGN, adminNotes, assignedAgent, adminId })
+      body: JSON.stringify(payload)
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.error || 'Failed to quote agent request');
@@ -1789,6 +1848,49 @@ class DatabaseService {
       this.persist();
       this.notifyListeners();
     }
+    return result;
+  }
+
+  public async updateAgentStatus(requestId: string, updateData: any, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/agents/update-status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'operations'
+      },
+      body: JSON.stringify({ requestId, adminId, ...updateData })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to update agent status');
+    if (result.request) {
+      this.state.agent_requests[result.request.id] = result.request;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async refundAgentRequest(requestId: string, reason: string, adminId: string = 'adm-001', forceOverride: boolean = false): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/agents/cancel-refund`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'operations'
+      },
+      body: JSON.stringify({ requestId, reason, adminId, forceOverride })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to refund agent request');
+    if (result.request) {
+      this.state.agent_requests[result.request.id] = result.request;
+    }
+    if (result.balances && result.request?.userId && this.state.users[result.request.userId]) {
+      this.state.users[result.request.userId].balances = result.balances;
+    }
+    this.persist();
+    this.notifyListeners();
     return result;
   }
 
