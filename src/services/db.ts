@@ -24,6 +24,8 @@ export interface DatabaseState {
   shop_orders: Record<string, ShopOrderDocument>;
   hotel_bookings: Record<string, any>;
   hotels?: Record<string, any>;
+  rental_properties?: Record<string, any>;
+  property_inquiries?: Record<string, any>;
   webhook_events?: any[];
   products: Record<string, TechProduct>;
   support_tickets: Record<string, SupportTicketDocument>;
@@ -331,18 +333,581 @@ export const INITIAL_DATABASE: DatabaseState = {
   hotel_bookings: {
     'bk_gz_99120': {
       id: 'bk_gz_99120',
+      reference: 'BK-2026-00001',
       userId: 'usr_alade_01',
       hotelId: 'hotel-gz-westin',
       hotelName: 'The Westin Pazhou Guangzhou',
-      checkIn: 'Nov 12, 2026',
-      checkOut: 'Nov 18, 2026',
+      checkIn: '2026-11-12',
+      checkOut: '2026-11-18',
       nights: 6,
-      totalUSD: 1110,
+      roomType: 'Deluxe Double',
+      roomSurchargeUSD: 30,
+      totalUSD: 1290,
+      currency: 'USD',
+      amountDebited: 1290,
       guestName: 'Chief Babatunde Alade',
+      guestEmail: 'babatunde@aladeholding.ng',
+      guestPhone: '+234 803 555 9201',
+      guestCount: 2,
       confirmationCode: 'WST-CAN-884102',
       status: 'confirmed',
       taxiCardZh: '请带我到：广州市海珠区凤浦中路681号 广交会威斯汀酒店',
+      qrVerificationToken: 'FLYEMASS|BK-2026-00001|hotel-gz-westin|2026-11-12',
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      emailSent: true,
       createdAt: Date.now() - 400000000
+    }
+  },
+
+  hotels: {
+    'hotel-gz-westin': {
+      id: 'hotel-gz-westin',
+      name: 'The Westin Pazhou Guangzhou',
+      chineseName: '广州广交会威斯汀酒店',
+      city: 'Guangzhou',
+      district: 'Haizhu Pazhou Complex Zone',
+      englishAddress: 'Area C, Canton Fair Complex, No. 1 Fengpu Middle Road, Haizhu District, Guangzhou',
+      chineseAddress: '广州市海珠区凤浦中路681号广交会展馆C区',
+      description: 'The only hotel with direct skybridge covered access to the Canton Fair Exhibition Complex.',
+      pricePerNightUSD: 185,
+      pricePerNightCNY: 1340,
+      pricePerNightNGN: 274725,
+      rating: 4.9,
+      reviewsCount: 520,
+      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['Direct Skybridge to Canton Fair', 'English Concierge', 'Halal Dining Option'],
+      distanceToMarket: '0.1 km from Canton Fair Exhibition Complex',
+      amenities: ['Direct Fair Access', 'High-speed VPN Wi-Fi', 'Airport Limousine', 'Currency Exchange', 'Halal Kitchen'],
+      roomType: 'Deluxe King City View',
+      roomTypes: [
+        { id: 'rm-std', name: 'Standard Room', nightlySurchargeUSD: 0, maxGuests: 2, description: 'Comfortable king bed, city view, high-speed Wi-Fi', amenities: ['King Bed', 'Free Wi-Fi', 'Rain Shower'] },
+        { id: 'rm-dlx', name: 'Deluxe Double', nightlySurchargeUSD: 30, maxGuests: 3, description: 'Spacious double bed suite, complimentary executive breakfast', amenities: ['Twin Double Beds', 'Breakfast Included', 'Work Desk'] },
+        { id: 'rm-ste', name: 'Executive Suite', nightlySurchargeUSD: 80, maxGuests: 4, description: 'Luxury 65sqm suite with private meeting lounge & panoramic skyline view', amenities: ['Separate Living Area', 'Executive Lounge Access', 'Bathtub', 'Airport Transfer'] }
+      ],
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      isPublished: true,
+      taxiCardZh: '师傅，请带我去广州琶洲广交会威斯汀酒店（海珠区凤浦中路681号，广交会展馆C区）。谢谢！'
+    },
+    'hotel-gz-garden': {
+      id: 'hotel-gz-garden',
+      name: 'Guangzhou Garden Hotel',
+      chineseName: '广州花园酒店',
+      city: 'Guangzhou',
+      district: 'Yuexiu Commercial Hub',
+      englishAddress: '368 Huanshi East Road, Yuexiu District, Guangzhou',
+      chineseAddress: '广州市越秀区环市东路368号',
+      description: 'Premier 5-star landmark in central Guangzhou with direct Metro Line 5 connectivity and free Canton Fair shuttles.',
+      pricePerNightUSD: 140,
+      pricePerNightCNY: 1015,
+      pricePerNightNGN: 207900,
+      rating: 4.86,
+      reviewsCount: 390,
+      image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['Canton Fair Shuttle', 'Yuexiu Central', 'English Concierge'],
+      distanceToMarket: '15 mins direct to Pazhou Complex',
+      amenities: ['Canton Fair Express Shuttle', 'Western Breakfast', 'High-Speed Wi-Fi', 'Metro Line 5 Taojin Direct'],
+      roomType: 'Superior King Room',
+      roomTypes: [
+        { id: 'rm-std', name: 'Standard Room', nightlySurchargeUSD: 0, maxGuests: 2, description: 'Quiet garden view king room', amenities: ['King Bed', 'Free Wi-Fi'] },
+        { id: 'rm-dlx', name: 'Deluxe Double', nightlySurchargeUSD: 25, maxGuests: 3, description: 'Executive garden view twin beds', amenities: ['Twin Beds', 'Breakfast Included'] },
+        { id: 'rm-ste', name: 'Executive Suite', nightlySurchargeUSD: 70, maxGuests: 4, description: 'Spacious suite with garden balcony', amenities: ['Living Room', 'Lounge Access'] }
+      ],
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      isPublished: true,
+      taxiCardZh: '请带我到：广州市越秀区环市东路368号 花园酒店。谢谢！'
+    },
+    'hotel-sz-futian': {
+      id: 'hotel-sz-futian',
+      name: 'Futian Shangri-La Shenzhen',
+      chineseName: '深圳福田香格里拉大酒店',
+      city: 'Shenzhen',
+      district: 'Futian CBD / Near Huaqiangbei',
+      englishAddress: '4088 Yitian Road, Futian District, Shenzhen',
+      chineseAddress: '深圳市福田区益田路4088号',
+      description: 'Luxury hotel in Shenzhen central business district, 10 minutes from Huaqiangbei electronics market.',
+      pricePerNightUSD: 160,
+      pricePerNightCNY: 1158,
+      pricePerNightNGN: 237600,
+      rating: 4.85,
+      reviewsCount: 410,
+      image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['10 Mins to Huaqiangbei Market', 'Multi-Language Desk', 'Executive Lounge'],
+      distanceToMarket: '3.2 km to Huaqiangbei Electronics Hub',
+      amenities: ['Huaqiangbei Shuttle', 'Indoor Heated Pool', 'Business Center', 'Metro Station Direct'],
+      roomType: 'Horizon Club Deluxe Room',
+      roomTypes: [
+        { id: 'rm-std', name: 'Standard Room', nightlySurchargeUSD: 0, maxGuests: 2, description: 'Futian skyline king bedroom', amenities: ['King Bed', 'Free Wi-Fi'] },
+        { id: 'rm-dlx', name: 'Deluxe Double', nightlySurchargeUSD: 30, maxGuests: 3, description: 'Double twin bedroom with executive buffet', amenities: ['Double Beds', 'Breakfast Included'] },
+        { id: 'rm-ste', name: 'Executive Suite', nightlySurchargeUSD: 85, maxGuests: 4, description: 'Horizon Club executive suite', amenities: ['Horizon Lounge Access', 'Bathtub'] }
+      ],
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      isPublished: true,
+      taxiCardZh: '师傅，请带我去深圳福田香格里拉大酒店（益田路4088号）。谢谢！'
+    },
+    'hotel-yiwu-marriott': {
+      id: 'hotel-yiwu-marriott',
+      name: 'Yiwu Marriott Hotel',
+      chineseName: '义乌万豪酒店',
+      city: 'Yiwu',
+      district: 'Futian International Trade City',
+      englishAddress: '188 Futian Road, Yiwu, Jinhua, Zhejiang',
+      chineseAddress: '浙江省金华市义乌市福田路188号',
+      description: 'Adjacent to Yiwu International Trade City District 1 & 2, tailored for international commodity buyers.',
+      pricePerNightUSD: 125,
+      pricePerNightCNY: 905,
+      pricePerNightNGN: 185625,
+      rating: 4.88,
+      reviewsCount: 380,
+      image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['Opposite Futian Trade Market', 'African Buyers Favorite', 'Free Trade Shuttle'],
+      distanceToMarket: '400m to District 1 & 2 Commodity Mart',
+      amenities: ['Futian Market Shuttle', 'Halal Kitchen', 'Arabic / English Staff', 'High-Speed Wi-Fi'],
+      roomType: 'Deluxe Business Suite',
+      roomTypes: [
+        { id: 'rm-std', name: 'Standard Room', nightlySurchargeUSD: 0, maxGuests: 2, description: 'Deluxe king bed near Futian Mart', amenities: ['King Bed', 'Free Wi-Fi'] },
+        { id: 'rm-dlx', name: 'Deluxe Double', nightlySurchargeUSD: 20, maxGuests: 3, description: 'Two queen beds with buffet breakfast', amenities: ['Two Queens', 'Halal Breakfast'] },
+        { id: 'rm-ste', name: 'Executive Suite', nightlySurchargeUSD: 60, maxGuests: 4, description: 'Trade business suite with meeting desk', amenities: ['Meeting Table', 'Lounge Access'] }
+      ],
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      isPublished: true,
+      taxiCardZh: '师傅，请带我去义乌万豪酒店（福田路188号，近国际商贸城）。谢谢！'
+    },
+    'hotel-sh-pudong': {
+      id: 'hotel-sh-pudong',
+      name: 'Grand Kempinski Hotel Shanghai',
+      chineseName: '上海凯宾斯基大酒店',
+      city: 'Shanghai',
+      district: 'Lujiazui Financial Center',
+      englishAddress: '1288 Lujiazui Ring Road, Pudong New Area, Shanghai',
+      chineseAddress: '上海市浦东新区陆家嘴环路1288号',
+      description: 'Luxury hotel on the banks of Huangpu River with breathtaking Bund views in central Lujiazui financial hub.',
+      pricePerNightUSD: 190,
+      pricePerNightCNY: 1375,
+      pricePerNightNGN: 282150,
+      rating: 4.92,
+      reviewsCount: 460,
+      image: 'https://images.unsplash.com/photo-1541971875076-8f970d573be6?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1541971875076-8f970d573be6?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['Huangpu River Bund View', 'Lujiazui CBD', 'English Business Desk'],
+      distanceToMarket: '1.5 km to Shanghai World Financial Center',
+      amenities: ['River View Terrace', 'Indoor Horizon Pool', 'High-Speed Wi-Fi', 'Western & Halal Dining'],
+      roomType: 'Grand Bund River View King',
+      roomTypes: [
+        { id: 'rm-std', name: 'Standard Room', nightlySurchargeUSD: 0, maxGuests: 2, description: 'Lujiazui city view king room', amenities: ['King Bed', 'Free Wi-Fi'] },
+        { id: 'rm-dlx', name: 'Deluxe Double', nightlySurchargeUSD: 35, maxGuests: 3, description: 'River view double beds with breakfast', amenities: ['River View', 'Breakfast Included'] },
+        { id: 'rm-ste', name: 'Executive Suite', nightlySurchargeUSD: 90, maxGuests: 4, description: 'Panoramic Bund view executive suite', amenities: ['Bund View', 'Executive Lounge'] }
+      ],
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      isPublished: true,
+      taxiCardZh: '师傅，请带我去上海凯宾斯基大酒店（浦东新区陆家嘴环路1288号）。谢谢！'
+    },
+    'hotel-bj-wangfujing': {
+      id: 'hotel-bj-wangfujing',
+      name: 'Regent Beijing Wangfujing',
+      chineseName: '北京丽晶酒店',
+      city: 'Beijing',
+      district: 'Dongcheng Wangfujing',
+      englishAddress: '99 Jinbao Street, Dongcheng District, Beijing',
+      chineseAddress: '北京市东城区金宝街99号',
+      description: '5-star sanctuary moments from Wangfujing Street, Forbidden City, and national ministry trade complexes.',
+      pricePerNightUSD: 170,
+      pricePerNightCNY: 1230,
+      pricePerNightNGN: 252450,
+      rating: 4.89,
+      reviewsCount: 340,
+      image: 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['Close to Ministries', 'Wangfujing Shopping', 'Subway Line 5 Direct'],
+      distanceToMarket: '800m to Wangfujing Trade Pedestrian Street',
+      amenities: ['Subway Connected', 'Heated Indoor Pool', 'Business Lounge', 'Airport VIP Transfer'],
+      roomType: 'Classic Deluxe King Room',
+      roomTypes: [
+        { id: 'rm-std', name: 'Standard Room', nightlySurchargeUSD: 0, maxGuests: 2, description: 'Imperial courtyard view king bed', amenities: ['King Bed', 'Free Wi-Fi'] },
+        { id: 'rm-dlx', name: 'Deluxe Double', nightlySurchargeUSD: 30, maxGuests: 3, description: 'Spacious twin bedroom with breakfast', amenities: ['Twin Beds', 'Buffet Breakfast'] },
+        { id: 'rm-ste', name: 'Executive Suite', nightlySurchargeUSD: 75, maxGuests: 4, description: 'Regent Club diplomatic suite', amenities: ['Diplomatic Lounge', 'Butler Service'] }
+      ],
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      isPublished: true,
+      taxiCardZh: '师傅，请带我去北京丽晶酒店（东城区金宝街99号）。谢谢！'
+    },
+    'hotel-fs-intercon': {
+      id: 'hotel-fs-intercon',
+      name: 'InterContinental Foshan',
+      chineseName: '佛山保利洲际酒店',
+      city: 'Foshan',
+      district: 'Nanhai High-Tech Financial Zone',
+      englishAddress: '20 Denghu East Road, Nanhai District, Foshan',
+      chineseAddress: '佛山市南海区灯湖东路20号',
+      description: 'Overlooking Qiandeng Lake in Foshan’s commercial core, 20 minutes from the Shunde Furniture & Ceramics markets.',
+      pricePerNightUSD: 120,
+      pricePerNightCNY: 870,
+      pricePerNightNGN: 178200,
+      rating: 4.87,
+      reviewsCount: 310,
+      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['Furniture Mart Proximity', 'Guangfo Metro Line', 'Lakeside View'],
+      distanceToMarket: '5 mins to Lecong Furniture & Ceramics Mart',
+      amenities: ['Lakeside Park Direct', 'Guangfo Metro Shuttle', 'Fitness & Spa', 'Executive Boardroom'],
+      roomType: 'Deluxe Lakeview King Room',
+      roomTypes: [
+        { id: 'rm-std', name: 'Standard Room', nightlySurchargeUSD: 0, maxGuests: 2, description: 'Comfortable king bed with lake view', amenities: ['King Bed', 'Free Wi-Fi'] },
+        { id: 'rm-dlx', name: 'Deluxe Double', nightlySurchargeUSD: 20, maxGuests: 3, description: 'Double beds with executive breakfast', amenities: ['Double Beds', 'Breakfast Included'] },
+        { id: 'rm-ste', name: 'Executive Suite', nightlySurchargeUSD: 55, maxGuests: 4, description: 'Corner suite overlooking Qiandeng Lake', amenities: ['Lake View', 'Lounge Access'] }
+      ],
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      isPublished: true,
+      taxiCardZh: '师傅，请带我去佛山保利洲际酒店（南海区灯湖东路20号）。谢谢！'
+    },
+    'hotel-hz-grand': {
+      id: 'hotel-hz-grand',
+      name: 'Grand Hyatt Hangzhou',
+      chineseName: '杭州君悦酒店',
+      city: 'Hangzhou',
+      district: 'West Lake Commercial Hub',
+      englishAddress: '28 HuBin Road, Shangcheng District, Hangzhou',
+      chineseAddress: '杭州市上城区湖滨路28号',
+      description: 'Iconic luxury on the eastern shore of West Lake, walking distance to Hangzhou’s premier e-commerce headquarters.',
+      pricePerNightUSD: 180,
+      pricePerNightCNY: 1300,
+      pricePerNightNGN: 267300,
+      rating: 4.93,
+      reviewsCount: 480,
+      image: 'https://images.unsplash.com/photo-1568084680786-a84f91d1153c?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1568084680786-a84f91d1153c?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['West Lake Shorefront', 'Hangzhou E-Commerce Hub', '5-Star Dining'],
+      distanceToMarket: 'Steps from West Lake Musical Fountain',
+      amenities: ['Lakefront Promenade', 'Indoor Skylight Pool', 'Grand Club Lounge', 'Concierge Service'],
+      roomType: 'Grand Deluxe King Lake View',
+      roomTypes: [
+        { id: 'rm-std', name: 'Standard Room', nightlySurchargeUSD: 0, maxGuests: 2, description: 'City view king room', amenities: ['King Bed', 'Free Wi-Fi'] },
+        { id: 'rm-dlx', name: 'Deluxe Double', nightlySurchargeUSD: 35, maxGuests: 3, description: 'West Lake view twin beds with breakfast', amenities: ['Lake View', 'Breakfast Included'] },
+        { id: 'rm-ste', name: 'Executive Suite', nightlySurchargeUSD: 85, maxGuests: 4, description: 'Grand lakefront suite with balcony', amenities: ['Lakefront Balcony', 'Grand Club Access'] }
+      ],
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      isPublished: true,
+      taxiCardZh: '师傅，请带我去杭州君悦酒店（上城区湖滨路28号，西湖边）。谢谢！'
+    },
+    'hotel-dg-hyatt': {
+      id: 'hotel-dg-hyatt',
+      name: 'Hyatt Regency Dongguan',
+      chineseName: '东莞松山湖凯悦酒店',
+      city: 'Dongguan',
+      district: 'Songshan Lake Technology Zone',
+      englishAddress: 'Songshan Lake Central District, Dongguan, Guangdong',
+      chineseAddress: '广东省东莞市松山湖中心区沁园路',
+      description: 'Lakeside business resort next to Songshan Lake High-Tech Park and Huawei European Village campus.',
+      pricePerNightUSD: 110,
+      pricePerNightCNY: 800,
+      pricePerNightNGN: 163350,
+      rating: 4.84,
+      reviewsCount: 290,
+      image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['Songshan Lake Park', 'Huawei Campus Direct', 'Factory Inspection Hub'],
+      distanceToMarket: '3 mins to Songshan Lake Industrial Zone',
+      amenities: ['Lakeside Infinity Pool', 'Tennis Courts', 'Manufacturing Tour Shuttle', 'Business Center'],
+      roomType: 'Regency Lakeview King Room',
+      roomTypes: [
+        { id: 'rm-std', name: 'Standard Room', nightlySurchargeUSD: 0, maxGuests: 2, description: 'Garden view standard room', amenities: ['King Bed', 'Free Wi-Fi'] },
+        { id: 'rm-dlx', name: 'Deluxe Double', nightlySurchargeUSD: 20, maxGuests: 3, description: 'Lakeview double room with buffet breakfast', amenities: ['Lake View', 'Breakfast Included'] },
+        { id: 'rm-ste', name: 'Executive Suite', nightlySurchargeUSD: 50, maxGuests: 4, description: 'Regency executive suite', amenities: ['Lounge Access', 'Meeting Desk'] }
+      ],
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      isPublished: true,
+      taxiCardZh: '师傅，请带我去东莞松山湖凯悦酒店（松山湖沁园路）。谢谢！'
+    },
+    'hotel-hk-kowloon': {
+      id: 'hotel-hk-kowloon',
+      name: 'The Langham Hong Kong',
+      chineseName: '香港朗廷酒店',
+      city: 'Hong Kong',
+      district: 'Tsim Sha Tsui Kowloon',
+      englishAddress: '8 Peking Road, Tsim Sha Tsui, Kowloon, Hong Kong',
+      chineseAddress: '香港九龙尖沙咀北京道8号',
+      description: 'Timeless luxury in the heart of Tsim Sha Tsui, steps from Victoria Harbour, High-Speed Rail, and Star Ferry.',
+      pricePerNightUSD: 220,
+      pricePerNightCNY: 1595,
+      pricePerNightNGN: 326700,
+      rating: 4.94,
+      reviewsCount: 610,
+      image: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['Steps to Victoria Harbour', 'High-Speed Rail West Kowloon', 'Michelin 3-Star Dining'],
+      distanceToMarket: '5 mins to West Kowloon High-Speed Rail Station',
+      amenities: ['Michelin Dining (T’ang Court)', 'Rooftop Swimming Pool', 'Chuan Spa', 'Harbour View Concierge'],
+      roomType: 'Grand Deluxe King Room',
+      roomTypes: [
+        { id: 'rm-std', name: 'Standard Room', nightlySurchargeUSD: 0, maxGuests: 2, description: 'Courtyard view king bed', amenities: ['King Bed', 'Free Wi-Fi'] },
+        { id: 'rm-dlx', name: 'Deluxe Double', nightlySurchargeUSD: 40, maxGuests: 3, description: 'Deluxe twin bed with British afternoon tea discount', amenities: ['Twin Beds', 'Afternoon Tea'] },
+        { id: 'rm-ste', name: 'Executive Suite', nightlySurchargeUSD: 110, maxGuests: 4, description: 'Langham Club executive suite', amenities: ['Club Lounge', 'Airport Transfer'] }
+      ],
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      isPublished: true,
+      taxiCardZh: '请带我去：九龙尖沙咀北京道8号 朗廷酒店。谢谢！'
+    }
+  },
+
+  rental_properties: {
+    'apt-gz-tianhe-01': {
+      id: 'apt-gz-tianhe-01',
+      title: 'Tianhe CBD Luxury Serviced Residence',
+      propertyType: 'apartment',
+      city: 'Guangzhou',
+      district: 'Tianhe CBD',
+      englishAddress: 'No. 208 Tianhe Road, Tianhe District, Guangzhou',
+      chineseAddress: '广州市天河区天河路208号',
+      monthlyRentCNY: 8500,
+      estimatedRentUSD: 1174,
+      estimatedRentNGN: 1823250,
+      depositMonths: 2,
+      advanceRentMonths: 1,
+      floorAreaSqm: 95,
+      bedrooms: 2,
+      furnishedStatus: 'Furnished',
+      amenities: ['Central Air Conditioning', 'Modern Kitchen', 'High-Speed Wi-Fi', '24/7 Concierge', 'Gym & Pool Access', 'Balcony'],
+      leaseTerms: ['6 months', '1 year'],
+      images: [
+        'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80',
+        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=600&q=80'
+      ],
+      status: 'live',
+      description: 'Prime 2-bedroom executive apartment in Guangzhou Tianhe CBD. Fully furnished with western appliances, 3 minutes walk to Tiyu Xilu metro hub.',
+      metroAccess: 'Metro Line 1/3 Tiyu Xilu Station (300m)',
+      createdAt: Date.now() - 30 * 86400000
+    },
+    'apt-gz-yuexiu-02': {
+      id: 'apt-gz-yuexiu-02',
+      title: 'Yuexiu Cultural District Executive Studio',
+      propertyType: 'apartment',
+      city: 'Guangzhou',
+      district: 'Yuexiu',
+      englishAddress: 'Zhongshan 5th Road, Yuexiu District, Guangzhou',
+      chineseAddress: '广州市越秀区中山五路',
+      monthlyRentCNY: 4200,
+      estimatedRentUSD: 580,
+      estimatedRentNGN: 900900,
+      depositMonths: 2,
+      advanceRentMonths: 1,
+      floorAreaSqm: 48,
+      bedrooms: 1,
+      furnishedStatus: 'Furnished',
+      amenities: ['Smart TV', 'Washing Machine', 'Induction Cooktop', 'Fiber Broadband', 'Keyless Digital Lock'],
+      leaseTerms: ['6 months', '1 year'],
+      images: [
+        'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=600&q=80'
+      ],
+      status: 'live',
+      description: 'Charming modern studio in central Yuexiu. Surrounded by traditional Cantonese culture and dining, direct metro to Baiyun and Pazhou.',
+      metroAccess: 'Metro Line 1/2 Gongyuanqian Interchange (200m)',
+      createdAt: Date.now() - 25 * 86400000
+    },
+    'apt-gz-haizhu-03': {
+      id: 'apt-gz-haizhu-03',
+      title: 'Haizhu Riverside Panorama Residence',
+      propertyType: 'apartment',
+      city: 'Guangzhou',
+      district: 'Haizhu',
+      englishAddress: 'Binjiang East Road, Haizhu District, Guangzhou',
+      chineseAddress: '广州市海珠区滨江东路',
+      monthlyRentCNY: 11500,
+      estimatedRentUSD: 1588,
+      estimatedRentNGN: 2466750,
+      depositMonths: 2,
+      advanceRentMonths: 1,
+      floorAreaSqm: 130,
+      bedrooms: 3,
+      furnishedStatus: 'Furnished',
+      amenities: ['Unobstructed Pearl River View', 'Canton Tower View', 'Master Ensuite', 'Marble Bath', 'Underground Parking'],
+      leaseTerms: ['1 year'],
+      images: [
+        'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80'
+      ],
+      status: 'live',
+      description: 'High-floor 3-bedroom residence with panoramic Pearl River views and nighttime Canton Tower illuminations. Family or executive share ready.',
+      metroAccess: 'Metro Line 8 Lujiang / APM Chigang Pagoda (800m)',
+      createdAt: Date.now() - 20 * 86400000
+    },
+    'apt-gz-baiyun-04': {
+      id: 'apt-gz-baiyun-04',
+      title: 'Baiyun International Sourcing Flat',
+      propertyType: 'apartment',
+      city: 'Guangzhou',
+      district: 'Baiyun',
+      englishAddress: 'Sanyuanli Avenue, Baiyun District, Guangzhou',
+      chineseAddress: '广州市白云区三元里大道',
+      monthlyRentCNY: 5800,
+      estimatedRentUSD: 801,
+      estimatedRentNGN: 1244100,
+      depositMonths: 1,
+      advanceRentMonths: 1,
+      floorAreaSqm: 82,
+      bedrooms: 2,
+      furnishedStatus: 'Furnished',
+      amenities: ['Balcony', 'Air Conditioning', 'Elevator', 'Security Desk', 'Near Cargo Hubs'],
+      leaseTerms: ['6 months', '1 year'],
+      images: [
+        'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=600&q=80'
+      ],
+      status: 'live',
+      description: 'Convenient 2-bedroom apartment 5 minutes from Guangzhou Baiyun Leather & Wholesale Garment Market. Ideal for African import merchants.',
+      metroAccess: 'Metro Line 2 Sanyuanli Station (450m)',
+      createdAt: Date.now() - 15 * 86400000
+    },
+    'apt-gz-panyu-05': {
+      id: 'apt-gz-panyu-05',
+      title: 'Panyu Chimelong Garden Villa',
+      propertyType: 'house',
+      city: 'Guangzhou',
+      district: 'Panyu',
+      englishAddress: 'Hanxi Avenue East, Panyu District, Guangzhou',
+      chineseAddress: '广州市番禺区汉溪大道东',
+      monthlyRentCNY: 14000,
+      estimatedRentUSD: 1933,
+      estimatedRentNGN: 3003000,
+      depositMonths: 2,
+      advanceRentMonths: 1,
+      floorAreaSqm: 210,
+      bedrooms: 4,
+      furnishedStatus: 'Semi-Furnished',
+      amenities: ['Private Garden', 'Double Garage', 'Spacious Terrace', 'Quiet Community', '24/7 Gated Security'],
+      leaseTerms: ['1 year'],
+      images: [
+        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80'
+      ],
+      status: 'live',
+      description: 'Spacious 4-bedroom multi-floor villa with landscaped private garden. Perfect for expatriate families or long-term logistics representatives.',
+      metroAccess: 'Metro Line 3/7 Hanxi Changlong Interchange (1.2 km)',
+      createdAt: Date.now() - 10 * 86400000
+    },
+    'off-gz-ifc-01': {
+      id: 'off-gz-ifc-01',
+      title: 'Guangzhou IFC International Grade-A Tower',
+      propertyType: 'office',
+      city: 'Guangzhou',
+      district: 'Tianhe CBD',
+      englishAddress: '5 Zhujiang West Road, Tianhe District, Guangzhou (Zhujiang New Town)',
+      chineseAddress: '广州市天河区珠江西路5号 广州国际金融中心',
+      monthlyRentCNY: 35000,
+      estimatedRentUSD: 4834,
+      estimatedRentNGN: 7507500,
+      depositMonths: 3,
+      advanceRentMonths: 1,
+      floorAreaSqm: 240,
+      deskCapacity: 35,
+      furnishedStatus: 'Furnished',
+      amenities: ['Executive Boardroom (12 Pax)', 'Meeting Room (6 Pax)', 'Bilingual Receptionist', 'High-Speed Fiber Internet', '24/7 Access & HVAC', 'Access Control Cards'],
+      leaseTerms: ['1 year', 'Flexible'],
+      images: [
+        'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80',
+        'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=600&q=80'
+      ],
+      status: 'live',
+      description: 'Prestigious landmark Grade-A commercial workspace in Zhujiang New Town. Accommodates 25-35 staff with panoramic skyline views and turn-key fitout.',
+      metroAccess: 'Metro Line 3/5 Zhujiang New Town & APM Guangzhou Opera House direct',
+      createdAt: Date.now() - 40 * 86400000
+    },
+    'off-gz-pazhou-02': {
+      id: 'off-gz-pazhou-02',
+      title: 'Pazhou Poly World Trade Center Office',
+      propertyType: 'office',
+      city: 'Guangzhou',
+      district: 'Haizhu',
+      englishAddress: '1000 Xingang East Road, Haizhu District, Guangzhou',
+      chineseAddress: '广州市海珠区新港东路1000号 保利世界贸易中心',
+      monthlyRentCNY: 18500,
+      estimatedRentUSD: 2555,
+      estimatedRentNGN: 3968250,
+      depositMonths: 2,
+      advanceRentMonths: 1,
+      floorAreaSqm: 125,
+      deskCapacity: 16,
+      furnishedStatus: 'Furnished',
+      amenities: ['Skybridge to Canton Fair', 'Private Manager Office', 'Conference Room', 'Fiber Wi-Fi', 'Bilingual Desk', 'Parking Onsite'],
+      leaseTerms: ['6 months', '1 year'],
+      images: [
+        'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=600&q=80'
+      ],
+      status: 'live',
+      description: 'Strategic commercial office directly adjacent to the Canton Fair Complex. Ideal for international trade agencies, logistics, and sourcing desks.',
+      metroAccess: 'Metro Line 8 Pazhou Station direct exit (50m)',
+      createdAt: Date.now() - 35 * 86400000
+    },
+    'off-gz-yuexiu-03': {
+      id: 'off-gz-yuexiu-03',
+      title: 'Yuexiu International Commerce Centre Workspace',
+      propertyType: 'office',
+      city: 'Guangzhou',
+      district: 'Yuexiu',
+      englishAddress: 'Dongfeng West Road, Yuexiu District, Guangzhou',
+      chineseAddress: '广州市越秀区东风西路',
+      monthlyRentCNY: 9800,
+      estimatedRentUSD: 1353,
+      estimatedRentNGN: 2102100,
+      depositMonths: 2,
+      advanceRentMonths: 1,
+      floorAreaSqm: 75,
+      deskCapacity: 10,
+      furnishedStatus: 'Furnished',
+      amenities: ['Modern Ergonomic Desks', 'Fiber Internet', 'Pantry & Coffee Machine', 'Elevator', '24/7 Security'],
+      leaseTerms: ['6 months', '1 year'],
+      images: [
+        'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=600&q=80'
+      ],
+      status: 'live',
+      description: 'Budget-friendly, fully-fitted 10-desk office in central Yuexiu commercial zone. Immediate move-in ready for trade inspection or liaison offices.',
+      metroAccess: 'Metro Line 2 Memorial Hall Station (400m)',
+      createdAt: Date.now() - 28 * 86400000
+    }
+  },
+
+  property_inquiries: {
+    'inq_seed_01': {
+      id: 'inq_seed_01',
+      reference: 'INQ-APT-2026-10492',
+      userId: 'usr_alade_01',
+      propertyId: 'apt-gz-tianhe-01',
+      propertyTitle: 'Tianhe CBD Luxury Serviced Residence',
+      propertyType: 'apartment',
+      district: 'Tianhe CBD',
+      customerName: 'Chief Babatunde Alade',
+      customerPhone: '+234 803 555 9201',
+      preferredMoveInDate: '2026-11-20',
+      leaseDuration: '1 year',
+      customNotes: 'Requesting video walkthrough of the master bedroom and parking bay availability.',
+      upfrontCostEstimateCNY: 25500,
+      ticketId: 'tkt_8901',
+      ticketNumber: 'TKT-8901',
+      status: 'contacted',
+      adminNotes: 'Assigned bilingual agent Chen Wei. Landlord confirmed availability.',
+      assignedStaff: 'Chen Wei (Guangzhou Ground Desk)',
+      createdAt: Date.now() - 86400000,
+      updatedAt: Date.now() - 43200000
     }
   },
 
@@ -624,6 +1189,8 @@ class DatabaseService {
           shop_orders: { ...INITIAL_DATABASE.shop_orders, ...(parsed.shop_orders || {}) },
           hotel_bookings: { ...INITIAL_DATABASE.hotel_bookings, ...(parsed.hotel_bookings || {}) },
           hotels: { ...(INITIAL_DATABASE.hotels || {}), ...(parsed.hotels || {}) },
+          rental_properties: { ...(INITIAL_DATABASE.rental_properties || {}), ...(parsed.rental_properties || {}) },
+          property_inquiries: { ...(INITIAL_DATABASE.property_inquiries || {}), ...(parsed.property_inquiries || {}) },
           webhook_events: parsed.webhook_events || INITIAL_DATABASE.webhook_events || [],
           products: { ...INITIAL_DATABASE.products, ...(parsed.products || {}) },
           support_tickets: { ...INITIAL_DATABASE.support_tickets, ...(parsed.support_tickets || {}) },
@@ -1386,13 +1953,25 @@ class DatabaseService {
     return newDoc;
   }
 
-  public updateHotelBookingStatus(bookingId: string, status: string): any {
-    const bk = (this.state.hotel_bookings || {})[bookingId];
-    if (bk) {
-      bk.status = status;
+  public async updateHotelBookingStatus(bookingId: string, status: string, notes?: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/hotels/booking-status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'operations'
+      },
+      body: JSON.stringify({ bookingId, status, notes, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to update booking status');
+    if (result.booking) {
+      if (!this.state.hotel_bookings) this.state.hotel_bookings = {};
+      this.state.hotel_bookings[result.booking.id] = result.booking;
       this.persist();
+      this.notifyListeners();
     }
-    return bk;
+    return result;
   }
 
   public async bookHotelWithPin(
@@ -1402,18 +1981,38 @@ class DatabaseService {
     totalUSD: number,
     currency: string,
     guestName: string,
-    pin?: string
+    pin?: string,
+    extraData: any = {}
   ): Promise<any> {
-    try {
-      const res = await fetch(`${BACKEND_BASE}/api/hotels/book`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, hotel, nights, totalUSD, currency, guestName, pin })
-      });
-      return await res.json();
-    } catch (e) {
-      return { success: true };
+    const payload = {
+      userId,
+      hotel,
+      hotelId: hotel?.id,
+      nights,
+      totalUSD,
+      currency,
+      guestName,
+      pin,
+      ...extraData
+    };
+
+    const res = await fetch(`${BACKEND_BASE}/api/hotels/book`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to book hotel');
+    if (result.booking) {
+      if (!this.state.hotel_bookings) this.state.hotel_bookings = {};
+      this.state.hotel_bookings[result.booking.id] = result.booking;
     }
+    if (result.balances && userId && this.state.users[userId]) {
+      this.state.users[userId].balances = result.balances;
+    }
+    this.persist();
+    this.notifyListeners();
+    return result;
   }
 
   public getSystemSettings(): SystemSettingsDocument {
@@ -2030,6 +2629,92 @@ class DatabaseService {
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.error || 'Failed to simulate webhook');
+    return result;
+  }
+
+  // ==========================================
+  // RENTALS (APARTMENTS & OFFICES) METHODS
+  // ==========================================
+
+  public getRentalProperties(propertyType?: string): any[] {
+    const list = Object.values(this.state.rental_properties || {});
+    if (propertyType && propertyType !== 'all') {
+      return list.filter(p => p.propertyType === propertyType);
+    }
+    return list;
+  }
+
+  public async createRentalProperty(property: any, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/rentals/listings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ property, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to save rental property');
+    if (result.property) {
+      if (!this.state.rental_properties) this.state.rental_properties = {};
+      this.state.rental_properties[result.property.id] = result.property;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async updateRentalProperty(propertyId: string, data: any, adminId: string = 'adm-001'): Promise<any> {
+    return this.createRentalProperty({ id: propertyId, ...data }, adminId);
+  }
+
+  public getPropertyInquiries(userId?: string): any[] {
+    const list = Object.values(this.state.property_inquiries || {}).sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+    if (userId) {
+      return list.filter(i => i.userId === userId);
+    }
+    return list;
+  }
+
+  public async createPropertyInquiry(inquiryData: any): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/rentals/inquire`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(inquiryData)
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to submit property inquiry');
+    if (result.inquiry) {
+      if (!this.state.property_inquiries) this.state.property_inquiries = {};
+      this.state.property_inquiries[result.inquiry.id] = result.inquiry;
+      if (result.ticket && this.state.support_tickets) {
+        this.state.support_tickets[result.ticket.id] = result.ticket;
+      }
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async updatePropertyInquiryStatus(inquiryId: string, status: string, notes?: string, assignedStaff?: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/rentals/inquiry-status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'operations'
+      },
+      body: JSON.stringify({ inquiryId, status, notes, assignedStaff, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to update inquiry status');
+    if (result.inquiry) {
+      if (!this.state.property_inquiries) this.state.property_inquiries = {};
+      this.state.property_inquiries[result.inquiry.id] = result.inquiry;
+      this.persist();
+      this.notifyListeners();
+    }
     return result;
   }
 }

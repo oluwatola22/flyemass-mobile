@@ -656,34 +656,134 @@ export interface Supplier {
   wechatId?: string;
 }
 
+export interface HotelRoomType {
+  id: string;
+  name: string; // 'Standard Room' | 'Deluxe Double' | 'Executive Suite'
+  nightlySurchargeUSD: number;
+  maxGuests: number;
+  description: string;
+  amenities: string[];
+}
+
 export interface Hotel {
   id: string;
   name: string;
   chineseName: string;
-  city: 'Guangzhou' | 'Shenzhen' | 'Yiwu';
+  city: 'Guangzhou' | 'Shenzhen' | 'Yiwu' | 'Shanghai' | 'Beijing' | 'Foshan' | 'Hangzhou' | 'Dongguan' | 'Hong Kong' | string;
   district: string;
+  englishAddress?: string;
+  chineseAddress?: string;
+  description?: string;
   pricePerNightUSD: number;
   pricePerNightCNY: number;
+  pricePerNightNGN?: number;
   rating: number;
   reviewsCount: number;
   image: string;
+  images?: string[];
   tags: string[];
   distanceToMarket: string;
   amenities: string[];
   roomType: string;
+  roomTypes?: HotelRoomType[];
+  cancellationPolicy?: string;
+  isPublished?: boolean;
+  taxiCardZh?: string;
 }
 
 export interface HotelBooking {
   id: string;
+  reference?: string; // BK-2026-00001
+  userId?: string;
+  hotelId?: string;
+  hotelName?: string;
   hotel: Hotel;
+  roomType?: string;
+  roomSurchargeUSD?: number;
   checkIn: string;
   checkOut: string;
   nights: number;
-  totalUSD: number;
+  guestCount?: number;
   guestName: string;
+  guestEmail?: string;
+  guestPhone?: string;
+  totalUSD: number;
+  currency?: string;
+  amountDebited?: number;
   confirmationCode: string;
-  status: 'Confirmed' | 'Completed' | 'Pending' | 'cancelled' | 'Cancelled';
+  status: 'Confirmed' | 'Completed' | 'Pending' | 'cancelled' | 'Cancelled' | 'confirmed' | 'checked_in' | 'completed';
   taxiCardZh: string;
+  qrVerificationToken?: string;
+  voucherPdfUrl?: string;
+  cancellationPolicy?: string;
+  cancellationReason?: string;
+  cancelledAt?: number;
+  refundAmount?: number;
+  emailSent?: boolean;
+  arrivalNotes?: string;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export type RentalPropertyType = 'apartment' | 'house' | 'office';
+export type RentalLeaseTerm = '6 months' | '1 year' | 'Flexible';
+
+export interface RentalProperty {
+  id: string;
+  title: string;
+  chineseTitle?: string;
+  propertyType: RentalPropertyType; // 'apartment' | 'house' | 'office'
+  city?: string; // Guangzhou
+  district: 'Tianhe CBD' | 'Yuexiu' | 'Haizhu' | 'Baiyun' | 'Panyu' | 'Liwan' | string;
+  englishAddress?: string;
+  address?: string;
+  chineseAddress?: string;
+  monthlyRentCNY: number;
+  monthlyRentUSD?: number;
+  estimatedRentUSD?: number;
+  estimatedRentNGN?: number;
+  depositMonths: number; // e.g. 2
+  advanceRentMonths: number; // e.g. 1
+  floorAreaSqm: number;
+  bedrooms?: number; // for apartments/houses
+  deskCapacity?: number; // for offices
+  isFurnished?: boolean;
+  furnishedStatus?: 'Furnished' | 'Unfurnished' | 'Semi-Furnished';
+  amenities: string[];
+  leaseTerms?: RentalLeaseTerm[];
+  images: string[];
+  status: 'live' | 'hidden' | 'rented';
+  description?: string;
+  metroAccess?: string;
+  createdAt: number;
+  updatedAt?: number;
+}
+
+export interface PropertyInquiry {
+  id: string;
+  reference: string; // INQ-APT-2026-XXXXX or INQ-OFF-2026-XXXXX
+  userId: string;
+  propertyId: string;
+  propertyTitle?: string;
+  propertyName?: string;
+  propertyType: RentalPropertyType;
+  district: string;
+  customerName: string;
+  customerPhone: string;
+  companyName?: string; // for office inquiries
+  preferredMoveInDate: string;
+  preferredViewingDate?: string; // for offices or apartment viewing
+  leaseDuration: string; // '6 months' | '1 year'
+  customNotes?: string;
+  monthlyRentCNY?: number;
+  upfrontCostEstimateCNY?: number;
+  ticketId: string; // linked support_tickets ID
+  ticketNumber?: string;
+  status: 'new' | 'contacted' | 'viewing_scheduled' | 'closed';
+  adminNotes?: string;
+  assignedStaff?: string;
+  createdAt: number;
+  updatedAt?: number;
 }
 
 export interface ChatMessage {

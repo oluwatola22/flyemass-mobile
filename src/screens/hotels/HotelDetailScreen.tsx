@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { PinPad } from '../../components/ui/PinPad';
+import { db } from '../../services/db';
 import { CHINA_HOTELS } from '../../data/mockData';
-import { Currency } from '../../types';
+import { Currency, Hotel, HotelRoomType } from '../../types';
 import { 
   Building, 
   MapPin, 
@@ -17,33 +18,76 @@ import {
   ShieldCheck, 
   Phone,
   ArrowRight,
-  Wallet
+  Wallet,
+  Users,
+  Check,
+  AlertCircle,
+  FileText
 } from 'lucide-react';
 
 export const HotelDetailScreen: React.FC = () => {
-  const { routeParam, bookHotel, navigate, showToast, wallets } = useApp();
-  const [nights, setNights] = useState<number>(4);
+  const { routeParam, navigate, showToast, wallets, activeUserId, userProfile } = useApp();
+
+  // Find hotel from DB or mock fallback
+  const allHotels = db.getHotels();
+  const hotel: Hotel = (allHotels.length > 0 ? allHotels : CHINA_HOTELS).find((h: Hotel) => h.id === routeParam) || CHINA_HOTELS[0];
+
+  // Room Types
+  const defaultRoomTypes: HotelRoomType[] = [
+    { id: 'rm-std', name: 'Standard Room', nightlySurchargeUSD: 0, maxGuests: 2, description: 'Comfortable king bed, city view, high-speed Wi-Fi', amenities: ['King Bed', 'Free Wi-Fi', 'Rain Shower'] },
+    { id: 'rm-dlx', name: 'Deluxe Double', nightlySurchargeUSD: 30, maxGuests: 3, description: 'Spacious double bed suite, complimentary executive breakfast', amenities: ['Twin Double Beds', 'Breakfast Included', 'Work Desk'] },
+    { id: 'rm-ste', name: 'Executive Suite', nightlySurchargeUSD: 80, maxGuests: 4, description: 'Luxury 65sqm suite with private meeting lounge & panoramic skyline view', amenities: ['Separate Living Area', 'Executive Lounge Access', 'Bathtub', 'Airport Transfer'] }
+  ];
+  const roomTypes: HotelRoomType[] = (hotel.roomTypes && hotel.roomTypes.length > 0) ? hotel.roomTypes : defaultRoomTypes;
+
+  const [selectedRoom, setSelectedRoom] = useState<HotelRoomType>(roomTypes[0]);
+  const [checkIn, setCheckIn] = useState('2026-11-12');
+  const [checkOut, setCheckOutDate] = useState('2026-11-16');
+  const [guestCount, setGuestCount] = useState<number>(2);
+
+  const [guestName, setGuestName] = useState(userProfile?.name || 'Chief Babatunde Alade');
+  const [guestEmail, setGuestEmail] = useState(userProfile?.email || 'alade@aladeholdings.ng');
+  const [guestPhone, setGuestPhone] = useState(userProfile?.phone || '+234 803 123 4567');
+
   const [copiedTaxiCard, setCopiedTaxiCard] = useState(false);
+  const [copiedAddressZh, setCopiedAddressZh] = useState(false);
   const [paymentCurrency, setPaymentCurrency] = useState<Currency>('USD');
   const [showPinModal, setShowPinModal] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
 
-  const hotel = CHINA_HOTELS.find((h) => h.id === routeParam) || CHINA_HOTELS[0];
+  // Nights calculation
+  const start = new Date(checkIn).getTime();
+  const end = new Date(checkOut).getTime();
+  const rawNights = Math.round((end - start) / (1000 * 60 * 60 * 24));
+  const nights = rawNights > 0 ? rawNights : 1;
 
-  const totalUSD = hotel.pricePerNightUSD * nights;
-  const totalCNY = hotel.pricePerNightCNY * nights;
-  const totalNGN = totalUSD * 1485;
+  // Authoritative calculations
+  const baseNightlyUSD = hotel.pricePerNightUSD;
+  const surchargeUSD = selectedRoom.nightlySurchargeUSD || 0;
+  const nightlyTotalUSD = baseNightlyUSD + surchargeUSD;
+  const totalUSD = nightlyTotalUSD * nights;
+  const totalCNY = Math.round(totalUSD * 7.24);
+  const totalNGN = Math.round(totalUSD * 1485);
 
-  const currentWallet = wallets.find(w => w.currency === paymentCurrency);
+  const currentWallet = wallets.find((w) => w.currency === paymentCurrency);
   const debitAmount = paymentCurrency === 'NGN' ? totalNGN : paymentCurrency === 'CNY' ? totalCNY : totalUSD;
   const hasSufficient = (currentWallet?.balance || 0) >= debitAmount;
 
-  const taxiCardZh = `师傅您好，请带我到：${hotel.chineseName} (${hotel.district})。谢谢！`;
+  const chineseAddressText = hotel.chineseAddress || `中国广东省广州市${hotel.district}`;
+  const taxiCardZh = hotel.taxiCardZh || `师傅您好，请带我到：${hotel.chineseName || hotel.name}（${chineseAddressText}）。谢谢！`;
 
   const handleCopyTaxiCard = () => {
     navigator.clipboard?.writeText(taxiCardZh);
     setCopiedTaxiCard(true);
     showToast('Chinese taxi driver directions copied!', 'success');
     setTimeout(() => setCopiedTaxiCard(false), 2000);
+  };
+
+  const handleCopyAddressZh = () => {
+    navigator.clipboard?.writeText(chineseAddressText);
+    setCopiedAddressZh(true);
+    showToast('Chinese address copied!', 'success');
+    setTimeout(() => setCopiedAddressZh(false), 2000);
   };
 
   const handleBook = () => {
@@ -54,27 +98,56 @@ export const HotelDetailScreen: React.FC = () => {
     setShowPinModal(true);
   };
 
-  const handlePinSuccess = (pin: string) => {
+  const handlePinSuccess = async (pin: string) => {
     setShowPinModal(false);
-    const success = bookHotel(hotel, nights, paymentCurrency, pin);
-    if (success) {
+    setIsBooking(true);
+    try {
+      await db.bookHotelWithPin(
+        activeUserId,
+        hotel,
+        nights,
+        totalUSD,
+        paymentCurrency,
+        guestName,
+        pin,
+        {
+          roomType: selectedRoom.name,
+          checkIn,
+          checkOut,
+          guestCount,
+          guestEmail,
+          guestPhone
+        }
+      );
+
+      showToast(`Hotel reservation confirmed! Reference BK-2026 issued.`, 'success');
       navigate('hotel-bookings');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to complete hotel booking', 'error');
+    } finally {
+      setIsBooking(false);
     }
   };
 
   return (
-    <div className="min-h-full pb-24 bg-slate-950 text-white">
+    <div className="min-h-full pb-28 bg-slate-950 text-white">
       <Header title="Hotel Booking & Voucher" />
 
       <div className="p-4 space-y-4">
-        {/* Cover Photo */}
+        {/* Cover Photo & Badges */}
         <div className="relative h-56 rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl">
           <img
             src={hotel.image}
             alt={hotel.name}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-85" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+
+          <div className="absolute top-3 right-3 bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-bold text-amber-400 flex items-center gap-1 border border-slate-800">
+            <Star className="w-3.5 h-3.5 fill-amber-400" />
+            <span>{hotel.rating}</span>
+            <span className="text-slate-400">({hotel.reviewsCount || 120})</span>
+          </div>
 
           <div className="absolute bottom-4 left-4 right-4">
             <span className="px-2.5 py-1 rounded-xl bg-emerald-500/90 text-slate-950 font-bold text-[10px] uppercase">
@@ -85,7 +158,35 @@ export const HotelDetailScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Essential Chinese Taxi Card (For Chinese taxi / DiDi drivers) */}
+        {/* Addresses & Distance */}
+        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold uppercase text-slate-400">English Address</span>
+            <p className="text-xs text-white leading-relaxed">{hotel.englishAddress || `${hotel.district}, ${hotel.city}, China`}</p>
+          </div>
+
+          <div className="pt-2 border-t border-slate-800/80 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase text-indigo-400">Official Chinese Address (中文地址)</span>
+              <button
+                type="button"
+                onClick={handleCopyAddressZh}
+                className="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+              >
+                {copiedAddressZh ? <CheckCheck className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                <span>{copiedAddressZh ? 'Copied' : 'Copy'}</span>
+              </button>
+            </div>
+            <p className="text-xs text-indigo-200 font-sans select-all leading-relaxed">{chineseAddressText}</p>
+          </div>
+
+          <div className="pt-2 border-t border-slate-800/80 flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
+            <MapPin className="w-3.5 h-3.5 shrink-0" />
+            <span>{hotel.distanceToMarket}</span>
+          </div>
+        </div>
+
+        {/* Essential Chinese Taxi Card */}
         <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-2 shadow-xl">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
@@ -93,7 +194,7 @@ export const HotelDetailScreen: React.FC = () => {
             </span>
             <button
               onClick={handleCopyTaxiCard}
-              className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-xl hover:bg-emerald-500/20 transition-all"
+              className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-xl hover:bg-emerald-500/20 transition-all cursor-pointer"
             >
               {copiedTaxiCard ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copiedTaxiCard ? 'Copied' : 'Copy'}</span>
@@ -104,115 +205,227 @@ export const HotelDetailScreen: React.FC = () => {
             {taxiCardZh}
           </div>
           <p className="text-[10px] text-slate-400">
-            Show this screen to your airport or high-speed rail taxi driver directly upon landing in China.
+            Show this screen to your airport or high-speed rail taxi driver directly upon arrival in China.
           </p>
         </div>
 
-        {/* Amenities & Proximity */}
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3">
-          <h4 className="text-xs font-bold text-white uppercase tracking-wider">International Trade Amenities</h4>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            {hotel.amenities.map((a) => (
-              <div key={a} className="flex items-center gap-2 text-slate-300 bg-slate-950/60 p-2 rounded-xl border border-slate-800/80">
-                <CheckCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="truncate">{a}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Stay Duration Selector */}
+        {/* Room Category Selection */}
         <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white">Select Nights:</span>
-            <div className="flex items-center gap-2">
-              {[2, 4, 6, 8].map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setNights(n)}
-                  className={`w-9 h-8 rounded-xl text-xs font-bold transition-all ${
-                    nights === n
-                      ? 'bg-emerald-500 text-slate-950'
-                      : 'bg-slate-950 border border-slate-800 text-slate-400'
-                  }`}
-                >
-                  {n}n
-                </button>
-              ))}
-            </div>
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Select Room Category</h4>
+            <span className="text-[10px] text-slate-400">Prices per night</span>
           </div>
 
-          <div className="pt-2 border-t border-slate-800/80 flex items-baseline justify-between text-xs">
-            <span className="text-slate-400">Total for {nights} nights:</span>
-            <div className="text-right">
-              <span className="text-lg font-extrabold text-white num-tabular">${totalUSD} USD</span>
-              <span className="text-xs text-emerald-400 block num-tabular">≈ ¥{totalCNY.toLocaleString()} CNY / ₦{totalNGN.toLocaleString()} NGN</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Multi-Currency Payment Wallet Selector */}
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <Wallet className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Select Payment Wallet</span>
-            </span>
-            <span className="text-[10px] text-emerald-400 font-bold">Guaranteed Booking</span>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            {(['USD', 'NGN', 'CNY'] as Currency[]).map((c) => {
-              const w = wallets.find(item => item.currency === c);
-              const isSelected = paymentCurrency === c;
-              const charge = c === 'NGN' ? totalNGN : c === 'USD' ? totalUSD : totalCNY;
-              const hasEnough = (w?.balance || 0) >= charge;
+          <div className="space-y-2">
+            {roomTypes.map((rt) => {
+              const isSelected = selectedRoom.name === rt.name || selectedRoom.id === rt.id;
+              const surcharge = rt.nightlySurchargeUSD || 0;
+              const roomNightly = baseNightlyUSD + surcharge;
 
               return (
                 <div
-                  key={c}
-                  onClick={() => setPaymentCurrency(c)}
-                  className={`p-3 rounded-2xl border cursor-pointer text-center transition-all ${
+                  key={rt.name}
+                  onClick={() => setSelectedRoom(rt)}
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                     isSelected
-                      ? 'bg-slate-950 border-emerald-500 shadow-md ring-1 ring-emerald-500/50'
-                      : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                      ? 'bg-emerald-500/10 border-emerald-500 text-white shadow-md'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
                   }`}
                 >
-                  <span className="text-xl block mb-1">{w?.flag}</span>
-                  <span className="text-xs font-bold text-white block">{c}</span>
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold block mt-0.5">
-                    {w?.symbol}{charge.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                  </span>
-                  {!hasEnough && (
-                    <span className="text-[9px] text-rose-400 font-bold block mt-0.5">Insufficient</span>
-                  )}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-white">{rt.name}</span>
+                      {surcharge > 0 ? (
+                        <span className="px-1.5 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-mono text-[9px] font-bold">
+                          +${surcharge} USD / nt
+                        </span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-400 text-[9px]">
+                          Standard Base
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400">{rt.description}</p>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                      <Users className="w-3 h-3 text-emerald-400" />
+                      <span>Max {rt.maxGuests || 2} Guests</span>
+                      <span>•</span>
+                      <span>{rt.amenities?.join(', ')}</span>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0 ml-3">
+                    <span className="text-sm font-mono font-black text-white">${roomNightly}</span>
+                    <span className="text-[10px] text-slate-400 block">/ night</span>
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
 
+        {/* Date Range Selection */}
+        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Stay Dates</h4>
+            <span className="text-xs font-bold text-emerald-400">{nights} Nights Stay</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Check-In</label>
+              <input
+                type="date"
+                value={checkIn}
+                onChange={(e) => setCheckIn(e.target.value)}
+                className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-white outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Check-Out</label>
+              <input
+                type="date"
+                value={checkOut}
+                min={checkIn}
+                onChange={(e) => setCheckOutDate(e.target.value)}
+                className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold text-white outline-none focus:border-emerald-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Primary Guest Details */}
+        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3">
+          <h4 className="text-xs font-bold text-white uppercase tracking-wider">Primary Guest & Voucher Info</h4>
+          <div className="space-y-2 text-xs">
+            <div>
+              <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Full Legal Name (as in Passport)</label>
+              <input
+                type="text"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Email</label>
+                <input
+                  type="email"
+                  value={guestEmail}
+                  onChange={(e) => setGuestEmail(e.target.value)}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Phone / WhatsApp</label>
+                <input
+                  type="text"
+                  value={guestPhone}
+                  onChange={(e) => setGuestPhone(e.target.value)}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Cancellation Policy */}
+        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-start gap-2.5">
+          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <h5 className="text-xs font-bold text-white">Cancellation Policy</h5>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              {hotel.cancellationPolicy || 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.'}
+            </p>
+          </div>
+        </div>
+
+        {/* Settlement Wallet Selector & Breakdown */}
+        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Debit Settlement Wallet</h4>
+            <span className="text-[10px] text-slate-400">Available: {currentWallet?.currency} {currentWallet?.balance.toLocaleString()}</span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            {(['USD', 'CNY', 'NGN'] as Currency[]).map((c) => {
+              const w = wallets.find((wal) => wal.currency === c);
+              const isSelected = paymentCurrency === c;
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setPaymentCurrency(c)}
+                  className={`p-2.5 rounded-2xl border text-center transition-all ${
+                    isSelected
+                      ? 'bg-emerald-500/10 border-emerald-500 text-white'
+                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                  }`}
+                >
+                  <span className="font-bold text-xs block">{c} Wallet</span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    {c === 'NGN' ? '₦' : c === 'CNY' ? '¥' : '$'}{(w?.balance || 0).toLocaleString()}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Pricing Breakdown */}
+          <div className="pt-2 border-t border-slate-800/80 space-y-1.5 text-xs">
+            <div className="flex justify-between text-slate-400">
+              <span>{selectedRoom.name} (${nightlyTotalUSD}/night × {nights} nights)</span>
+              <span className="text-white font-mono font-bold">${totalUSD} USD</span>
+            </div>
+
+            <div className="flex justify-between text-slate-400 text-[11px]">
+              <span>Authoritative Equivalent</span>
+              <span className="text-emerald-400 font-mono">≈ ¥{totalCNY.toLocaleString()} CNY / ₦{totalNGN.toLocaleString()} NGN</span>
+            </div>
+
+            <div className="pt-2 border-t border-slate-800/80 flex items-baseline justify-between">
+              <div>
+                <span className="text-slate-400 text-xs">Total Settlement:</span>
+                <span className="text-base font-extrabold text-white block num-tabular">
+                  {paymentCurrency === 'NGN' ? `₦${totalNGN.toLocaleString()} NGN` : paymentCurrency === 'CNY' ? `¥${totalCNY.toLocaleString()} CNY` : `$${totalUSD.toLocaleString()} USD`}
+                </span>
+              </div>
+
+              {!hasSufficient && (
+                <div className="flex items-center gap-1 text-[11px] text-rose-400 font-bold">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  <span>Insufficient Balance</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Submit Booking CTA */}
         <button
+          type="button"
+          disabled={!hasSufficient || isBooking}
           onClick={handleBook}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-sm shadow-xl shadow-emerald-500/20 active:scale-98 transition-all flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/20 active:scale-95 disabled:opacity-50 transition-all cursor-pointer"
         >
-          <ShieldCheck className="w-4 h-4" />
-          <span>Authorize Reservation with PIN</span>
+          <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
+          <span>Confirm Booking with 6-Digit PIN</span>
         </button>
       </div>
 
-      {/* 6-Digit PIN Authorization Modal */}
+      {/* 6-Digit Transaction PIN Modal */}
       {showPinModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
-            <PinPad
-              title="Authorize Hotel Booking"
-              subtitle={`Debit ${currentWallet?.symbol}${debitAmount.toLocaleString()} from ${paymentCurrency} wallet`}
-              onComplete={handlePinSuccess}
-              onCancel={() => setShowPinModal(false)}
-            />
-          </div>
-        </div>
+        <PinPad
+          onComplete={handlePinSuccess}
+          onCancel={() => setShowPinModal(false)}
+          title="Confirm Hotel Reservation"
+          subtitle={`Enter 6-digit transaction PIN to debit ${paymentCurrency} ${debitAmount.toLocaleString()} to hotel escrow`}
+        />
       )}
     </div>
   );
