@@ -36,8 +36,8 @@ import {
 } from 'lucide-react';
 
 export const AdminAgentsScreen: React.FC = () => {
-  const { showToast } = useApp();
-  const [activeTab, setActiveTab] = useState<'rfqs' | 'suppliers' | 'settings'>('rfqs');
+  const { showToast, navigate } = useApp();
+  const [activeTab, setActiveTab] = useState<'rfqs' | 'settings'>('rfqs');
   const [rfqs, setRfqs] = useState<AgentRequestDocument[]>(() => db.getAgentRequests());
   const [suppliersList, setSuppliersList] = useState<Supplier[]>(VETTED_SUPPLIERS);
   
@@ -357,14 +357,6 @@ export const AdminAgentsScreen: React.FC = () => {
                 Requests ({rfqs.length})
               </button>
               <button
-                onClick={() => setActiveTab('suppliers')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === 'suppliers' ? 'bg-emerald-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Suppliers ({suppliersList.length})
-              </button>
-              <button
                 onClick={() => setActiveTab('settings')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 ${
                   activeTab === 'settings' ? 'bg-emerald-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
@@ -373,17 +365,15 @@ export const AdminAgentsScreen: React.FC = () => {
                 <Settings className="w-3.5 h-3.5" />
                 <span>Fees & Commission</span>
               </button>
-            </div>
-
-            {activeTab === 'suppliers' && (
               <button
-                onClick={() => setShowAddSupplier(true)}
-                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center gap-1.5"
+                onClick={() => navigate('admin-suppliers')}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-amber-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
+                title="Go to VIP Suppliers Directory"
               >
-                <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                <span>Register Supplier</span>
+                <Building2 className="w-3.5 h-3.5" />
+                <span>VIP Suppliers</span>
               </button>
-            )}
+            </div>
           </div>
         </div>
 
@@ -591,57 +581,7 @@ export const AdminAgentsScreen: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 2: VERIFIED SUPPLIERS DIRECTORY */}
-        {activeTab === 'suppliers' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {suppliersList.map((sup) => (
-                <div key={sup.id} className="p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-black text-white">{sup.name}</span>
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">
-                          {sup.badge}
-                        </span>
-                      </div>
-                      <p className="text-xs font-chinese text-slate-300 mt-0.5">{sup.chineseName}</p>
-                      <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
-                        <span>{sup.city} • {sup.category}</span>
-                      </p>
-                    </div>
-
-                    <div className="text-right">
-                      <div className="flex items-center gap-1 text-xs font-bold text-amber-400">
-                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                        <span>{sup.rating}</span>
-                      </div>
-                      <span className="text-[10px] text-slate-500 block mt-0.5">{sup.verifiedYears} yrs verified</span>
-                    </div>
-                  </div>
-
-                  <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="text-[10px] text-slate-500 block">Min. Order Value</span>
-                      <strong className="text-white">{sup.minOrderValue}</strong>
-                    </div>
-
-                    <div>
-                      <span className="text-[10px] text-slate-500 block">Inspection Status</span>
-                      <span className="font-bold inline-flex items-center gap-1 text-emerald-400">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Audit Passed</span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 3: ADMIN FEE CONFIGURATION */}
+        {/* TAB 2: ADMIN FEE CONFIGURATION */}
         {activeTab === 'settings' && (
           <form onSubmit={handleSaveSettings} className="p-6 rounded-3xl bg-slate-900 border border-slate-800 max-w-2xl space-y-4 shadow-xl">
             <div>

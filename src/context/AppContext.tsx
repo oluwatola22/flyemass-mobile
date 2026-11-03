@@ -156,10 +156,12 @@ const ROUTE_TO_PATH: Record<ScreenRoute, string> = {
   agent: '/agent',
   procure: '/procure',
 
-  // 7. China Business Hotels
+  // 7. China Business Hotels & Realty
   hotels: '/hotels',
   'hotel-detail': '/hotels/detail',
   'hotel-bookings': '/hotels/bookings',
+  'rentals-apartments': '/rentals/apartments',
+  'rentals-offices': '/rentals/offices',
 
   // 8. Profile, Security & Support
   profile: '/profile',
@@ -184,8 +186,15 @@ const ROUTE_TO_PATH: Record<ScreenRoute, string> = {
   'admin-logistics': '/admin/logistics',
   'admin-logistics-detail': '/admin/logistics/detail',
   'admin-payments': '/admin/payments',
+  'admin-rmb-transfers': '/admin/rmb-transfers',
+  'admin-naira-payouts': '/admin/naira-payouts',
+  'admin-fx-management': '/admin/fx-management',
+  'admin-funding': '/admin/funding',
   'admin-shop': '/admin/shop',
   'admin-hotels': '/admin/hotels',
+  'admin-rentals-apartments': '/admin/rentals-apartments',
+  'admin-rentals-offices': '/admin/rentals-offices',
+  'admin-suppliers': '/admin/suppliers',
   'admin-agents': '/admin/agents',
   'admin-support': '/admin/support',
   'admin-team': '/admin/team'
@@ -206,12 +215,21 @@ const getInitialRoute = (): ScreenRoute => {
   if (path.startsWith('/admin/users')) return 'admin-users';
   if (path.startsWith('/admin/logistics')) return 'admin-logistics';
   if (path.startsWith('/admin/payments')) return 'admin-payments';
+  if (path.startsWith('/admin/rmb-transfers')) return 'admin-rmb-transfers';
+  if (path.startsWith('/admin/naira-payouts')) return 'admin-naira-payouts';
+  if (path.startsWith('/admin/fx-management')) return 'admin-fx-management';
+  if (path.startsWith('/admin/funding')) return 'admin-funding';
   if (path.startsWith('/admin/shop')) return 'admin-shop';
   if (path.startsWith('/admin/hotels')) return 'admin-hotels';
+  if (path.startsWith('/admin/rentals-apartments')) return 'admin-rentals-apartments';
+  if (path.startsWith('/admin/rentals-offices')) return 'admin-rentals-offices';
+  if (path.startsWith('/admin/suppliers')) return 'admin-suppliers';
   if (path.startsWith('/admin/agents')) return 'admin-agents';
   if (path.startsWith('/admin/support')) return 'admin-support';
   if (path.startsWith('/admin/team')) return 'admin-team';
   if (path.startsWith('/admin/login')) return 'admin-login';
+  if (path.startsWith('/rentals/apartments')) return 'rentals-apartments';
+  if (path.startsWith('/rentals/offices')) return 'rentals-offices';
 
   if (path.startsWith('/app/')) {
     const sub = path.replace('/app/', '');

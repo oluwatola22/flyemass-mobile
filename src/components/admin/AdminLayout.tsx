@@ -28,7 +28,12 @@ import {
   DollarSign,
   Sun,
   Moon,
-  ExternalLink
+  ExternalLink,
+  Send,
+  Home,
+  Briefcase,
+  Sliders,
+  Download
 } from 'lucide-react';
 import { ScreenRoute } from '../../types';
 
@@ -51,36 +56,59 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
     return db.subscribe(() => setDbState({ ...db.getState() }));
   }, []);
 
-  const pendingPaymentsCount = Object.values(dbState.supplier_payments).filter(
-    (p) => p.status === 'processing'
+  const pendingPaymentsCount = Object.values(dbState.supplier_payments || {}).filter(
+    (p) => p.status === 'processing' || p.status === 'pending'
   ).length;
 
-  const inTransitCargoCount = Object.values(dbState.shipments).filter(
+  const pendingWithdrawalsCount = Object.values(dbState.withdrawals || {}).filter(
+    (w) => w.status === 'pending' || w.status === 'processing'
+  ).length;
+
+  const inTransitCargoCount = Object.values(dbState.shipments || {}).filter(
     (s) => s.currentStatus === 'In Transit/Customs' || s.currentStatus === 'Origin Received'
   ).length;
 
-  const openTicketsCount = Object.values(dbState.support_tickets).filter(
+  const openTicketsCount = Object.values(dbState.support_tickets || {}).filter(
     (t) => t.status === 'open' || t.status === 'in_progress'
   ).length;
 
   const navItems = [
     { id: 'dashboard', label: 'Command Center', route: 'admin-dashboard' as ScreenRoute, icon: LayoutDashboard },
-    { id: 'users', label: 'User Directory & Wallets', route: 'admin-users' as ScreenRoute, icon: Users, badge: Object.keys(dbState.users).length },
+    { id: 'users', label: 'User Directory & Wallets', route: 'admin-users' as ScreenRoute, icon: Users, badge: Object.keys(dbState.users || {}).length },
     { id: 'logistics', label: 'Cargo Control Tower', route: 'admin-logistics' as ScreenRoute, icon: Truck, badge: inTransitCargoCount, badgeColor: 'bg-cyan-500/20 text-cyan-400' },
-    { id: 'payments', label: 'Supplier Payout Desk', route: 'admin-payments' as ScreenRoute, icon: CreditCard, badge: pendingPaymentsCount, badgeColor: 'bg-amber-500/20 text-amber-400' },
-    { id: 'shop', label: 'Tech Gadget Inventory', route: 'admin-shop' as ScreenRoute, icon: ShoppingBag, badge: Object.keys(dbState.shop_orders).length },
-    { id: 'hotels', label: 'Business Hotel Bookings', route: 'admin-hotels' as ScreenRoute, icon: Hotel },
-    { id: 'agents', label: 'Sourcing & Inspections', route: 'admin-agents' as ScreenRoute, icon: Building2 },
+    { id: 'rmb-transfers', label: 'China RMB Transfers', route: 'admin-rmb-transfers' as ScreenRoute, icon: Send, badge: pendingPaymentsCount, badgeColor: 'bg-indigo-500/20 text-indigo-400' },
+    { id: 'naira-payouts', label: 'Naira Bank Payouts', route: 'admin-naira-payouts' as ScreenRoute, icon: Download, badge: pendingWithdrawalsCount, badgeColor: 'bg-teal-500/20 text-teal-400' },
+    { id: 'fx-management', label: 'FX Rates & Margins', route: 'admin-fx-management' as ScreenRoute, icon: Sliders },
+    { id: 'funding', label: 'Funding & Gateways', route: 'admin-funding' as ScreenRoute, icon: CreditCard },
+    { id: 'payments', label: 'Treasury & General Ledger', route: 'admin-payments' as ScreenRoute, icon: Activity },
+    { id: 'shop', label: 'Tech Gadget Inventory', route: 'admin-shop' as ScreenRoute, icon: ShoppingBag, badge: Object.keys(dbState.shop_orders || {}).length },
+    { id: 'hotels', label: 'Hotel Bookings', route: 'admin-hotels' as ScreenRoute, icon: Hotel },
+    { id: 'rentals-apartments', label: 'Residential Apartments', route: 'admin-rentals-apartments' as ScreenRoute, icon: Home },
+    { id: 'rentals-offices', label: 'Commercial Offices', route: 'admin-rentals-offices' as ScreenRoute, icon: Briefcase },
+    { id: 'suppliers', label: 'VIP Supplier Directory', route: 'admin-suppliers' as ScreenRoute, icon: Building2 },
+    { id: 'agents', label: 'Sourcing & Inspections', route: 'admin-agents' as ScreenRoute, icon: Users },
     { id: 'support', label: 'Live Support & Tickets', route: 'admin-support' as ScreenRoute, icon: Headphones, badge: openTicketsCount, badgeColor: 'bg-rose-500/20 text-rose-400' },
     { id: 'team', label: 'Team & RBAC Security', route: 'admin-team' as ScreenRoute, icon: ShieldCheck },
     { id: 'db', label: 'NoSQL Schema Explorer', route: 'schema-inspector' as ScreenRoute, icon: Database, isDev: true },
   ];
 
   const ROLE_AUTHORIZED_TABS: Record<AdminRole, string[]> = {
-    super_admin: ['dashboard', 'users', 'logistics', 'payments', 'shop', 'hotels', 'agents', 'support', 'team', 'db'],
-    finance_officer: ['dashboard', 'users', 'payments', 'team', 'db'],
-    logistics_manager: ['dashboard', 'logistics', 'shop', 'agents', 'db'],
-    support_agent: ['dashboard', 'users', 'hotels', 'support']
+    super_admin: [
+      'dashboard', 'users', 'logistics', 'rmb-transfers', 'naira-payouts', 
+      'fx-management', 'funding', 'payments', 'shop', 'hotels', 
+      'rentals-apartments', 'rentals-offices', 'suppliers', 'agents', 
+      'support', 'team', 'db'
+    ],
+    finance_officer: [
+      'dashboard', 'users', 'rmb-transfers', 'naira-payouts', 
+      'fx-management', 'funding', 'payments', 'team', 'db'
+    ],
+    logistics_manager: [
+      'dashboard', 'logistics', 'shop', 'suppliers', 'agents', 'db'
+    ],
+    support_agent: [
+      'dashboard', 'users', 'hotels', 'rentals-apartments', 'rentals-offices', 'support'
+    ]
   };
 
   const authorizedTabs = ROLE_AUTHORIZED_TABS[currentAdmin.role] || ROLE_AUTHORIZED_TABS.super_admin;
@@ -99,8 +127,20 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
     const q = searchQuery.toLowerCase();
     if (q.includes('ship') || q.includes('fm-') || q.includes('can') || q.includes('cargo')) {
       navigate('admin-logistics');
-    } else if (q.includes('pay') || q.includes('alipay') || q.includes('wechat') || q.includes('rmb')) {
-      navigate('admin-payments');
+    } else if (q.includes('rmb') || q.includes('alipay') || q.includes('wechat') || q.includes('supplier pay')) {
+      navigate('admin-rmb-transfers');
+    } else if (q.includes('withdraw') || q.includes('naira') || q.includes('payout') || q.includes('nuban')) {
+      navigate('admin-naira-payouts');
+    } else if (q.includes('rate') || q.includes('spread') || q.includes('fx') || q.includes('swap')) {
+      navigate('admin-fx-management');
+    } else if (q.includes('gateway') || q.includes('webhook') || q.includes('providus') || q.includes('monnify') || q.includes('fund')) {
+      navigate('admin-funding');
+    } else if (q.includes('apart') || q.includes('flat') || q.includes('house') || q.includes('resident')) {
+      navigate('admin-rentals-apartments');
+    } else if (q.includes('office') || q.includes('showroom') || q.includes('commercial')) {
+      navigate('admin-rentals-offices');
+    } else if (q.includes('vetted') || q.includes('vip sup') || q.includes('factory')) {
+      navigate('admin-suppliers');
     } else if (q.includes('user') || q.includes('alade') || q.includes('client')) {
       navigate('admin-users');
     } else if (q.includes('iphone') || q.includes('order') || q.includes('tech')) {

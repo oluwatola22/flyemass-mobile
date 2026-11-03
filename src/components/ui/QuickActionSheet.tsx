@@ -16,7 +16,8 @@ import {
   Download,
   Headphones,
   ShieldCheck,
-  Truck
+  Truck,
+  Home
 } from 'lucide-react';
 import { ScreenRoute } from '../../types';
 
@@ -121,6 +122,22 @@ export const QuickActionSheet: React.FC = () => {
       icon: Hotel,
       color: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
       route: 'hotels' as ScreenRoute,
+      cat: 'hospitality'
+    },
+    {
+      title: 'Apartments & Houses',
+      subtitle: 'Guangzhou residential rentals',
+      icon: Home,
+      color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
+      route: 'rentals-apartments' as ScreenRoute,
+      cat: 'hospitality'
+    },
+    {
+      title: 'Commercial Offices',
+      subtitle: 'Trade showrooms & offices',
+      icon: Building,
+      color: 'text-teal-400 bg-teal-500/10 border-teal-500/20',
+      route: 'rentals-offices' as ScreenRoute,
       cat: 'hospitality'
     },
     {

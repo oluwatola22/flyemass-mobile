@@ -60,10 +60,12 @@ import { SuppliersScreen } from '../../screens/suppliers/SuppliersScreen';
 import { AgentServiceScreen } from '../../screens/suppliers/AgentServiceScreen';
 import { ProcureScreen } from '../../screens/suppliers/ProcureScreen';
 
-// Section 7: China Business Hotels
+// Section 7: China Business Hotels & Realty
 import { HotelsScreen } from '../../screens/hotels/HotelsScreen';
 import { HotelDetailScreen } from '../../screens/hotels/HotelDetailScreen';
 import { HotelBookingsScreen } from '../../screens/hotels/HotelBookingsScreen';
+import { ApartmentsScreen } from '../../screens/rentals/ApartmentsScreen';
+import { OfficeRentalsScreen } from '../../screens/rentals/OfficeRentalsScreen';
 
 // Section 8: Profile, Security & Support
 import { ProfileScreen } from '../../screens/profile/ProfileScreen';
@@ -175,10 +177,12 @@ export const MobileShell: React.FC = () => {
       case 'agent': return <AgentServiceScreen />;
       case 'procure': return <ProcureScreen />;
 
-      // 7. China Business Hotels
+      // 7. China Business Hotels & Realty
       case 'hotels': return <HotelsScreen />;
       case 'hotel-detail': return <HotelDetailScreen />;
       case 'hotel-bookings': return <HotelBookingsScreen />;
+      case 'rentals-apartments': return <ApartmentsScreen />;
+      case 'rentals-offices': return <OfficeRentalsScreen />;
 
       // 8. Profile, Security & Support
       case 'profile': return <ProfileScreen />;
@@ -255,10 +259,12 @@ export const MobileShell: React.FC = () => {
     { label: '/agent (Ground Inspection & Canton)', route: 'agent', group: '6. Trade Sourcing' },
     { label: '/procure (Direct Quotation RFQ)', route: 'procure', group: '6. Trade Sourcing' },
 
-    // 7. China Business Hotels
+    // 7. China Business Hotels & Realty
     { label: '/hotels (Guangzhou, Shenzhen, Yiwu)', route: 'hotels', group: '7. Business Hotels' },
     { label: '/hotels/$id (Hotel Details & Chinese Card)', route: 'hotel-detail', group: '7. Business Hotels' },
     { label: '/hotels/bookings (Check-in Vouchers)', route: 'hotel-bookings', group: '7. Business Hotels' },
+    { label: '/rentals-apartments (Tianhe, Yuexiu Housing)', route: 'rentals-apartments', group: '7. Business Hotels' },
+    { label: '/rentals-offices (Commercial Office Leases)', route: 'rentals-offices', group: '7. Business Hotels' },
 
     // 8. Profile, Security & Support
     { label: '/profile (CAC Tier 3 Credentials)', route: 'profile', group: '8. Profile & Security' },
