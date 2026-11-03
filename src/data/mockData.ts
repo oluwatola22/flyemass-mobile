@@ -326,7 +326,15 @@ export const TECH_PRODUCTS: TechProduct[] = [
       { id: 'v-ip16pm-256-dt', color: 'Desert Titanium', colorHex: '#C2AD97', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 6, isActive: true },
       { id: 'v-ip16pm-512-dt', color: 'Desert Titanium', colorHex: '#C2AD97', storage: '512GB', priceAdjustmentNGN: 250000, stockCount: 5, isActive: true },
       { id: 'v-ip16pm-1tb-dt', color: 'Desert Titanium', colorHex: '#C2AD97', storage: '1TB', priceAdjustmentNGN: 550000, stockCount: 3, isActive: true },
-      { id: 'v-ip16pm-256-nt', color: 'Natural Titanium', colorHex: '#9A958E', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 4, isActive: true }
+      { id: 'v-ip16pm-256-nt', color: 'Natural Titanium', colorHex: '#9A958E', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 4, isActive: true },
+      { id: 'v-ip16pm-512-nt', color: 'Natural Titanium', colorHex: '#9A958E', storage: '512GB', priceAdjustmentNGN: 250000, stockCount: 4, isActive: true },
+      { id: 'v-ip16pm-1tb-nt', color: 'Natural Titanium', colorHex: '#9A958E', storage: '1TB', priceAdjustmentNGN: 550000, stockCount: 3, isActive: true },
+      { id: 'v-ip16pm-256-bt', color: 'Black Titanium', colorHex: '#2F3133', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 5, isActive: true },
+      { id: 'v-ip16pm-512-bt', color: 'Black Titanium', colorHex: '#2F3133', storage: '512GB', priceAdjustmentNGN: 250000, stockCount: 4, isActive: true },
+      { id: 'v-ip16pm-1tb-bt', color: 'Black Titanium', colorHex: '#2F3133', storage: '1TB', priceAdjustmentNGN: 550000, stockCount: 3, isActive: true },
+      { id: 'v-ip16pm-256-wt', color: 'White Titanium', colorHex: '#F0F0F2', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 5, isActive: true },
+      { id: 'v-ip16pm-512-wt', color: 'White Titanium', colorHex: '#F0F0F2', storage: '512GB', priceAdjustmentNGN: 250000, stockCount: 4, isActive: true },
+      { id: 'v-ip16pm-1tb-wt', color: 'White Titanium', colorHex: '#F0F0F2', storage: '1TB', priceAdjustmentNGN: 550000, stockCount: 2, isActive: true }
     ],
     warrantyInfo: 'Official 1-Year Apple Warranty + FlyeMass Cargo Escrow Guarantee',
     deliveryInfo: 'HK Flight ETA: 2-4 business days to Ikeja Hub or Doorstep Delivery across Nigeria',
@@ -372,7 +380,13 @@ export const TECH_PRODUCTS: TechProduct[] = [
     variants: [
       { id: 'v-ip15p-128-bt', color: 'Blue Titanium', colorHex: '#2D3A4B', storage: '128GB', priceAdjustmentNGN: 0, stockCount: 6, isActive: true },
       { id: 'v-ip15p-256-bt', color: 'Blue Titanium', colorHex: '#2D3A4B', storage: '256GB', priceAdjustmentNGN: 150000, stockCount: 5, isActive: true },
-      { id: 'v-ip15p-256-nt', color: 'Natural Titanium', colorHex: '#9A958E', storage: '256GB', priceAdjustmentNGN: 150000, stockCount: 3, isActive: true }
+      { id: 'v-ip15p-512-bt', color: 'Blue Titanium', colorHex: '#2D3A4B', storage: '512GB', priceAdjustmentNGN: 350000, stockCount: 3, isActive: true },
+      { id: 'v-ip15p-128-nt', color: 'Natural Titanium', colorHex: '#9A958E', storage: '128GB', priceAdjustmentNGN: 0, stockCount: 4, isActive: true },
+      { id: 'v-ip15p-256-nt', color: 'Natural Titanium', colorHex: '#9A958E', storage: '256GB', priceAdjustmentNGN: 150000, stockCount: 4, isActive: true },
+      { id: 'v-ip15p-512-nt', color: 'Natural Titanium', colorHex: '#9A958E', storage: '512GB', priceAdjustmentNGN: 350000, stockCount: 3, isActive: true },
+      { id: 'v-ip15p-128-bk', color: 'Black Titanium', colorHex: '#2F3133', storage: '128GB', priceAdjustmentNGN: 0, stockCount: 5, isActive: true },
+      { id: 'v-ip15p-256-bk', color: 'Black Titanium', colorHex: '#2F3133', storage: '256GB', priceAdjustmentNGN: 150000, stockCount: 4, isActive: true },
+      { id: 'v-ip15p-512-bk', color: 'Black Titanium', colorHex: '#2F3133', storage: '512GB', priceAdjustmentNGN: 350000, stockCount: 2, isActive: true }
     ],
     warrantyInfo: '6-Month Comprehensive Hardware Replacement Guarantee',
     deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',

@@ -1104,10 +1104,22 @@ class DatabaseService {
           products: {
             ...INITIAL_DATABASE.products,
             ...Object.fromEntries(
-              Object.entries(parsed.products || {}).map(([id, prod]: [string, any]) => [
-                id,
-                { ...(INITIAL_DATABASE.products[id] || {}), ...prod }
-              ])
+              Object.entries(parsed.products || {}).map(([id, prod]: [string, any]) => {
+                const initProd: any = (INITIAL_DATABASE.products as Record<string, any>)[id] || {};
+                return [
+                  id,
+                  {
+                    ...initProd,
+                    ...prod,
+                    variants: (prod?.variants && prod.variants.length > 0) ? prod.variants : initProd.variants,
+                    technicalSpecs: prod?.technicalSpecs || initProd.technicalSpecs,
+                    colors: (prod?.colors && prod.colors.length > 0) ? prod.colors : initProd.colors,
+                    storageOptions: (prod?.storageOptions && prod.storageOptions.length > 0) ? prod.storageOptions : initProd.storageOptions,
+                    stockCount: Math.max(prod?.stockCount ?? 0, initProd.stockCount || 10),
+                    inStock: true
+                  }
+                ];
+              })
             )
           },
           device_shop_settings: { ...(INITIAL_DATABASE.device_shop_settings || {}), ...(parsed.device_shop_settings || {}) },

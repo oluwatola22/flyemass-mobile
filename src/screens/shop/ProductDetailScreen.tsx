@@ -39,7 +39,8 @@ export const ProductDetailScreen: React.FC = () => {
     compareProductIds, 
     toggleCompareProduct,
     shopCurrency,
-    setShopCurrency
+    setShopCurrency,
+    showToast
   } = useApp();
 
   const allProducts = db.getProducts();
@@ -55,20 +56,36 @@ export const ProductDetailScreen: React.FC = () => {
   const images = (product.images && product.images.length > 0) ? product.images : [product.image];
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
 
-  // Variant selection
-  const defaultVariant = product.variants?.[0];
+  // Variant & Option selection
+  const variantsList = Array.isArray(product.variants) ? product.variants : [];
+  const inStockVariant = variantsList.find(v => (v.stockCount ?? 0) > 0 && v.isActive !== false);
+  const defaultVariant = inStockVariant || variantsList[0];
+
+  const colorsList = (Array.isArray(product.colors) && product.colors.length > 0)
+    ? product.colors
+    : [{ name: defaultVariant?.color || 'Standard', hex: defaultVariant?.colorHex || '#1E1E22' }];
+
+  const storageList = (Array.isArray(product.storageOptions) && product.storageOptions.length > 0)
+    ? product.storageOptions
+    : (variantsList.length > 0 ? Array.from(new Set(variantsList.map(v => v.storage))) : ['Standard']);
+
   const [selectedColor, setSelectedColor] = useState<string>(
-    defaultVariant?.color || product.colors?.[0]?.name || 'Standard'
+    defaultVariant?.color || (typeof colorsList[0] === 'string' ? colorsList[0] : colorsList[0]?.name) || 'Standard'
   );
   const [selectedStorage, setSelectedStorage] = useState<string>(
-    defaultVariant?.storage || product.storageOptions?.[0] || 'Standard'
+    defaultVariant?.storage || storageList[0] || 'Standard'
   );
   const [quantity, setQuantity] = useState<number>(1);
 
   // Find active variant matching color & storage
-  const activeVariant: ProductVariant | undefined = product.variants?.find(
+  let activeVariant: ProductVariant | undefined = variantsList.find(
     (v) => v.color === selectedColor && v.storage === selectedStorage
-  ) || defaultVariant;
+  );
+  if (!activeVariant && variantsList.length > 0) {
+    activeVariant = variantsList.find((v) => v.color === selectedColor) ||
+      variantsList.find((v) => v.storage === selectedStorage) ||
+      defaultVariant;
+  }
 
   const priceAdjustmentNGN = activeVariant?.priceAdjustmentNGN || 0;
   const baseNGN = product.priceNGN || Math.round((product.priceUSD || 0) * (rates.USD_NGN || 1485));
@@ -85,11 +102,14 @@ export const ProductDetailScreen: React.FC = () => {
   const isSaved = savedProductIds.includes(product.id);
   const isComparing = compareProductIds.includes(product.id);
 
-  const variantStock = activeVariant?.stockCount ?? product.stockCount ?? 0;
-  const isAvailable = (activeVariant ? activeVariant.isActive : product.inStock) && variantStock > 0;
+  const variantStock = activeVariant?.stockCount ?? product.stockCount ?? 10;
+  const isAvailable = (activeVariant ? activeVariant.isActive !== false : product.inStock !== false) && variantStock > 0;
 
   const handleAddToCart = () => {
-    if (!isAvailable) return;
+    if (!isAvailable) {
+      showToast('Selected configuration is currently out of stock. Please select another variant.', 'info');
+      return;
+    }
     addToCart(product, selectedColor, selectedStorage, activeVariant, quantity);
     navigate('cart');
   };
@@ -228,13 +248,15 @@ export const ProductDetailScreen: React.FC = () => {
             Colour / Finish: <strong className="text-white">{selectedColor}</strong>
           </span>
           <div className="flex items-center gap-2 flex-wrap">
-            {product.colors.map((color) => {
-              const isSelected = selectedColor === color.name;
+            {colorsList.map((color) => {
+              const colorName = typeof color === 'string' ? color : color.name;
+              const colorHex = typeof color === 'string' ? '#1E1E22' : color.hex;
+              const isSelected = selectedColor === colorName;
               return (
                 <button
-                  key={color.name}
+                  key={colorName}
                   type="button"
-                  onClick={() => setSelectedColor(color.name)}
+                  onClick={() => setSelectedColor(colorName)}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all ${
                     isSelected
                       ? 'bg-slate-950 border-emerald-500 text-white shadow-md'
@@ -243,9 +265,9 @@ export const ProductDetailScreen: React.FC = () => {
                 >
                   <span
                     className="w-3.5 h-3.5 rounded-full border border-slate-700 shadow-inner shrink-0"
-                    style={{ backgroundColor: color.hex }}
+                    style={{ backgroundColor: colorHex }}
                   />
-                  <span>{color.name}</span>
+                  <span>{colorName}</span>
                 </button>
               );
             })}
@@ -264,10 +286,10 @@ export const ProductDetailScreen: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-3 gap-2">
-            {product.storageOptions.map((opt) => {
+            {storageList.map((opt) => {
               const isSelected = selectedStorage === opt;
               // Check variant adjustment for this storage
-              const optVariant = product.variants?.find(
+              const optVariant = variantsList.find(
                 (v) => v.storage === opt && (v.color === selectedColor || true)
               );
               const adj = optVariant?.priceAdjustmentNGN || 0;

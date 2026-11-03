@@ -14,7 +14,8 @@ import {
   ArrowLeftRight,
   Filter,
   Package,
-  Sparkles
+  Sparkles,
+  Check
 } from 'lucide-react';
 import { TechProduct } from '../../types';
 
@@ -84,6 +85,11 @@ export const ShopScreen: React.FC = () => {
   });
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartSubtotalNGN = cart.reduce((sum, item) => {
+    const base = item.product.priceNGN || Math.round((item.product.priceUSD || 0) * (rates.USD_NGN || 1485));
+    const adj = item.priceAdjustmentNGN || 0;
+    return sum + ((base + adj) * item.quantity);
+  }, 0);
 
   const formatPrice = (prod: TechProduct, curr: 'NGN' | 'CNY' | 'USD') => {
     const baseNGN = prod.priceNGN || Math.round((prod.priceUSD || 0) * (rates.USD_NGN || 1485));
@@ -272,8 +278,14 @@ export const ShopScreen: React.FC = () => {
             filteredProducts.map((product) => {
               const isSaved = savedProductIds.includes(product.id);
               const isComparing = compareProductIds.includes(product.id);
-              const stock = product.stockCount ?? 0;
+              const variantsTotalStock = (product.variants && product.variants.length > 0)
+                ? product.variants.reduce((sum, v) => sum + (v.stockCount ?? 0), 0)
+                : 0;
+              const stock = variantsTotalStock > 0 ? variantsTotalStock : (product.stockCount ?? 10);
               const condition = product.condition || 'Brand New';
+              const inCartCount = cart
+                .filter(item => item.product.id === product.id)
+                .reduce((sum, item) => sum + item.quantity, 0);
 
               return (
                 <div
@@ -380,36 +392,92 @@ export const ShopScreen: React.FC = () => {
 
                   {/* Bottom Specs & Action */}
                   <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-[10px] text-slate-400 truncate max-w-[200px]">
+                    <div className="flex items-center gap-1 text-[10px] text-slate-400 truncate max-w-[180px]">
                       {product.technicalSpecs?.chip ? (
-                        <span>{product.technicalSpecs.chip.split('(')[0]} • {product.storageOptions?.[0]}</span>
+                        <span>{product.technicalSpecs.chip.split('(')[0]} • {product.storageOptions?.[0] || product.variants?.[0]?.storage || 'Standard'}</span>
                       ) : (
-                        <span>{product.specs.slice(0, 2).join(' • ')}</span>
+                        <span>{(product.specs || []).slice(0, 2).join(' • ')}</span>
                       )}
                     </div>
 
-                    <button
-                      type="button"
-                      disabled={stock <= 0}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToCart(product);
-                      }}
-                      className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md ${
-                        stock > 0
-                          ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
-                          : 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none'
-                      }`}
-                    >
-                      <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                      <span>{stock > 0 ? 'Add to Cart' : 'Sold Out'}</span>
-                    </button>
+                    {inCartCount > 0 ? (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate('cart');
+                          }}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 active:scale-95 transition-all shadow-sm"
+                          title="View In Cart"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>{inCartCount} in Cart</span>
+                        </button>
+                        <button
+                          type="button"
+                          disabled={stock <= inCartCount}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(product);
+                          }}
+                          className="w-7 h-7 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center active:scale-95 transition-all shadow-md disabled:bg-slate-800 disabled:text-slate-500"
+                          title="Add Another Unit"
+                        >
+                          <Plus className="w-4 h-4 stroke-[3]" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={stock <= 0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(product);
+                        }}
+                        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md ${
+                          stock > 0
+                            ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
+                            : 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none'
+                        }`}
+                      >
+                        <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                        <span>{stock > 0 ? 'Add to Cart' : 'Sold Out'}</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               );
             })
           )}
         </div>
+
+        {/* Floating Quick Checkout Drawer / Bar */}
+        {cartCount > 0 && (
+          <div className="fixed bottom-16 left-0 right-0 px-4 z-40 max-w-md mx-auto pointer-events-none">
+            <button
+              type="button"
+              onClick={() => navigate('cart')}
+              className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-extrabold text-xs flex items-center justify-between shadow-2xl shadow-emerald-500/40 pointer-events-auto active:scale-98 transition-all border border-emerald-300/40"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-slate-950/20 flex items-center justify-center">
+                  <ShoppingBag className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+                </div>
+                <div className="text-left">
+                  <p className="font-extrabold text-xs text-slate-950 leading-tight">
+                    {cartCount} {cartCount === 1 ? 'Device' : 'Devices'} in Cart
+                  </p>
+                  <p className="text-[10px] text-slate-800 font-medium">Ready for Priority Air Cargo</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 bg-slate-950 text-white px-3 py-1.5 rounded-xl font-bold text-xs shadow-md">
+                <span>View Cart</span>
+                <ChevronRight className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
+              </div>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

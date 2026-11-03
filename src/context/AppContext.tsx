@@ -816,13 +816,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addToCart = (product: TechProduct, selectedColor?: string, selectedStorage?: string, variant?: any, quantity: number = 1) => {
-    const color = selectedColor || variant?.color || product.colors[0]?.name;
-    const storage = selectedStorage || variant?.storage || product.storageOptions[0];
-    const variantId = variant?.id || (product.variants?.find(v => v.color === color && v.storage === storage)?.id);
-    const priceAdjustmentNGN = variant?.priceAdjustmentNGN !== undefined 
-      ? variant.priceAdjustmentNGN 
-      : (product.variants?.find(v => v.id === variantId)?.priceAdjustmentNGN || 0);
-    const unitPriceNGN = (product.priceNGN || 0) + priceAdjustmentNGN;
+    if (!product) return;
+
+    const variantsList = Array.isArray(product.variants) ? product.variants : [];
+    const inStockVariant = variantsList.find(v => (v.stockCount ?? 0) > 0 && v.isActive !== false);
+    const defaultVariant = inStockVariant || variantsList[0];
+
+    const color = selectedColor || 
+      variant?.color || 
+      defaultVariant?.color || 
+      (typeof product.colors?.[0] === 'string' ? product.colors[0] : product.colors?.[0]?.name) || 
+      'Standard';
+
+    const storage = selectedStorage || 
+      variant?.storage || 
+      defaultVariant?.storage || 
+      product.storageOptions?.[0] || 
+      'Standard';
+
+    const activeVariant = variant || 
+      (variant?.id ? variantsList.find(v => v.id === variant.id) : undefined) ||
+      variantsList.find(v => v.color === color && v.storage === storage) || 
+      defaultVariant;
+
+    const variantId = activeVariant?.id;
+    const priceAdjustmentNGN = activeVariant?.priceAdjustmentNGN !== undefined 
+      ? activeVariant.priceAdjustmentNGN 
+      : 0;
+    const rates = db.getState().system_settings?.rates || { USD_NGN: 1485, USD_CNY: 7.24 };
+    const basePriceNGN = product.priceNGN || Math.round((product.priceUSD || 0) * (rates.USD_NGN || 1485));
+    const unitPriceNGN = basePriceNGN + priceAdjustmentNGN;
 
     setCart((prev) => {
       const existing = prev.find(
@@ -834,7 +857,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       let updated: CartItem[];
       if (existing) {
         updated = prev.map((item) =>
-          item === existing ? { ...item, quantity: item.quantity + quantity } : item
+          item === existing ? { ...item, quantity: item.quantity + (quantity || 1) } : item
         );
       } else {
         updated = [
@@ -842,7 +865,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           {
             id: `ci-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
             product,
-            quantity,
+            quantity: quantity || 1,
             variantId,
             selectedColor: color,
             selectedStorage: storage,
