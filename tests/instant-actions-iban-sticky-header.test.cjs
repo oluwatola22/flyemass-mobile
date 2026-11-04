@@ -44,19 +44,16 @@ assert(sheetContent.includes("route: 'suppliers'"), 'All Services must include V
 assert(sheetContent.includes("route: 'agent'"), 'All Services must include Agent Sourcing');
 console.log('✅ PASSED: All other service pages are accessible via All Services sheet');
 
-// Test 3: Account details & IBAN on Wallets Screen
-console.log('\n--- 3. Verification of Inbound Accounts & IBAN on WalletsScreen ---');
+// Test 3: Account details & IBAN removed from WalletsScreen (fund only via Fund page)
+console.log('\n--- 3. Verification of Removal of Accounts & IBAN from WalletsScreen ---');
 const walletContent = fs.readFileSync(walletPath, 'utf8');
-assert(walletContent.includes('Account & IBAN Details'), 'WalletsScreen must have dedicated Account & IBAN Details section');
-assert(walletContent.includes('US89JPMC02100002148902'), 'USD IBAN US89JPMC02100002148902 must be defined');
-assert(walletContent.includes('CN6227003320094892'), 'CNY Virtual IBAN CN6227003320094892 must be defined');
-assert(walletContent.includes('9082341902'), 'NGN NUBAN 9082341902 must be defined');
-assert(walletContent.includes('CHASUS33'), 'USD SWIFT CHASUS33 must be defined');
-assert(walletContent.includes('BKCHCNBJ400'), 'CNY SWIFT BKCHCNBJ400 must be defined');
-assert(walletContent.includes('104581000018'), 'CNAPS Code 104581000018 must be defined');
-assert(walletContent.includes('handleCopyField'), 'WalletsScreen must have copy handler for all banking fields');
-assert(walletContent.includes('Copy IBAN'), 'WalletsScreen must have Copy IBAN button');
-console.log('✅ PASSED: Accounts & IBAN details with copy actions fully integrated for NGN, USD, and CNY');
+assert(!walletContent.includes('US89JPMC02100002148902'), 'USD IBAN must NOT be present on WalletsScreen');
+assert(!walletContent.includes('CN6227003320094892'), 'CNY IBAN must NOT be present on WalletsScreen');
+assert(!walletContent.includes('9082341902'), 'NGN NUBAN must NOT be present on WalletsScreen');
+assert(!walletContent.includes('Account & IBAN Details'), 'WalletsScreen must NOT have Account & IBAN Details section');
+assert(!walletContent.includes('Copy IBAN'), 'WalletsScreen must NOT have Copy IBAN button');
+assert(walletContent.includes("navigate('fund')"), 'WalletsScreen must route user to Fund page for funding');
+console.log('✅ PASSED: Accounts & IBAN completely removed from WalletsScreen across NGN, CNY, and USD');
 
 // Test 4: Top Header is sticky across all mobile pages
 console.log('\n--- 4. Verification of Sticky Top Header Across All Pages ---');

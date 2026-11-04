@@ -70,14 +70,6 @@ export const HomeScreen: React.FC = () => {
     { title: 'Withdraw', desc: 'Naira NUBAN', icon: ArrowUpRight, route: 'withdraw', color: 'from-teal-500/20 to-cyan-500/20 text-teal-400 border-teal-500/30' },
   ];
 
-  const handleCopyAccount = (acc?: string) => {
-    if (!acc) return;
-    navigator.clipboard?.writeText(acc);
-    setCopiedId(acc);
-    showToast(`Account number ${acc} copied to clipboard!`, 'success');
-    setTimeout(() => setCopiedId(null), 2500);
-  };
-
   return (
     <div className="min-h-full pb-20 bg-slate-950 text-white">
       {/* Top Header */}
@@ -178,32 +170,6 @@ export const HomeScreen: React.FC = () => {
                   : `$${(currentWallet?.equivalentUSD ?? ((currentWallet?.balance ?? 0) / (currentWallet?.currency === 'CNY' ? 7.24 : currentWallet?.currency === 'NGN' ? 1485 : 1))).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`}
               </p>
             </div>
-
-            {/* Virtual Account Number Bar */}
-            {currentWallet?.accountNumber && (
-              <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs relative z-10">
-                <div className="flex items-center gap-2 text-slate-400">
-                  <span className="text-[10px] uppercase tracking-wider font-semibold">Account / IBAN:</span>
-                  <span className="font-mono text-slate-200 font-semibold">{currentWallet.accountNumber}</span>
-                </div>
-                <button
-                  onClick={() => handleCopyAccount(currentWallet.accountNumber)}
-                  className="flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold transition-colors"
-                >
-                  {copiedId === currentWallet.accountNumber ? (
-                    <>
-                      <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
