@@ -1,17 +1,15 @@
 import React from 'react';
-import { AppProvider, useApp } from './context/AppContext';
+import { AppProvider } from './context/AppContext';
 import { MobileShell } from './components/layout/MobileShell';
 import { AdminShell } from './components/admin/AdminShell';
-import { DevEnvironmentSwitcher } from './components/dev/DevEnvironmentSwitcher';
+import { isAdminEnvironment } from './utils/environment';
 
 function MainRouter() {
-  const { currentRoute } = useApp();
-  const isAdmin = currentRoute.startsWith('admin-') || currentRoute === 'schema-inspector';
+  const isAdmin = isAdminEnvironment();
 
   return (
     <div className="w-full min-h-screen bg-slate-950">
       {isAdmin ? <AdminShell /> : <MobileShell />}
-      <DevEnvironmentSwitcher />
     </div>
   );
 }

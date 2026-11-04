@@ -14,15 +14,14 @@ import {
 } from 'lucide-react';
 
 export const AdminLoginScreen: React.FC = () => {
-  const { navigate, showToast } = useApp();
+  const { loginAdmin } = useApp();
   const [selectedAdmin, setSelectedAdmin] = useState<AdminUser>(INITIAL_ADMINS[0]);
   const [password, setPassword] = useState('••••••••••••');
   const [securityKey, setSecurityKey] = useState('FLY-ENTERPRISE-2026');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    showToast(`Authenticated as ${selectedAdmin.name} (${selectedAdmin.roleTitle})`, 'success');
-    navigate('admin-dashboard');
+    loginAdmin(selectedAdmin);
   };
 
   return (
@@ -39,13 +38,10 @@ export const AdminLoginScreen: React.FC = () => {
           </div>
         </div>
 
-        <button
-          onClick={() => navigate('home')}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:text-white transition-colors"
-        >
-          <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Switch to Mobile App</span>
-        </button>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-emerald-400 font-semibold shadow-sm">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Encrypted Operations Portal</span>
+        </div>
       </div>
 
       {/* Main Login Card */}

@@ -28,6 +28,8 @@ import {
   TECH_PRODUCTS
 } from '../data/mockData';
 import { db } from '../services/db';
+import { isAdminEnvironment } from '../utils/environment';
+import { AdminUser, INITIAL_ADMINS, firebaseSync } from '../services/firebase';
 
 interface ToastState {
   message: string;
@@ -112,6 +114,9 @@ interface AppContextType {
     avatar: string;
   };
   setUserProfile: React.Dispatch<React.SetStateAction<any>>;
+  adminUser: AdminUser | null;
+  loginAdmin: (admin: AdminUser) => void;
+  logoutAdmin: () => void;
 }
 
 const ROUTE_TO_PATH: Record<ScreenRoute, string> = {
@@ -203,14 +208,45 @@ const ROUTE_TO_PATH: Record<ScreenRoute, string> = {
 const getInitialRoute = (): ScreenRoute => {
   if (typeof window === 'undefined') return 'home';
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
-  
-  // Web Admin portal detection on port 5173 or /admin paths
-  if (window.location.port === '5173' && (path === '' || path === '/' || path === '/admin.html')) {
-    return 'admin-dashboard';
+  const isAdmin = isAdminEnvironment();
+
+  // ==========================================
+  // CUSTOMER MOBILE APPLICATION ENVIRONMENT
+  // ==========================================
+  if (!isAdmin) {
+    // Strictly prevent customer app from resolving admin routes
+    if (path.startsWith('/admin') || path.startsWith('/schema-inspector')) {
+      if (typeof window !== 'undefined' && window.history) {
+        window.history.replaceState({ route: 'home' }, '', '/home');
+      }
+      return 'home';
+    }
+
+    if (path === '' || path === '/' || path === '/app' || path === '/home') return 'home';
+    if (path.startsWith('/rentals/apartments')) return 'rentals-apartments';
+    if (path.startsWith('/rentals/offices')) return 'rentals-offices';
+
+    if (path.startsWith('/app/')) {
+      const sub = path.replace('/app/', '');
+      for (const [route, p] of Object.entries(ROUTE_TO_PATH)) {
+        if (p === `/${sub}` && !route.startsWith('admin-') && route !== 'schema-inspector') {
+          return route as ScreenRoute;
+        }
+      }
+    }
+
+    for (const [route, p] of Object.entries(ROUTE_TO_PATH)) {
+      if (p === path && !route.startsWith('admin-') && route !== 'schema-inspector') {
+        return route as ScreenRoute;
+      }
+    }
+    return 'home';
   }
 
-  if (path === '' || path === '/' || path === '/app' || path === '/home') return 'home';
-  if (path === '/admin' || path === '/admin/dashboard' || path === '/admin.html') return 'admin-dashboard';
+  // ==========================================
+  // ADMIN OPERATIONS WORKSPACE ENVIRONMENT
+  // ==========================================
+  if (path === '/admin/login' || path === '/login') return 'admin-login';
   if (path === '/admin/db') return 'schema-inspector';
   if (path.startsWith('/admin/users')) return 'admin-users';
   if (path.startsWith('/admin/logistics')) return 'admin-logistics';
@@ -227,21 +263,8 @@ const getInitialRoute = (): ScreenRoute => {
   if (path.startsWith('/admin/agents')) return 'admin-agents';
   if (path.startsWith('/admin/support')) return 'admin-support';
   if (path.startsWith('/admin/team')) return 'admin-team';
-  if (path.startsWith('/admin/login')) return 'admin-login';
-  if (path.startsWith('/rentals/apartments')) return 'rentals-apartments';
-  if (path.startsWith('/rentals/offices')) return 'rentals-offices';
 
-  if (path.startsWith('/app/')) {
-    const sub = path.replace('/app/', '');
-    for (const [route, p] of Object.entries(ROUTE_TO_PATH)) {
-      if (p === `/${sub}`) return route as ScreenRoute;
-    }
-  }
-
-  for (const [route, p] of Object.entries(ROUTE_TO_PATH)) {
-    if (p === path) return route as ScreenRoute;
-  }
-  return 'home';
+  return 'admin-dashboard';
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -346,6 +369,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [userPin, setUserPin] = useState<string>('2468');
   const [pendingSignup, setPendingSignup] = useState<any>(null);
+
+  // Authoritative Staff Admin Session
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('flyemass_admin_session');
+      if (saved) {
+        try { return JSON.parse(saved); } catch (e) { /* ignore */ }
+      }
+    }
+    return INITIAL_ADMINS[0];
+  });
+
+  const loginAdmin = (admin: AdminUser) => {
+    setAdminUser(admin);
+    firebaseSync.setCurrentAdmin(admin);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('flyemass_admin_session', JSON.stringify(admin));
+    }
+    showToast(`Staff Session Active: ${admin.name} (${admin.roleTitle})`, 'success');
+    navigate('admin-dashboard');
+  };
+
+  const logoutAdmin = () => {
+    setAdminUser(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('flyemass_admin_session');
+    }
+    showToast('Signed out from Admin Operations Workspace', 'info');
+    setCurrentRoute('admin-login');
+    if (typeof window !== 'undefined' && window.history) {
+      window.history.pushState({ route: 'admin-login' }, '', '/admin/login');
+    }
+  };
 
   const [userProfile, setUserProfile] = useState(() => {
     const u = db.getUser(activeUserId) || db.getUser('usr_alade_01');
@@ -626,6 +682,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const navigate = (route: ScreenRoute, param?: string) => {
+    const isAdmin = isAdminEnvironment();
+
+    // Security Guard 1: Customer app cannot access admin routes
+    if (!isAdmin && (route.startsWith('admin-') || route === 'schema-inspector')) {
+      showToast('Access Denied: Admin operations are restricted to https://admin.flyemass.com', 'error');
+      setCurrentRoute('home');
+      if (typeof window !== 'undefined' && window.history) {
+        window.history.replaceState({ route: 'home' }, '', '/home');
+      }
+      return;
+    }
+
+    // Security Guard 2: Admin app cannot accidentally navigate to customer screens
+    if (isAdmin && !route.startsWith('admin-') && route !== 'schema-inspector') {
+      setCurrentRoute('admin-dashboard');
+      if (typeof window !== 'undefined' && window.history) {
+        window.history.replaceState({ route: 'admin-dashboard' }, '', '/admin');
+      }
+      return;
+    }
+
     if (param !== undefined) {
       setRouteParam(param);
     }
@@ -1410,7 +1487,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setUserProfile,
         activeUserId,
         switchUser,
-        viewAsClient
+        viewAsClient,
+        adminUser,
+        loginAdmin,
+        logoutAdmin
       }}
     >
       {children}

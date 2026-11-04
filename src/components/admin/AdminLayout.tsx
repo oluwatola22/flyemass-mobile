@@ -43,7 +43,7 @@ interface AdminLayoutProps {
 }
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab }) => {
-  const { navigate, showToast, themeMode, toggleTheme } = useApp();
+  const { navigate, showToast, themeMode, toggleTheme, logoutAdmin } = useApp();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentAdmin, setCurrentAdmin] = useState<AdminUser>(INITIAL_ADMINS[0]);
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
@@ -359,10 +359,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
 
               {/* Admin Sign Out */}
               <button
-                onClick={() => {
-                  navigate('admin-login');
-                  showToast('Signed out from Admin Command Center', 'info');
-                }}
+                onClick={logoutAdmin}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 border border-slate-700 text-xs text-slate-300 hover:text-rose-400 transition-colors"
                 title="Sign out of Admin Session"
               >

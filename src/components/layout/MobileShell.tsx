@@ -75,23 +75,6 @@ import { SupportChatScreen } from '../../screens/profile/SupportChatScreen';
 import { SupportTicketsScreen } from '../../screens/profile/SupportTicketsScreen';
 import { TermsScreen, PrivacyScreen, DeleteAccountScreen } from '../../screens/profile/LegalScreens';
 
-// Backend Database & Schema Inspector
-import { DatabaseViewerScreen } from '../../screens/admin/DatabaseViewerScreen';
-import { Database, LayoutDashboard } from 'lucide-react';
-
-// Web Admin Dashboard Modules
-import { AdminLoginScreen } from '../../screens/admin/AdminLoginScreen';
-import { AdminDashboardScreen } from '../../screens/admin/AdminDashboardScreen';
-import { AdminUsersScreen } from '../../screens/admin/AdminUsersScreen';
-import { AdminLogisticsScreen } from '../../screens/admin/AdminLogisticsScreen';
-import { AdminPaymentsScreen } from '../../screens/admin/AdminPaymentsScreen';
-import { AdminShopScreen } from '../../screens/admin/AdminShopScreen';
-import { AdminHotelsScreen } from '../../screens/admin/AdminHotelsScreen';
-import { AdminAgentsScreen } from '../../screens/admin/AdminAgentsScreen';
-import { AdminSupportScreen } from '../../screens/admin/AdminSupportScreen';
-import { AdminTeamScreen } from '../../screens/admin/AdminTeamScreen';
-import { DevEnvironmentSwitcher } from '../dev/DevEnvironmentSwitcher';
-
 export const MobileShell: React.FC = () => {
   const { 
     currentRoute, 
@@ -196,23 +179,6 @@ export const MobileShell: React.FC = () => {
       case 'privacy': return <PrivacyScreen />;
       case 'delete-account': return <DeleteAccountScreen />;
 
-      // 9. Backend Database & Schema Inspector
-      case 'schema-inspector': return <DatabaseViewerScreen />;
-
-      // 10. Web Admin Dashboard Modules
-      case 'admin-login': return <AdminLoginScreen />;
-      case 'admin-dashboard': return <AdminDashboardScreen />;
-      case 'admin-users':
-      case 'admin-user-detail': return <AdminUsersScreen />;
-      case 'admin-logistics':
-      case 'admin-logistics-detail': return <AdminLogisticsScreen />;
-      case 'admin-payments': return <AdminPaymentsScreen />;
-      case 'admin-shop': return <AdminShopScreen />;
-      case 'admin-hotels': return <AdminHotelsScreen />;
-      case 'admin-agents': return <AdminAgentsScreen />;
-      case 'admin-support': return <AdminSupportScreen />;
-      case 'admin-team': return <AdminTeamScreen />;
-
       default: return <HomeScreen />;
     }
   };
@@ -275,22 +241,7 @@ export const MobileShell: React.FC = () => {
     { label: '/support/new (Open Support Ticket)', route: 'support-new-ticket', group: '8. Profile & Security' },
     { label: '/terms (Cross-Border Agreement)', route: 'terms', group: '8. Profile & Security' },
     { label: '/privacy (NDPR & Data Protection)', route: 'privacy', group: '8. Profile & Security' },
-    { label: '/delete-account (Data Purge Flow)', route: 'delete-account', group: '8. Profile & Security' },
-
-    // 9. Backend Database & Schema
-    { label: '/admin/db (Backend Schema Inspector)', route: 'schema-inspector', group: '9. Backend Architecture' },
-
-    // 10. Web Admin Command Center
-    { label: '/admin/dashboard (Executive Command Center)', route: 'admin-dashboard', group: '10. Enterprise Admin' },
-    { label: '/admin/users (User Directory & Balances)', route: 'admin-users', group: '10. Enterprise Admin' },
-    { label: '/admin/logistics (Cargo Control Tower)', route: 'admin-logistics', group: '10. Enterprise Admin' },
-    { label: '/admin/payments (Supplier Payout Desk)', route: 'admin-payments', group: '10. Enterprise Admin' },
-    { label: '/admin/shop (Tech Gadget Inventory)', route: 'admin-shop', group: '10. Enterprise Admin' },
-    { label: '/admin/hotels (Hotel Operations Desk)', route: 'admin-hotels', group: '10. Enterprise Admin' },
-    { label: '/admin/agents (Factory Inspection Desk)', route: 'admin-agents', group: '10. Enterprise Admin' },
-    { label: '/admin/support (Live Support & Chat)', route: 'admin-support', group: '10. Enterprise Admin' },
-    { label: '/admin/team (Personnel & RBAC)', route: 'admin-team', group: '10. Enterprise Admin' },
-    { label: '/admin/login (Admin Sign-In)', route: 'admin-login', group: '10. Enterprise Admin' }
+    { label: '/delete-account (Data Purge Flow)', route: 'delete-account', group: '8. Profile & Security' }
   ];
 
   const handleResetData = () => {
@@ -332,28 +283,6 @@ export const MobileShell: React.FC = () => {
 
         {/* Device Frame & Refresh Controls */}
         <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => window.open(getAdminAppUrl(), '_blank')}
-            className="p-1.5 rounded-xl bg-gradient-to-r from-indigo-500/20 to-cyan-500/20 hover:from-indigo-500/30 hover:to-cyan-500/30 border border-indigo-500/40 text-indigo-400 font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-sm shadow-indigo-500/10 active:scale-95"
-            title={`Open Web Admin Dashboard (${getAdminAppUrl()})`}
-          >
-            <LayoutDashboard className="w-4 h-4 text-indigo-400" />
-            <span className="hidden sm:inline font-extrabold">🛡️ Admin</span>
-          </button>
-
-          <button
-            onClick={() => navigate('schema-inspector')}
-            className={`p-1.5 rounded-xl border text-xs flex items-center gap-1.5 transition-all ${
-              currentRoute === 'schema-inspector'
-                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 font-bold shadow-sm shadow-emerald-500/20'
-                : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
-            }`}
-            title="Inspect NoSQL Database Schema"
-          >
-            <Database className="w-4 h-4 text-emerald-400" />
-            <span className="hidden sm:inline font-bold">DB Schema</span>
-          </button>
-
           <button
             onClick={toggleFrameMockup}
             className={`p-1.5 rounded-xl border text-xs flex items-center gap-1.5 transition-all ${

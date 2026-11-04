@@ -23,10 +23,13 @@ import { AdminTeamScreen } from '../../screens/admin/AdminTeamScreen';
 import { DatabaseViewerScreen } from '../../screens/admin/DatabaseViewerScreen';
 
 export const AdminShell: React.FC = () => {
-  const { currentRoute, themeMode } = useApp();
+  const { currentRoute, themeMode, adminUser } = useApp();
+
+  // Route Guard: Require staff authentication for all operational admin routes
+  const effectiveRoute = (!adminUser && currentRoute !== 'admin-login') ? 'admin-login' : currentRoute;
 
   const renderAdminScreen = () => {
-    switch (currentRoute) {
+    switch (effectiveRoute) {
       case 'admin-login':
         return <AdminLoginScreen />;
       case 'admin-users':
