@@ -65,7 +65,9 @@ export type ScreenRoute =
   | 'admin-suppliers'
   | 'admin-agents'
   | 'admin-support'
-  | 'admin-team';
+  | 'admin-team'
+  | 'admin-communications'
+  | 'admin-registrations';
 
 // ==========================================
 // BACKEND DATABASE SCHEMA SPECIFICATION

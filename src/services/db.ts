@@ -40,6 +40,7 @@ export interface DatabaseState {
   audit_logs: any[];
   double_entry_ledger?: Record<string, any>;
   notifications?: any[];
+  email_receipts?: Record<string, any>;
 }
 
 import { getBackendBaseUrl } from '../utils/environment';
@@ -1838,36 +1839,106 @@ class DatabaseService {
     return (this.state.banners || []).sort((a, b) => a.displayOrder - b.displayOrder);
   }
 
-  public toggleBanner(bannerId: string, isActive: boolean): BannerDocument | undefined {
+  public toggleBanner(bannerId: string, isActive: boolean, adminId?: string): BannerDocument | undefined {
     const banner = (this.state.banners || []).find(b => b.id === bannerId);
     if (banner) {
       banner.isActive = isActive;
       this.persist();
-      fetch(`${BACKEND_BASE}/api/banners/toggle`, {
+      fetch(`${BACKEND_BASE}/api/admin/banners/toggle`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bannerId, isActive })
+        headers: { 'Content-Type': 'application/json', 'x-admin-role': 'super_admin' },
+        body: JSON.stringify({ bannerId, isActive, adminId: adminId || 'Admin Staff' })
       }).catch(() => {});
     }
     return banner;
   }
 
-  public addBanner(banner: BannerDocument): BannerDocument {
+  public addBanner(banner: BannerDocument, adminId?: string): BannerDocument {
     if (!this.state.banners) this.state.banners = [];
     this.state.banners.push(banner);
     this.persist();
+    fetch(`${BACKEND_BASE}/api/admin/banners/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-role': 'super_admin' },
+      body: JSON.stringify({ banner, adminId: adminId || 'Admin Staff' })
+    }).catch(() => {});
     return banner;
   }
 
-  public updateBanner(banner: BannerDocument): BannerDocument | undefined {
+  public updateBanner(banner: BannerDocument, adminId?: string): BannerDocument | undefined {
     if (!this.state.banners) this.state.banners = [];
     const index = this.state.banners.findIndex(b => b.id === banner.id);
     if (index >= 0) {
       this.state.banners[index] = banner;
       this.persist();
+      fetch(`${BACKEND_BASE}/api/admin/banners/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-role': 'super_admin' },
+        body: JSON.stringify({ banner, adminId: adminId || 'Admin Staff' })
+      }).catch(() => {});
       return banner;
     }
     return undefined;
+  }
+
+  public deleteBanner(bannerId: string, adminId?: string): boolean {
+    if (!this.state.banners) this.state.banners = [];
+    const initialLen = this.state.banners.length;
+    this.state.banners = this.state.banners.filter(b => b.id !== bannerId);
+    this.persist();
+    fetch(`${BACKEND_BASE}/api/admin/banners/delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-role': 'super_admin' },
+      body: JSON.stringify({ bannerId, adminId: adminId || 'Admin Staff' })
+    }).catch(() => {});
+    return this.state.banners.length < initialLen;
+  }
+
+  public async getEmailLogs(): Promise<any[]> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/emails/logs`, {
+        headers: { 'x-admin-role': 'super_admin' }
+      });
+      const data = await res.json();
+      return data.logs || [];
+    } catch {
+      const raw = this.state.email_receipts || {};
+      return (Array.isArray(raw) ? raw : Object.values(raw));
+    }
+  }
+
+  public async sendEmailCampaign(payload: {
+    recipientEmail?: string;
+    recipientName?: string;
+    subject: string;
+    message: string;
+    campaignType?: string;
+    broadcastToAllUsers?: boolean;
+    adminId?: string;
+  }): Promise<{ success: boolean; count?: number; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/emails/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-role': 'super_admin' },
+        body: JSON.stringify(payload)
+      });
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Failed to dispatch email' };
+    }
+  }
+
+  public async deleteAdminNotification(notificationId: string, adminId?: string): Promise<{ success: boolean }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/notifications/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-role': 'super_admin' },
+        body: JSON.stringify({ notificationId, adminId: adminId || 'Admin Staff' })
+      });
+      return await res.json();
+    } catch {
+      return { success: false };
+    }
   }
 
   // ==========================================

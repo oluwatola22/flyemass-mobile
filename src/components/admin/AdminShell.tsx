@@ -19,6 +19,7 @@ import { AdminRentalsOfficesScreen } from '../../screens/admin/AdminRentalsOffic
 import { AdminSuppliersScreen } from '../../screens/admin/AdminSuppliersScreen';
 import { AdminAgentsScreen } from '../../screens/admin/AdminAgentsScreen';
 import { AdminSupportScreen } from '../../screens/admin/AdminSupportScreen';
+import { AdminCommunicationsScreen } from '../../screens/admin/AdminCommunicationsScreen';
 import { AdminTeamScreen } from '../../screens/admin/AdminTeamScreen';
 import { DatabaseViewerScreen } from '../../screens/admin/DatabaseViewerScreen';
 
@@ -38,6 +39,8 @@ export const AdminShell: React.FC = () => {
       case 'admin-logistics':
       case 'admin-logistics-detail':
         return <AdminLogisticsScreen />;
+      case 'admin-registrations':
+        return <AdminLogisticsScreen initialStatusFilter="registered" />;
       case 'admin-payments':
         return <AdminPaymentsScreen />;
       case 'admin-rmb-transfers':
@@ -62,6 +65,8 @@ export const AdminShell: React.FC = () => {
         return <AdminAgentsScreen />;
       case 'admin-support':
         return <AdminSupportScreen />;
+      case 'admin-communications':
+        return <AdminCommunicationsScreen />;
       case 'admin-team':
         return <AdminTeamScreen />;
       case 'schema-inspector':

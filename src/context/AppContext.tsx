@@ -202,7 +202,9 @@ const ROUTE_TO_PATH: Record<ScreenRoute, string> = {
   'admin-suppliers': '/admin/suppliers',
   'admin-agents': '/admin/agents',
   'admin-support': '/admin/support',
-  'admin-team': '/admin/team'
+  'admin-team': '/admin/team',
+  'admin-communications': '/admin/communications',
+  'admin-registrations': '/admin/registrations'
 };
 
 const getInitialRoute = (): ScreenRoute => {
@@ -262,6 +264,8 @@ const getInitialRoute = (): ScreenRoute => {
   if (path.startsWith('/admin/suppliers')) return 'admin-suppliers';
   if (path.startsWith('/admin/agents')) return 'admin-agents';
   if (path.startsWith('/admin/support')) return 'admin-support';
+  if (path.startsWith('/admin/communications')) return 'admin-communications';
+  if (path.startsWith('/admin/registrations')) return 'admin-registrations';
   if (path.startsWith('/admin/team')) return 'admin-team';
 
   return 'admin-dashboard';

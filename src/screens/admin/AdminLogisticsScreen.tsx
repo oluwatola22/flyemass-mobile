@@ -33,11 +33,11 @@ import {
   Home
 } from 'lucide-react';
 
-export const AdminLogisticsScreen: React.FC = () => {
+export const AdminLogisticsScreen: React.FC<{ initialStatusFilter?: string }> = ({ initialStatusFilter }) => {
   const { showToast } = useApp();
   const [dbState, setDbState] = useState<DatabaseState>(db.getState());
   const [activeTab, setActiveTab] = useState<'cargo' | 'warehouses' | 'rates' | 'consolidation'>('cargo');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>(initialStatusFilter || 'all');
   const [searchQuery, setSearchQuery] = useState('');
   const [modeFilter, setModeFilter] = useState<'all' | 'Air Freight' | 'Sea Freight'>('all');
   

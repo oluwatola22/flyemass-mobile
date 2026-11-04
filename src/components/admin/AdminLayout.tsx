@@ -33,7 +33,8 @@ import {
   Home,
   Briefcase,
   Sliders,
-  Download
+  Download,
+  Megaphone
 } from 'lucide-react';
 import { ScreenRoute } from '../../types';
 
@@ -43,9 +44,15 @@ interface AdminLayoutProps {
 }
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab }) => {
-  const { navigate, showToast, themeMode, toggleTheme, logoutAdmin } = useApp();
+  const { navigate, showToast, themeMode, toggleTheme, logoutAdmin, adminUser } = useApp();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [currentAdmin, setCurrentAdmin] = useState<AdminUser>(INITIAL_ADMINS[0]);
+  const [currentAdmin, setCurrentAdmin] = useState<AdminUser>(() => adminUser || INITIAL_ADMINS[0]);
+
+  useEffect(() => {
+    if (adminUser) {
+      setCurrentAdmin(adminUser);
+    }
+  }, [adminUser]);
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
@@ -88,6 +95,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
     { id: 'suppliers', label: 'VIP Supplier Directory', route: 'admin-suppliers' as ScreenRoute, icon: Building2 },
     { id: 'agents', label: 'Sourcing & Inspections', route: 'admin-agents' as ScreenRoute, icon: Users },
     { id: 'support', label: 'Live Support & Tickets', route: 'admin-support' as ScreenRoute, icon: Headphones, badge: openTicketsCount, badgeColor: 'bg-rose-500/20 text-rose-400' },
+    { id: 'communications', label: 'Communications & Banners', route: 'admin-communications' as ScreenRoute, icon: Megaphone },
     { id: 'team', label: 'Team & RBAC Security', route: 'admin-team' as ScreenRoute, icon: ShieldCheck },
     { id: 'db', label: 'NoSQL Schema Explorer', route: 'schema-inspector' as ScreenRoute, icon: Database, isDev: true },
   ];
@@ -97,17 +105,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
       'dashboard', 'users', 'logistics', 'rmb-transfers', 'naira-payouts', 
       'fx-management', 'funding', 'payments', 'shop', 'hotels', 
       'rentals-apartments', 'rentals-offices', 'suppliers', 'agents', 
-      'support', 'team', 'db'
+      'support', 'communications', 'team', 'db'
     ],
     finance_officer: [
       'dashboard', 'users', 'rmb-transfers', 'naira-payouts', 
       'fx-management', 'funding', 'payments', 'team', 'db'
     ],
     logistics_manager: [
-      'dashboard', 'logistics', 'shop', 'suppliers', 'agents', 'db'
+      'dashboard', 'logistics', 'shop', 'suppliers', 'agents', 'communications', 'db'
     ],
     support_agent: [
-      'dashboard', 'users', 'hotels', 'rentals-apartments', 'rentals-offices', 'support'
+      'dashboard', 'users', 'hotels', 'rentals-apartments', 'rentals-offices', 'support', 'communications'
     ]
   };
 

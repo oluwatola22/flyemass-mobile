@@ -7129,6 +7129,187 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
       return sendJson(res, 200, { success: true, balances: user.balances, reference: ref });
     }
 
+    // -------------------------------------------------------------
+    // 34. COMMUNICATIONS & MARKETING (Banners, Email Logs & Campaigns)
+    // -------------------------------------------------------------
+    if (pathname === '/api/admin/banners' && req.method === 'GET') {
+      return sendJson(res, 200, { success: true, banners: dbState.banners || [] });
+    }
+
+    if ((pathname === '/api/admin/banners/create' || pathname === '/api/banners') && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'support_agent'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { banner, adminId } = await readJsonBody(req);
+      if (!banner || !banner.title) return sendJson(res, 400, { error: 'Banner title is required' });
+
+      const newBanner = {
+        id: banner.id || `ban_${Date.now()}`,
+        title: banner.title,
+        description: banner.description || '',
+        imageUrl: banner.imageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80',
+        destinationRoute: banner.destinationRoute || 'home',
+        isActive: banner.isActive !== undefined ? !!banner.isActive : true,
+        displayOrder: Number(banner.displayOrder) || (dbState.banners ? dbState.banners.length + 1 : 1),
+        createdAt: Date.now()
+      };
+
+      if (!dbState.banners) dbState.banners = [];
+      dbState.banners.push(newBanner);
+      recordAudit(adminId || 'Admin Staff', 'BANNER_CREATED', 'banners', newBanner.id, `Created home banner: "${newBanner.title}"`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 201, { success: true, banner: newBanner });
+    }
+
+    if ((pathname === '/api/admin/banners/update') && (req.method === 'PUT' || req.method === 'POST')) {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'support_agent'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { banner, adminId } = await readJsonBody(req);
+      if (!banner || !banner.id) return sendJson(res, 400, { error: 'Banner id is required' });
+
+      if (!dbState.banners) dbState.banners = [];
+      const idx = dbState.banners.findIndex(b => b.id === banner.id);
+      if (idx === -1) return sendJson(res, 404, { error: 'Banner not found' });
+
+      dbState.banners[idx] = {
+        ...dbState.banners[idx],
+        ...banner,
+        id: dbState.banners[idx].id,
+        updatedAt: Date.now()
+      };
+
+      recordAudit(adminId || 'Admin Staff', 'BANNER_UPDATED', 'banners', banner.id, `Updated home banner: "${dbState.banners[idx].title}"`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, banner: dbState.banners[idx] });
+    }
+
+    if ((pathname === '/api/admin/banners/toggle' || pathname === '/api/banners/toggle') && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'support_agent'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { bannerId, isActive, adminId } = await readJsonBody(req);
+      if (!bannerId) return sendJson(res, 400, { error: 'bannerId required' });
+
+      if (!dbState.banners) dbState.banners = [];
+      const banner = dbState.banners.find(b => b.id === bannerId);
+      if (!banner) return sendJson(res, 404, { error: 'Banner not found' });
+
+      banner.isActive = isActive !== undefined ? !!isActive : !banner.isActive;
+      banner.updatedAt = Date.now();
+
+      recordAudit(adminId || 'Admin Staff', 'BANNER_TOGGLED', 'banners', bannerId, `Set banner active status: ${banner.isActive}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, banner });
+    }
+
+    if ((pathname === '/api/admin/banners/delete') && (req.method === 'DELETE' || req.method === 'POST')) {
+      if (!verifyAdminRole(req, ['super_admin', 'operations'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { bannerId, adminId } = await readJsonBody(req);
+      if (!bannerId) return sendJson(res, 400, { error: 'bannerId required' });
+
+      if (!dbState.banners) dbState.banners = [];
+      const initialLen = dbState.banners.length;
+      dbState.banners = dbState.banners.filter(b => b.id !== bannerId);
+      if (dbState.banners.length === initialLen) return sendJson(res, 404, { error: 'Banner not found' });
+
+      recordAudit(adminId || 'Admin Staff', 'BANNER_DELETED', 'banners', bannerId, `Removed home banner ${bannerId}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, message: 'Banner deleted successfully' });
+    }
+
+    if (pathname === '/api/admin/emails/logs' && req.method === 'GET') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'support_agent', 'compliance'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const raw = dbState.email_receipts || {};
+      const logs = (Array.isArray(raw) ? raw : Object.values(raw)).sort((a, b) => (b.deliveredAt || b.timestamp || 0) - (a.deliveredAt || a.timestamp || 0));
+      return sendJson(res, 200, { success: true, logs });
+    }
+
+    if (pathname === '/api/admin/emails/send' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'support_agent'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { recipientEmail, recipientName, subject, message, campaignType, broadcastToAllUsers, adminId } = await readJsonBody(req);
+      if (!subject || !message) {
+        return sendJson(res, 400, { error: 'Subject and message body are required' });
+      }
+
+      if (!dbState.email_receipts) dbState.email_receipts = {};
+
+      const dispatched = [];
+      if (broadcastToAllUsers) {
+        const users = Object.values(dbState.users || {});
+        for (const u of users) {
+          if (u.email) {
+            const emailId = `eml_bcast_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+            const rec = {
+              id: emailId,
+              recipientEmail: u.email,
+              customerName: u.fullName || 'Valued Merchant',
+              subject,
+              body: message,
+              campaignType: campaignType || 'marketing_broadcast',
+              deliveredAt: Date.now(),
+              status: 'delivered',
+              sentBy: adminId || 'Admin Marketing Desk'
+            };
+            dbState.email_receipts[emailId] = rec;
+            dispatched.push(rec);
+          }
+        }
+      } else {
+        if (!recipientEmail) return sendJson(res, 400, { error: 'Recipient email is required when broadcastToAllUsers is false' });
+        const emailId = `eml_${Date.now()}`;
+        const rec = {
+          id: emailId,
+          recipientEmail,
+          customerName: recipientName || recipientEmail.split('@')[0],
+          subject,
+          body: message,
+          campaignType: campaignType || 'direct_dispatch',
+          deliveredAt: Date.now(),
+          status: 'delivered',
+          sentBy: adminId || 'Admin Desk'
+        };
+        dbState.email_receipts[emailId] = rec;
+        dispatched.push(rec);
+      }
+
+      recordAudit(adminId || 'Admin Staff', 'EMAIL_CAMPAIGN_DISPATCHED', 'email_receipts', dispatched[0]?.id || 'bulk', 
+        `Dispatched email "${subject}" to ${broadcastToAllUsers ? `${dispatched.length} registered customers` : recipientEmail}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, count: dispatched.length, dispatched });
+    }
+
+    if (pathname === '/api/admin/notifications' && req.method === 'GET') {
+      return sendJson(res, 200, { success: true, notifications: dbState.notifications || [] });
+    }
+
+    if (pathname === '/api/admin/notifications/delete' && (req.method === 'DELETE' || req.method === 'POST')) {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'support_agent'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { notificationId, adminId } = await readJsonBody(req);
+      if (!notificationId) return sendJson(res, 400, { error: 'notificationId is required' });
+
+      if (dbState.notifications) {
+        dbState.notifications = dbState.notifications.filter(n => n.id !== notificationId);
+      }
+      recordAudit(adminId || 'Admin Staff', 'NOTIFICATION_DELETED', 'notifications', notificationId, `Deleted notification: ${notificationId}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, message: 'Notification deleted successfully' });
+    }
+
     // Endpoint not matched
     sendJson(res, 404, { error: `Endpoint ${pathname} not found` });
 
