@@ -295,11 +295,26 @@ export interface WithdrawalDocument {
 export interface SupplierSubscriptionDocument {
   id: string;
   userId: string;
-  supplierId: string;
+  supplierId?: string;
   purchasedAt: number;
   activeUntil: number;
-  feeUSD: number;
+  feeUSD?: number;
   status: 'active' | 'expired';
+  userName?: string;
+  currency?: string;
+  amountPaid?: number;
+  reference?: string;
+  renewalCount?: number;
+  type?: string;
+  autoRenew?: boolean;
+}
+
+export interface SupplierDirectoryPrices {
+  ngn: number;
+  usd: number;
+  cny: number;
+  updatedAt?: number;
+  updatedBy?: string;
 }
 
 export type AgentServiceKind = 'sourcing' | 'supplier_verification' | 'factory_audit' | 'quality_control';
@@ -743,15 +758,25 @@ export interface Supplier {
   chineseName: string;
   category: string;
   city: string;
-  badge: 'Canton Fair VIP' | 'Gold Manufacturer' | 'Verified Escrow' | 'Factory Direct';
+  badge?: 'Canton Fair VIP' | 'Gold Manufacturer' | 'Verified Escrow' | 'Factory Direct' | string;
   rating: number;
-  ordersFulfilled: number;
-  minOrderValue: string;
+  ordersFulfilled?: number;
+  minOrderValue?: string;
   verifiedYears: number;
-  mainProducts: string[];
-  image: string;
-  inspectionPassed: boolean;
+  mainProducts?: string[];
+  image?: string;
+  inspectionPassed?: boolean;
   wechatId?: string;
+  phone?: string;
+  whatsapp?: string;
+  businessAddress?: string;
+  description?: string;
+  tags?: string[];
+  active?: boolean;
+  businessCardUrl?: string;
+  verificationDocUrl?: string;
+  isLocked?: boolean;
+  createdAt?: number;
 }
 
 export interface HotelRoomType {

@@ -1308,17 +1308,83 @@ class DatabaseService {
     }
   }
 
-  public async subscribeToSupplier(userId: string, supplierId: string, paidWith: string, pin?: string): Promise<any> {
+  public async getSupplierDirectoryPreview(): Promise<any> {
     try {
-      const res = await fetch(`${BACKEND_BASE}/api/suppliers/subscribe`, {
+      const res = await fetch(`${BACKEND_BASE}/api/suppliers/preview`);
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error fetching directory preview' };
+    }
+  }
+
+  public async getSupplierDirectory(userId: string): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/suppliers/directory?userId=${encodeURIComponent(userId)}`);
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, unlocked: false, error: e.message || 'Network error fetching supplier directory' };
+    }
+  }
+
+  public async getSupplierPrices(): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/suppliers/prices`);
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, prices: { ngn: 15000, usd: 10, cny: 70 } };
+    }
+  }
+
+  public async setSupplierPrices(ngn: number, usd: number, cny: number, adminId: string = 'adm-001'): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/suppliers/prices`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, supplierId, paidWith, pin })
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-id': adminId,
+          'x-admin-role': 'super_admin'
+        },
+        body: JSON.stringify({ ngn, usd, cny, adminId })
       });
       return await res.json();
-    } catch (e) {
-      return { success: false, error: 'Network error subscribing to supplier' };
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error setting supplier prices' };
     }
+  }
+
+  public async getSupplierSubscriptionStatus(userId: string): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/suppliers/subscription-status?userId=${encodeURIComponent(userId)}`);
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, isSubscribed: false, error: e.message };
+    }
+  }
+
+  public async subscribeSupplierDirectory(userId: string, currency: string, pin: string, supplierId?: string): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/suppliers/subscribe-directory`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, currency, pin, supplierId })
+      });
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error subscribing to supplier directory' };
+    }
+  }
+
+  public async getSupplierCardSignedUrl(supplierId: string, userId: string, docType: string = 'card'): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/storage/supplier-cards/signed-url?supplierId=${encodeURIComponent(supplierId)}&userId=${encodeURIComponent(userId)}&docType=${encodeURIComponent(docType)}`);
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error retrieving signed card URL' };
+    }
+  }
+
+  public async subscribeToSupplier(userId: string, supplierId: string, paidWith: string, pin?: string): Promise<any> {
+    return this.subscribeSupplierDirectory(userId, paidWith, pin || '', supplierId);
   }
 
   public async getSupplierContact(supplierId: string, userId: string): Promise<{ unlocked: boolean; contacts?: any; error?: string }> {
@@ -2176,6 +2242,19 @@ class DatabaseService {
     return data;
   }
 
+  public async getAdminSuppliers(adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/suppliers`, {
+      method: 'GET',
+      headers: {
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to fetch admin suppliers');
+    return data;
+  }
+
   public async createSupplier(supplier: any, adminId: string = 'adm-001'): Promise<any> {
     const res = await fetch(`${BACKEND_BASE}/api/admin/suppliers/create`, {
       method: 'POST',
@@ -2188,6 +2267,64 @@ class DatabaseService {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to create supplier');
+    return data;
+  }
+
+  public async updateSupplier(supplier: any, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/suppliers/update`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ supplier, adminId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update supplier');
+    return data;
+  }
+
+  public async toggleSupplierStatus(supplierId: string, active?: boolean, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/suppliers/toggle-status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ supplierId, active, adminId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to toggle supplier status');
+    return data;
+  }
+
+  public async deleteSupplier(supplierId: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/suppliers/delete`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ supplierId, adminId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to delete supplier');
+    return data;
+  }
+
+  public async getAdminSupplierMetrics(adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/suppliers/metrics`, {
+      method: 'GET',
+      headers: {
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to fetch supplier metrics');
     return data;
   }
 

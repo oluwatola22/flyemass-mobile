@@ -183,30 +183,144 @@ function validateNuban(accountNumber, bankNameOrCode = '058') {
 
 const PRIVATE_SUPPLIER_CONTACTS = {
   'sup-1': {
-    wechatId: 'foxconn_sz_export88',
+    wechatId: 'kingzone_oled_sz',
     phone: '+86 755 2812 8900',
+    whatsapp: '+86 138 2812 8900',
     directManager: 'Lin Zhiming (Director of Overseas Tech Exports)',
-    factoryAddress: 'Foxconn Industrial Park, Longhua, Shenzhen, Guangdong, China'
+    factoryAddress: 'Building B4, Huaqiang Microelectronics Park, Futian, Shenzhen, Guangdong, China',
+    description: 'Premier tier-1 manufacturer of OLED displays, GaN fast-chargers, and original-spec replacement screens.'
   },
   'sup-2': {
     wechatId: 'shengda_yiwu_vip',
     phone: '+86 579 8555 9210',
+    whatsapp: '+86 139 8555 9210',
     directManager: 'Madam Zhang Yulan (District 3 General Manager)',
-    factoryAddress: 'Block 18, Yiwu International Trade City District 3, Zhejiang, China'
+    factoryAddress: 'Block 18, Yiwu International Trade City District 3, Zhejiang, China',
+    description: 'Global exporter of lifestyle commodities, high-grade hardware tools, and stainless kitchen accessories.'
   },
   'sup-3': {
-    wechatId: 'growatt_solar_cn',
+    wechatId: 'sunvolt_clean_cn',
     phone: '+86 757 8820 4410',
+    whatsapp: '+86 135 8820 4410',
     directManager: 'Wang Chen (Head of Clean Energy Commercial)',
-    factoryAddress: 'Chuangye Road, Shunde High-Tech Zone, Foshan, Guangdong, China'
+    factoryAddress: 'Chuangye Road, Shunde High-Tech Industrial Zone, Foshan, Guangdong, China',
+    description: 'Industrial manufacturer of lithium LiFePO4 battery packs, hybrid solar inverters, and heavy-duty generators.'
   },
   'sup-4': {
     wechatId: 'zhongda_textile_gz',
     phone: '+86 20 8419 7720',
+    whatsapp: '+86 137 8419 7720',
     directManager: 'Chen Guowei (International Fabric Export Desk)',
-    factoryAddress: 'Zhongda International Fabric Market, Haizhu, Guangzhou, China'
+    factoryAddress: 'Zhongda International Fabric Market Block C, Haizhu, Guangzhou, China',
+    description: 'Direct factory exporter of luxury lace, cotton jersey, athletic synthetics, and custom fashion textiles.'
+  },
+  'sup-5': {
+    wechatId: 'skyworth_optics_sz',
+    phone: '+86 755 2601 3300',
+    whatsapp: '+86 136 2601 3300',
+    directManager: 'Zhou Xiaowei (Optics Division Lead)',
+    factoryAddress: 'Skyworth High-Tech Park, Nanshan, Shenzhen, Guangdong, China',
+    description: 'Commercial optical lenses, camera modules, and smart screen assemblies for mobile hardware.'
+  },
+  'sup-6': {
+    wechatId: 'midea_oem_shunde',
+    phone: '+86 757 2633 8812',
+    whatsapp: '+86 139 2633 8812',
+    directManager: 'He Mingfang (Small Appliances Export Manager)',
+    factoryAddress: 'Midea Avenue Industrial Zone, Beijiao, Shunde, Foshan, Guangdong, China',
+    description: 'Smart air fryers, induction cookers, espresso machines, and commercial blender manufacturing.'
+  },
+  'sup-7': {
+    wechatId: 'galanz_kitchen_zs',
+    phone: '+86 760 2361 7700',
+    whatsapp: '+86 138 2361 7700',
+    directManager: 'Liang Kang (Global Kitchen Tech VP)',
+    factoryAddress: 'Galanz Industrial Road, Huangpu Town, Zhongshan, Guangdong, China',
+    description: 'Heavy duty microwave ovens, commercial dishwashers, and split inverter air conditioning systems.'
+  },
+  'sup-8': {
+    wechatId: 'lecong_furniture_fs',
+    phone: '+86 757 2883 9920',
+    whatsapp: '+86 137 2883 9920',
+    directManager: 'Kuang Shilin (Modern Living Export Director)',
+    factoryAddress: 'South China International Furniture Expo Center, Lecong, Foshan, Guangdong, China',
+    description: 'Modern Italian-style luxury leather sofas, marble dining tables, and executive ergonomic workstations.'
+  },
+  'sup-9': {
+    wechatId: 'royal_ceramics_cz',
+    phone: '+86 768 6881 2200',
+    whatsapp: '+86 136 6881 2200',
+    directManager: 'Madam Guo Fen (Sanitary Ware Specialist)',
+    factoryAddress: 'Fengxi Ceramic Industrial Park, Chaozhou, Guangdong, China',
+    description: 'Smart bidet toilets, high-gloss vitrified bathroom ceramics, and luxury hotel porcelain tableware.'
+  },
+  'sup-10': {
+    wechatId: 'baiyun_skincare_gz',
+    phone: '+86 20 3655 4490',
+    whatsapp: '+86 135 3655 4490',
+    directManager: 'Huang Ruixue (Cosmetic Formulation Lead)',
+    factoryAddress: 'Baiyun Beauty Science Valley, Taihe Town, Baiyun, Guangzhou, Guangdong, China',
+    description: 'GMP-certified botanical skincare OEM, anti-aging serums, organic foundation, and salon hair care.'
+  },
+  'sup-11': {
+    wechatId: 'glamour_beauty_yw',
+    phone: '+86 579 8522 6610',
+    whatsapp: '+86 138 8522 6610',
+    directManager: 'Zhu Weidong (Beauty Tools Export Desk)',
+    factoryAddress: 'Beiyuan Industrial District, Yiwu, Zhejiang, China',
+    description: 'Cruelty-free synthetic makeup brushes, eyelash extensions, LED vanity mirrors, and cosmetic packaging.'
+  },
+  'sup-12': {
+    wechatId: 'dongguan_cnc_mold',
+    phone: '+86 769 8533 1180',
+    whatsapp: '+86 139 8533 1180',
+    directManager: 'Liao Yong (Precision Engineering Director)',
+    factoryAddress: 'Chang\'an Mold Machinery Park, Dongguan, Guangdong, China',
+    description: 'High-precision 5-axis CNC machining, plastic injection molds, and automated industrial stamping dies.'
+  },
+  'sup-13': {
+    wechatId: 'tradeunion_pack_gz',
+    phone: '+86 20 8221 5560',
+    whatsapp: '+86 137 8221 5560',
+    directManager: 'Feng Baoguo (Logistics Packaging Specialist)',
+    factoryAddress: 'Huangpu Port Logistics Supply Complex, Guangzhou, Guangdong, China',
+    description: 'Heavy duty honeycomb corrugated export boxes, biodegradable void fill, and tamper-evident courier bags.'
+  },
+  'sup-14': {
+    wechatId: 'ocean_hardware_nb',
+    phone: '+86 574 8770 9940',
+    whatsapp: '+86 136 8770 9940',
+    directManager: 'Tao Zhenhua (Maritime Trade Lead)',
+    factoryAddress: 'Beilun Harbor Industrial Zone, Ningbo, Zhejiang, China',
+    description: 'Marine-grade stainless fasteners, rigging hardware, pneumatic hand tools, and industrial valve fittings.'
   }
 };
+
+function generateSupplierDocSignature(supplierId, docType, expiresAt) {
+  const secret = 'flyemass_storage_secret_2026';
+  return crypto.createHmac('sha256', secret).update(`supplier_card:${supplierId}:${docType}:${expiresAt}`).digest('hex');
+}
+
+function getSupplierContactRecord(supplierId) {
+  return (dbState && dbState.private_supplier_contacts && dbState.private_supplier_contacts[supplierId]) ||
+         PRIVATE_SUPPLIER_CONTACTS[supplierId] ||
+         null;
+}
+
+function isUserVIPSubscribed(userId) {
+  if (!userId || !dbState || !dbState.supplier_subscriptions) return false;
+  return Object.values(dbState.supplier_subscriptions).some(
+    sub => sub.userId === userId && sub.activeUntil > Date.now() && sub.status !== 'cancelled'
+  );
+}
+
+function getUserActiveSubscription(userId) {
+  if (!userId || !dbState || !dbState.supplier_subscriptions) return null;
+  const subs = Object.values(dbState.supplier_subscriptions)
+    .filter(sub => sub.userId === userId && sub.activeUntil > Date.now() && sub.status !== 'cancelled')
+    .sort((a, b) => b.activeUntil - a.activeUntil);
+  return subs[0] || null;
+}
 
 // =========================================================================
 // 5. INITIAL DATABASE & BALANCED DOUBLE-ENTRY LEDGER SEED
@@ -473,14 +587,275 @@ const INITIAL_DATABASE = {
   },
 
   supplier_subscriptions: {
-    'sub_sup-1_usr_alade_01': {
-      id: 'sub_sup-1_usr_alade_01',
+    'sub_vip_usr_alade_01': {
+      id: 'sub_vip_usr_alade_01',
       userId: 'usr_alade_01',
-      supplierId: 'sup-1',
+      userName: 'Chief Babatunde Alade',
+      type: 'directory_30d',
+      currency: 'USD',
+      amountPaid: 10,
       purchasedAt: Date.now() - 5 * 86400000,
       activeUntil: Date.now() + 25 * 86400000,
-      feeUSD: 50,
-      status: 'active'
+      feeUSD: 10,
+      status: 'active',
+      reference: 'SUB-VIP-994821',
+      autoRenew: false,
+      renewalCount: 0
+    }
+  },
+
+  suppliers: {
+    'sup-1': {
+      id: 'sup-1',
+      name: 'Shenzhen Kingzone Microelectronics Ltd',
+      chineseName: '深圳市晶卓微电子科技有限公司',
+      category: 'Electronics',
+      city: 'Shenzhen',
+      badge: 'Canton Fair VIP',
+      rating: 4.95,
+      ordersFulfilled: 1420,
+      minOrderValue: '¥5,000 (~$690)',
+      verifiedYears: 9,
+      mainProducts: ['OLED Screens', 'iPhone Replacement Parts', 'Fast GaN Chargers', 'Smart Watches'],
+      image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',
+      inspectionPassed: true,
+      tags: ['Gold Supplier', 'Factory Direct', '10+ Years', 'Verified Business'],
+      active: true,
+      createdAt: Date.now() - 365 * 86400000
+    },
+    'sup-2': {
+      id: 'sup-2',
+      name: 'Yiwu Shengda Global Commodity Group',
+      chineseName: '义乌盛达进出口日用品实业有限公司',
+      category: 'Fashion',
+      city: 'Yiwu',
+      badge: 'Gold Manufacturer',
+      rating: 4.88,
+      ordersFulfilled: 2890,
+      minOrderValue: '¥3,000 (~$415)',
+      verifiedYears: 12,
+      mainProducts: ['Kitchenware', 'Luggage & Bags', 'Fashion Accessories', 'Hardware Tools'],
+      image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=600&q=80',
+      inspectionPassed: true,
+      tags: ['Gold Supplier', '10+ Years', 'Established Supplier'],
+      active: true,
+      createdAt: Date.now() - 400 * 86400000
+    },
+    'sup-3': {
+      id: 'sup-3',
+      name: 'Guangdong Sunvolt Clean Energy Co.',
+      chineseName: '广东日源新能源科技有限公司',
+      category: 'Machinery',
+      city: 'Foshan',
+      badge: 'Verified Escrow',
+      rating: 4.92,
+      ordersFulfilled: 840,
+      minOrderValue: '¥10,000 (~$1,380)',
+      verifiedYears: 7,
+      mainProducts: ['LiFePO4 Lithium Batteries', 'Hybrid Inverters 5KW-12KW', 'Commercial Solar Panels'],
+      image: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=600&q=80',
+      inspectionPassed: true,
+      tags: ['Factory Direct', 'Verified Business', 'Established Supplier'],
+      active: true,
+      createdAt: Date.now() - 300 * 86400000
+    },
+    'sup-4': {
+      id: 'sup-4',
+      name: 'Guangzhou Zhongda International Textile Co.',
+      chineseName: '广州中大国际纺织面料有限公司',
+      category: 'Fashion',
+      city: 'Guangzhou',
+      badge: 'Factory Direct',
+      rating: 4.90,
+      ordersFulfilled: 1980,
+      minOrderValue: '¥4,500 (~$620)',
+      verifiedYears: 10,
+      mainProducts: ['Heavy Cotton Jersey', 'French Terry', 'Lace & Chiffon', 'Technical Sportswear'],
+      image: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=600&q=80',
+      inspectionPassed: true,
+      tags: ['Factory Direct', '10+ Years', 'Gold Supplier'],
+      active: true,
+      createdAt: Date.now() - 320 * 86400000
+    },
+    'sup-5': {
+      id: 'sup-5',
+      name: 'Shenzhen Skyworth Display Optics Ltd',
+      chineseName: '深圳创维显示光学有限公司',
+      category: 'Electronics',
+      city: 'Shenzhen',
+      badge: 'Verified Business',
+      rating: 4.87,
+      ordersFulfilled: 720,
+      minOrderValue: '¥6,000 (~$830)',
+      verifiedYears: 8,
+      mainProducts: ['Micro-LED Panels', 'Optical Lenses', 'Industrial Touch Displays'],
+      image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80',
+      inspectionPassed: true,
+      tags: ['Verified Business', 'Factory Direct'],
+      active: true,
+      createdAt: Date.now() - 250 * 86400000
+    },
+    'sup-6': {
+      id: 'sup-6',
+      name: 'Foshan Midea Small Home Appliances OEM',
+      chineseName: '佛山美的精品小家电实业有限公司',
+      category: 'Appliances',
+      city: 'Foshan',
+      badge: 'Gold Manufacturer',
+      rating: 4.96,
+      ordersFulfilled: 3100,
+      minOrderValue: '¥8,000 (~$1,100)',
+      verifiedYears: 14,
+      mainProducts: ['Smart Air Fryers', 'Pressure Cookers', 'Espresso Machines', 'Robotic Vacuums'],
+      image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&q=80',
+      inspectionPassed: true,
+      tags: ['Gold Supplier', '10+ Years', 'Factory Direct', 'Established Supplier'],
+      active: true,
+      createdAt: Date.now() - 500 * 86400000
+    },
+    'sup-7': {
+      id: 'sup-7',
+      name: 'Zhongshan Galanz Kitchenware & Air Group',
+      chineseName: '中山格兰仕智能厨电制造有限公司',
+      category: 'Appliances',
+      city: 'Zhongshan',
+      badge: 'Verified Business',
+      rating: 4.89,
+      ordersFulfilled: 1650,
+      minOrderValue: '¥7,500 (~$1,040)',
+      verifiedYears: 11,
+      mainProducts: ['Commercial Microwave Ovens', 'Inverter Air Conditioners', 'Dishwashers'],
+      image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80',
+      inspectionPassed: true,
+      tags: ['Verified Business', '10+ Years', 'Established Supplier'],
+      active: true,
+      createdAt: Date.now() - 410 * 86400000
+    },
+    'sup-8': {
+      id: 'sup-8',
+      name: 'Foshan Lecong Modern Furniture Co.',
+      chineseName: '佛山乐从现代名匠家具有限公司',
+      category: 'Home & Living',
+      city: 'Foshan',
+      badge: 'Gold Manufacturer',
+      rating: 4.94,
+      ordersFulfilled: 2200,
+      minOrderValue: '¥12,000 (~$1,660)',
+      verifiedYears: 15,
+      mainProducts: ['Italian Leather Sectionals', 'Sintered Stone Dining Sets', 'Ergonomic Office Chairs'],
+      image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80',
+      inspectionPassed: true,
+      tags: ['Gold Supplier', '10+ Years', 'Established Supplier'],
+      active: true,
+      createdAt: Date.now() - 550 * 86400000
+    },
+    'sup-9': {
+      id: 'sup-9',
+      name: 'Chaozhou Royal Porcelain & Ceramics Ltd',
+      chineseName: '潮州御品陶瓷卫浴实业有限公司',
+      category: 'Home & Living',
+      city: 'Chaozhou',
+      badge: 'Factory Direct',
+      rating: 4.86,
+      ordersFulfilled: 980,
+      minOrderValue: '¥5,000 (~$690)',
+      verifiedYears: 7,
+      mainProducts: ['Smart Sensor Toilets', 'Ceramic Basins', 'Luxury Fine Bone China Plates'],
+      image: 'https://images.unsplash.com/photo-1584622781564-1d987f7333c1?auto=format&fit=crop&w=600&q=80',
+      inspectionPassed: true,
+      tags: ['Factory Direct', 'Verified Business'],
+      active: true,
+      createdAt: Date.now() - 280 * 86400000
+    },
+    'sup-10': {
+      id: 'sup-10',
+      name: 'Guangzhou Baiyun Cosmetics & Skincare Labs',
+      chineseName: '广州白云精细化妆品研发制造厂',
+      category: 'Beauty',
+      city: 'Guangzhou',
+      badge: 'Gold Manufacturer',
+      rating: 4.93,
+      ordersFulfilled: 1450,
+      minOrderValue: '¥4,000 (~$550)',
+      verifiedYears: 8,
+      mainProducts: ['Niacinamide Whitening Serums', 'Hyaluronic Acid Essences', 'Salon Keratin Hair Care'],
+      image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
+      inspectionPassed: true,
+      tags: ['Gold Supplier', 'Factory Direct', 'Verified Business'],
+      active: true,
+      createdAt: Date.now() - 290 * 86400000
+    },
+    'sup-11': {
+      id: 'sup-11',
+      name: 'Yiwu Glamour Cosmetic Accessories Co.',
+      chineseName: '义乌魅彩美妆工具制造有限公司',
+      category: 'Beauty',
+      city: 'Yiwu',
+      badge: 'Verified Business',
+      rating: 4.88,
+      ordersFulfilled: 1800,
+      minOrderValue: '¥2,500 (~$345)',
+      verifiedYears: 6,
+      mainProducts: ['Makeup Brush Sets', '3D Mink Lashes', 'LED Compact Mirrors', 'Cosmetic Organizers'],
+      image: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=600&q=80',
+      inspectionPassed: true,
+      tags: ['Verified Business', 'Factory Direct'],
+      active: true,
+      createdAt: Date.now() - 210 * 86400000
+    },
+    'sup-12': {
+      id: 'sup-12',
+      name: 'Dongguan Precision CNC & Injection Tooling',
+      chineseName: '东莞精密数控模具实业有限公司',
+      category: 'Machinery',
+      city: 'Dongguan',
+      badge: 'Gold Manufacturer',
+      rating: 4.97,
+      ordersFulfilled: 1100,
+      minOrderValue: '¥15,000 (~$2,070)',
+      verifiedYears: 13,
+      mainProducts: ['High-Speed CNC Milling Parts', 'Injection Molds', 'Industrial Stamping Tools'],
+      image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=600&q=80',
+      inspectionPassed: true,
+      tags: ['Gold Supplier', '10+ Years', 'Factory Direct', 'Established Supplier'],
+      active: true,
+      createdAt: Date.now() - 480 * 86400000
+    },
+    'sup-13': {
+      id: 'sup-13',
+      name: 'Guangzhou Trade Union Packaging & Logistics Supply',
+      chineseName: '广州联合环保包装实业有限公司',
+      category: 'Other',
+      city: 'Guangzhou',
+      badge: 'Established Supplier',
+      rating: 4.91,
+      ordersFulfilled: 2500,
+      minOrderValue: '¥3,500 (~$485)',
+      verifiedYears: 9,
+      mainProducts: ['5-Ply Export Shipping Cartons', 'Biodegradable Air Bags', 'Custom Logo Bubble Mailers'],
+      image: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=600&q=80',
+      inspectionPassed: true,
+      tags: ['Established Supplier', 'Verified Business', 'Factory Direct'],
+      active: true,
+      createdAt: Date.now() - 340 * 86400000
+    },
+    'sup-14': {
+      id: 'sup-14',
+      name: 'Ningbo Ocean Maritime Hardware & Tools',
+      chineseName: '宁波海蓝五金工具工贸有限公司',
+      category: 'Other',
+      city: 'Ningbo',
+      badge: 'Factory Direct',
+      rating: 4.89,
+      ordersFulfilled: 1350,
+      minOrderValue: '¥5,500 (~$760)',
+      verifiedYears: 8,
+      mainProducts: ['316 Stainless Turnbuckles', 'Pneumatic Impact Wrenches', 'Industrial Pipe Couplings'],
+      image: 'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=600&q=80',
+      inspectionPassed: true,
+      tags: ['Factory Direct', 'Verified Business'],
+      active: true,
+      createdAt: Date.now() - 270 * 86400000
     }
   },
 
@@ -1513,12 +1888,19 @@ const INITIAL_DATABASE = {
       supplierEscrowPercent: 0.5,
       airFreightPerKgUSD: 10.00,
       seaFreightPerCbmUSD: 145.00,
-      supplier30DayPassUSD: 50.00,
+      supplier30DayPassUSD: 10.00,
       sourcingCommissionPercent: 5.0,
       minSourcingCommissionCNY: 500,
       supplierVerificationUSD: 150,
       factoryAuditUSD: 250,
       qualityControlUSD: 200
+    },
+    supplier_directory_prices: {
+      ngn: 15000,
+      usd: 10,
+      cny: 70,
+      updatedAt: Date.now(),
+      updatedBy: 'FlyeMass Treasury'
     }
   },
 
@@ -1601,6 +1983,11 @@ try {
       withdrawals: { ...INITIAL_DATABASE.withdrawals, ...(parsed.withdrawals || {}) },
       agent_requests: { ...INITIAL_DATABASE.agent_requests, ...(parsed.agent_requests || {}) },
       supplier_subscriptions: { ...INITIAL_DATABASE.supplier_subscriptions, ...(parsed.supplier_subscriptions || {}) },
+      suppliers: (() => {
+        const mergedSuppliers = { ...(INITIAL_DATABASE.suppliers || {}), ...(parsed.suppliers || {}) };
+        return mergedSuppliers;
+      })(),
+      private_supplier_contacts: { ...(parsed.private_supplier_contacts || {}) },
       shop_orders: { ...INITIAL_DATABASE.shop_orders, ...(parsed.shop_orders || {}) },
       hotel_bookings: { ...INITIAL_DATABASE.hotel_bookings, ...(parsed.hotel_bookings || {}) },
       hotels: (() => {
@@ -1675,6 +2062,10 @@ try {
         fees: {
           ...INITIAL_DATABASE.system_settings.fees,
           ...(parsed.system_settings?.fees || {})
+        },
+        supplier_directory_prices: {
+          ...(INITIAL_DATABASE.system_settings.supplier_directory_prices || { ngn: 15000, usd: 10, cny: 70 }),
+          ...(parsed.system_settings?.supplier_directory_prices || {})
         }
       },
       processed_webhooks: parsed.processed_webhooks || {},
@@ -3386,10 +3777,169 @@ const server = http.createServer(async (req, res) => {
     }
 
     // -------------------------------------------------------------
-    // 18. SUPPLIER 30-DAY SUBSCRIPTION GATE & PROTECTED CONTACTS
     // -------------------------------------------------------------
-    if (pathname === '/api/suppliers/subscribe' && req.method === 'POST') {
-      const { userId, supplierId, paidWith, pin } = await readJsonBody(req);
+    // 18. VIP SUPPLIER CONTACT ENCLAVE & 30-DAY SUBSCRIPTIONS
+    // -------------------------------------------------------------
+
+    // 18A. VIP SUBSCRIPTION PRICING RPC (supplier_directory_prices)
+    if ((pathname === '/api/suppliers/prices' || pathname === '/api/suppliers/supplier_directory_prices') && req.method === 'GET') {
+      const prices = dbState.system_settings?.supplier_directory_prices || {
+        ngn: 15000,
+        usd: 10,
+        cny: 70,
+        updatedAt: Date.now(),
+        updatedBy: 'FlyeMass Treasury'
+      };
+      return sendJson(res, 200, { success: true, prices });
+    }
+
+    if ((pathname === '/api/admin/suppliers/prices' || pathname === '/api/admin/suppliers/admin_set_supplier_prices') && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'compliance'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Staff permissions required for supplier pricing controls' });
+      }
+      const body = await readJsonBody(req);
+      const ngn = Number(body._ngn !== undefined ? body._ngn : body.ngn);
+      const usd = Number(body._usd !== undefined ? body._usd : body.usd);
+      const cny = Number(body._cny !== undefined ? body._cny : body.cny);
+      const adminId = body.adminId || 'Staff Admin';
+
+      if (isNaN(ngn) || ngn <= 0 || isNaN(usd) || usd <= 0 || isNaN(cny) || cny <= 0) {
+        return sendJson(res, 400, { error: 'Invalid subscription pricing. Positive numerical amounts required.' });
+      }
+
+      if (!dbState.system_settings) dbState.system_settings = {};
+      dbState.system_settings.supplier_directory_prices = {
+        ngn,
+        usd,
+        cny,
+        updatedAt: Date.now(),
+        updatedBy: adminId
+      };
+
+      recordAudit(adminId, 'SUPPLIER_PRICES_UPDATED', 'system_settings', 'supplier_directory_prices', 
+        `Updated 30-day VIP fees: ₦${ngn.toLocaleString()} NGN / $${usd} USD / ¥${cny} CNY`, req);
+
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { 
+        success: true, 
+        message: 'VIP Supplier Directory pricing updated successfully',
+        prices: dbState.system_settings.supplier_directory_prices 
+      });
+    }
+
+    // 18B. LOCKED DIRECTORY & PRIVACY PREVIEW RPC (supplier_directory_preview)
+    if ((pathname === '/api/suppliers/preview' || pathname === '/api/suppliers/supplier_directory_preview') && req.method === 'GET') {
+      const activeSuppliers = Object.values(dbState.suppliers || {}).filter(s => s.active !== false);
+      const standardCategories = ['All', 'Electronics', 'Fashion', 'Appliances', 'Home & Living', 'Beauty', 'Machinery', 'Other'];
+      
+      const categoryCounts = {
+        'All': activeSuppliers.length,
+        'Electronics': 0,
+        'Fashion': 0,
+        'Appliances': 0,
+        'Home & Living': 0,
+        'Beauty': 0,
+        'Machinery': 0,
+        'Other': 0
+      };
+
+      activeSuppliers.forEach(s => {
+        const cat = s.category || 'Other';
+        if (categoryCounts[cat] !== undefined) {
+          categoryCounts[cat]++;
+        } else {
+          categoryCounts['Other']++;
+        }
+      });
+
+      // Privacy Invariant: contacts and storage docs are completely omitted
+      const previewCards = activeSuppliers.map(s => ({
+        id: s.id,
+        name: s.name,
+        chineseName: s.chineseName,
+        category: s.category,
+        city: s.city,
+        badge: s.badge || 'Verified Manufacturer',
+        rating: s.rating || 4.9,
+        ordersFulfilled: s.ordersFulfilled || 120,
+        minOrderValue: s.minOrderValue || '¥5,000',
+        verifiedYears: s.verifiedYears || 3,
+        mainProducts: s.mainProducts || [s.category],
+        image: s.image || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',
+        tags: s.tags || ['Verified Business', 'Factory Direct'],
+        inspectionPassed: s.inspectionPassed ?? true,
+        isLocked: true
+      }));
+
+      const prices = dbState.system_settings?.supplier_directory_prices || { ngn: 15000, usd: 10, cny: 70 };
+
+      return sendJson(res, 200, {
+        success: true,
+        total: activeSuppliers.length,
+        categories: categoryCounts,
+        prices,
+        suppliers: previewCards
+      });
+    }
+
+    // 18C. USER SUBSCRIPTION STATUS
+    if (pathname === '/api/suppliers/subscription-status' && req.method === 'GET') {
+      const userId = parsedUrl.searchParams.get('userId') || 'usr_alade_01';
+      const sub = getUserActiveSubscription(userId);
+      const isSub = !!sub;
+      const daysRemaining = sub ? Math.max(0, Math.ceil((sub.activeUntil - Date.now()) / 86400000)) : 0;
+
+      return sendJson(res, 200, {
+        success: true,
+        isSubscribed: isSub,
+        activeUntil: sub ? sub.activeUntil : null,
+        daysRemaining,
+        status: isSub ? 'active' : 'expired',
+        manualRenewalNotice: 'Your VIP Supplier Contacts subscription renews manually. FlyeMass will never automatically debit your wallet when your subscription expires.',
+        subscription: sub
+      });
+    }
+
+    // 18D. FULL UNLOCKED VIP SUPPLIER DIRECTORY
+    if (pathname === '/api/suppliers/directory' && req.method === 'GET') {
+      const userId = parsedUrl.searchParams.get('userId') || 'usr_alade_01';
+      
+      // Privacy Enforcement: Unsubscribed users cannot retrieve contacts through network/API
+      if (!isUserVIPSubscribed(userId)) {
+        return sendJson(res, 403, {
+          success: false,
+          unlocked: false,
+          error: 'Active 30-day VIP pass required to view verified direct factory contacts'
+        });
+      }
+
+      const activeSuppliers = Object.values(dbState.suppliers || {}).filter(s => s.active !== false);
+      const unlockedDirectory = activeSuppliers.map(s => {
+        const contact = getSupplierContactRecord(s.id) || {};
+        return {
+          ...s,
+          wechatId: contact.wechatId || s.wechatId || `vip_factory_${s.id}`,
+          phone: contact.phone || s.phone || '+86 138 0000 8888',
+          whatsapp: contact.whatsapp || s.whatsapp || '+86 138 0000 8888',
+          businessAddress: contact.factoryAddress || contact.businessAddress || s.businessAddress || 'Guangdong Industrial Zone, China',
+          description: contact.description || s.description || 'Verified Tier-1 Chinese Manufacturer.',
+          directManager: contact.directManager || 'General Export Manager',
+          tags: s.tags || ['Verified Business', 'Factory Direct'],
+          isLocked: false
+        };
+      });
+
+      return sendJson(res, 200, {
+        success: true,
+        unlocked: true,
+        suppliers: unlockedDirectory
+      });
+    }
+
+    // 18E. ATOMIC 30-DAY VIP SUBSCRIPTION PAYMENT (subscribe_supplier_directory)
+    if ((pathname === '/api/suppliers/subscribe-directory' || pathname === '/api/suppliers/subscribe') && req.method === 'POST') {
+      const { userId, currency, paidWith, pin, supplierId, idempotencyKey } = await readJsonBody(req);
       const user = dbState.users[userId || 'usr_alade_01'];
       if (!user) return sendJson(res, 404, { error: 'User not found' });
 
@@ -3399,44 +3949,76 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, pinCheck.status || 401, { error: pinCheck.error });
       }
 
-      const curr = paidWith || 'USD';
-      const feeUSD = dbState.system_settings.fees.supplier30DayPassUSD || 50;
-      const fee = curr === 'NGN' ? Math.round(feeUSD * (dbState.system_settings.rates.USD_NGN || 1485)) : feeUSD;
+      const curr = (currency || paidWith || 'USD').toUpperCase();
+      const prices = dbState.system_settings?.supplier_directory_prices || { ngn: 15000, usd: 10, cny: 70 };
+      
+      let fee = prices.usd || 10;
+      if (curr === 'NGN') fee = prices.ngn || 15000;
+      else if (curr === 'CNY') fee = prices.cny || 70;
 
+      // Validate wallet balance
       if ((user.balances[curr] || 0) < fee) {
-        return sendJson(res, 400, { error: `Insufficient ${curr} balance to activate 30-day supplier directory pass` });
+        return sendJson(res, 400, { 
+          error: `Insufficient ${curr} balance. Required: ${curr === 'NGN' ? '₦' : curr === 'CNY' ? '¥' : '$'}${fee.toLocaleString()}, Available: ${curr === 'NGN' ? '₦' : curr === 'CNY' ? '¥' : '$'}${(user.balances[curr] || 0).toLocaleString()}` 
+        });
       }
 
-      const subId = `sub_${supplierId}_${user.uid}`;
-      let subscription;
+      const ref = `SUB-VIP-${Date.now().toString().slice(-6)}`;
+      const subId = `sub_vip_${user.uid}`;
+      let subscriptionDoc;
 
       await withUserLock(user.uid, async () => {
         const openingBalance = user.balances[curr];
 
+        // 1. Authoritative Double-Entry General Ledger Debit
         recordDoubleEntry({
-          reference: `SUB-SUPPLIER-${supplierId.slice(-4)}`,
+          reference: ref,
           userId: user.uid,
           transactionType: 'SUPPLIER_SUB',
-          description: `30-Day VIP Supplier Contact Pass for #${supplierId}`,
+          description: `30-Day VIP Supplier Contacts Pass (${curr} ${fee})`,
           postings: [
-            { account: `liabilities:customer:${user.uid}:${curr.toLowerCase()}`, currency: curr, debit: fee, credit: 0 },
-            { account: 'revenue:fees:supplier_pass', currency: curr, debit: 0, credit: fee }
+            { account: `liabilities:customer:${user.uid}:${curr}`, currency: curr, debit: fee, credit: 0 },
+            { account: 'revenue:fees:vip_supplier_directory', currency: curr, debit: 0, credit: fee }
           ]
         });
 
         const closingBalance = user.balances[curr];
 
-        subscription = {
+        // 2. Duration & Stacking: Stack 30 days if user already has active access
+        const existingSub = getUserActiveSubscription(user.uid);
+        let activeUntil;
+        let isRenewal = false;
+
+        if (existingSub && existingSub.activeUntil > Date.now()) {
+          activeUntil = existingSub.activeUntil + 30 * 86400000;
+          isRenewal = true;
+        } else {
+          activeUntil = Date.now() + 30 * 86400000;
+          isRenewal = false;
+        }
+
+        subscriptionDoc = {
           id: subId,
           userId: user.uid,
-          supplierId,
+          userName: user.fullName,
+          customerEmail: user.email,
+          supplierId: supplierId || 'all',
+          type: 'directory_30d',
+          currency: curr,
+          amountPaid: fee,
           purchasedAt: Date.now(),
-          activeUntil: Date.now() + 30 * 86400000, // Exactly 30 days
-          feeUSD,
-          status: 'active'
+          activeUntil,
+          status: 'active',
+          reference: ref,
+          autoRenew: false, // Invariant: manual renewal only
+          renewalCount: isRenewal ? ((existingSub?.renewalCount || 0) + 1) : 0,
+          emailReceiptSent: true
         };
-        dbState.supplier_subscriptions[subId] = subscription;
 
+        if (!dbState.supplier_subscriptions) dbState.supplier_subscriptions = {};
+        dbState.supplier_subscriptions[subId] = subscriptionDoc;
+
+        // 3. Immutable Wallet Ledger Debit
         const ledgerId = `ldg_${Date.now()}`;
         dbState.wallets_ledger[ledgerId] = {
           id: ledgerId,
@@ -3449,42 +4031,196 @@ const server = http.createServer(async (req, res) => {
           openingBalance,
           closingBalance,
           status: 'completed',
-          reference: `SUB-SUPPLIER-${supplierId.slice(-4)}`,
+          reference: ref,
           timestamp: Date.now(),
-          notes: `30-Day VIP Supplier Contact Pass for #${supplierId}`
+          notes: isRenewal 
+            ? `30-Day VIP Supplier Directory Pass Renewal (+30d extended to ${new Date(activeUntil).toLocaleDateString()})` 
+            : `30-Day VIP Supplier Directory Pass (Active until ${new Date(activeUntil).toLocaleDateString()})`
         };
 
-        recordAudit(user.fullName, 'SUPPLIER_SUB_PURCHASED', 'supplier_subscriptions', subId, `Purchased 30-day contact pass for ${supplierId}`, req);
+        // 4. Send Email Receipt (Section 11) with Idempotency Key
+        const emailReceiptKey = `supplier-subscription-${ref}`;
+        if (!dbState.email_receipts) dbState.email_receipts = {};
+        dbState.email_receipts[emailReceiptKey] = {
+          id: emailReceiptKey,
+          recipientEmail: user.email,
+          customerName: user.fullName,
+          reference: ref,
+          currency: curr,
+          amount: fee,
+          startDate: Date.now(),
+          expirationDate: activeUntil,
+          durationDays: 30,
+          manualRenewalNotice: 'Your VIP Supplier Contacts subscription renews manually. FlyeMass will never automatically debit your wallet when your subscription expires.',
+          tradeSafetyNotice: 'You are free to negotiate prices directly with suppliers. However, before making any payment or finalizing deals, please contact FlyeMass Customer Service. Our team can assist with supplier verification, transaction coordination, and overseas warehouse inspection before shipping to your destination country.',
+          deliveredAt: Date.now(),
+          status: 'sent'
+        };
+
+        // 5. In-App Notification Reminder & Expiry Notice
+        if (!dbState.notifications) dbState.notifications = [];
+        dbState.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          userId: user.uid,
+          title: isRenewal ? 'VIP Directory Pass Renewed!' : 'VIP Supplier Directory Unlocked!',
+          message: `Your 30-Day VIP pass is active until ${new Date(activeUntil).toLocaleDateString()}. Contacts & verified factory cards are unlocked. Renews manually.`,
+          type: 'success',
+          timestamp: Date.now(),
+          read: false,
+          linkRoute: 'suppliers'
+        });
+
+        recordAudit(user.fullName, 'SUPPLIER_SUB_PURCHASED', 'supplier_subscriptions', subId, 
+          `Purchased 30-day VIP pass for ${fee} ${curr} (Ref: ${ref})`, req);
       });
 
       persistState();
       broadcastUpdate();
-      return sendJson(res, 200, { success: true, subscription, balances: user.balances });
+      return sendJson(res, 200, { 
+        success: true, 
+        subscription: subscriptionDoc, 
+        balances: user.balances,
+        reference: ref
+      });
     }
 
+    // 18F. LEGACY PER-SUPPLIER CONTACT ENCLAVE ENDPOINT
     if (pathname === '/api/suppliers/contact' && req.method === 'GET') {
       const supplierId = parsedUrl.searchParams.get('supplierId');
       const userId = parsedUrl.searchParams.get('userId') || 'usr_alade_01';
 
-      const subId = `sub_${supplierId}_${userId}`;
-      const sub = dbState.supplier_subscriptions[subId];
-      const isSubscribed = sub && sub.activeUntil > Date.now();
-
-      if (!isSubscribed) {
+      if (!isUserVIPSubscribed(userId)) {
         return sendJson(res, 403, { 
           unlocked: false, 
           error: 'Active 30-day VIP pass required to view verified direct factory contacts' 
         });
       }
 
-      const contacts = PRIVATE_SUPPLIER_CONTACTS[supplierId] || {
+      const contacts = getSupplierContactRecord(supplierId) || {
         wechatId: `vip_factory_${supplierId}`,
         phone: '+86 20 8888 9999',
+        whatsapp: '+86 138 0000 8888',
         directManager: 'General Export Manager',
-        factoryAddress: 'China Industrial Trade Zone'
+        factoryAddress: 'China Industrial Trade Zone, Guangdong, China'
       };
 
-      return sendJson(res, 200, { unlocked: true, contacts, expiresAt: sub.activeUntil });
+      const sub = getUserActiveSubscription(userId);
+      return sendJson(res, 200, { unlocked: true, contacts, expiresAt: sub ? sub.activeUntil : Date.now() + 30 * 86400000 });
+    }
+
+    // 18G. PRIVATE STORAGE BUCKET: SUPPLIER BUSINESS CARDS & LICENSES
+    if (pathname === '/api/storage/supplier-cards/signed-url' && req.method === 'GET') {
+      const supplierId = parsedUrl.searchParams.get('supplierId');
+      const userId = parsedUrl.searchParams.get('userId') || 'usr_alade_01';
+      const docType = parsedUrl.searchParams.get('docType') || 'card'; // 'card' (public to VIP) | 'license' (admin only)
+
+      const supplier = dbState.suppliers && dbState.suppliers[supplierId];
+      if (!supplier) return sendJson(res, 404, { error: 'Supplier record not found' });
+
+      // Privacy Authorization:
+      // Licenses: Admin only
+      // Business Cards: Active VIP subscriber OR Admin
+      const isAdmin = verifyAdminRole(req, ['super_admin', 'operations', 'compliance']);
+      if (docType === 'license' && !isAdmin) {
+        return sendJson(res, 403, { error: 'Private verification licenses are restricted to authorized compliance staff.' });
+      }
+      if (docType === 'card' && !isAdmin && !isUserVIPSubscribed(userId)) {
+        return sendJson(res, 403, { error: 'Active 30-day VIP pass required to view official factory business cards.' });
+      }
+
+      const expiresAt = Date.now() + 3600000; // Strictly 1 hour expiration
+      const token = generateSupplierDocSignature(supplierId, docType, expiresAt);
+      const signedUrl = `/api/storage/supplier-cards/view?supplierId=${encodeURIComponent(supplierId)}&docType=${encodeURIComponent(docType)}&expires=${expiresAt}&token=${token}`;
+
+      return sendJson(res, 200, {
+        success: true,
+        supplierId,
+        docType,
+        signedUrl,
+        expiresAt,
+        durationMinutes: 60
+      });
+    }
+
+    if (pathname === '/api/storage/supplier-cards/view' && req.method === 'GET') {
+      const supplierId = parsedUrl.searchParams.get('supplierId');
+      const docType = parsedUrl.searchParams.get('docType') || 'card';
+      const expires = Number(parsedUrl.searchParams.get('expires'));
+      const token = parsedUrl.searchParams.get('token');
+
+      // 1. Verify URL expiration
+      if (!expires || expires < Date.now()) {
+        return sendJson(res, 403, { error: 'Security Exception: Signed document URL has expired. Please refresh your view.' });
+      }
+
+      // 2. Verify HMAC token
+      const expectedToken = generateSupplierDocSignature(supplierId, docType, expires);
+      if (token !== expectedToken) {
+        return sendJson(res, 403, { error: 'Security Exception: Invalid cryptographic document signature.' });
+      }
+
+      const supplier = (dbState.suppliers && dbState.suppliers[supplierId]) || {
+        name: 'Guangdong Verified Factory Ltd',
+        chineseName: '广东特许制造实业有限公司',
+        city: 'Guangzhou'
+      };
+      const contact = getSupplierContactRecord(supplierId) || {};
+
+      // Return high-fidelity dynamic SVG business card
+      const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 420" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+  </defs>
+  <rect width="700" height="420" rx="24" fill="url(#bg)" stroke="#334155" stroke-width="3"/>
+  <rect x="20" y="20" width="660" height="380" rx="16" fill="none" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="6,4"/>
+  
+  <!-- Header Stamp -->
+  <circle cx="65" cy="70" r="28" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-width="2"/>
+  <text x="65" y="76" font-family="sans-serif" font-size="20" font-weight="900" fill="#10b981" text-anchor="middle">✓</text>
+  
+  <text x="110" y="65" font-family="sans-serif" font-size="11" font-weight="900" fill="#10b981" letter-spacing="2">VERIFIED CANTON FACTORY ENCLAVE</text>
+  <text x="110" y="85" font-family="sans-serif" font-size="20" font-weight="bold" fill="#ffffff">${supplier.name || 'Verified Supplier'}</text>
+  <text x="110" y="108" font-family="'Noto Sans SC', sans-serif" font-size="14" fill="#94a3b8">${supplier.chineseName || ''}</text>
+  
+  <!-- Divider -->
+  <line x1="45" y1="135" x2="655" y2="135" stroke="#334155" stroke-width="1"/>
+  
+  <!-- Contact Fields -->
+  <text x="50" y="175" font-family="sans-serif" font-size="11" font-weight="bold" fill="#64748b">DIRECT EXPORT MANAGER</text>
+  <text x="50" y="198" font-family="sans-serif" font-size="15" font-weight="bold" fill="#f8fafc">${contact.directManager || 'Lin Zhiming (Director of Overseas Tech)'}</text>
+  
+  <text x="50" y="240" font-family="sans-serif" font-size="11" font-weight="bold" fill="#64748b">WECHAT ID (VETTED)</text>
+  <text x="50" y="263" font-family="monospace" font-size="16" font-weight="bold" fill="#10b981">${contact.wechatId || 'vip_factory_' + supplierId}</text>
+  
+  <text x="360" y="175" font-family="sans-serif" font-size="11" font-weight="bold" fill="#64748b">TELEPHONE / WHATSAPP</text>
+  <text x="360" y="198" font-family="monospace" font-size="15" font-weight="bold" fill="#38bdf8">${contact.phone || '+86 755 2812 8900'}</text>
+  
+  <text x="360" y="240" font-family="sans-serif" font-size="11" font-weight="bold" fill="#64748b">INDUSTRIAL HUB / CITY</text>
+  <text x="360" y="263" font-family="sans-serif" font-size="14" font-weight="bold" fill="#fbbf24">${supplier.city || 'Shenzhen'}, Guangdong, China</text>
+  
+  <text x="50" y="305" font-family="sans-serif" font-size="11" font-weight="bold" fill="#64748b">OFFICIAL FACTORY ADDRESS IN CHINA</text>
+  <text x="50" y="328" font-family="sans-serif" font-size="12" fill="#cbd5e1">${contact.factoryAddress || 'High-Tech Industrial Park, Guangdong, China'}</text>
+  
+  <!-- Footer Security Watermark -->
+  <rect x="45" y="355" width="610" height="32" rx="8" fill="#0f172a" stroke="#1e293b"/>
+  <text x="60" y="375" font-family="sans-serif" font-size="10" font-weight="bold" fill="#94a3b8">🔒 FlyeMass Escrow Protected Enclave • Signed URL expires 1hr from generation • ID: ${supplierId}</text>
+</svg>`;
+
+      res.writeHead(200, {
+        'Content-Type': 'image/svg+xml; charset=utf-8',
+        'Cache-Control': 'no-store, private',
+        'X-Content-Type-Options': 'nosniff'
+      });
+      return res.end(svg);
     }
 
     // -------------------------------------------------------------
@@ -5923,8 +6659,30 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
     }
 
     // -------------------------------------------------------------
-    // 24E. SUPPLIER DIRECTORY MANAGEMENT
     // -------------------------------------------------------------
+    // 24E. SUPPLIER DIRECTORY MANAGEMENT & ADMIN CONTROLS
+    // -------------------------------------------------------------
+    if (pathname === '/api/admin/suppliers' && req.method === 'GET') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'compliance'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+
+      const allSuppliers = Object.values(dbState.suppliers || {}).map(s => {
+        const contact = getSupplierContactRecord(s.id) || {};
+        return {
+          ...s,
+          wechatId: contact.wechatId || s.wechatId || '',
+          phone: contact.phone || s.phone || '',
+          whatsapp: contact.whatsapp || s.whatsapp || '',
+          businessAddress: contact.factoryAddress || contact.businessAddress || s.businessAddress || '',
+          directManager: contact.directManager || '',
+          description: contact.description || s.description || ''
+        };
+      });
+
+      return sendJson(res, 200, { success: true, suppliers: allSuppliers });
+    }
+
     if (pathname === '/api/admin/suppliers/create' && req.method === 'POST') {
       if (!verifyAdminRole(req, ['super_admin', 'operations', 'compliance'])) {
         return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
@@ -5936,18 +6694,158 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
       const newSup = {
         ...supplier,
         id: supplierId,
-        verifiedYears: supplier.verifiedYears || 1,
+        verifiedYears: Number(supplier.verifiedYears) || 1,
         inspectionPassed: supplier.inspectionPassed ?? true,
+        active: supplier.active !== false,
+        tags: Array.isArray(supplier.tags) ? supplier.tags : ['Verified Business', 'Factory Direct'],
         createdAt: Date.now()
       };
 
       if (!dbState.suppliers) dbState.suppliers = {};
       dbState.suppliers[supplierId] = newSup;
 
-      recordAudit(adminId || 'Trade Sourcing Desk', 'SUPPLIER_REGISTERED', 'suppliers', supplierId, `Registered supplier: ${newSup.name} (${newSup.city})`, req);
+      // Save private contact info in backend enclave
+      if (!dbState.private_supplier_contacts) dbState.private_supplier_contacts = {};
+      dbState.private_supplier_contacts[supplierId] = {
+        wechatId: supplier.wechatId || '',
+        phone: supplier.phone || '',
+        whatsapp: supplier.whatsapp || '',
+        directManager: supplier.directManager || 'General Export Manager',
+        factoryAddress: supplier.businessAddress || supplier.factoryAddress || '',
+        description: supplier.description || ''
+      };
+
+      recordAudit(adminId || 'Trade Sourcing Desk', 'SUPPLIER_REGISTERED', 'suppliers', supplierId, 
+        `Registered supplier: ${newSup.name} (${newSup.city}) in category ${newSup.category}`, req);
       persistState();
       broadcastUpdate();
       return sendJson(res, 201, { success: true, supplier: newSup });
+    }
+
+    if (pathname === '/api/admin/suppliers/update' && (req.method === 'PUT' || req.method === 'POST')) {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'compliance'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { supplier, adminId } = await readJsonBody(req);
+      if (!supplier || !supplier.id) return sendJson(res, 400, { error: 'Supplier ID is required' });
+
+      const existing = dbState.suppliers && dbState.suppliers[supplier.id];
+      if (!existing) return sendJson(res, 404, { error: 'Supplier record not found' });
+
+      // Preserve UUID and update fields
+      const updatedSup = {
+        ...existing,
+        ...supplier,
+        id: existing.id,
+        updatedAt: Date.now()
+      };
+      dbState.suppliers[existing.id] = updatedSup;
+
+      // Update contact enclave
+      if (!dbState.private_supplier_contacts) dbState.private_supplier_contacts = {};
+      dbState.private_supplier_contacts[existing.id] = {
+        ...(dbState.private_supplier_contacts[existing.id] || {}),
+        wechatId: supplier.wechatId !== undefined ? supplier.wechatId : (dbState.private_supplier_contacts[existing.id]?.wechatId || existing.wechatId),
+        phone: supplier.phone !== undefined ? supplier.phone : (dbState.private_supplier_contacts[existing.id]?.phone || existing.phone),
+        whatsapp: supplier.whatsapp !== undefined ? supplier.whatsapp : (dbState.private_supplier_contacts[existing.id]?.whatsapp || existing.whatsapp),
+        directManager: supplier.directManager !== undefined ? supplier.directManager : (dbState.private_supplier_contacts[existing.id]?.directManager || ''),
+        factoryAddress: supplier.businessAddress !== undefined ? supplier.businessAddress : (dbState.private_supplier_contacts[existing.id]?.factoryAddress || existing.businessAddress),
+        description: supplier.description !== undefined ? supplier.description : (dbState.private_supplier_contacts[existing.id]?.description || existing.description)
+      };
+
+      recordAudit(adminId || 'Trade Sourcing Desk', 'SUPPLIER_UPDATED', 'suppliers', existing.id, 
+        `Updated supplier profile for: ${updatedSup.name}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, supplier: updatedSup });
+    }
+
+    if (pathname === '/api/admin/suppliers/toggle-status' && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'compliance'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { supplierId, active, adminId } = await readJsonBody(req);
+      const supplier = dbState.suppliers && dbState.suppliers[supplierId];
+      if (!supplier) return sendJson(res, 404, { error: 'Supplier not found' });
+
+      supplier.active = active !== undefined ? !!active : !supplier.active;
+      supplier.updatedAt = Date.now();
+
+      recordAudit(adminId || 'Trade Desk', 'SUPPLIER_STATUS_TOGGLED', 'suppliers', supplierId, 
+        `${supplier.active ? 'Activated' : 'Deactivated'} supplier: ${supplier.name}`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, supplier });
+    }
+
+    if (pathname === '/api/admin/suppliers/delete' && (req.method === 'DELETE' || req.method === 'POST')) {
+      if (!verifyAdminRole(req, ['super_admin', 'compliance'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Super Admin or Compliance permission required for supplier deletion' });
+      }
+      const { supplierId, adminId } = await readJsonBody(req);
+      const supplier = dbState.suppliers && dbState.suppliers[supplierId];
+      if (!supplier) return sendJson(res, 404, { error: 'Supplier not found' });
+
+      const name = supplier.name;
+      delete dbState.suppliers[supplierId];
+      if (dbState.private_supplier_contacts) delete dbState.private_supplier_contacts[supplierId];
+
+      recordAudit(adminId || 'Super Admin', 'SUPPLIER_DELETED', 'suppliers', supplierId, 
+        `Permanently removed supplier: ${name} (${supplierId})`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, message: `Supplier ${name} deleted successfully` });
+    }
+
+    if (pathname === '/api/admin/suppliers/metrics' && req.method === 'GET') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'compliance'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+
+      const subs = Object.values(dbState.supplier_subscriptions || {});
+      const now = Date.now();
+
+      let activeSubscribers = 0;
+      let expiredSubscribers = 0;
+      let totalRenewals = 0;
+      let revenueNGN = 0;
+      let revenueUSD = 0;
+      let revenueCNY = 0;
+
+      subs.forEach(s => {
+        if (s.activeUntil > now && s.status !== 'cancelled') {
+          activeSubscribers++;
+        } else {
+          expiredSubscribers++;
+        }
+
+        if (s.renewalCount && s.renewalCount > 0) {
+          totalRenewals += s.renewalCount;
+        }
+
+        const curr = (s.currency || 'USD').toUpperCase();
+        const amt = Number(s.amountPaid || s.feeUSD || 0);
+
+        if (curr === 'NGN') revenueNGN += amt;
+        else if (curr === 'CNY') revenueCNY += amt;
+        else revenueUSD += amt;
+      });
+
+      return sendJson(res, 200, {
+        success: true,
+        metrics: {
+          activeSubscribers,
+          expiredSubscribers,
+          totalSubscriptions: subs.length,
+          totalRenewals,
+          revenue: {
+            NGN: revenueNGN,
+            USD: revenueUSD,
+            CNY: revenueCNY
+          }
+        },
+        subscriptions: subs
+      });
     }
 
     // -------------------------------------------------------------
