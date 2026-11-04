@@ -162,15 +162,37 @@ export const FundWalletScreen: React.FC = () => {
                       <QrCode className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-white">China UnionPay / Merchant Direct Settlement</p>
-                      <p className="text-[10px] text-slate-400">Alipay Merchant Clearing IBAN: CN892300041289</p>
+                      <p className="text-xs font-bold text-white">Bank of China / CIPS Direct Clearing</p>
+                      <p className="text-[10px] text-slate-400">Guangzhou Pearl River Branch</p>
                     </div>
                   </div>
                   <span className="text-[10px] font-bold text-emerald-400">Instant</span>
                 </div>
-                <p className="text-[11px] text-slate-400">
-                  Direct cross-border B2B clearing compliant with Chinese SAFE guidelines.
-                </p>
+                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800/80 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 text-[11px]">Settlement IBAN:</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-emerald-400">CN6227003320094892</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopy('CN6227003320094892', 'cnyIban');
+                        }}
+                        className="text-xs text-slate-400 hover:text-white"
+                      >
+                        {copiedField === 'cnyIban' ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 text-[11px]">CNAPS Code:</span>
+                    <span className="font-mono text-slate-200">104581000018</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 text-[11px]">SWIFT / BIC:</span>
+                    <span className="font-mono text-slate-200">BKCHCNBJ400</span>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -187,14 +209,36 @@ export const FundWalletScreen: React.FC = () => {
                       <CreditCard className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-white">US Federal Wire & ACH Account</p>
-                      <p className="text-[10px] text-slate-400">Evolve Bank & Trust New York</p>
+                      <p className="text-xs font-bold text-white">JPMorgan Chase Bank, N.A. (New York)</p>
+                      <p className="text-[10px] text-slate-400">Federal Reserve Wire, ACH & Global SWIFT</p>
                     </div>
                   </div>
+                  <span className="text-[10px] font-bold text-emerald-400">Direct Wire</span>
                 </div>
-                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1 text-xs">
-                  <p className="text-slate-400">Routing (ABA): <span className="font-mono text-white">021000021</span></p>
-                  <p className="text-slate-400">Account: <span className="font-mono text-emerald-400">US8921894002</span></p>
+                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800/80 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 text-[11px]">USD IBAN:</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-emerald-400">US89JPMC02100002148902</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopy('US89JPMC02100002148902', 'usdIban');
+                        }}
+                        className="text-xs text-slate-400 hover:text-white"
+                      >
+                        {copiedField === 'usdIban' ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 text-[11px]">SWIFT / BIC:</span>
+                    <span className="font-mono text-slate-200">CHASUS33</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 text-[11px]">ABA / Routing:</span>
+                    <span className="font-mono text-slate-200">021000021</span>
+                  </div>
                 </div>
               </div>
             )}

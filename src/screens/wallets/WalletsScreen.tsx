@@ -14,7 +14,10 @@ import {
   Search, 
   FileText, 
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  Landmark,
+  ShieldCheck,
+  Globe
 } from 'lucide-react';
 import { Currency, TransactionType, WalletBalance } from '../../types';
 
@@ -34,6 +37,7 @@ export const WalletsScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showStatementModal, setShowStatementModal] = useState(false);
   const [copiedAccount, setCopiedAccount] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const defaultWallet: WalletBalance = {
     currency: 'NGN',
@@ -42,11 +46,55 @@ export const WalletsScreen: React.FC = () => {
     name: 'Nigerian Naira Wallet',
     flag: '🇳🇬',
     accountNumber: '9082341902',
-    bankName: 'FlyeMass / Providus Bank',
+    bankName: 'Providus Bank Plc',
     equivalentUSD: 0
   };
 
   const currentWallet = (wallets && wallets.find((w) => w?.currency === activeCurrency)) || (wallets && wallets[0]) || defaultWallet;
+
+  const bankingDetails = {
+    NGN: {
+      bankName: 'Providus Bank Plc',
+      accountNumber: '9082341902',
+      accountName: 'FlyeMass / Babatunde Alade',
+      sortCode: '101002',
+      iban: 'NG02PROV09082341902001',
+      swiftBic: 'PROVNGLL',
+      clearingRoute: 'NIP (NIBSS Instant Payment)',
+      bankAddress: 'Plot 54, Adetokunbo Ademola St, Victoria Island, Lagos',
+      depositNotice: 'Instant automated funding. Auto-credited to your FlyeMass Naira wallet within 10 seconds of NIP settlement.'
+    },
+    USD: {
+      bankName: 'JPMorgan Chase Bank, N.A. (New York)',
+      accountNumber: '02100002148902',
+      accountName: 'FlyeMass Treasury LLC (FM-7702)',
+      iban: 'US89JPMC02100002148902',
+      swiftBic: 'CHASUS33',
+      routingAba: '021000021',
+      clearingRoute: 'Fedwire / ACH / Direct SWIFT International Wire',
+      bankAddress: '270 Park Avenue, New York, NY 10017, USA',
+      depositNotice: 'Federal Reserve wire & SWIFT cross-border clearing. Credits directly into your USD multi-currency treasury escrow.'
+    },
+    CNY: {
+      bankName: 'Bank of China (Guangzhou Pearl River Branch)',
+      accountNumber: '6227003320094892',
+      accountName: 'FlyeMass Trade Guangzhou Co., Ltd (FM-7702)',
+      iban: 'CN6227003320094892',
+      swiftBic: 'BKCHCNBJ400',
+      cnapsCode: '104581000018',
+      clearingRoute: 'CIPS / Mainland China Direct Settlement',
+      bankAddress: 'No. 197 Dongfeng West Road, Yuexiu District, Guangzhou, China',
+      depositNotice: 'People’s Bank of China CIPS / CNAPS commercial clearing. Used for direct factory settlement and supplier wire.'
+    }
+  }[currentWallet.currency];
+
+  const handleCopyField = (value: string, label: string, key: string) => {
+    if (!value) return;
+    navigator.clipboard?.writeText(value);
+    setCopiedField(key);
+    showToast(`${label} copied to clipboard!`, 'success');
+    setTimeout(() => setCopiedField(null), 2500);
+  };
 
   const handleDownloadStatement = () => {
     const user = db.getUser(activeUserId);
@@ -147,22 +195,27 @@ export const WalletsScreen: React.FC = () => {
             </p>
           </div>
 
-          {/* Account Details Box */}
-          {currentWallet?.accountNumber && (
-            <div className="mt-4 p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between text-xs">
-              <div>
-                <p className="text-[10px] text-slate-400">{currentWallet.bankName ?? 'Providus Bank'}</p>
-                <p className="font-mono font-bold text-slate-200 mt-0.5">{currentWallet.accountNumber}</p>
+          {/* In-Card Quick IBAN & Account Box */}
+          <div className="mt-4 p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between text-xs">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-slate-400">{bankingDetails.bankName}</span>
+                {bankingDetails.iban && (
+                  <span className="px-1.5 py-0.2 rounded text-[8px] bg-emerald-500/20 text-emerald-300 font-bold">IBAN</span>
+                )}
               </div>
-              <button
-                onClick={handleCopyAccount}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold transition-all active:scale-95"
-              >
-                {copiedAccount ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedAccount ? 'Copied' : 'Copy'}</span>
-              </button>
+              <p className="font-mono font-bold text-slate-200 mt-0.5">
+                {bankingDetails.iban || bankingDetails.accountNumber}
+              </p>
             </div>
-          )}
+            <button
+              onClick={() => handleCopyField(bankingDetails.iban || bankingDetails.accountNumber, bankingDetails.iban ? 'IBAN' : 'Account Number', 'quickAcc')}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold transition-all active:scale-95"
+            >
+              {copiedField === 'quickAcc' ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedField === 'quickAcc' ? 'Copied' : 'Copy'}</span>
+            </button>
+          </div>
 
           {/* Money Flow Action Buttons */}
           <div className="grid grid-cols-4 gap-2 mt-5">
@@ -205,6 +258,227 @@ export const WalletsScreen: React.FC = () => {
               </div>
               <span className="text-[10px] font-bold text-slate-200">Withdraw</span>
             </button>
+          </div>
+        </div>
+
+        {/* Dedicated Inbound Accounts & IBAN Settlement Details Card */}
+        <div className="mt-4 p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-3.5">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                <Landmark className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <span>Account & IBAN Details</span>
+                  <span className="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-400 font-bold">
+                    {currentWallet.currency}
+                  </span>
+                </h3>
+                <p className="text-[10px] text-slate-400">Direct wire & interbank settlement credentials</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-400">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Verified Rails</span>
+            </div>
+          </div>
+
+          <div className="space-y-2 text-xs">
+            {/* Primary IBAN / Global Account */}
+            {bankingDetails.iban && (
+              <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] uppercase font-bold text-slate-400">International IBAN</span>
+                    <span className="px-1.5 py-0.2 rounded text-[8px] bg-indigo-500/20 text-indigo-300 font-bold">GLOBAL</span>
+                  </div>
+                  <p className="font-mono text-xs sm:text-sm font-extrabold text-emerald-400 mt-0.5 select-all">
+                    {bankingDetails.iban}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleCopyField(bankingDetails.iban!, 'IBAN', 'iban')}
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white flex items-center gap-1 transition-all active:scale-95"
+                >
+                  {copiedField === 'iban' ? (
+                    <>
+                      <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="text-[11px] font-semibold text-emerald-400">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span className="text-[11px] font-semibold">Copy IBAN</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Local Account Number / NUBAN */}
+            <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-400">
+                  {currentWallet.currency === 'NGN' ? 'NUBAN Account Number' : 'Domestic Account Number'}
+                </span>
+                <p className="font-mono text-xs sm:text-sm font-bold text-white mt-0.5 select-all">
+                  {bankingDetails.accountNumber}
+                </p>
+              </div>
+              <button
+                onClick={() => handleCopyField(bankingDetails.accountNumber, 'Account Number', 'accNum')}
+                className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white flex items-center gap-1 transition-all active:scale-95"
+              >
+                {copiedField === 'accNum' ? (
+                  <>
+                    <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-[11px] font-semibold text-emerald-400">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span className="text-[11px] font-semibold">Copy</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Bank Name */}
+            <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-400">Depositary Bank</span>
+                <p className="text-xs font-semibold text-slate-200 mt-0.5">
+                  {bankingDetails.bankName}
+                </p>
+              </div>
+              <button
+                onClick={() => handleCopyField(bankingDetails.bankName, 'Bank Name', 'bankName')}
+                className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white flex items-center gap-1 transition-all active:scale-95"
+              >
+                {copiedField === 'bankName' ? (
+                  <>
+                    <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-[11px] font-semibold text-emerald-400">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span className="text-[11px] font-semibold">Copy</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Beneficiary Name */}
+            <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-400">Beneficiary / Account Name</span>
+                <p className="text-xs font-semibold text-slate-200 mt-0.5">
+                  {bankingDetails.accountName}
+                </p>
+              </div>
+              <button
+                onClick={() => handleCopyField(bankingDetails.accountName, 'Beneficiary Name', 'beneficiary')}
+                className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white flex items-center gap-1 transition-all active:scale-95"
+              >
+                {copiedField === 'beneficiary' ? (
+                  <>
+                    <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-[11px] font-semibold text-emerald-400">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span className="text-[11px] font-semibold">Copy</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Routing / SWIFT / BIC / CNAPS / Sort Code */}
+            <div className="grid grid-cols-2 gap-2">
+              {bankingDetails.swiftBic && (
+                <div className="p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="text-[9px] uppercase font-bold text-slate-400">SWIFT / BIC</span>
+                    <p className="font-mono text-xs font-bold text-emerald-400 mt-0.5">
+                      {bankingDetails.swiftBic}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleCopyField(bankingDetails.swiftBic!, 'SWIFT/BIC', 'swift')}
+                    className="p-1.5 text-slate-400 hover:text-white"
+                  >
+                    {copiedField === 'swift' ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              )}
+
+              {bankingDetails.routingAba && (
+                <div className="p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="text-[9px] uppercase font-bold text-slate-400">ABA / Routing</span>
+                    <p className="font-mono text-xs font-bold text-emerald-400 mt-0.5">
+                      {bankingDetails.routingAba}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleCopyField(bankingDetails.routingAba!, 'Routing Number', 'routing')}
+                    className="p-1.5 text-slate-400 hover:text-white"
+                  >
+                    {copiedField === 'routing' ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              )}
+
+              {bankingDetails.cnapsCode && (
+                <div className="p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="text-[9px] uppercase font-bold text-slate-400">CNAPS Code</span>
+                    <p className="font-mono text-xs font-bold text-emerald-400 mt-0.5">
+                      {bankingDetails.cnapsCode}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleCopyField(bankingDetails.cnapsCode!, 'CNAPS Code', 'cnaps')}
+                    className="p-1.5 text-slate-400 hover:text-white"
+                  >
+                    {copiedField === 'cnaps' ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              )}
+
+              {bankingDetails.sortCode && (
+                <div className="p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="text-[9px] uppercase font-bold text-slate-400">Sort Code</span>
+                    <p className="font-mono text-xs font-bold text-emerald-400 mt-0.5">
+                      {bankingDetails.sortCode}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleCopyField(bankingDetails.sortCode!, 'Sort Code', 'sortCode')}
+                    className="p-1.5 text-slate-400 hover:text-white"
+                  >
+                    {copiedField === 'sortCode' ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Clearing Network & Notice */}
+            <div className="p-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 text-[10px] text-slate-300 flex items-start gap-2">
+              <Globe className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold text-emerald-400 block mb-0.5">
+                  Clearing Route: {bankingDetails.clearingRoute}
+                </span>
+                <p className="text-slate-400 leading-relaxed">
+                  {bankingDetails.depositNotice}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 

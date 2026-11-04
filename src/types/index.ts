@@ -516,6 +516,14 @@ export interface WalletBalance {
   flag: string;
   accountNumber?: string;
   bankName?: string;
+  iban?: string;
+  swiftBic?: string;
+  routingAba?: string;
+  sortCode?: string;
+  cnapsCode?: string;
+  accountName?: string;
+  clearingRoute?: string;
+  bankAddress?: string;
   equivalentUSD: number;
 }
 

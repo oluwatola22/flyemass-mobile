@@ -68,14 +68,6 @@ export const HomeScreen: React.FC = () => {
     { title: 'Pay Supplier', desc: 'Alipay / WeChat', icon: Send, route: 'pay', color: 'from-indigo-500/20 to-blue-500/20 text-indigo-400 border-indigo-500/30' },
     { title: 'FX Swap', desc: 'Live lock', icon: ArrowLeftRight, route: 'exchange', color: 'from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/30' },
     { title: 'Withdraw', desc: 'Naira NUBAN', icon: ArrowUpRight, route: 'withdraw', color: 'from-teal-500/20 to-cyan-500/20 text-teal-400 border-teal-500/30' },
-    { title: 'Track Cargo', desc: 'Air & Sea waybill', icon: Package, route: 'track', color: 'from-cyan-500/20 to-sky-500/20 text-cyan-400 border-cyan-500/30' },
-    { title: 'Shop Tech', desc: 'Apple HK stock', icon: Smartphone, route: 'shop', color: 'from-purple-500/20 to-pink-500/20 text-purple-400 border-purple-500/30' },
-    { title: 'Hotels & BNB', desc: 'China stays', icon: Hotel, route: 'hotels', color: 'from-sky-500/20 to-blue-500/20 text-sky-400 border-sky-500/30' },
-    { title: 'Apartments', desc: 'Guangzhou flats', icon: Home, route: 'rentals-apartments', color: 'from-indigo-500/20 to-purple-500/20 text-indigo-300 border-indigo-500/30' },
-    { title: 'Offices', desc: 'Showrooms', icon: Briefcase, route: 'rentals-offices', color: 'from-teal-500/20 to-emerald-500/20 text-teal-400 border-teal-500/30' },
-    { title: 'VIP Suppliers', desc: 'Direct contacts', icon: Building, route: 'suppliers', color: 'from-amber-500/20 to-yellow-500/20 text-amber-300 border-amber-500/30' },
-    { title: 'Agent Sourcing', desc: 'Canton / Audit', icon: Users, route: 'agent', color: 'from-rose-500/20 to-red-500/20 text-rose-400 border-rose-500/30' },
-    { title: 'Cargo Rates', desc: 'Shipping hub', icon: Package, route: 'logistics', color: 'from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30' },
   ];
 
   const handleCopyAccount = (acc?: string) => {
@@ -229,22 +221,22 @@ export const HomeScreen: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-4 gap-2">
             {quickActions.map((act) => {
               const Icon = act.icon;
               return (
                 <button
                   key={act.title}
                   onClick={() => navigate(act.route as any)}
-                  className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 active:scale-95 transition-all flex flex-col items-center text-center group"
+                  className="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 active:scale-95 transition-all flex flex-col items-center text-center group"
                 >
-                  <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${act.color} border flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-md`}>
-                    <Icon className="w-5 h-5" />
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${act.color} border flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform shadow-md`}>
+                    <Icon className="w-4 h-4" />
                   </div>
-                  <span className="text-xs font-bold text-slate-100 group-hover:text-emerald-400 transition-colors">
+                  <span className="text-[11px] font-bold text-slate-100 group-hover:text-emerald-400 transition-colors truncate w-full">
                     {act.title}
                   </span>
-                  <span className="text-[9px] text-slate-400 mt-0.5 line-clamp-1">
+                  <span className="text-[9px] text-slate-400 mt-0.5 line-clamp-1 truncate w-full">
                     {act.desc}
                   </span>
                 </button>

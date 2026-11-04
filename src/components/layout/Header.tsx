@@ -52,10 +52,12 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title }) => {
     }
   ];
 
-  // If on sub-page with back button
-  if (showBack || (currentRoute !== 'home' && currentRoute !== 'wallets' && currentRoute !== 'logistics' && currentRoute !== 'shop' && currentRoute !== 'profile')) {
+  // If on sub-page with back button or specific page title
+  const isSubPage = Boolean(title) || showBack || currentRoute !== 'home';
+
+  if (isSubPage) {
     return (
-      <header className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80 px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80 px-4 py-3 flex items-center justify-between">
         <button
           onClick={goBack}
           className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white p-1 rounded-lg active:scale-95 transition-all"
@@ -69,6 +71,16 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title }) => {
         </h2>
 
         <div className="flex items-center gap-2">
+          {currentRoute === 'wallets' && (
+            <button
+              onClick={toggleBalancePrivacy}
+              className="w-8 h-8 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+              title={isBalanceHidden ? 'Show Balances' : 'Hide Balances'}
+            >
+              {isBalanceHidden ? <EyeOff className="w-3.5 h-3.5 text-amber-400" /> : <Eye className="w-3.5 h-3.5" />}
+            </button>
+          )}
+
           <button
             onClick={() => navigate('support-chat')}
             className="w-8 h-8 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-300 hover:text-emerald-400 transition-colors"
@@ -82,7 +94,7 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title }) => {
   }
 
   return (
-    <header className="relative z-30 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/60 px-4 pt-3 pb-3">
+    <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80 px-4 pt-3 pb-3">
       <div className="flex items-center justify-between">
         {/* User Greeting & Verified Status */}
         <div className="flex items-center gap-3">

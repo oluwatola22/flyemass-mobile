@@ -258,7 +258,11 @@ const buildUserWallets = (balances?: { NGN?: number; CNY?: number; USD?: number 
       name: 'Nigerian Naira Wallet',
       flag: '🇳🇬',
       accountNumber: '9082341902',
-      bankName: 'FlyeMass / Providus Bank',
+      bankName: 'Providus Bank Plc',
+      accountName: 'FlyeMass / Babatunde Alade',
+      sortCode: '101002',
+      clearingRoute: 'Instant NIP (NIBSS Instant Payment)',
+      bankAddress: 'Plot 54, Adetokunbo Ademola St, Victoria Island, Lagos',
       equivalentUSD: Number((ngn / 1485).toFixed(2))
     },
     {
@@ -267,8 +271,14 @@ const buildUserWallets = (balances?: { NGN?: number; CNY?: number; USD?: number 
       symbol: '¥',
       name: 'Chinese Yuan (RMB) Escrow',
       flag: '🇨🇳',
-      accountNumber: 'CN892300041289',
-      bankName: 'FlyeMass China Merchant Clearing',
+      accountNumber: 'CN6227003320094892',
+      bankName: 'Bank of China (Guangzhou)',
+      accountName: 'FlyeMass Trade Guangzhou Co., Ltd (FM-7702)',
+      iban: 'CN6227003320094892',
+      swiftBic: 'BKCHCNBJ400',
+      cnapsCode: '104581000018',
+      clearingRoute: 'CIPS / Mainland China Direct Settlement',
+      bankAddress: 'No. 197 Dongfeng West Road, Yuexiu District, Guangzhou, China',
       equivalentUSD: Number((cny / 7.24).toFixed(2))
     },
     {
@@ -277,8 +287,14 @@ const buildUserWallets = (balances?: { NGN?: number; CNY?: number; USD?: number 
       symbol: '$',
       name: 'US Dollar Global Account',
       flag: '🇺🇸',
-      accountNumber: 'US8921894002',
-      bankName: 'FlyeMass / Evolve Bank NY',
+      accountNumber: '02100002148902',
+      bankName: 'JPMorgan Chase Bank, N.A.',
+      accountName: 'FlyeMass Treasury LLC (FM-7702)',
+      iban: 'US89JPMC02100002148902',
+      swiftBic: 'CHASUS33',
+      routingAba: '021000021',
+      clearingRoute: 'Fedwire / Direct International SWIFT Wire',
+      bankAddress: '270 Park Avenue, New York, NY 10017, USA',
       equivalentUSD: usd
     }
   ];
