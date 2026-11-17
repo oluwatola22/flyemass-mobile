@@ -33,6 +33,7 @@ import {
   TransactionalEmailEvent,
   EmailRecipient
 } from './emailTemplates';
+import { supabase } from './supabaseClient';
 
 export interface DatabaseState {
   users: Record<string, UserDocument>;
@@ -2259,7 +2260,39 @@ class DatabaseService {
   public async getSupplierSubscriptionStatus(userId: string): Promise<any> {
     try {
       const res = await fetch(`${BACKEND_BASE}/api/suppliers/subscription-status?userId=${encodeURIComponent(userId)}`);
-      return await res.json();
+      const backendData = await res.json();
+      if (backendData && backendData.isSubscribed) {
+        return backendData;
+      }
+      // High-availability check against Supabase public.user_subscriptions
+      try {
+        const { data: supaSubs } = await supabase
+          .from('user_subscriptions')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('status', 'active')
+          .order('active_until', { ascending: false })
+          .limit(1);
+
+        if (supaSubs && supaSubs.length > 0) {
+          const sub = supaSubs[0];
+          const activeUntilMs = new Date(sub.active_until).getTime();
+          if (activeUntilMs > Date.now()) {
+            return {
+              isSubscribed: true,
+              status: 'active',
+              activeUntil: activeUntilMs,
+              daysRemaining: Math.ceil((activeUntilMs - Date.now()) / (1000 * 60 * 60 * 24)),
+              reference: sub.reference,
+              currency: sub.currency,
+              amountPaid: sub.amount
+            };
+          }
+        }
+      } catch (err) {
+        // Fallback to backendData
+      }
+      return backendData;
     } catch (e: any) {
       return { success: false, isSubscribed: false, error: e.message };
     }
@@ -2272,7 +2305,27 @@ class DatabaseService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, currency, pin, supplierId })
       });
-      return await res.json();
+      const data = await res.json();
+      if (data && data.success && data.subscription) {
+        // Instantly sync into Supabase public.user_subscriptions
+        try {
+          await supabase.from('user_subscriptions').upsert({
+            id: data.subscription.id || `sub_vip_${userId}`,
+            user_id: userId,
+            plan_type: data.subscription.type || 'directory_30d',
+            currency: data.subscription.currency || currency,
+            amount: data.subscription.amountPaid || 15000,
+            status: 'active',
+            active_until: new Date(data.subscription.activeUntil).toISOString(),
+            reference: data.reference,
+            auto_renew: false,
+            updated_at: new Date().toISOString()
+          });
+        } catch (supaErr) {
+          console.warn('[Supabase] Subscription mirror notice:', supaErr);
+        }
+      }
+      return data;
     } catch (e: any) {
       return { success: false, error: e.message || 'Network error subscribing to supplier directory' };
     }
