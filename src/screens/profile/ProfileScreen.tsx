@@ -301,8 +301,8 @@ export const ProfileScreen: React.FC = () => {
 
         {/* Edit Profile Modal */}
         {showEditModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
-            <form onSubmit={handleSaveProfile} className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+          <div className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-12 p-4 bg-black/85 backdrop-blur-md animate-in fade-in overflow-y-auto">
+            <form onSubmit={handleSaveProfile} className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 animate-in slide-in-from-top-4 duration-200 mt-2">
               <div className="flex items-center justify-between pb-2 border-b border-slate-800">
                 <h3 className="text-sm font-extrabold text-white">Edit Corporate Profile</h3>
                 <button

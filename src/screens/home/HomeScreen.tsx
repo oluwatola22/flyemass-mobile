@@ -85,16 +85,16 @@ export const HomeScreen: React.FC = () => {
   }, []);
 
   const liveRatesList = useMemo(() => {
-    const cnyToNgn = Number(dbRates?.CNY_to_NGN || liveFxDisplay?.displayNgnRmb || dbRates?.NGN_CNY || 215.20);
-    const usdToNgn = Number(dbRates?.USD_to_NGN || liveFxDisplay?.displayUsdNgn || dbRates?.USD_NGN || 1490.00);
-    const usdToCny = Number(dbRates?.USD_to_CNY || liveFxDisplay?.displayUsdCny || dbRates?.USD_CNY || 7.26);
-    const ngnToCny = Number(dbRates?.NGN_to_CNY || (1 / (dbRates?.naira_per_rmb || cnyToNgn)));
-    const ngnToUsd = Number(dbRates?.NGN_to_USD || (1 / (dbRates?.naira_per_usd || usdToNgn)));
-    const cnyToUsd = Number(dbRates?.CNY_to_USD || (1 / usdToCny));
+    const cnyRateNgn = Number(dbRates?.CNY_to_NGN || liveFxDisplay?.displayNgnRmb || dbRates?.NGN_CNY || 215.20);
+    const usdRateNgn = Number(dbRates?.USD_to_NGN || liveFxDisplay?.displayUsdNgn || dbRates?.USD_NGN || 1490.00);
+    const usdRateCny = Number(dbRates?.USD_to_CNY || liveFxDisplay?.displayUsdCny || dbRates?.USD_CNY || 7.26);
+    const ngnRateCny = Number(dbRates?.NGN_to_CNY || (1 / (dbRates?.naira_per_rmb || cnyRateNgn)));
+    const ngnRateUsd = Number(dbRates?.NGN_to_USD || (1 / (dbRates?.naira_per_usd || usdRateNgn)));
+    const cnyRateUsd = Number(dbRates?.CNY_to_USD || (1 / usdRateCny));
 
     return [
-      { pair: 'RMB ➔ NGN', from: 'CNY' as Currency, to: 'NGN' as Currency, display: `1 RMB = ₦${cnyToNgn.toFixed(2)}`, rate: cnyToNgn, change24h: 0.42, isPositive: true },
-      { pair: 'NGN ➔ RMB', from: 'NGN' as Currency, to: 'CNY' as Currency, display: dbRates?.naira_per_rmb ? `₦${Number(dbRates.naira_per_rmb).toFixed(2)}/RMB` : `1 NGN = ¥${ngnToCny.toFixed(4)}`, rate: ngnToCny, change24h: -0.35, isPositive: false }
+      { pair: 'RMB ➔ NGN', from: 'CNY' as Currency, to: 'NGN' as Currency, display: `1 RMB = ₦${cnyRateNgn.toFixed(2)}`, rate: cnyRateNgn, change24h: 0.42, isPositive: true },
+      { pair: 'NGN ➔ RMB', from: 'NGN' as Currency, to: 'CNY' as Currency, display: dbRates?.naira_per_rmb ? `₦${Number(dbRates.naira_per_rmb).toFixed(2)}/RMB` : `1 NGN = ¥${ngnRateCny.toFixed(4)}`, rate: ngnRateCny, change24h: -0.35, isPositive: false }
     ];
   }, [dbRates, liveFxDisplay]);
 

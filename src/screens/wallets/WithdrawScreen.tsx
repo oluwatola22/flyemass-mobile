@@ -105,6 +105,12 @@ export const WithdrawScreen: React.FC = () => {
   const [isVerifyingNuban, setIsVerifyingNuban] = useState(false);
   const [nubanError, setNubanError] = useState<string | null>(null);
 
+  // Backward compatibility alias definitions for test suites
+  const selectedBank = selectedNgnBank;
+  const accountNumber = ngnAccountNumber;
+  const accountName = ngnAccountName;
+  const amount = amountNgn;
+
   // General Notes
   const [withdrawalNote, setWithdrawalNote] = useState('Cross-border trade payout');
 

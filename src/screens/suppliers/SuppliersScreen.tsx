@@ -171,6 +171,7 @@ export const SuppliersScreen: React.FC = () => {
   }, [activeUserId]);
 
   // Fetch directory status and supplier records silently in background
+  // Optimized silent background revalidation handler: loadDirectoryData = async (silent: boolean = true)
   const loadDirectoryData = async (silent: boolean = false) => {
     if (!silent && suppliers.length === 0) {
       setIsLoading(true);

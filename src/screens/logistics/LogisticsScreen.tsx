@@ -190,11 +190,11 @@ export const LogisticsScreen: React.FC = () => {
         <div className="flex items-center gap-2 overflow-hidden">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
           <span className="text-slate-300 font-semibold truncate">
-            Air Express & Regular (CAN ➔ LOS): <span className="text-emerald-400">Daily Departures</span> • Direct Air Customs Clearance
+            Air Express (CAN ➔ LOS) & Regular: <span className="text-emerald-400">Daily Departures</span> • Direct Air Customs Clearance
           </span>
         </div>
         <span className="text-[10px] text-slate-400 font-mono shrink-0 hidden sm:inline-block">
-          Air Freight Network Active
+          Air Freight Network Active • Single-Window Customs Active
         </span>
       </div>
 
@@ -259,7 +259,7 @@ export const LogisticsScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Customer Unique Shipping Mark Card (Standard Global Barcode Format) */}
+        {/* Customer Unique Shipping Mark Card (Standard Global Barcode Format) - Your Personal Shipping Mark • Auto-Link Enabled */}
         <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-indigo-950/90 via-slate-900 to-slate-950 border border-indigo-500/40 shadow-2xl space-y-3">
           <div className="flex items-center justify-between gap-2">
             <span className="text-[11px] font-black uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
@@ -476,14 +476,14 @@ export const LogisticsScreen: React.FC = () => {
             {filteredShipments.length === 0 ? (
               <div className="p-8 text-center bg-slate-900 border border-slate-800 rounded-3xl space-y-3">
                 <Package className="w-10 h-10 text-slate-600 mx-auto" />
-                <h4 className="text-sm font-bold text-white">No Shipments Found</h4>
-                <p className="text-xs text-slate-400">Pre-register incoming China parcels to track them live.</p>
+                <h4 className="text-sm font-bold text-white">No Inbound Consignments</h4>
+                <p className="text-xs text-slate-400">Pre-alert your incoming air cargo waybills for immediate dock intake and tracking.</p>
                 <button
                   type="button"
                   onClick={() => navigate('register-package')}
-                  className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black cursor-pointer shadow-md shadow-emerald-500/20 active:scale-95 transition-all"
                 >
-                  Register First Parcel
+                  Register Inbound Shipment
                 </button>
               </div>
             ) : (

@@ -235,6 +235,10 @@ export const SupportChatScreen: React.FC = () => {
       currentTicket.messages.push(fallbackMsg);
       currentTicket.updatedAt = Date.now();
       db.saveSupportTicket(currentTicket);
+      // Messages are dispatched to db.addTicketMessage
+      if ((db as any).addTicketMessage) {
+        (db as any).addTicketMessage(targetId, fallbackMsg);
+      }
       db.appendChatMessage(fallbackMsg);
       setTicket({ ...currentTicket });
     } finally {
@@ -274,13 +278,14 @@ export const SupportChatScreen: React.FC = () => {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <p className="text-xs font-bold text-white tracking-tight">Chen Wei / Trade AI</p>
+                  {/* Chen Wei & Trade AI */}
                   <span className="px-1.5 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 font-mono text-[9px] flex items-center gap-1 shrink-0">
                     <Sparkles className="w-2.5 h-2.5 text-indigo-400" />
                     <span>Gemini 3.8 Flash</span>
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-400 truncate mt-0.5">
-                  Ticket: <span className="font-mono text-slate-300">{ticket?.ticketNumber || 'TKT-8901'}</span> • {ticket?.category || 'General Trade'}
+                  Ticket: <span className="font-mono text-slate-300">{ticket?.ticketNumber || 'TKT-8901'}</span> • Guangzhou Hub Desk
                 </p>
               </div>
             </div>

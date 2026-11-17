@@ -92,6 +92,7 @@ export const WalletsScreen: React.FC = () => {
   }, []);
 
   // Compute Balances
+  // Institutional Vault Reference: United States Dollar Wallet (USD)
   const ngnWallet = wallets.find(w => w.currency === 'NGN') || { currency: 'NGN', balance: 0, symbol: '₦', name: 'Nigerian Naira Vault', flag: '🇳🇬', equivalentUSD: 0 };
   const cnyWallet = wallets.find(w => w.currency === 'CNY') || { currency: 'CNY', balance: 0, symbol: '¥', name: 'Chinese Yuan Vault', flag: '🇨🇳', equivalentUSD: 0 };
 
@@ -433,9 +434,10 @@ export const WalletsScreen: React.FC = () => {
           {/* Transactions List */}
           <div className="space-y-2">
             {filteredTransactions.length === 0 ? (
-              <div className="p-8 text-center bg-slate-900/50 border border-slate-800 rounded-3xl space-y-2">
-                <FileText className="w-8 h-8 text-slate-600 mx-auto" />
-                <p className="text-xs text-slate-400">No transactions match your search criteria.</p>
+              <div className="p-8 text-center bg-slate-900/50 border border-slate-800 rounded-3xl space-y-1.5">
+                <FileText className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                <p className="text-xs font-bold text-slate-300">No Ledger Postings Found</p>
+                <p className="text-[11px] text-slate-500">No settled transactions or conversions match your active filter.</p>
               </div>
             ) : (
               filteredTransactions.map((tx) => (
@@ -490,8 +492,8 @@ export const WalletsScreen: React.FC = () => {
       {/* 5. TRANSACTION DETAILS RECEIPT MODAL */}
       {/* ======================================================== */}
       {selectedTx && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-12 p-4 bg-black/80 backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto animate-in slide-in-from-top-4 duration-200 mt-2">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
@@ -630,8 +632,8 @@ export const WalletsScreen: React.FC = () => {
       {/* 6. STATEMENT DOWNLOAD MODAL */}
       {/* ======================================================== */}
       {showStatementModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-12 p-4 bg-black/80 backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 animate-in slide-in-from-top-4 duration-200 mt-2">
             <div className="flex items-center justify-between pb-2 border-b border-slate-800">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-emerald-400" />
