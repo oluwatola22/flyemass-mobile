@@ -326,3 +326,114 @@ main,
   background: #384F6E;
 }
 
+/* ==========================================================================
+   HIGH-LEGIBILITY ENTERPRISE TYPOGRAPHY SIZING (ADMIN ONLY)
+   Fixes small, faint, and 'tired' text across all admin tables, labels, 
+   cards, drawers, and form controls for crystal-clear readability.
+   ========================================================================== */
+.admin-enterprise-theme {
+  font-size: 14.5px;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Force minimum font sizes for micro text so it is crisp, clear, and never eye-straining */
+.admin-enterprise-theme .text-\[9px\],
+.admin-enterprise-theme .text-\[10px\] {
+  font-size: 0.75rem !important; /* 12px minimum */
+  line-height: 1.15rem !important;
+  font-weight: 600 !important;
+}
+
+.admin-enterprise-theme .text-\[11px\] {
+  font-size: 0.8125rem !important; /* 13px */
+  line-height: 1.25rem !important;
+  font-weight: 500;
+}
+
+.admin-enterprise-theme .text-xs {
+  font-size: 0.84375rem !important; /* 13.5px */
+  line-height: 1.35rem !important;
+}
+
+.admin-enterprise-theme .text-sm {
+  font-size: 0.9375rem !important; /* 15px */
+  line-height: 1.45rem !important;
+}
+
+.admin-enterprise-theme .text-base {
+  font-size: 1.0625rem !important; /* 17px */
+  line-height: 1.6rem !important;
+}
+
+.admin-enterprise-theme .text-lg {
+  font-size: 1.1875rem !important; /* 19px */
+  line-height: 1.7rem !important;
+}
+
+.admin-enterprise-theme .text-xl {
+  font-size: 1.375rem !important; /* 22px */
+  line-height: 1.85rem !important;
+}
+
+.admin-enterprise-theme .text-2xl {
+  font-size: 1.625rem !important; /* 26px */
+  line-height: 2.1rem !important;
+}
+
+/* Form controls & inputs: comfortable typing size and high-contrast text */
+.admin-enterprise-theme input,
+.admin-enterprise-theme select,
+.admin-enterprise-theme textarea {
+  font-size: 0.9375rem !important; /* 15px */
+  color: #F8FAFC !important;
+  background-color: #0B1220 !important;
+  border-color: #293A52 !important;
+}
+
+.admin-enterprise-theme input::placeholder,
+.admin-enterprise-theme textarea::placeholder {
+  color: #94A3B8 !important;
+}
+
+.admin-enterprise-theme input:focus,
+.admin-enterprise-theme select:focus,
+.admin-enterprise-theme textarea:focus {
+  border-color: #4778F5 !important;
+  box-shadow: 0 0 0 1px #4778F5 !important;
+}
+
+/* Table headers & cells: high legibility with sharp contrast */
+.admin-enterprise-theme th {
+  font-size: 0.8125rem !important; /* 13px */
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  color: #CBD5E1 !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+}
+
+.admin-enterprise-theme td {
+  font-size: 0.9375rem !important; /* 15px */
+  color: #F1F5F9 !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+}
+
+/* Eliminate faint, washed-out grey text across all admin surfaces */
+.admin-enterprise-theme .text-slate-500,
+.admin-enterprise-theme .text-slate-600 {
+  color: #94A3B8 !important;
+}
+
+.admin-enterprise-theme .text-slate-400 {
+  color: #CBD5E1 !important;
+}
+
+.admin-enterprise-theme .text-slate-300,
+.admin-enterprise-theme .text-slate-200 {
+  color: #E2E8F0 !important;
+}
+

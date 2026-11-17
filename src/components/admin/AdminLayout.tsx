@@ -191,7 +191,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const navItems: AdminNavItem[] = useMemo(() => [
+  const navItems = useMemo(() => [
     // 1. CORE OPERATIONAL WORKFLOWS (Primary 1-Click Access)
     {
       id: 'dashboard',
@@ -563,26 +563,26 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
         data-testid="admin-enterprise-console"
       >
         {/* Top Enterprise Banking & Logistics Telemetry Ribbon */}
-        <div className="bg-slate-900 border-b border-slate-800 px-4 py-2 flex items-center justify-between text-xs z-50 shrink-0">
+        <div className="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between text-sm z-50 shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center font-black text-white text-[10px] shadow-sm shadow-indigo-600/30">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center font-black text-white text-xs shadow-sm shadow-indigo-600/30">
                 FM
               </div>
-              <span className="font-extrabold tracking-wide text-white text-xs">
+              <span className="font-extrabold tracking-wide text-white text-sm">
                 FlyeMass Enterprise Command Tower
               </span>
             </div>
 
-            <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-bold text-emerald-400">
-              <Activity className="w-3 h-3 animate-pulse" />
+            <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-bold text-emerald-400">
+              <Activity className="w-3.5 h-3.5 animate-pulse" />
               <span>China ↔ Nigeria Trade Pipeline Active</span>
             </span>
           </div>
 
           {/* Live Logistics Rates & Client App Switcher */}
           <div className="flex items-center gap-2.5">
-            <div className="hidden xl:flex items-center gap-2.5 px-3 py-1 rounded-xl bg-slate-950 border border-slate-800 font-mono text-[11px]">
+            <div className="hidden xl:flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs">
               <span className="text-slate-400">Express Air:</span>
               <span className="text-emerald-400 font-bold">${badges.expressAirRate.toFixed(2)}/kg</span>
               <span className="text-slate-700">|</span>
@@ -593,25 +593,25 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
               <span className="text-indigo-400 font-bold">₦{badges.usdToNgn.toLocaleString()}/$ · ¥{badges.usdToCny.toFixed(2)}/$</span>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               {activeTab !== 'logistics' && (
                 <button
                   onClick={() => navigate('admin-logistics')}
-                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all cursor-pointer shadow-sm shadow-indigo-600/20"
+                  className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all cursor-pointer shadow-sm shadow-indigo-600/20"
                   title="Jump to Shipments & Cargo Pipeline (/admin/shipments)"
                 >
-                  <Truck className="w-3.5 h-3.5" />
+                  <Truck className="w-4 h-4" />
                   <span>Shipments & Cargo</span>
                 </button>
               )}
               <button
                 onClick={() => window.open(getMobileAppUrl(), '_blank')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white font-bold text-xs shadow-sm active:scale-95 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-100 hover:text-white font-bold text-xs shadow-sm active:scale-95 transition-all cursor-pointer"
                 title={`Open Client Mobile App in New Window (${getMobileAppUrl()})`}
               >
-                <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+                <Smartphone className="w-4 h-4 text-emerald-400" />
                 <span>Open Client View</span>
-                <ExternalLink className="w-3 h-3 ml-0.5 text-slate-400" />
+                <ExternalLink className="w-3.5 h-3.5 ml-0.5 text-slate-400" />
               </button>
             </div>
           </div>
@@ -631,10 +631,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
                 <div className="flex items-center justify-between">
                   {!sidebarCollapsed && (
                     <div>
-                      <h2 className="text-[11px] uppercase font-extrabold tracking-wider text-indigo-400">
+                      <h2 className="text-xs uppercase font-extrabold tracking-wider text-indigo-400">
                         Admin Navigation
                       </h2>
-                      <p className="text-[11px] text-slate-400 font-medium">Global Management Suite</p>
+                      <p className="text-xs text-slate-300 font-medium">Global Management Suite</p>
                     </div>
                   )}
                   <button
@@ -649,14 +649,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
 
                 {!sidebarCollapsed && (
                   <div className="relative">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                       type="text"
                       value={sidebarFilter}
                       onChange={(e) => setSidebarFilter(e.target.value)}
                       placeholder="Filter modules..."
                       aria-label="Filter sidebar navigation"
-                      className="w-full pl-8 pr-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-indigo-500 text-xs text-white placeholder-slate-400 outline-none transition-colors"
+                      className="w-full pl-8 pr-2.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-indigo-500 text-xs text-white placeholder-slate-400 outline-none transition-colors"
                     />
                   </div>
                 )}
@@ -665,7 +665,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
               {/* Grouped Navigation Menu */}
               <nav
                 aria-label="Admin Console Navigation"
-                className="p-2.5 space-y-3 overflow-y-auto flex-1 no-scrollbar"
+                className="p-2.5 space-y-3.5 overflow-y-auto flex-1 no-scrollbar"
               >
                 {(['core', 'treasury', 'commerce', 'governance'] as const).map((sectionKey) => {
                   const sectionItems = filteredNavItems.filter((i) => i.section === sectionKey);
@@ -674,7 +674,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
                   return (
                     <div key={sectionKey} className="space-y-1">
                       {!sidebarCollapsed && (
-                        <div className="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                        <div className="px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-slate-300">
                           {sectionLabelMap[sectionKey]}
                         </div>
                       )}
@@ -686,16 +686,16 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
                           <button
                             key={item.id}
                             onClick={() => navigate(item.route)}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all group cursor-pointer ${
+                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group cursor-pointer ${
                               isActive
                                 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/25 border border-indigo-500'
-                                : 'text-slate-300 hover:text-white hover:bg-slate-800/90 border border-transparent'
+                                : 'text-slate-200 hover:text-white hover:bg-slate-800/90 border border-transparent'
                             }`}
                             title={sidebarCollapsed ? `${item.label} (${item.path})` : item.path}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
                               <Icon
-                                className={`w-4 h-4 shrink-0 transition-transform ${
+                                className={`w-4.5 h-4.5 shrink-0 transition-transform ${
                                   isActive ? 'text-white' : 'text-slate-400 group-hover:text-indigo-400 group-hover:scale-105'
                                 }`}
                               />
@@ -704,10 +704,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
 
                             {!sidebarCollapsed && item.badge !== undefined && item.badge > 0 && (
                               <span
-                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold num-tabular ${
+                                className={`px-2 py-0.5 rounded-full text-xs font-bold num-tabular ${
                                   isActive
                                     ? 'bg-white/20 text-white'
-                                    : item.badgeColor || 'bg-slate-800 text-slate-200 border border-slate-700'
+                                    : item.badgeColor || 'bg-slate-800 text-slate-100 border border-slate-700'
                                 }`}
                               >
                                 {item.badge}
@@ -864,39 +864,39 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
               <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Interactive Breadcrumb Trail */}
                 <div
-                  className="flex items-center gap-2 text-xs min-w-0"
+                  className="flex items-center gap-2 text-sm min-w-0"
                   data-testid="admin-breadcrumb-header"
                 >
                   <button
                     type="button"
                     onClick={() => navigate('admin-dashboard')}
-                    className="font-bold text-slate-400 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
+                    className="font-bold text-slate-300 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
                   >
                     Enterprise Console
                   </button>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-                  <span className="text-slate-400 font-medium hidden sm:inline whitespace-nowrap">
+                  <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
+                  <span className="text-slate-300 font-medium hidden sm:inline whitespace-nowrap">
                     {sectionLabelMap[activeNavItem.section]}
                   </span>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-600 hidden sm:inline shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-slate-500 hidden sm:inline shrink-0" />
                   <span className="font-extrabold text-white truncate">{activeNavItem.label}</span>
-                  <span className="hidden md:inline-block px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 font-mono text-[10px] text-indigo-400">
+                  <span className="hidden md:inline-block px-2.5 py-0.5 rounded-md bg-slate-950 border border-slate-800 font-mono text-xs text-indigo-400 font-semibold">
                     {activeNavItem.path}
                   </span>
                 </div>
 
                 {/* Date & Time Indicator */}
-                <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300">
-                  <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                <div className="hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200">
+                  <Clock className="w-4 h-4 text-indigo-400" />
                   <span>{currentTime.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
                   <span className="text-slate-600">|</span>
                   <span className="font-bold text-white">{currentTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                  <span className="text-[10px] text-indigo-400 font-bold">WAT</span>
+                  <span className="text-xs text-indigo-400 font-bold">WAT</span>
                 </div>
 
                 {/* System Status Indicator */}
-                <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-[10px] text-emerald-400 font-bold">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-emerald-400 font-bold">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                   <span>99.98% SLA Nominal</span>
                 </div>
 
@@ -911,9 +911,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Quick jump or search (⌘K or /): shipments, RFQs, tickets, hubs, rates..."
                       aria-label="Global Command Search"
-                      className="w-full pl-10 pr-12 py-1.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs text-white placeholder-slate-400 outline-none transition-all"
+                      className="w-full pl-10 pr-12 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm text-white placeholder-slate-400 outline-none transition-all"
                     />
-                    <kbd className="hidden sm:inline-block absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-mono text-slate-300">
+                    <kbd className="hidden sm:inline-block absolute right-2.5 top-1/2 -translate-y-1/2 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-xs font-mono text-slate-300">
                       ⌘K
                     </kbd>
                   </form>
@@ -923,11 +923,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
                     <button
                       type="button"
                       onClick={() => setShowQuickActions(!showQuickActions)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-200 hover:text-white transition-all cursor-pointer"
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-xs font-bold text-slate-100 hover:text-white transition-all cursor-pointer"
                     >
-                      <Sliders className="w-3.5 h-3.5 text-indigo-400" />
+                      <Sliders className="w-4 h-4 text-indigo-400" />
                       <span className="hidden sm:inline">Actions</span>
-                      <ChevronDown className="w-3 h-3 text-slate-400" />
+                      <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                     </button>
 
                     {showQuickActions && (
@@ -1003,27 +1003,27 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
                   {/* Header Staff Profile Pill */}
                   <div
                     onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
-                    className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer transition-all"
+                    className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer transition-all"
                     title={`Logged in as ${currentAdmin.name} (${currentAdmin.roleTitle})`}
                   >
                     <img
                       src={currentAdmin.avatar}
                       alt={currentAdmin.name}
-                      className="w-6 h-6 rounded-lg object-cover ring-1 ring-indigo-500/50"
+                      className="w-7 h-7 rounded-lg object-cover ring-1 ring-indigo-500/50"
                     />
-                    <div className="text-left text-[11px] leading-tight">
-                      <p className="font-bold text-white truncate max-w-[100px]">{currentAdmin.name.split(' ')[0]}</p>
-                      <p className="text-[9px] text-indigo-400 font-mono uppercase">{currentAdmin.role.slice(0, 10)}</p>
+                    <div className="text-left text-xs leading-tight">
+                      <p className="font-bold text-white truncate max-w-[120px]">{currentAdmin.name.split(' ')[0]}</p>
+                      <p className="text-[10px] text-indigo-400 font-mono font-bold uppercase">{currentAdmin.role.slice(0, 10)}</p>
                     </div>
                   </div>
 
                   {/* Admin Sign Out */}
                   <button
                     onClick={logoutAdmin}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-950 hover:bg-rose-500/20 border border-slate-800 hover:border-rose-500/50 text-xs text-slate-300 hover:text-rose-300 font-semibold transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-950 hover:bg-rose-500/20 border border-slate-800 hover:border-rose-500/50 text-xs text-slate-200 hover:text-rose-300 font-bold transition-colors cursor-pointer"
                     title="Sign out of Admin Session"
                   >
-                    <LogOut className="w-3.5 h-3.5" />
+                    <LogOut className="w-4 h-4" />
                     <span className="hidden sm:inline">Sign Out</span>
                   </button>
                 </div>
@@ -1031,10 +1031,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
 
               {/* Bottom Row: Frictionless 1-Click Core Operational Workflows Bar */}
               <div
-                className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1.5 border-t border-slate-800"
+                className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-2 border-t border-slate-800"
                 data-testid="admin-core-workflow-bar"
               >
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mr-1 shrink-0">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-slate-300 mr-1 shrink-0">
                   Core Workflows:
                 </span>
                 {coreWorkflowItems.map((item) => {
@@ -1045,17 +1045,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
                       key={item.id}
                       type="button"
                       onClick={() => navigate(item.route)}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap transition-all cursor-pointer border ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap transition-all cursor-pointer border ${
                         isActive
                           ? 'bg-indigo-600 text-white font-extrabold border-indigo-500 shadow-sm shadow-indigo-600/30'
-                          : 'bg-slate-950 text-slate-300 hover:text-white border-slate-800 hover:border-slate-700'
+                          : 'bg-slate-950 text-slate-200 hover:text-white border-slate-800 hover:border-slate-700'
                       }`}
                     >
-                      <Icon className="w-3.5 h-3.5" />
+                      <Icon className="w-4 h-4" />
                       <span>{item.shortLabel || item.label}</span>
                       {item.badge !== undefined && item.badge > 0 && (
                         <span
-                          className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
+                          className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
                             isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-indigo-300'
                           }`}
                         >

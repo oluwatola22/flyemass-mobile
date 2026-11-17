@@ -557,6 +557,7 @@ export const AdminLogisticsScreen: React.FC<{
       setIsUpdatingAirRates(false);
     }
   };
+  const handleUpdateAirShippingRates = handleUpdateAirRates;
 
   const handleUpdateLogisticsFx = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -578,6 +579,7 @@ export const AdminLogisticsScreen: React.FC<{
       setIsUpdatingLogisticsFx(false);
     }
   };
+  const handleUpdateLogisticsFxRates = handleUpdateLogisticsFx;
 
   // 10. Issue Waybill
   const handleCreatePackage = async (e: React.FormEvent) => {

@@ -32,7 +32,14 @@ import {
   Eye,
   Camera,
   Layers,
-  FileCheck
+  FileCheck,
+  Award,
+  Sparkles,
+  RefreshCw,
+  ShoppingBag,
+  Factory,
+  CheckCircle,
+  FileSpreadsheet
 } from 'lucide-react';
 
 interface AdminAgentsScreenProps {
@@ -164,7 +171,8 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
       const pName = (r.productName || '').toLowerCase();
       const cName = (r.clientName || '').toLowerCase();
       const sName = (r.supplierName || '').toLowerCase();
-      if (!ref.includes(q) && !pName.includes(q) && !cName.includes(q) && !sName.includes(q)) return false;
+      const specs = (r.specifications || '').toLowerCase();
+      if (!ref.includes(q) && !pName.includes(q) && !cName.includes(q) && !sName.includes(q) && !specs.includes(q)) return false;
     }
     return true;
   });
@@ -471,361 +479,702 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
   return (
     <AdminLayout activeTab="agents">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-extrabold text-white tracking-tight">China Ground Trade Sourcing & Inspections</h1>
-            <p className="text-xs text-slate-400">
-              Manage 1688 sourcing requests, supplier legitimacy audits, pre-shipment AQL QA, and double-entry escrow disbursement.
-            </p>
+        {/* Top Header Command Strip */}
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-[#111C2E] via-[#152238] to-[#111C2E] border border-[#293A52] shadow-xl flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-emerald-500 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30">
+                <Factory className="w-5 h-5" />
+              </div>
+              <div>
+                <h1 className="text-xl lg:text-2xl font-black text-white tracking-tight">
+                  China Ground Trade Sourcing & Inspections
+                </h1>
+                <p className="text-sm font-medium text-slate-300">
+                  Live 1688 RFQ formulations, ground factory legitimacy audits, bilingual Canton Fair escort, and double-entry escrow disbursement.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="flex gap-1.5 p-1 rounded-2xl bg-slate-900 border border-slate-800">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#0B1220] border border-[#293A52]">
               <button
                 onClick={() => setActiveTab('rfqs')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === 'rfqs' ? 'bg-emerald-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all cursor-pointer ${
+                  activeTab === 'rfqs' 
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' 
+                    : 'text-slate-300 hover:text-white'
                 }`}
               >
-                Requests ({rfqs.length})
+                Requests Queue ({rfqs.length})
               </button>
               <button
                 onClick={() => setActiveTab('settings')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 ${
-                  activeTab === 'settings' ? 'bg-emerald-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white'
+                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                  activeTab === 'settings' 
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' 
+                    : 'text-slate-300 hover:text-white'
                 }`}
               >
-                <Settings className="w-3.5 h-3.5" />
+                <Settings className="w-4 h-4" />
                 <span>Fees & Commission</span>
               </button>
-              <button
-                onClick={() => navigate('admin-suppliers')}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-amber-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer"
-                title="Go to VIP Suppliers Directory"
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                <span>VIP Suppliers</span>
-              </button>
+            </div>
+
+            <button
+              onClick={() => setShowAddSupplier(true)}
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold transition-all flex items-center gap-2 shadow-md shadow-emerald-600/20 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Register Factory</span>
+            </button>
+
+            <button
+              onClick={() => navigate('admin-suppliers')}
+              className="px-4 py-2 rounded-xl bg-[#1B2A40] hover:bg-[#253954] border border-[#293A52] text-amber-300 hover:text-white text-sm font-bold transition-all flex items-center gap-2 cursor-pointer"
+              title="Go to VIP Suppliers Directory"
+            >
+              <Building2 className="w-4 h-4 text-amber-400" />
+              <span>VIP Suppliers</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 6 High-Contrast Executive KPI Metric Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
+          {/* 1. Total Requests */}
+          <div className="p-4 rounded-xl bg-[#152238] border border-[#293A52] hover:border-indigo-500/50 transition-all shadow-md">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Total Missions</span>
+              <ClipboardList className="w-4 h-4 text-indigo-400" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-white font-mono">{totalCount}</span>
+              <span className="text-xs text-slate-400 font-semibold">Logged</span>
+            </div>
+          </div>
+
+          {/* 2. Pending Review */}
+          <div className="p-4 rounded-xl bg-[#152238] border border-amber-500/40 hover:border-amber-400 transition-all shadow-md">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-400">Pending Review</span>
+              <Clock className="w-4 h-4 text-amber-400" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-amber-300 font-mono">{pendingCount}</span>
+              <span className="text-xs text-amber-400/80 font-semibold">Action Needed</span>
+            </div>
+          </div>
+
+          {/* 3. Awaiting Payment / Quotation Sent */}
+          <div className="p-4 rounded-xl bg-[#152238] border border-blue-500/40 hover:border-blue-400 transition-all shadow-md">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-blue-400">Quotation Sent</span>
+              <Send className="w-4 h-4 text-blue-400" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-blue-300 font-mono">{awaitingPaymentCount}</span>
+              <span className="text-xs text-blue-400/80 font-semibold">Proforma Out</span>
+            </div>
+          </div>
+
+          {/* 4. In Progress / Paid & Active */}
+          <div className="p-4 rounded-xl bg-[#152238] border border-indigo-500/40 hover:border-indigo-400 transition-all shadow-md">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-300">Paid & Active</span>
+              <ShieldCheck className="w-4 h-4 text-indigo-400" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-indigo-200 font-mono">{inProgressCount}</span>
+              <span className="text-xs text-indigo-300/80 font-semibold">On Ground</span>
+            </div>
+          </div>
+
+          {/* 5. Completed */}
+          <div className="p-4 rounded-xl bg-[#152238] border border-emerald-500/40 hover:border-emerald-400 transition-all shadow-md">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">Completed</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-emerald-300 font-mono">{completedCount}</span>
+              <span className="text-xs text-emerald-400/80 font-semibold">Settled</span>
+            </div>
+          </div>
+
+          {/* 6. Total Quoted Value */}
+          <div className="p-4 rounded-xl bg-[#152238] border border-[#293A52] hover:border-emerald-500/50 transition-all shadow-md">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Pipeline Value</span>
+              <DollarSign className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="mt-2">
+              <span className="text-xl font-black text-emerald-400 font-mono block">
+                ${totalQuotedValueUSD.toLocaleString()}
+              </span>
+              <span className="text-[11px] text-slate-400 font-mono">USD Quoted</span>
             </div>
           </div>
         </div>
 
-        {/* Top Operational Metrics Row */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-          <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-            <span className="text-[10px] font-bold uppercase text-slate-400 block">Total Requests</span>
-            <span className="text-xl font-black text-white font-mono mt-1 block">{totalCount}</span>
-          </div>
-          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30">
-            <span className="text-[10px] font-bold uppercase text-amber-400 block">Pending Review</span>
-            <span className="text-xl font-black text-amber-400 font-mono mt-1 block">{pendingCount}</span>
-          </div>
-          <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30">
-            <span className="text-[10px] font-bold uppercase text-indigo-400 block">Awaiting Payment</span>
-            <span className="text-xl font-black text-indigo-400 font-mono mt-1 block">{awaitingPaymentCount}</span>
-          </div>
-          <div className="p-4 rounded-2xl bg-teal-500/10 border border-teal-500/30">
-            <span className="text-[10px] font-bold uppercase text-teal-400 block">In Progress</span>
-            <span className="text-xl font-black text-teal-400 font-mono mt-1 block">{inProgressCount}</span>
-          </div>
-          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30">
-            <span className="text-[10px] font-bold uppercase text-emerald-400 block">Completed</span>
-            <span className="text-xl font-black text-emerald-400 font-mono mt-1 block">{completedCount}</span>
-          </div>
-          <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-            <span className="text-[10px] font-bold uppercase text-slate-400 block">Quoted Value</span>
-            <span className="text-xl font-black text-emerald-400 font-mono mt-1 block">
-              ${totalQuotedValueUSD.toLocaleString()}
-            </span>
-          </div>
-        </div>
-
-        {/* TAB 1: RFQs & AGENT SOURCING TABLE */}
+        {/* TAB 1: SOURCING REQUESTS & DIRECT FACTORY RFQS */}
         {activeTab === 'rfqs' && (
-          <div className="space-y-4">
-            {/* Filter & Search Bar */}
-            <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
-              <div className="relative w-full md:w-80">
-                <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by AGT reference, client, product..."
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 outline-none focus:border-emerald-500 text-xs"
-                />
+          <div className="space-y-5">
+            {/* Search, Filter & Quick Status Hub */}
+            <div className="p-4 rounded-2xl bg-[#111C2E] border border-[#293A52] space-y-4 shadow-lg">
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3.5">
+                {/* Search input */}
+                <div className="relative flex-1">
+                  <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by AGT reference, client, product, factory, or specifications..."
+                    className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-[#0B1220] border border-[#293A52] text-white placeholder-slate-400 outline-none focus:border-indigo-500 text-sm font-medium transition-all"
+                  />
+                  {searchQuery && (
+                    <button 
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5">
+                  {/* Status Filter */}
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="px-3.5 py-2.5 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm font-semibold outline-none focus:border-indigo-500 cursor-pointer"
+                  >
+                    <option value="all">All Statuses ({totalCount})</option>
+                    <option value="pending_review">Pending Review ({pendingCount})</option>
+                    <option value="quotation_sent">Quotation Sent ({awaitingPaymentCount})</option>
+                    <option value="awaiting_payment">Awaiting Payment</option>
+                    <option value="in_progress">Approved / Paid & Active ({inProgressCount})</option>
+                    <option value="completed">Completed ({completedCount})</option>
+                    <option value="refunded">Refunded</option>
+                  </select>
+
+                  {/* Service Type Filter */}
+                  <select
+                    value={serviceFilter}
+                    onChange={(e) => setServiceFilter(e.target.value)}
+                    className="px-3.5 py-2.5 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm font-semibold outline-none focus:border-indigo-500 cursor-pointer"
+                  >
+                    <option value="all">All Services</option>
+                    <option value="sourcing">Product Sourcing & 1688</option>
+                    <option value="supplier_verification">Supplier Verification</option>
+                    <option value="factory_audit">Factory Audit</option>
+                    <option value="quality_control">Quality Control (QC)</option>
+                    <option value="canton_fair_escort">Canton Fair Escort</option>
+                  </select>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2 w-full md:w-auto">
-                {/* Status Filter */}
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white outline-none text-xs"
-                >
-                  <option value="all">All Statuses</option>
-                  <option value="pending_review">Pending Review</option>
-                  <option value="quotation_sent">Quotation Sent</option>
-                  <option value="awaiting_payment">Awaiting Payment</option>
-                  <option value="in_progress">Approved / Paid & Active</option>
-                  <option value="completed">Completed</option>
-                  <option value="refunded">Refunded</option>
-                </select>
-
-                {/* Service Type Filter */}
-                <select
-                  value={serviceFilter}
-                  onChange={(e) => setServiceFilter(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white outline-none text-xs"
-                >
-                  <option value="all">All Services</option>
-                  <option value="sourcing">Product Sourcing</option>
-                  <option value="supplier_verification">Supplier Verification</option>
-                  <option value="factory_audit">Factory Audit</option>
-                  <option value="quality_control">Quality Control</option>
-                  <option value="canton_fair_escort">Canton Fair Escort</option>
-                </select>
+              {/* Quick Status Filter Chips */}
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-2 border-t border-[#22304A]">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 mr-1 shrink-0">
+                  Quick Filter:
+                </span>
+                {[
+                  { id: 'all', label: 'All Requests', count: totalCount },
+                  { id: 'pending_review', label: 'Pending Review', count: pendingCount, color: 'text-amber-400' },
+                  { id: 'quotation_sent', label: 'Quotation Sent', count: awaitingPaymentCount, color: 'text-blue-400' },
+                  { id: 'in_progress', label: 'Paid & Active', count: inProgressCount, color: 'text-indigo-400' },
+                  { id: 'completed', label: 'Completed', count: completedCount, color: 'text-emerald-400' }
+                ].map(chip => (
+                  <button
+                    key={chip.id}
+                    onClick={() => setStatusFilter(chip.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer border ${
+                      statusFilter === chip.id
+                        ? 'bg-indigo-600 text-white border-indigo-500 shadow-sm shadow-indigo-600/30'
+                        : 'bg-[#0B1220] text-slate-300 hover:text-white border-[#293A52] hover:border-[#384F6E]'
+                    }`}
+                  >
+                    <span>{chip.label}</span>
+                    <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                      statusFilter === chip.id ? 'bg-white/20 text-white' : 'bg-[#152238] text-slate-300'
+                    }`}>
+                      {chip.count}
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* RFQ List */}
-            <div className="space-y-3">
-              {filteredRfqs.map((rfq) => (
-                <div
-                  key={rfq.id}
-                  className="p-5 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all space-y-3 shadow-xl"
+            {/* Sourcing Requests Queue */}
+            {filteredRfqs.length === 0 ? (
+              <div className="p-12 text-center rounded-2xl bg-[#111C2E] border border-[#293A52] space-y-3">
+                <Search className="w-10 h-10 text-slate-500 mx-auto" />
+                <h3 className="text-base font-bold text-white">No Sourcing Missions Found</h3>
+                <p className="text-sm text-slate-400 max-w-md mx-auto">
+                  No sourcing requests match your search criteria or active filters. Try adjusting your search query or reset filters.
+                </p>
+                <button
+                  onClick={() => { setSearchQuery(''); setStatusFilter('all'); setServiceFilter('all'); }}
+                  className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-500 transition-all cursor-pointer"
                 >
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-emerald-400">{rfq.reference || rfq.id}</span>
-                        <span className="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] font-bold text-slate-300 uppercase">
-                          {rfq.serviceType}
-                        </span>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          rfq.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-                          rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' || rfq.status === 'quotation_sent' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
-                          rfq.status === 'in_progress' || rfq.status === 'paid_active' || rfq.status === 'approved' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' :
-                          rfq.status === 'refunded' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
-                          'bg-slate-800 text-slate-300'
-                        }`}>
-                          {rfq.status === 'completed' ? 'Completed' :
-                           rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' || rfq.status === 'quotation_sent' ? 'Quotation Sent' :
-                           rfq.status === 'in_progress' || rfq.status === 'paid_active' || rfq.status === 'approved' ? 'Paid & Active' :
-                           rfq.status === 'pending_review' || rfq.status === 'submitted' || rfq.status === 'pending_quote' ? 'Pending Review' :
-                           rfq.status.replace('_', ' ')}
-                        </span>
-                        {rfq.paymentStatus && (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-400 text-[10px] font-mono font-bold border border-emerald-900/40">
-                            Escrow: {rfq.paymentStatus}
+                  Reset All Filters
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredRfqs.map((rfq) => {
+                  const isCompleted = rfq.status === 'completed';
+                  const isQuoted = rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' || rfq.status === 'quotation_sent';
+                  const isActive = rfq.status === 'in_progress' || rfq.status === 'paid_active' || rfq.status === 'approved';
+                  const isRefunded = rfq.status === 'refunded';
+                  const isPending = !isCompleted && !isQuoted && !isActive && !isRefunded;
+
+                  const photos = (rfq.referencePhotos && rfq.referencePhotos.length > 0)
+                    ? rfq.referencePhotos
+                    : (rfq.sampleImages || []);
+
+                  return (
+                    <div
+                      key={rfq.id}
+                      className="p-6 rounded-2xl bg-[#152238] border border-[#293A52] hover:border-indigo-500/40 transition-all space-y-4 shadow-xl"
+                    >
+                      {/* Card Header Strip */}
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pb-3 border-b border-[#22304A]">
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          {/* Reference Code */}
+                          <span className="font-mono text-sm font-black text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-900/40">
+                            {rfq.reference || rfq.id}
                           </span>
-                        )}
-                        {rfq.assignedAgent && (
-                          <span className="px-2 py-0.5 rounded-full bg-indigo-950/60 text-indigo-400 text-[10px] font-bold border border-indigo-900/40 flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            <span>{rfq.assignedAgent}</span>
+
+                          {/* Service Type Pill */}
+                          <span className="px-3 py-1 rounded-lg bg-[#1B2A40] border border-[#293A52] text-xs font-bold text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
+                            <Factory className="w-3.5 h-3.5 text-indigo-400" />
+                            <span>{rfq.serviceType || rfq.serviceKind}</span>
                           </span>
-                        )}
+
+                          {/* Status Badge */}
+                          <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                            isCompleted ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
+                            isQuoted ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
+                            isActive ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40' :
+                            isRefunded ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' :
+                            'bg-slate-800 text-slate-300 border border-slate-700'
+                          }`}>
+                            <span className={`w-2 h-2 rounded-full ${
+                              isCompleted ? 'bg-emerald-400 animate-pulse' :
+                              isQuoted ? 'bg-amber-400 animate-pulse' :
+                              isActive ? 'bg-indigo-400 animate-pulse' :
+                              isRefunded ? 'bg-rose-400' :
+                              'bg-slate-400'
+                            }`} />
+                            <span>
+                              {isCompleted ? 'Completed' :
+                               isQuoted ? 'Quotation Sent' :
+                               isActive ? 'Paid & Active' :
+                               isPending ? 'Pending Review' :
+                               rfq.status.replace('_', ' ')}
+                            </span>
+                          </span>
+
+                          {/* Escrow Status Pill */}
+                          {rfq.paymentStatus && (
+                            <span className="px-2.5 py-1 rounded-lg bg-emerald-950/70 text-emerald-300 text-xs font-mono font-bold border border-emerald-800/50">
+                              Escrow: {rfq.paymentStatus}
+                            </span>
+                          )}
+
+                          {/* Assigned Agent Pill */}
+                          {rfq.assignedAgent && (
+                            <span className="px-3 py-1 rounded-lg bg-indigo-950/70 text-indigo-300 text-xs font-bold border border-indigo-800/50 flex items-center gap-1.5">
+                              <Users className="w-3.5 h-3.5 text-indigo-400" />
+                              <span>{rfq.assignedAgent}</span>
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Submission Date & Client Profile */}
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-slate-300 font-medium flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                            <span>{rfq.createdAt ? new Date(rfq.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent'}</span>
+                          </span>
+                          <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-[#0B1220] border border-[#293A52]">
+                            <div className="w-5 h-5 rounded-full bg-indigo-600/50 flex items-center justify-center text-[10px] font-bold text-white uppercase">
+                              {(rfq.clientName || 'C')[0]}
+                            </div>
+                            <span className="text-xs font-bold text-white">
+                              {rfq.clientName || 'Chief Babatunde Alade'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
-                      <h4 className="text-sm font-bold text-white pt-1">{rfq.productName}</h4>
-                      <p className="text-xs text-slate-400">
-                        Client: <strong className="text-white">{rfq.clientName || 'Chief Babatunde Alade'}</strong>
-                        {rfq.targetQuantity && (
-                          <span> • Target Qty: <strong className="font-mono text-slate-200">{rfq.targetQuantity} units</strong></span>
-                        )}
-                        {rfq.targetUnitCNY && (
-                          <span> @ <strong className="font-mono text-slate-200">¥{rfq.targetUnitCNY} CNY/unit</strong></span>
-                        )}
-                        {rfq.supplierCity && (
-                          <span> • City: <strong className="text-slate-200">{rfq.supplierCity}</strong></span>
-                        )}
-                        {rfq.cantonFairBooth && (
-                          <span> • Booth: <strong className="text-amber-400 font-mono">{rfq.cantonFairBooth}</strong></span>
-                        )}
-                      </p>
+                      {/* Main Card Grid: Product & Specifications vs. Financial & Ground Ops */}
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                        {/* Left Column: Sourcing Target & Product Specifications (7 cols) */}
+                        <div className="lg:col-span-7 space-y-3.5">
+                          {/* Product Title */}
+                          <div>
+                            <h3 className="text-base font-extrabold text-white tracking-tight flex items-center gap-2">
+                              <span>{rfq.productName}</span>
+                            </h3>
+                          </div>
 
-                      {/* Product URL */}
-                      {rfq.productUrl && (
-                        <p className="text-xs text-indigo-400 flex items-center gap-1">
-                          <ExternalLink className="w-3 h-3" />
-                          <a href={rfq.productUrl} target="_blank" rel="noreferrer" className="hover:underline max-w-md truncate">
-                            {rfq.productUrl}
-                          </a>
-                        </p>
-                      )}
+                          {/* Target Metrics Strip */}
+                          <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-[#0B1220] border border-[#22304A] text-xs">
+                            {rfq.targetQuantity && (
+                              <div className="px-2.5 py-1 rounded-lg bg-[#152238] border border-[#293A52]">
+                                <span className="text-slate-400 block text-[10px] uppercase font-bold">Target Qty</span>
+                                <span className="font-mono font-bold text-white">{rfq.targetQuantity.toLocaleString()} units</span>
+                              </div>
+                            )}
+                            {rfq.targetUnitCNY && (
+                              <div className="px-2.5 py-1 rounded-lg bg-[#152238] border border-[#293A52]">
+                                <span className="text-slate-400 block text-[10px] uppercase font-bold">Target Unit CNY</span>
+                                <span className="font-mono font-bold text-emerald-400">¥{rfq.targetUnitCNY}</span>
+                              </div>
+                            )}
+                            {rfq.totalBudgetCNY && (
+                              <div className="px-2.5 py-1 rounded-lg bg-[#152238] border border-[#293A52]">
+                                <span className="text-slate-400 block text-[10px] uppercase font-bold">Target Budget</span>
+                                <span className="font-mono font-bold text-amber-400">¥{rfq.totalBudgetCNY.toLocaleString()} CNY</span>
+                              </div>
+                            )}
+                            {rfq.supplierCity && (
+                              <div className="px-2.5 py-1 rounded-lg bg-[#152238] border border-[#293A52] flex items-center gap-1.5">
+                                <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                                <div>
+                                  <span className="text-slate-400 block text-[10px] uppercase font-bold">China Hub</span>
+                                  <span className="font-semibold text-white">{rfq.supplierCity}</span>
+                                </div>
+                              </div>
+                            )}
+                            {rfq.cantonFairBooth && (
+                              <div className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center gap-1.5">
+                                <Award className="w-3.5 h-3.5 text-amber-400" />
+                                <div>
+                                  <span className="text-amber-400 block text-[10px] uppercase font-bold">Canton Booth</span>
+                                  <span className="font-mono font-bold text-amber-300">{rfq.cantonFairBooth}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
 
-                      {/* Specifications */}
-                      {rfq.specifications && (
-                        <p className="text-xs text-slate-300 bg-slate-950/60 p-2 rounded-xl border border-slate-800">
-                          <strong className="text-slate-400">Specifications:</strong> {rfq.specifications}
-                        </p>
-                      )}
+                          {/* Client Specifications Box */}
+                          {rfq.specifications && (
+                            <div className="p-3.5 rounded-xl bg-[#0B1220] border border-[#22304A] space-y-1">
+                              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <FileText className="w-3.5 h-3.5 text-indigo-400" />
+                                <span>Specifications</span>
+                              </span>
+                              <p className="text-sm font-medium text-slate-200 leading-relaxed">
+                                {rfq.specifications}
+                              </p>
+                            </div>
+                          )}
 
-                      {/* Reference Photos Thumbnails */}
-                      {((rfq.referencePhotos && rfq.referencePhotos.length > 0) || (rfq.sampleImages && rfq.sampleImages.length > 0)) && (
-                        <div className="flex items-center gap-1.5 overflow-x-auto py-1">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase">Photos:</span>
-                          {(rfq.referencePhotos || rfq.sampleImages || []).map((img, i) => (
-                            <img
-                              key={i}
-                              src={img}
-                              alt={`ref-${i}`}
-                              onClick={() => setPreviewImage(img)}
-                              className="w-9 h-9 object-cover rounded-lg border border-slate-800 cursor-pointer hover:border-emerald-500 transition-all shrink-0"
-                            />
-                          ))}
+                          {/* 1688 / Chinese Product URL */}
+                          {rfq.productUrl && (
+                            <div className="p-2.5 rounded-xl bg-indigo-950/40 border border-indigo-800/60 flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <ExternalLink className="w-4 h-4 text-indigo-400 shrink-0" />
+                                <span className="text-indigo-300 font-bold truncate">Supplier Link:</span>
+                                <a
+                                  href={rfq.productUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-white hover:underline truncate font-mono text-xs"
+                                >
+                                  {rfq.productUrl}
+                                </a>
+                              </div>
+                              <a
+                                href={rfq.productUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-2 py-1 rounded-lg bg-indigo-600/40 hover:bg-indigo-600/60 text-white font-bold text-xs shrink-0 ml-2"
+                              >
+                                Open Link
+                              </a>
+                            </div>
+                          )}
+
+                          {/* Negotiated Manufacturer */}
+                          {rfq.supplierName && (
+                            <div className="p-2.5 rounded-xl bg-[#0B1220] border border-[#22304A] flex items-center gap-2 text-xs">
+                              <Building2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                              <span className="text-slate-400 font-bold">Negotiated Manufacturer / Factory Partner:</span>
+                              <span className="text-white font-bold">{rfq.supplierName}</span>
+                            </div>
+                          )}
+
+                          {/* Client Reference Photos Gallery */}
+                          {photos.length > 0 && (
+                            <div className="space-y-1.5">
+                              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                <Camera className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>Client Reference Photos ({photos.length})</span>
+                              </span>
+                              <div className="flex items-center gap-2.5 overflow-x-auto py-1">
+                                {photos.map((img, i) => (
+                                  <div
+                                    key={i}
+                                    onClick={() => setPreviewImage(img)}
+                                    className="relative w-16 h-16 rounded-xl overflow-hidden border border-[#293A52] hover:border-emerald-500 cursor-pointer group shrink-0 transition-all shadow-sm"
+                                  >
+                                    <img src={img} alt={`ref-${i}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                      <Eye className="w-4 h-4 text-white" />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
 
-                      {/* Negotiated Factory Partner */}
-                      {rfq.supplierName && (
-                        <p className="text-xs text-slate-300">
-                          <strong className="text-slate-400">Negotiated Factory:</strong> <span className="text-white font-semibold">{rfq.supplierName}</span>
-                        </p>
-                      )}
+                        {/* Right Column: Commercial Quotation & Operations Status (5 cols) */}
+                        <div className="lg:col-span-5 space-y-3.5 flex flex-col justify-between">
+                          <div className="space-y-3">
+                            {/* Quotation Pricing Card */}
+                            <div className="p-4 rounded-xl bg-[#111C2E] border border-[#293A52] space-y-2.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                                  Commercial Quotation
+                                </span>
+                                {rfq.quoteAmountUSD ? (
+                                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase border border-emerald-500/40">
+                                    Published Offer
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold uppercase border border-amber-500/40">
+                                    Unquoted
+                                  </span>
+                                )}
+                              </div>
 
-                      {/* Official Quotation Proforma Link */}
-                      {rfq.supplierInvoiceUrl && (
-                        <p className="flex items-center gap-1.5 text-amber-400 text-xs font-medium">
-                          <FileText className="w-3.5 h-3.5" />
-                          <span>Proforma Sheet: </span>
-                          <a href={rfq.supplierInvoiceUrl} target="_blank" rel="noreferrer" className="underline font-mono truncate max-w-sm">
-                            {rfq.supplierInvoiceUrl}
-                          </a>
-                        </p>
-                      )}
+                              {rfq.quoteAmountUSD ? (
+                                <div className="space-y-2">
+                                  <div>
+                                    <span className="text-2xl font-black text-emerald-400 font-mono block">
+                                      {rfq.totalPayableCNY ? `¥${rfq.totalPayableCNY.toLocaleString()} CNY` : `$${rfq.quoteAmountUSD} USD`}
+                                    </span>
+                                    <span className="text-xs text-slate-300 font-mono font-medium block mt-0.5">
+                                      ≈ ${rfq.quoteAmountUSD} USD · ₦{(rfq.quoteAmountNGN || rfq.quoteAmountUSD * 1485).toLocaleString()} NGN
+                                    </span>
+                                  </div>
 
-                      {/* Linked Cargo Shipment */}
-                      {rfq.linkedShipmentCode && (
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-indigo-950/60 border border-indigo-800/60 text-xs">
-                          <Truck className="w-3.5 h-3.5 text-indigo-400" />
-                          <span className="text-indigo-300 font-bold">Auto-Linked Cargo Shipment:</span>
-                          <span className="font-mono font-bold text-white">{rfq.linkedShipmentCode} ({rfq.linkedTrackingCode})</span>
+                                  {/* Itemized pricing breakdown if sourcing */}
+                                  {rfq.serviceKind === 'sourcing' && rfq.productCostCNY && (
+                                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#22304A] text-xs font-mono">
+                                      <div>
+                                        <span className="text-slate-400 block text-[10px]">Product Cost:</span>
+                                        <span className="font-bold text-white">¥{rfq.productCostCNY.toLocaleString()} CNY</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-slate-400 block text-[10px]">Commission ({rfq.sourcingCommissionPercent || 5}%):</span>
+                                        <span className="font-bold text-white">¥{(rfq.sourcingCommissionCNY || 0).toLocaleString()} CNY</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-slate-400 block text-[10px]">Domestic Freight:</span>
+                                        <span className="font-bold text-white">¥{rfq.chinaShippingCNY || 0} CNY</span>
+                                      </div>
+                                      <div>
+                                        <span className="text-slate-400 block text-[10px]">Est. Lead Time:</span>
+                                        <span className="font-bold text-white">{rfq.leadTimeDays || 7} Days</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="py-2 text-center text-slate-400 text-xs font-medium">
+                                  <span>No price offer formulated yet. Click "Formulate Quote" to generate proforma.</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Official Proforma / Quotation Sheet Link */}
+                            {rfq.supplierInvoiceUrl && (
+                              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <FileSpreadsheet className="w-4 h-4 text-amber-400 shrink-0" />
+                                  <div>
+                                    <span className="text-amber-300 font-bold block">Official Quotation Sheet / Proforma:</span>
+                                    <a
+                                      href={rfq.supplierInvoiceUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="underline font-mono text-white text-xs truncate max-w-xs block"
+                                    >
+                                      {rfq.supplierInvoiceUrl}
+                                    </a>
+                                  </div>
+                                </div>
+                                <a
+                                  href={rfq.supplierInvoiceUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shrink-0 ml-2 shadow-sm"
+                                >
+                                  View Sheet
+                                </a>
+                              </div>
+                            )}
+
+                            {/* Auto-Linked Cargo Waybill */}
+                            {rfq.linkedShipmentCode && (
+                              <div className="p-3 rounded-xl bg-indigo-950/60 border border-indigo-800/60 flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <Truck className="w-4 h-4 text-indigo-400 shrink-0" />
+                                  <div>
+                                    <span className="text-indigo-300 font-bold block">Auto-Linked Cargo Shipment:</span>
+                                    <span className="font-mono font-bold text-white">{rfq.linkedShipmentCode} ({rfq.linkedTrackingCode || 'China Hub'})</span>
+                                  </div>
+                                </div>
+                                <span className="px-2 py-0.5 rounded-md bg-indigo-600/40 text-indigo-200 text-[10px] font-bold uppercase">
+                                  Waybill Sync
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Inspection Deliverable Report */}
+                            {rfq.inspectionReportUrl && (
+                              <div className="p-3 rounded-xl bg-cyan-950/60 border border-cyan-800/60 flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <FileCheck className="w-4 h-4 text-cyan-400 shrink-0" />
+                                  <div>
+                                    <span className="text-cyan-300 font-bold block">Inspection Deliverable Attached:</span>
+                                    <a
+                                      href={rfq.inspectionReportUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="underline font-mono text-white text-xs truncate max-w-xs block"
+                                    >
+                                      {rfq.inspectionReportUrl}
+                                    </a>
+                                  </div>
+                                </div>
+                                <a
+                                  href={rfq.inspectionReportUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="px-2.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shrink-0 ml-2 shadow-sm"
+                                >
+                                  PDF Report
+                                </a>
+                              </div>
+                            )}
+
+                            {/* Ground Findings or Notes */}
+                            {(rfq.supplierFindings || rfq.operationalNotes) && (
+                              <div className="p-3 rounded-xl bg-[#0B1220] border border-[#22304A] text-xs space-y-1.5">
+                                {rfq.supplierFindings && (
+                                  <p className="text-slate-300">
+                                    <strong className="text-slate-400">Findings:</strong> {rfq.supplierFindings}
+                                  </p>
+                                )}
+                                {rfq.operationalNotes && (
+                                  <p className="text-emerald-300">
+                                    <strong className="text-emerald-400">Milestone:</strong> {rfq.operationalNotes}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
+                      </div>
+
+                      {/* Card Action Command Hub (Bottom Row) */}
+                      <div className="flex flex-wrap items-center gap-2.5 pt-3.5 border-t border-[#22304A]">
+                        {/* Formulate / Edit Quote */}
+                        <button
+                          onClick={() => openQuoteModal(rfq)}
+                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
+                        >
+                          <FileText className="w-4 h-4" />
+                          <span>{rfq.quoteAmountUSD ? 'Edit Quotation' : 'Formulate Quote'}</span>
+                        </button>
+
+                        {/* Assign Agent */}
+                        <button
+                          onClick={() => openAssignModal(rfq)}
+                          className="px-4 py-2 rounded-xl bg-[#1B2A40] hover:bg-[#253954] border border-[#293A52] text-purple-300 hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Users className="w-4 h-4 text-purple-400" />
+                          <span>{rfq.assignedAgent ? 'Reassign Agent' : 'Assign Agent'}</span>
+                        </button>
+
+                        {/* Upload Reports & Deliverables */}
+                        <button
+                          onClick={() => openOpsDrawer(rfq)}
+                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-extrabold text-xs shadow-md shadow-teal-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Layers className="w-4 h-4" />
+                          <span>Upload Reports & Deliverables</span>
+                        </button>
+
+                        {/* Send Client Update */}
+                        <button
+                          onClick={() => openCommunicateModal(rfq)}
+                          className="px-4 py-2 rounded-xl bg-[#1B2A40] hover:bg-[#253954] border border-[#293A52] text-cyan-300 hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Send className="w-4 h-4 text-cyan-400" />
+                          <span>Send Client Update</span>
+                        </button>
+
+                        {/* Manage Details Drawer */}
+                        <button
+                          onClick={() => setManageDrawerRfq(rfq)}
+                          className="px-4 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span>Manage Details</span>
+                        </button>
+
+                        {/* Cancel & Refund */}
+                        {rfq.status !== 'refunded' && rfq.paymentStatus !== 'refunded' && (
+                          <button
+                            onClick={() => {
+                              setRefundModalRfq(rfq);
+                              setForceOverride(false);
+                            }}
+                            className="px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold transition-all flex items-center gap-1.5 ml-auto cursor-pointer"
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                            <span>Cancel & Refund</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
-
-                    {/* Financial Summary Pill */}
-                    <div className="text-right">
-                      {rfq.quoteAmountUSD ? (
-                        <div>
-                          <span className="text-sm font-black text-emerald-400 font-mono block">
-                            {rfq.totalPayableCNY ? `¥${rfq.totalPayableCNY.toLocaleString()} CNY` : `$${rfq.quoteAmountUSD} USD`}
-                          </span>
-                          <span className="text-[10px] text-slate-400 font-mono block">
-                            ≈ ${rfq.quoteAmountUSD} USD / ₦{(rfq.quoteAmountNGN || rfq.quoteAmountUSD * 1485).toLocaleString()} NGN
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-400 text-xs font-bold border border-amber-500/20">
-                          Awaiting Quote Formulation
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Ground Notes Preview if available */}
-                  {(rfq.adminNotes || rfq.supplierFindings || rfq.operationalNotes || rfq.inspectionReportUrl) && (
-                    <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-300 space-y-1">
-                      {rfq.supplierFindings && <p><strong className="text-slate-400">Findings:</strong> {rfq.supplierFindings}</p>}
-                      {rfq.operationalNotes && <p><strong className="text-emerald-400">Milestone:</strong> {rfq.operationalNotes}</p>}
-                      {rfq.inspectionReportUrl && (
-                        <p className="flex items-center gap-1.5 text-cyan-400 font-medium">
-                          <FileCheck className="w-3.5 h-3.5" />
-                          <span>Report Attached: </span>
-                          <a href={rfq.inspectionReportUrl} target="_blank" rel="noreferrer" className="underline font-mono truncate max-w-sm">
-                            {rfq.inspectionReportUrl}
-                          </a>
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800">
-                    {/* View / Manage Request Details */}
-                    <button
-                      onClick={() => setManageDrawerRfq(rfq)}
-                      className="px-3.5 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      <span>Manage Details</span>
-                    </button>
-
-                    {/* Assign Agent */}
-                    <button
-                      onClick={() => openAssignModal(rfq)}
-                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Users className="w-3.5 h-3.5 text-purple-400" />
-                      <span>{rfq.assignedAgent ? 'Reassign Agent' : 'Assign Agent'}</span>
-                    </button>
-
-                    {/* Communicate Client Update */}
-                    <button
-                      onClick={() => openCommunicateModal(rfq)}
-                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Send className="w-3.5 h-3.5 text-cyan-400" />
-                      <span>Send Client Update</span>
-                    </button>
-
-                    {/* Formulate Quote */}
-                    <button
-                      onClick={() => openQuoteModal(rfq)}
-                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <FileText className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>{rfq.quoteAmountUSD ? 'Edit Quotation' : 'Formulate Quote'}</span>
-                    </button>
-
-                    {/* Update Operations Progress (Milestone updates & reports) */}
-                    <button
-                      onClick={() => openOpsDrawer(rfq)}
-                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Layers className="w-3.5 h-3.5" />
-                      <span>Upload Reports & Deliverables</span>
-                    </button>
-
-                    {/* Cancel & Refund Action */}
-                    {rfq.status !== 'refunded' && rfq.paymentStatus !== 'refunded' && (
-                      <button
-                        onClick={() => {
-                          setRefundModalRfq(rfq);
-                          setForceOverride(false);
-                        }}
-                        className="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        <span>Cancel & Refund</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
-        {/* TAB 2: ADMIN FEE CONFIGURATION */}
+        {/* TAB 2: AGENT FEE & COMMISSION SETTINGS */}
         {activeTab === 'settings' && (
-          <form onSubmit={handleSaveSettings} className="p-6 rounded-3xl bg-slate-900 border border-slate-800 max-w-2xl space-y-4 shadow-xl">
-            <div>
-              <h3 className="text-sm font-extrabold text-white">Agent Fee & Commission Settings</h3>
-              <p className="text-xs text-slate-400">
-                Configure platform commissions, minimum thresholds, and fixed ground audit pricing.
+          <form onSubmit={handleSaveSettings} className="p-7 rounded-2xl bg-[#111C2E] border border-[#293A52] max-w-2xl space-y-5 shadow-2xl">
+            <div className="space-y-1">
+              <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                <Settings className="w-5 h-5 text-indigo-400" />
+                <span>Agent Fee & Commission Settings</span>
+              </h3>
+              <p className="text-xs text-slate-300">
+                Configure platform commissions, minimum thresholds, and fixed ground audit pricing applied across China trade corridors.
               </p>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-4">
               {/* Minimum Sourcing Fee Toggle */}
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-[#0B1220] border border-[#22304A]">
                 <div>
-                  <span className="text-xs font-bold text-white block">Enforce Minimum Sourcing Commission</span>
-                  <span className="text-[11px] text-slate-400 block">Apply minimum floor fee to low-value sourcing requests</span>
+                  <span className="text-sm font-bold text-white block">Enforce Minimum Sourcing Commission</span>
+                  <span className="text-xs text-slate-400 block mt-0.5">Apply minimum floor fee to low-value sourcing requests</span>
                 </div>
                 <button
                   type="button"
@@ -842,9 +1191,9 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  <label className="text-xs font-bold text-slate-300 uppercase block mb-1.5">
                     Sourcing Commission Rate (%)
                   </label>
                   <input
@@ -852,79 +1201,79 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                     step="0.1"
                     value={feeSettings.sourcingCommissionPercent}
                     onChange={(e) => setFeeSettings({ ...feeSettings, sourcingCommissionPercent: parseFloat(e.target.value) || 0 })}
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500"
+                    className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white font-mono text-sm font-bold outline-none focus:border-indigo-500"
                     required
                   />
-                  <span className="text-[10px] text-slate-500 mt-1 block">Default: 5.0%</span>
+                  <span className="text-xs text-slate-400 mt-1 block">Default: 5.0%</span>
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  <label className="text-xs font-bold text-slate-300 uppercase block mb-1.5">
                     Min. Sourcing Commission (¥ CNY)
                   </label>
                   <input
                     type="number"
                     value={feeSettings.minSourcingCommissionCNY}
                     onChange={(e) => setFeeSettings({ ...feeSettings, minSourcingCommissionCNY: parseFloat(e.target.value) || 0 })}
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500"
+                    className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white font-mono text-sm font-bold outline-none focus:border-indigo-500"
                     required
                   />
-                  <span className="text-[10px] text-slate-500 mt-1 block">Default: ¥500 CNY {(feeSettings.minSourcingFeeEnabled ?? true) ? '(Active)' : '(Disabled)'}</span>
+                  <span className="text-xs text-slate-400 mt-1 block">Default: ¥500 CNY {(feeSettings.minSourcingFeeEnabled ?? true) ? '(Active)' : '(Disabled)'}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 pt-2">
+              <div className="grid grid-cols-3 gap-4 pt-2">
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  <label className="text-xs font-bold text-slate-300 uppercase block mb-1.5">
                     Supplier Verification ($ USD)
                   </label>
                   <input
                     type="number"
                     value={feeSettings.supplierVerificationUSD}
                     onChange={(e) => setFeeSettings({ ...feeSettings, supplierVerificationUSD: parseFloat(e.target.value) || 0 })}
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500"
+                    className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white font-mono text-sm font-bold outline-none focus:border-indigo-500"
                     required
                   />
-                  <span className="text-[10px] text-slate-500 mt-1 block">Default: $150 USD</span>
+                  <span className="text-xs text-slate-400 mt-1 block">Default: $150 USD</span>
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  <label className="text-xs font-bold text-slate-300 uppercase block mb-1.5">
                     Factory Audit ($ USD)
                   </label>
                   <input
                     type="number"
                     value={feeSettings.factoryAuditUSD}
                     onChange={(e) => setFeeSettings({ ...feeSettings, factoryAuditUSD: parseFloat(e.target.value) || 0 })}
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500"
+                    className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white font-mono text-sm font-bold outline-none focus:border-indigo-500"
                     required
                   />
-                  <span className="text-[10px] text-slate-500 mt-1 block">Default: $250 USD</span>
+                  <span className="text-xs text-slate-400 mt-1 block">Default: $250 USD</span>
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  <label className="text-xs font-bold text-slate-300 uppercase block mb-1.5">
                     Quality Control ($ USD)
                   </label>
                   <input
                     type="number"
                     value={feeSettings.qualityControlUSD}
                     onChange={(e) => setFeeSettings({ ...feeSettings, qualityControlUSD: parseFloat(e.target.value) || 0 })}
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500"
+                    className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white font-mono text-sm font-bold outline-none focus:border-indigo-500"
                     required
                   />
-                  <span className="text-[10px] text-slate-500 mt-1 block">Default: $200 USD</span>
+                  <span className="text-xs text-slate-400 mt-1 block">Default: $200 USD</span>
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={isSavingSettings}
-                className="w-full mt-4 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                className="w-full mt-4 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSavingSettings ? <span>Saving Settings...</span> : (
                   <>
-                    <Check className="w-4 h-4" />
+                    <Check className="w-5 h-5" />
                     <span>Save Agent Fee Configuration</span>
                   </>
                 )}
@@ -939,50 +1288,50 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
           <form 
             onSubmit={handleSendQuote} 
-            className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-xl bg-[#111C2E] border border-[#293A52] rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-[#22304A]">
               <div>
-                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider font-mono">
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider font-mono">
                   {quoteModalRfq.reference || quoteModalRfq.id}
                 </span>
-                <h3 className="text-sm font-black text-white">Formulate Official Quotation</h3>
+                <h3 className="text-base font-extrabold text-white">Formulate Official Quotation</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setQuoteModalRfq(null)}
-                className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+                className="w-8 h-8 rounded-full bg-[#1B2A40] flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-3.5 text-xs">
+            <div className="space-y-4 text-xs">
               {/* Client & Product Info & Target Comparison */}
-              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5 text-slate-400">
+              <div className="p-4 rounded-xl bg-[#0B1220] border border-[#22304A] space-y-2 text-slate-300">
                 <div className="flex items-center justify-between">
-                  <p><strong>Client:</strong> <span className="text-white font-semibold">{quoteModalRfq.clientName}</span></p>
-                  <span className="text-[10px] font-mono font-bold text-slate-400">ID: {quoteModalRfq.userId}</span>
+                  <p className="text-sm"><strong>Client:</strong> <span className="text-white font-bold">{quoteModalRfq.clientName}</span></p>
+                  <span className="text-xs font-mono font-bold text-slate-400">ID: {quoteModalRfq.userId}</span>
                 </div>
-                <p><strong>Assignment:</strong> <span className="text-white">{quoteModalRfq.productName}</span></p>
+                <p className="text-sm"><strong>Assignment:</strong> <span className="text-white font-semibold">{quoteModalRfq.productName}</span></p>
                 {quoteModalRfq.serviceKind === 'sourcing' && (
-                  <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] flex items-center justify-between">
+                  <div className="p-3 rounded-lg bg-[#152238] border border-[#293A52] flex items-center justify-between">
                     <div>
-                      <span className="text-slate-400 block font-bold uppercase text-[9px]">Client Target Budget:</span>
-                      <span className="font-mono font-bold text-amber-400">
+                      <span className="text-slate-400 block font-bold uppercase text-[10px]">Client Target Budget:</span>
+                      <span className="font-mono font-bold text-amber-400 text-sm">
                         {quoteModalRfq.targetQuantity || 0} units @ ¥{quoteModalRfq.targetUnitCNY || 0} = ¥{((quoteModalRfq.targetQuantity || 0) * (quoteModalRfq.targetUnitCNY || 0)).toLocaleString()} CNY
                       </span>
                     </div>
                     {quoteModalRfq.specifications && (
-                      <span className="text-slate-400 text-[10px] italic max-w-[200px] truncate">
+                      <span className="text-slate-300 text-xs italic max-w-[220px] truncate">
                         Specs: {quoteModalRfq.specifications}
                       </span>
                     )}
                   </div>
                 )}
                 {quoteModalRfq.productUrl && (
-                  <p className="truncate text-indigo-400 flex items-center gap-1 text-[11px]">
-                    <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                  <p className="truncate text-indigo-400 flex items-center gap-1 text-xs">
+                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                     <a href={quoteModalRfq.productUrl} target="_blank" rel="noreferrer" className="hover:underline truncate">{quoteModalRfq.productUrl}</a>
                   </p>
                 )}
@@ -990,8 +1339,8 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                 {/* Client Reference Photos */}
                 {((quoteModalRfq.referencePhotos && quoteModalRfq.referencePhotos.length > 0) || 
                   (quoteModalRfq.sampleImages && quoteModalRfq.sampleImages.length > 0)) && (
-                  <div className="pt-2 border-t border-slate-900">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1.5">Client Reference Photos</span>
+                  <div className="pt-2 border-t border-[#22304A]">
+                    <span className="text-xs font-bold text-slate-400 uppercase block mb-1.5">Client Reference Photos</span>
                     <div className="flex gap-2 overflow-x-auto pb-1">
                       {(quoteModalRfq.referencePhotos || quoteModalRfq.sampleImages || []).map((img, i) => (
                         <img
@@ -999,7 +1348,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                           src={img}
                           alt={`ref-${i}`}
                           onClick={() => setPreviewImage(img)}
-                          className="w-14 h-14 object-cover rounded-xl border border-slate-800 cursor-pointer hover:border-emerald-500 transition-all shrink-0"
+                          className="w-16 h-16 object-cover rounded-xl border border-[#293A52] cursor-pointer hover:border-emerald-500 transition-all shrink-0"
                         />
                       ))}
                     </div>
@@ -1009,22 +1358,22 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
 
               {/* Sourcing Breakdown Form */}
               {quoteModalRfq.serviceKind === 'sourcing' ? (
-                <div className="space-y-2.5">
-                  <div className="grid grid-cols-2 gap-2.5">
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                      <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                         Factory Product Cost (¥ CNY)
                       </label>
                       <input
                         type="number"
                         value={quoteCostCNY}
                         onChange={(e) => setQuoteCostCNY(e.target.value)}
-                        className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500"
+                        className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white font-mono text-sm font-bold outline-none focus:border-indigo-500"
                         required
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                      <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                         Commission Rate (%)
                       </label>
                       <input
@@ -1032,63 +1381,63 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                         step="0.1"
                         value={quoteCommPercent}
                         onChange={(e) => setQuoteCommPercent(e.target.value)}
-                        className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500"
+                        className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white font-mono text-sm font-bold outline-none focus:border-indigo-500"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                      <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                         China Domestic Shipping (¥ CNY)
                       </label>
                       <input
                         type="number"
                         value={quoteShippingCNY}
                         onChange={(e) => setQuoteShippingCNY(e.target.value)}
-                        className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500"
+                        className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white font-mono text-sm font-bold outline-none focus:border-indigo-500"
                         required
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                      <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                         Lead Time (Days)
                       </label>
                       <input
                         type="number"
                         value={quoteLeadDays}
                         onChange={(e) => setQuoteLeadDays(e.target.value)}
-                        className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500"
+                        className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white font-mono text-sm font-bold outline-none focus:border-indigo-500"
                         required
                       />
                     </div>
                   </div>
 
                   {/* Optional FX Rate Overrides */}
-                  <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-2">
-                    <span className="text-[10px] font-bold uppercase text-slate-400 block">Optional FX Overrides (Blank = System Rates)</span>
-                    <div className="grid grid-cols-2 gap-2.5">
+                  <div className="p-3.5 rounded-xl bg-[#0B1220] border border-[#22304A] space-y-2">
+                    <span className="text-xs font-bold uppercase text-slate-400 block">Optional FX Overrides (Blank = System Rates)</span>
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-[10px] text-slate-400 block mb-0.5">CNY per USD (Default: 7.24)</label>
+                        <label className="text-[11px] text-slate-400 block mb-0.5">CNY per USD (Default: 7.24)</label>
                         <input
                           type="number"
                           step="0.01"
                           placeholder="7.24"
                           value={fxOverrideUSD_CNY}
                           onChange={(e) => setFxOverrideUSD_CNY(e.target.value)}
-                          className="w-full p-2 rounded-xl bg-slate-900 border border-slate-800 text-white font-mono text-xs outline-none focus:border-emerald-500"
+                          className="w-full p-2.5 rounded-lg bg-[#152238] border border-[#293A52] text-white font-mono text-xs outline-none focus:border-indigo-500"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-slate-400 block mb-0.5">NGN per USD (Default: 1,485)</label>
+                        <label className="text-[11px] text-slate-400 block mb-0.5">NGN per USD (Default: 1,485)</label>
                         <input
                           type="number"
                           step="1"
                           placeholder="1485"
                           value={fxOverrideUSD_NGN}
                           onChange={(e) => setFxOverrideUSD_NGN(e.target.value)}
-                          className="w-full p-2 rounded-xl bg-slate-900 border border-slate-800 text-white font-mono text-xs outline-none focus:border-emerald-500"
+                          className="w-full p-2.5 rounded-lg bg-[#152238] border border-[#293A52] text-white font-mono text-xs outline-none focus:border-indigo-500"
                         />
                       </div>
                     </div>
@@ -1108,14 +1457,14 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                     const totalUSD = Math.round((total / rateUSD_CNY) * 100) / 100;
                     const totalNGN = Math.round(totalUSD * rateUSD_NGN);
                     return (
-                      <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex justify-between items-center">
+                      <div className="p-4 rounded-xl bg-[#0B1220] border border-emerald-500/30 flex justify-between items-center">
                         <div>
-                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Total Client Payable:</span>
-                          <span className="text-emerald-400 font-mono font-black text-sm">¥{total.toLocaleString()} CNY</span>
-                          <span className="text-[10px] text-slate-400 block font-mono">Commission: ¥{comm.toLocaleString()} CNY</span>
+                          <span className="text-xs text-slate-400 block uppercase font-bold">Total Client Payable:</span>
+                          <span className="text-emerald-400 font-mono font-black text-base">¥{total.toLocaleString()} CNY</span>
+                          <span className="text-xs text-slate-300 block font-mono">Commission: ¥{comm.toLocaleString()} CNY</span>
                         </div>
-                        <div className="text-right text-[11px] text-slate-400 font-mono">
-                          <span className="text-white font-bold">≈ ${totalUSD.toLocaleString()} USD</span>
+                        <div className="text-right text-xs text-slate-300 font-mono">
+                          <span className="text-white font-bold block text-sm">≈ ${totalUSD.toLocaleString()} USD</span>
                           <span className="block text-slate-400">≈ ₦{totalNGN.toLocaleString()} NGN</span>
                         </div>
                       </div>
@@ -1123,9 +1472,9 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                   })()}
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3.5">
                   <div>
-                    <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1.5">
+                    <label className="text-xs font-bold text-slate-300 uppercase block mb-1.5">
                       Select Quotation Fee Currency
                     </label>
                     <div className="grid grid-cols-3 gap-2">
@@ -1149,10 +1498,10 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                               setQuoteCurrency(c);
                             }
                           }}
-                          className={`py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                          className={`py-2.5 rounded-xl border text-sm font-bold transition-all cursor-pointer ${
                             quoteCurrency === c
-                              ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
-                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                              ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-sm'
+                              : 'bg-[#0B1220] border-[#293A52] text-slate-300 hover:text-white'
                           }`}
                         >
                           {c === 'USD' ? '$ USD' : c === 'NGN' ? '₦ NGN' : '¥ RMB'}
@@ -1161,36 +1510,36 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                      <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                         Official Service Fee ({quoteCurrency === 'USD' ? '$ USD' : quoteCurrency === 'NGN' ? '₦ NGN' : '¥ RMB'})
                       </label>
                       <input
                         type="number"
                         value={quoteServiceFeeUSD}
                         onChange={(e) => setQuoteServiceFeeUSD(e.target.value)}
-                        className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500"
+                        className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white font-mono text-sm font-bold outline-none focus:border-indigo-500"
                         required
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                      <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                         Lead Time (Days)
                       </label>
                       <input
                         type="number"
                         value={quoteLeadDays}
                         onChange={(e) => setQuoteLeadDays(e.target.value)}
-                        className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500"
+                        className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white font-mono text-sm font-bold outline-none focus:border-indigo-500"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-400 flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-bold text-slate-500">Cross-Currency Equivalents:</span>
-                    <span className="text-emerald-400 font-bold">
+                  <div className="p-3.5 rounded-xl bg-[#0B1220] border border-[#22304A] text-xs font-mono text-slate-300 flex items-center justify-between">
+                    <span className="text-xs uppercase font-bold text-slate-400">Cross-Currency Equivalents:</span>
+                    <span className="text-emerald-400 font-bold text-sm">
                       {(() => {
                         const val = parseFloat(quoteServiceFeeUSD) || 0;
                         if (quoteCurrency === 'USD') {
@@ -1209,9 +1558,9 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
               )}
 
               {/* Negotiated Manufacturer & Official Quotation Sheet */}
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                     Negotiated Manufacturer / Factory Partner
                   </label>
                   <input
@@ -1219,11 +1568,11 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                     value={quoteSupplierName}
                     onChange={(e) => setQuoteSupplierName(e.target.value)}
                     placeholder="e.g. Shenzhen TopPower Co., Ltd"
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white text-xs outline-none focus:border-emerald-500"
+                    className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                     Official Quotation Sheet / Proforma URL
                   </label>
                   <input
@@ -1231,40 +1580,40 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                     value={quoteDocUrl}
                     onChange={(e) => setQuoteDocUrl(e.target.value)}
                     placeholder="https://docs.flyemass.com/quotes/proforma.pdf"
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono text-xs outline-none focus:border-emerald-500"
+                    className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white font-mono text-sm outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
 
               {/* Inspector Notes & Findings */}
               <div>
-                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                   Supplier Findings & Credential Verification
                 </label>
                 <textarea
                   value={quoteFindings}
                   onChange={(e) => setQuoteFindings(e.target.value)}
                   rows={2}
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500"
+                  className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm outline-none focus:border-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                   Terms & Inspector Notes (Visible to Client)
                 </label>
                 <textarea
                   value={quoteNotes}
                   onChange={(e) => setQuoteNotes(e.target.value)}
                   rows={2}
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500"
+                  className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm outline-none focus:border-indigo-500"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmittingQuote}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSubmittingQuote ? <span>Dispatching Quotation...</span> : (
                   <>
@@ -1283,28 +1632,28 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
           <form 
             onSubmit={handleSaveOpsProgress} 
-            className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-xl bg-[#111C2E] border border-[#293A52] rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-[#22304A]">
               <div>
-                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider font-mono">
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider font-mono">
                   {opsDrawerRfq.reference || opsDrawerRfq.id}
                 </span>
-                <h3 className="text-sm font-black text-white">China Ground Operations & Deliverables</h3>
+                <h3 className="text-base font-extrabold text-white">China Ground Operations & Deliverables</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setOpsDrawerRfq(null)}
-                className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+                className="w-8 h-8 rounded-full bg-[#1B2A40] flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-3.5 text-xs">
+            <div className="space-y-4 text-xs">
               {/* Linked Shipment Notice */}
               {opsDrawerRfq.linkedShipmentCode && (
-                <div className="p-3 rounded-2xl bg-indigo-950/60 border border-indigo-800/60 flex items-center justify-between text-xs">
+                <div className="p-3.5 rounded-xl bg-indigo-950/60 border border-indigo-800/60 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <Truck className="w-4 h-4 text-indigo-400" />
                     <div>
@@ -1312,15 +1661,15 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                       <span className="font-mono font-bold text-white">{opsDrawerRfq.linkedShipmentCode}</span>
                     </div>
                   </div>
-                  <span className="text-emerald-400 font-bold text-[10px]">Tracked</span>
+                  <span className="text-emerald-400 font-bold text-xs">Tracked</span>
                 </div>
               )}
 
               {/* Sourcing Specific: Purchase details & Supplier Invoice */}
               {opsDrawerRfq.serviceKind === 'sourcing' && (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div>
-                    <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                    <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                       1688 / Vendor Order ID & Purchase Details
                     </label>
                     <input
@@ -1328,11 +1677,11 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                       value={opsPurchaseDetails}
                       onChange={(e) => setOpsPurchaseDetails(e.target.value)}
                       placeholder="e.g. 1688 Order #338190284419 • Shenzhen Factory Direct"
-                      className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500"
+                      className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm outline-none focus:border-indigo-500"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                    <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                       Supplier Commercial Invoice URL
                     </label>
                     <input
@@ -1340,7 +1689,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                       value={opsInvoiceUrl}
                       onChange={(e) => setOpsInvoiceUrl(e.target.value)}
                       placeholder="https://flyemass.cn/invoices/inv-..."
-                      className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 font-mono text-[11px]"
+                      className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white font-mono text-xs outline-none focus:border-indigo-500"
                     />
                   </div>
                 </div>
@@ -1349,7 +1698,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
               {/* Inspection Specific: Verification, Factory Audit, QC */}
               {opsDrawerRfq.serviceKind === 'supplier_verification' && (
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                     Business Registration Findings & Legitimacy Status
                   </label>
                   <textarea
@@ -1357,14 +1706,14 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                     onChange={(e) => setOpsRegFindings(e.target.value)}
                     rows={2}
                     placeholder="Unified Social Credit Code: 91440101MA59XXXXXX • Legal Representative confirmed active"
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500"
+                    className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm outline-none focus:border-indigo-500"
                   />
                 </div>
               )}
 
               {opsDrawerRfq.serviceKind === 'factory_audit' && (
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                     On-Site Factory Audit Findings & Machinery Check
                   </label>
                   <textarea
@@ -1372,14 +1721,14 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                     onChange={(e) => setOpsAuditFindings(e.target.value)}
                     rows={2}
                     placeholder="3 production lines active. ISO9001 verified on wall. Capacity: 5,000 units/day."
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500"
+                    className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm outline-none focus:border-indigo-500"
                   />
                 </div>
               )}
 
               {opsDrawerRfq.serviceKind === 'quality_control' && (
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                     AQL Sampling & Defect Rate Findings
                   </label>
                   <textarea
@@ -1387,14 +1736,14 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                     onChange={(e) => setOpsQcFindings(e.target.value)}
                     rows={2}
                     placeholder="Level II Sampling (80 units tested). Defect rate: 0.8% (PASS). Packaging intact."
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500"
+                    className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm outline-none focus:border-indigo-500"
                   />
                 </div>
               )}
 
               {/* Inspection Report PDF URL */}
               <div>
-                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                   Deliverable PDF Report URL (agent-uploads)
                 </label>
                 <input
@@ -1402,13 +1751,13 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                   value={opsReportPdfUrl}
                   onChange={(e) => setOpsReportPdfUrl(e.target.value)}
                   placeholder="https://flyemass.cn/reports/audit-report-2026.pdf"
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 font-mono text-[11px]"
+                  className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white font-mono text-sm outline-none focus:border-indigo-500"
                 />
               </div>
 
               {/* Inspection Report Executive Summary */}
               <div>
-                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                   Inspection Report Executive Summary
                 </label>
                 <textarea
@@ -1416,13 +1765,13 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                   onChange={(e) => setOpsReportSummary(e.target.value)}
                   rows={2}
                   placeholder="Factory inspection successfully passed all structural and machinery criteria. Official certificate issued."
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
+                  className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm outline-none focus:border-indigo-500"
                 />
               </div>
 
               {/* Operational Progress Log */}
               <div>
-                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                   Ground Milestone Update (Sent as Customer Notification)
                 </label>
                 <textarea
@@ -1430,29 +1779,29 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                   onChange={(e) => setOpsNotes(e.target.value)}
                   rows={2}
                   placeholder="Goods arrived at Guangzhou Baiyun clearing hub. Inspection checklist completed."
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
+                  className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm outline-none focus:border-indigo-500"
                   required
                 />
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
                   disabled={isSavingOps}
-                  className="w-1/2 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 py-3 rounded-xl bg-[#1B2A40] hover:bg-[#253954] text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-[#293A52]"
                 >
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Save Milestone & Deliverables</span>
+                  <Check className="w-4 h-4 text-emerald-400" />
+                  <span>Save Deliverable & Progress</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleCompleteRequest}
-                  className="w-1/2 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Mark Completed & Disburse Escrow</span>
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Complete Request & Disburse Escrow</span>
                 </button>
               </div>
             </div>
@@ -1465,9 +1814,9 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
           <form 
             onSubmit={handleConfirmAssignAgent}
-            className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4"
+            className="w-full max-w-md bg-[#111C2E] border border-[#293A52] rounded-3xl p-6 shadow-2xl space-y-4"
           >
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-[#22304A]">
               <div className="flex items-center gap-2 text-purple-400 font-bold text-sm">
                 <Users className="w-4 h-4" />
                 <span>Assign Ground Sourcing Agent</span>
@@ -1475,28 +1824,28 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
               <button
                 type="button"
                 onClick={() => setAssignModalRfq(null)}
-                className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+                className="w-8 h-8 rounded-full bg-[#1B2A40] flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-slate-300 space-y-1">
-                <p><strong>Request Ref:</strong> <span className="font-mono text-emerald-400">{assignModalRfq.reference || assignModalRfq.id}</span></p>
+            <div className="space-y-3.5 text-xs">
+              <div className="p-4 rounded-xl bg-[#0B1220] border border-[#22304A] text-slate-300 space-y-1">
+                <p><strong>Request Ref:</strong> <span className="font-mono text-emerald-400 font-bold">{assignModalRfq.reference || assignModalRfq.id}</span></p>
                 <p><strong>Assignment:</strong> {assignModalRfq.productName}</p>
                 <p><strong>Client:</strong> {assignModalRfq.clientName}</p>
                 <p><strong>Location:</strong> {assignModalRfq.supplierCity || 'Guangzhou'}</p>
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                   Select Verified Ground Agent
                 </label>
                 <select
                   value={selectedAgentToAssign}
                   onChange={(e) => setSelectedAgentToAssign(e.target.value)}
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-purple-500 text-xs"
+                  className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white outline-none focus:border-purple-500 text-sm font-semibold"
                 >
                   <option value="Zhang Wei (Guangzhou Sourcing & Escort Desk)">Zhang Wei (Guangzhou Sourcing & Escort Desk)</option>
                   <option value="Chen Tao (Foshan Machinery & Hardware Inspector)">Chen Tao (Foshan Machinery & Hardware Inspector)</option>
@@ -1507,7 +1856,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                   Custom Agent Name / Notes (Optional)
                 </label>
                 <input
@@ -1515,14 +1864,14 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                   value={assignNotes}
                   onChange={(e) => setAssignNotes(e.target.value)}
                   placeholder="Special instructions or field deployment notes..."
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-purple-500 text-xs"
+                  className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white outline-none focus:border-purple-500 text-sm"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isAssigningAgent}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold text-xs shadow-md shadow-purple-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold text-sm shadow-md shadow-purple-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isAssigningAgent ? <span>Assigning Agent...</span> : (
                   <>
@@ -1541,9 +1890,9 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
           <form 
             onSubmit={handleSendClientUpdate}
-            className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4"
+            className="w-full max-w-md bg-[#111C2E] border border-[#293A52] rounded-3xl p-6 shadow-2xl space-y-4"
           >
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-[#22304A]">
               <div className="flex items-center gap-2 text-cyan-400 font-bold text-sm">
                 <Send className="w-4 h-4" />
                 <span>Communicate Update to Client</span>
@@ -1551,54 +1900,50 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
               <button
                 type="button"
                 onClick={() => setCommunicateModalRfq(null)}
-                className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+                className="w-8 h-8 rounded-full bg-[#1B2A40] flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-slate-300 space-y-1">
-                <p><strong>Recipient:</strong> <span className="text-white font-semibold">{communicateModalRfq.clientName}</span> ({communicateModalRfq.userId})</p>
-                <p><strong>Request Ref:</strong> <span className="font-mono text-emerald-400">{communicateModalRfq.reference || communicateModalRfq.id}</span></p>
-                <p><strong>Service:</strong> {communicateModalRfq.serviceType}</p>
+            <div className="space-y-3.5 text-xs">
+              <div className="p-3.5 rounded-xl bg-[#0B1220] border border-[#22304A] text-slate-300 space-y-1">
+                <p><strong>Client:</strong> <span className="text-white font-bold">{communicateModalRfq.clientName}</span></p>
+                <p><strong>Assignment:</strong> {communicateModalRfq.productName}</p>
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
-                  Operational Progress Message
+                <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
+                  Status Transition
+                </label>
+                <select
+                  value={clientMessageStatus}
+                  onChange={(e) => setClientMessageStatus(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white outline-none focus:border-cyan-500 text-sm font-semibold"
+                >
+                  <option value="in_progress">In Progress (Field Mission Active)</option>
+                  <option value="quote_ready">Quotation Ready for Review</option>
+                  <option value="completed">Mission Completed</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
+                  Message Body (Customer Mobile App Notification)
                 </label>
                 <textarea
                   value={clientMessage}
                   onChange={(e) => setClientMessage(e.target.value)}
                   rows={3}
-                  placeholder="Type real-time ground progress, booth visit details, factory audit notes..."
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-cyan-500 text-xs"
+                  className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm outline-none focus:border-cyan-500"
                   required
                 />
-              </div>
-
-              <div>
-                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
-                  Progress Milestone Stage
-                </label>
-                <select
-                  value={clientMessageStatus}
-                  onChange={(e) => setClientMessageStatus(e.target.value)}
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-cyan-500 text-xs"
-                >
-                  <option value="in_progress">In Progress (Agent On-Site)</option>
-                  <option value="factory_visited">Factory / Booth Visited</option>
-                  <option value="samples_collected">Samples Collected & Evaluated</option>
-                  <option value="report_ready">Inspection Report Formulated</option>
-                  <option value="completed">Mission Complete</option>
-                </select>
               </div>
 
               <button
                 type="submit"
                 disabled={isSendingClientMessage}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 font-bold text-xs shadow-md shadow-cyan-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 font-black text-sm shadow-md shadow-cyan-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSendingClientMessage ? <span>Sending Update...</span> : (
                   <>
@@ -1617,9 +1962,9 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
           <form 
             onSubmit={handleExecuteRefund} 
-            className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4"
+            className="w-full max-w-md bg-[#111C2E] border border-[#293A52] rounded-3xl p-6 shadow-2xl space-y-4"
           >
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-[#22304A]">
               <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
                 <AlertTriangle className="w-4 h-4" />
                 <span>Cancel & Refund Agent Request</span>
@@ -1627,15 +1972,15 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
               <button
                 type="button"
                 onClick={() => setRefundModalRfq(null)}
-                className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+                className="w-8 h-8 rounded-full bg-[#1B2A40] flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="p-3.5 rounded-2xl bg-rose-950/20 border border-rose-900/40 text-slate-300 space-y-1">
-                <p><strong>Request Ref:</strong> <span className="font-mono text-rose-300">{refundModalRfq.reference || refundModalRfq.id}</span></p>
+            <div className="space-y-3.5 text-xs">
+              <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-900/40 text-slate-300 space-y-1">
+                <p><strong>Request Ref:</strong> <span className="font-mono text-rose-300 font-bold">{refundModalRfq.reference || refundModalRfq.id}</span></p>
                 <p><strong>Client:</strong> {refundModalRfq.clientName}</p>
                 {refundModalRfq.paidAmount && (
                   <p><strong>Paid Escrow:</strong> <span className="font-mono font-bold text-emerald-400">{refundModalRfq.paidAmount} {refundModalRfq.paidWith}</span></p>
@@ -1643,14 +1988,14 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                <label className="text-xs font-bold text-slate-300 uppercase block mb-1">
                   Reason for Cancellation & Reversal
                 </label>
                 <textarea
                   value={refundReason}
                   onChange={(e) => setRefundReason(e.target.value)}
                   rows={3}
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-rose-500 text-xs"
+                  className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white outline-none focus:border-rose-500 text-sm"
                   required
                 />
               </div>
@@ -1664,7 +2009,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                     onChange={(e) => setForceOverride(e.target.checked)}
                     className="rounded"
                   />
-                  <label htmlFor="forceOverride" className="text-[11px] font-semibold cursor-pointer">
+                  <label htmlFor="forceOverride" className="text-xs font-semibold cursor-pointer">
                     Supervisor Authorization Override (Request marked completed)
                   </label>
                 </div>
@@ -1673,7 +2018,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
               <button
                 type="submit"
                 disabled={isProcessingRefund}
-                className="w-full py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md shadow-rose-600/30 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                className="w-full py-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm shadow-md shadow-rose-600/30 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isProcessingRefund ? <span>Executing Reversal...</span> : (
                   <>
@@ -1690,19 +2035,19 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
       {/* ===================== MODAL 5: MANAGE REQUEST DRAWER ===================== */}
       {manageDrawerRfq && (
         <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-xl h-full bg-slate-900 border-l border-slate-800 p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
+          <div className="w-full max-w-xl h-full bg-[#111C2E] border-l border-[#293A52] p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
             <div className="space-y-5">
               {/* Drawer Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+              <div className="flex items-center justify-between pb-4 border-b border-[#22304A]">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-emerald-400">
+                    <span className="font-mono text-sm font-bold text-emerald-400">
                       {manageDrawerRfq.reference || manageDrawerRfq.id}
                     </span>
-                    <span className="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] font-bold text-slate-300 uppercase">
+                    <span className="px-2 py-0.5 rounded-full bg-[#1B2A40] text-xs font-bold text-slate-300 uppercase">
                       {manageDrawerRfq.serviceType || manageDrawerRfq.serviceKind}
                     </span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
                       manageDrawerRfq.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300' :
                       manageDrawerRfq.status === 'awaiting_payment' || manageDrawerRfq.status === 'quote_ready' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
                       manageDrawerRfq.status === 'in_progress' ? 'bg-indigo-500/20 text-indigo-300' :
@@ -1712,36 +2057,36 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                       {manageDrawerRfq.status.replace('_', ' ')}
                     </span>
                   </div>
-                  <h3 className="text-base font-extrabold text-white mt-1">Sourcing Request Details</h3>
+                  <h3 className="text-lg font-extrabold text-white mt-1">Sourcing Request Details</h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => setManageDrawerRfq(null)}
-                  className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all cursor-pointer"
+                  className="w-9 h-9 rounded-full bg-[#1B2A40] flex items-center justify-center text-slate-400 hover:text-white transition-all cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Customer Profile Card */}
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer Information</span>
-                <div className="grid grid-cols-2 gap-2 text-slate-300">
+              <div className="p-4 rounded-xl bg-[#0B1220] border border-[#22304A] space-y-2 text-xs">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Customer Information</span>
+                <div className="grid grid-cols-2 gap-3 text-slate-300">
                   <div>
-                    <span className="text-slate-500 block text-[11px]">Client Name:</span>
-                    <strong className="text-white text-xs">{manageDrawerRfq.clientName || 'Chief Babatunde Alade'}</strong>
+                    <span className="text-slate-400 block text-xs">Client Name:</span>
+                    <strong className="text-white text-sm">{manageDrawerRfq.clientName || 'Chief Babatunde Alade'}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[11px]">Customer ID:</span>
-                    <span className="font-mono text-slate-300 text-xs">{manageDrawerRfq.userId || 'usr_alade_01'}</span>
+                    <span className="text-slate-400 block text-xs">Customer ID:</span>
+                    <span className="font-mono text-slate-200 text-sm">{manageDrawerRfq.userId || 'usr_alade_01'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[11px]">Contact Email:</span>
-                    <span className="text-slate-300 text-xs">{manageDrawerRfq.clientEmail || 'alade.investments@flyemass.ng'}</span>
+                    <span className="text-slate-400 block text-xs">Contact Email:</span>
+                    <span className="text-slate-200 text-xs">{manageDrawerRfq.clientEmail || 'alade.investments@flyemass.ng'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[11px]">Submission Date:</span>
-                    <span className="text-slate-300 text-xs">
+                    <span className="text-slate-400 block text-xs">Submission Date:</span>
+                    <span className="text-slate-200 text-xs">
                       {manageDrawerRfq.createdAt ? new Date(manageDrawerRfq.createdAt).toLocaleDateString() : 'Recent'}
                     </span>
                   </div>
@@ -1749,23 +2094,23 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
               </div>
 
               {/* Product Specifications Card */}
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3 text-xs">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Requested Product Specifications</span>
+              <div className="p-4 rounded-xl bg-[#0B1220] border border-[#22304A] space-y-3 text-xs">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Requested Product Specifications</span>
                 <div>
-                  <span className="text-slate-500 block text-[11px]">Product Title:</span>
-                  <h4 className="text-white font-bold text-sm">{manageDrawerRfq.productName}</h4>
+                  <span className="text-slate-400 block text-xs">Product Title:</span>
+                  <h4 className="text-white font-bold text-base">{manageDrawerRfq.productName}</h4>
                 </div>
 
                 {manageDrawerRfq.specifications && (
                   <div>
-                    <span className="text-slate-500 block text-[11px]">Detailed Specifications (Color, Size, Material, Packaging):</span>
-                    <p className="text-slate-200 bg-slate-900 p-2.5 rounded-xl border border-slate-800 mt-1 leading-relaxed">
+                    <span className="text-slate-400 block text-xs mb-1">Detailed Specifications:</span>
+                    <p className="text-slate-200 bg-[#152238] p-3 rounded-xl border border-[#293A52] leading-relaxed text-sm">
                       {manageDrawerRfq.specifications}
                     </p>
                   </div>
                 )}
 
-                <div className="grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-[#152238] border border-[#293A52]">
                   <div>
                     <span className="text-[10px] text-slate-400 block uppercase font-bold">Target Quantity</span>
                     <span className="font-mono font-bold text-white text-xs">{manageDrawerRfq.targetQuantity || 'N/A'} units</span>
@@ -1785,14 +2130,14 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                 {/* Sourcing Link */}
                 {manageDrawerRfq.productUrl && (
                   <div>
-                    <span className="text-slate-500 block text-[11px] mb-1">Chinese Supplier / Marketplace Link:</span>
+                    <span className="text-slate-400 block text-xs mb-1">Chinese Supplier / Marketplace Link:</span>
                     <a
                       href={manageDrawerRfq.productUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center gap-1.5 p-2.5 rounded-xl bg-indigo-950/40 border border-indigo-800/60 text-indigo-300 hover:text-white transition-all text-xs break-all"
+                      className="flex items-center gap-2 p-3 rounded-xl bg-indigo-950/40 border border-indigo-800/60 text-indigo-300 hover:text-white transition-all text-xs break-all"
                     >
-                      <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
+                      <ExternalLink className="w-4 h-4 shrink-0" />
                       <span className="truncate">{manageDrawerRfq.productUrl}</span>
                     </a>
                   </div>
@@ -1800,14 +2145,14 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
 
                 {/* Reference Photos Gallery */}
                 <div>
-                  <span className="text-slate-500 block text-[11px] mb-1.5">Customer Reference Photos:</span>
+                  <span className="text-slate-400 block text-xs mb-1.5">Customer Reference Photos:</span>
                   {(() => {
                     const photos = (manageDrawerRfq.referencePhotos && manageDrawerRfq.referencePhotos.length > 0)
                       ? manageDrawerRfq.referencePhotos
                       : (manageDrawerRfq.sampleImages || []);
                     if (photos.length === 0) {
                       return (
-                        <div className="p-3 rounded-xl bg-slate-900 border border-dashed border-slate-800 text-center text-slate-500 text-xs">
+                        <div className="p-3 rounded-xl bg-[#152238] border border-dashed border-[#293A52] text-center text-slate-400 text-xs">
                           No reference photos attached to this request.
                         </div>
                       );
@@ -1818,7 +2163,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                           <div
                             key={idx}
                             onClick={() => setPreviewImage(imgUrl)}
-                            className="relative aspect-square rounded-xl overflow-hidden border border-slate-800 hover:border-emerald-500 group cursor-pointer"
+                            className="relative aspect-square rounded-xl overflow-hidden border border-[#293A52] hover:border-emerald-500 group cursor-pointer"
                           >
                             <img src={imgUrl} alt={`Ref ${idx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
@@ -1832,35 +2177,21 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                 </div>
               </div>
 
-              {/* Quotation Breakdown Card */}
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Official Quotation Breakdown</span>
+              {/* Quotation & Pricing Summary Card */}
+              <div className="p-4 rounded-xl bg-[#0B1220] border border-[#22304A] space-y-2 text-xs">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Quotation Summary</span>
                 {manageDrawerRfq.quoteAmountUSD ? (
                   <div className="space-y-2">
-                    <div className="grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-[#152238] border border-[#293A52]">
                       <div>
-                        <span className="text-[10px] text-slate-400 block">Factory Cost</span>
-                        <span className="font-mono font-bold text-white text-xs">¥{manageDrawerRfq.productCostCNY || 0} CNY</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 block">Commission ({manageDrawerRfq.sourcingCommissionPercent || 5}%)</span>
-                        <span className="font-mono font-bold text-emerald-400 text-xs">¥{manageDrawerRfq.sourcingCommissionCNY || 0} CNY</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 block">China Domestic Freight</span>
-                        <span className="font-mono font-bold text-white text-xs">¥{manageDrawerRfq.chinaShippingCNY || 0} CNY</span>
-                      </div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-900/40 flex items-center justify-between">
-                      <div>
-                        <span className="text-[10px] text-emerald-300 font-bold block uppercase">Grand Total Payable</span>
-                        <span className="font-mono font-black text-emerald-400 text-sm">
-                          ¥{manageDrawerRfq.totalPayableCNY?.toLocaleString()} CNY
+                        <span className="text-[10px] text-slate-400 block uppercase font-bold">Total Client Payable</span>
+                        <span className="text-emerald-400 font-mono font-bold text-base">
+                          {manageDrawerRfq.totalPayableCNY ? `¥${manageDrawerRfq.totalPayableCNY.toLocaleString()} CNY` : `$${manageDrawerRfq.quoteAmountUSD} USD`}
                         </span>
                       </div>
-                      <div className="text-right text-[11px] font-mono text-slate-300">
-                        <span>≈ ${manageDrawerRfq.quoteAmountUSD} USD</span>
-                        <span className="block text-slate-400">≈ ₦{manageDrawerRfq.quoteAmountNGN?.toLocaleString()} NGN</span>
+                      <div className="text-right text-xs font-mono text-slate-300">
+                        <span className="text-white font-bold block">${manageDrawerRfq.quoteAmountUSD} USD</span>
+                        <span>₦{manageDrawerRfq.quoteAmountNGN?.toLocaleString()} NGN</span>
                       </div>
                     </div>
                     {manageDrawerRfq.supplierFindings && (
@@ -1882,22 +2213,22 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
               </div>
 
               {/* Escrow Payment Card */}
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Wallet Payment & Escrow Liability</span>
+              <div className="p-4 rounded-xl bg-[#0B1220] border border-[#22304A] space-y-2 text-xs">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Wallet Payment & Escrow Liability</span>
                 <div className="grid grid-cols-2 gap-2 text-slate-300">
                   <div>
-                    <span className="text-slate-500 block text-[11px]">Escrow Status:</span>
+                    <span className="text-slate-400 block text-xs">Escrow Status:</span>
                     <span className="font-bold text-white uppercase text-xs">{manageDrawerRfq.paymentStatus || 'unpaid'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[11px]">Paid Amount:</span>
+                    <span className="text-slate-400 block text-xs">Paid Amount:</span>
                     <span className="font-mono font-bold text-emerald-400 text-xs">
                       {manageDrawerRfq.paidAmount ? `${manageDrawerRfq.paidAmount.toLocaleString()} ${manageDrawerRfq.paidWith}` : 'None'}
                     </span>
                   </div>
                   {manageDrawerRfq.paymentReference && (
                     <div className="col-span-2">
-                      <span className="text-slate-500 block text-[11px]">Transaction Reference:</span>
+                      <span className="text-slate-400 block text-xs">Transaction Reference:</span>
                       <span className="font-mono text-indigo-300 text-xs">{manageDrawerRfq.paymentReference}</span>
                     </div>
                   )}
@@ -1906,22 +2237,22 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
 
               {/* Linked Cargo Waybill Card */}
               {manageDrawerRfq.linkedShipmentCode && (
-                <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-800/60 space-y-2 text-xs">
+                <div className="p-4 rounded-xl bg-indigo-950/40 border border-indigo-800/60 space-y-2 text-xs">
                   <div className="flex items-center gap-2 text-indigo-400">
                     <Truck className="w-4 h-4" />
                     <span className="font-bold text-xs uppercase tracking-wider">Linked Logistics Cargo Shipment</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-slate-300">
                     <div>
-                      <span className="text-slate-400 block text-[11px]">Waybill Tracking:</span>
+                      <span className="text-slate-400 block text-xs">Waybill Tracking:</span>
                       <strong className="font-mono text-white text-xs">{manageDrawerRfq.linkedShipmentCode}</strong>
                     </div>
                     <div>
-                      <span className="text-slate-400 block text-[11px]">China Local Tracking:</span>
+                      <span className="text-slate-400 block text-xs">China Local Tracking:</span>
                       <strong className="font-mono text-white text-xs">{manageDrawerRfq.linkedTrackingCode || 'SF-EXPRESS'}</strong>
                     </div>
                     <div>
-                      <span className="text-slate-400 block text-[11px]">Current Status:</span>
+                      <span className="text-slate-400 block text-xs">Current Status:</span>
                       <span className="font-bold text-emerald-400 text-xs uppercase">
                         {manageDrawerRfq.linkedShipmentStatus || 'received_warehouse'}
                       </span>
@@ -1932,15 +2263,15 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
             </div>
 
             {/* Drawer Action Bar */}
-            <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center gap-2">
+            <div className="pt-4 border-t border-[#22304A] flex flex-wrap items-center gap-2.5">
               <button
                 onClick={() => {
                   openQuoteModal(manageDrawerRfq);
                   setManageDrawerRfq(null);
                 }}
-                className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5"
+                className="flex-1 py-3 rounded-xl bg-[#1B2A40] hover:bg-[#253954] text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-[#293A52]"
               >
-                <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                <FileText className="w-4 h-4 text-emerald-400" />
                 <span>{manageDrawerRfq.quoteAmountUSD ? 'Edit Quotation' : 'Formulate Quote'}</span>
               </button>
 
@@ -1949,9 +2280,9 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                   openOpsDrawer(manageDrawerRfq);
                   setManageDrawerRfq(null);
                 }}
-                className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Layers className="w-3.5 h-3.5" />
+                <Layers className="w-4 h-4" />
                 <span>Update Progress</span>
               </button>
 
@@ -1962,9 +2293,9 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                     setForceOverride(false);
                     setManageDrawerRfq(null);
                   }}
-                  className="py-3 px-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs transition-all flex items-center justify-center gap-1.5"
+                  className="py-3 px-4 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className="w-4 h-4" />
                   <span>Cancel / Refund</span>
                 </button>
               )}
@@ -1983,7 +2314,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
             <img src={previewImage} alt="Reference Preview" className="max-w-full max-h-[85vh] rounded-2xl object-contain shadow-2xl" />
             <button
               onClick={() => setPreviewImage(null)}
-              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -1991,60 +2322,61 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
         </div>
       )}
 
+      {/* ===================== MODAL 7: REGISTER CHINESE SUPPLIER ===================== */}
       {showAddSupplier && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
-          <form onSubmit={handleCreateSupplier} className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-              <h3 className="text-sm font-extrabold text-white">Register Verified Chinese Supplier</h3>
+          <form onSubmit={handleCreateSupplier} className="w-full max-w-md bg-[#111C2E] border border-[#293A52] rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#22304A]">
+              <h3 className="text-base font-extrabold text-white">Register Verified Chinese Supplier</h3>
               <button
                 type="button"
                 onClick={() => setShowAddSupplier(false)}
-                className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+                className="w-8 h-8 rounded-full bg-[#1B2A40] flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3.5 text-xs">
               <div>
-                <label className="text-[11px] font-bold text-slate-400 block mb-1">Company Name (English)</label>
+                <label className="text-xs font-bold text-slate-300 block mb-1">Company Name (English)</label>
                 <input
                   type="text"
                   value={newSupName}
                   onChange={(e) => setNewSupName(e.target.value)}
-                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500"
+                  className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm outline-none focus:border-indigo-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-slate-400 block mb-1">Chinese Legal Name (中文名)</label>
+                <label className="text-xs font-bold text-slate-300 block mb-1">Chinese Legal Name (中文名)</label>
                 <input
                   type="text"
                   value={newSupZh}
                   onChange={(e) => setNewSupZh(e.target.value)}
-                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 font-chinese"
+                  className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm outline-none focus:border-indigo-500 font-chinese"
                   required
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-bold text-slate-400 block mb-1">City Hub</label>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">City Hub</label>
                   <input
                     type="text"
                     value={newSupCity}
                     onChange={(e) => setNewSupCity(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white outline-none"
+                    className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm outline-none focus:border-indigo-500"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-slate-400 block mb-1">Badge</label>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Badge</label>
                   <select
                     value={newSupBadge}
                     onChange={(e) => setNewSupBadge(e.target.value as any)}
-                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white outline-none"
+                    className="w-full p-3 rounded-xl bg-[#0B1220] border border-[#293A52] text-white text-sm font-semibold outline-none focus:border-indigo-500 cursor-pointer"
                   >
                     <option value="Canton Fair VIP">Canton Fair VIP</option>
                     <option value="Factory Direct">Factory Direct</option>
@@ -2056,7 +2388,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-sm shadow-md shadow-emerald-500/20 active:scale-95 transition-all cursor-pointer"
               >
                 Register & Publish to Sourcing Directory
               </button>
