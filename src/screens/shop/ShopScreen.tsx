@@ -30,7 +30,7 @@ import {
   Tag,
   X
 } from 'lucide-react';
-import { TechProduct } from '../../types';
+import { TechProduct, BannerDocument, ScreenRoute } from '../../types';
 
 export const ShopScreen: React.FC = () => {
   const { 
@@ -80,47 +80,106 @@ export const ShopScreen: React.FC = () => {
     });
   }, []);
 
-  // Marketplace Promotional Banners
-  const marketBanners = [
-    {
-      id: 'banner-hk-direct',
-      badge: 'Hong Kong Direct Hub',
-      title: 'Factory Sealed HK Spec Devices',
-      subtitle: 'Dual physical SIM models with 2-4 days express air freight to Lagos MM2 Hub.',
-      color: 'from-emerald-950/80 via-slate-900 to-slate-900',
-      border: 'border-emerald-500/30',
-      badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
-      icon: Zap
-    },
-    {
-      id: 'banner-wholesale',
-      badge: 'Wholesale & Retail',
-      title: 'Direct Ikeja Retailer Pricing',
-      subtitle: 'Multi-currency checkout with escrow clearance in Naira, USD, or Chinese Yuan.',
-      color: 'from-indigo-950/80 via-slate-900 to-slate-900',
-      border: 'border-indigo-500/30',
-      badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
-      icon: Flame
-    },
-    {
-      id: 'banner-m4-arrival',
-      badge: 'New Arrival',
-      title: 'Apple M4 Max & Pro Hardware',
-      subtitle: 'Global Apple Limited Warranty with cryptographic serial number tracking.',
-      color: 'from-amber-950/80 via-slate-900 to-slate-900',
-      border: 'border-amber-500/30',
-      badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-      icon: Sparkles
-    }
-  ];
+  // Dynamic Image Banners from Database & Real-Time Sync
+  const [dbShopBanners, setDbShopBanners] = useState<BannerDocument[]>(() => {
+    return db.getShopBanners();
+  });
+  const [bannerImagesLoaded, setBannerImagesLoaded] = useState<Record<string, boolean>>({});
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
 
-  // Auto-rotate promotional carousel every 6s
   useEffect(() => {
+    return db.subscribe(() => {
+      const current = db.getProducts();
+      if (current.length > 0) {
+        setProductsList((prev) => {
+          if (
+            prev.length === current.length &&
+            prev.every((p, i) => p.id === current[i]?.id && p.priceUSD === current[i]?.priceUSD && p.inStock === current[i]?.inStock)
+          ) {
+            return prev;
+          }
+          return current;
+        });
+      }
+
+      const nextBanners = db.getShopBanners();
+      setDbShopBanners((prev) => {
+        if (
+          prev.length === nextBanners.length &&
+          prev.every((b, i) => b.id === nextBanners[i]?.id && b.imageUrl === nextBanners[i]?.imageUrl && b.isActive === nextBanners[i]?.isActive && b.title === nextBanners[i]?.title && b.displayOrder === nextBanners[i]?.displayOrder)
+        ) {
+          return prev;
+        }
+        return nextBanners;
+      });
+    });
+  }, []);
+
+  // Marketplace Promotional Banners (Dynamic Image Banners connected to Admin & Supabase Storage)
+  const marketBanners = useMemo(() => {
+    const source = (dbShopBanners && dbShopBanners.length > 0) ? dbShopBanners : [
+      {
+        id: 'banner-hk-direct',
+        badge: 'Hong Kong Direct Hub',
+        title: 'Apple iPhone 16 Pro Max • Dual SIM',
+        subtitle: 'Dual physical SIM models with 2-4 days express air freight to Lagos MM2 Hub.',
+        description: 'Factory Sealed HK Spec Dual physical SIM models with express air freight to Lagos.',
+        imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1200&q=80',
+        destinationRoute: 'shop' as ScreenRoute,
+        isActive: true,
+        displayOrder: 1
+      },
+      {
+        id: 'banner-m4-arrival',
+        badge: 'New Arrival',
+        title: 'Apple M4 Max & Pro Hardware',
+        subtitle: 'Global Apple Limited Warranty with cryptographic serial number tracking.',
+        description: 'Brand new Apple Silicon hardware available with escrow inspection.',
+        imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80',
+        destinationRoute: 'shop' as ScreenRoute,
+        isActive: true,
+        displayOrder: 2
+      },
+      {
+        id: 'banner-wholesale',
+        badge: 'Wholesale & Retail',
+        title: 'Direct Ikeja Retailer Pricing',
+        subtitle: 'Multi-currency checkout with escrow clearance in Naira, USD, or Chinese Yuan.',
+        description: 'Bulk wholesale orders with insured freight and zero customs demurrage.',
+        imageUrl: 'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?auto=format&fit=crop&w=1200&q=80',
+        destinationRoute: 'shop' as ScreenRoute,
+        isActive: true,
+        displayOrder: 3
+      }
+    ];
+
+    return source.map((banner, index) => {
+      const icon = index === 0 ? Zap : index === 1 ? Sparkles : Flame;
+      return {
+        id: banner.id,
+        badge: banner.badge || (index === 0 ? 'Hong Kong Direct Hub' : index === 1 ? 'New Arrival' : 'Wholesale Deal'),
+        title: banner.title,
+        subtitle: banner.subtitle || banner.description || 'Direct Air Cargo from Hong Kong & Guangzhou to Lagos MMIA.',
+        imageUrl: banner.imageUrl || 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1200&q=80',
+        destinationRoute: banner.destinationRoute || 'shop',
+        linkUrl: banner.linkUrl,
+        productId: banner.productId,
+        color: index === 0 ? 'from-emerald-950/80 via-slate-900 to-slate-900' : index === 1 ? 'from-amber-950/80 via-slate-900 to-slate-900' : 'from-indigo-950/80 via-slate-900 to-slate-900',
+        border: index === 0 ? 'border-emerald-500/30' : index === 1 ? 'border-amber-500/30' : 'border-indigo-500/30',
+        badgeColor: index === 0 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : index === 1 ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
+        icon
+      };
+    });
+  }, [dbShopBanners]);
+
+  // Auto-rotate promotional carousel every 5s with pause on interaction
+  useEffect(() => {
+    if (marketBanners.length <= 1 || isCarouselPaused) return;
     const timer = setInterval(() => {
       setActiveBannerIndex((prev) => (prev + 1) % marketBanners.length);
-    }, 6000);
+    }, 5000);
     return () => clearInterval(timer);
-  }, [marketBanners.length]);
+  }, [marketBanners.length, isCarouselPaused]);
 
   // Standard marketplace categories with icons
   const categories = [
@@ -348,48 +407,98 @@ export const ShopScreen: React.FC = () => {
         {/* ======================================================== */}
         {/* 2. PROMOTIONAL MARKETPLACE HERO BANNER CAROUSEL */}
         {/* ======================================================== */}
-        <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 shadow-xl">
+        <div 
+          className="relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-950 shadow-2xl h-[132px] sm:h-[155px] group cursor-pointer"
+          onMouseEnter={() => setIsCarouselPaused(true)}
+          onMouseLeave={() => setIsCarouselPaused(false)}
+          onTouchStart={() => setIsCarouselPaused(true)}
+          onTouchEnd={() => setIsCarouselPaused(false)}
+        >
           {marketBanners.map((banner, index) => {
             const Icon = banner.icon;
             const isActive = activeBannerIndex === index;
-            if (!isActive) return null;
 
             return (
               <div 
                 key={banner.id}
-                className={`p-4 bg-gradient-to-br ${banner.color} transition-all duration-500 flex flex-col justify-between min-h-[110px]`}
+                onClick={() => {
+                  if (banner.destinationRoute && banner.destinationRoute !== 'shop') {
+                    navigate(banner.destinationRoute as any);
+                  } else if (banner.productId) {
+                    navigate('product-detail', banner.productId);
+                  }
+                }}
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out flex flex-col justify-between p-4 select-none ${
+                  isActive ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'
+                }`}
               >
-                <div className="flex items-center justify-between">
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${banner.badgeColor}`}>
+                {/* Full-Bleed High-Fidelity Banner Image */}
+                <img 
+                  src={banner.imageUrl} 
+                  alt={banner.title}
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  onLoad={() => setBannerImagesLoaded(prev => ({ ...prev, [banner.id]: true }))}
+                  className={`absolute inset-0 w-full h-full object-cover object-center transition-transform duration-1000 scale-100 group-hover:scale-105 ${
+                    bannerImagesLoaded[banner.id] ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+
+                {/* Fallback Skeleton State */}
+                {!bannerImagesLoaded[banner.id] && (
+                  <div className="absolute inset-0 bg-slate-900 animate-pulse flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin" />
+                  </div>
+                )}
+
+                {/* Luxury Obsidian Gradient Scrim Overlays */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/65 to-slate-950/30 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/40 to-transparent pointer-events-none" />
+
+                {/* Overlaid Content Top Row */}
+                <div className="relative z-10 flex items-center justify-between">
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border shadow-sm backdrop-blur-md ${banner.badgeColor}`}>
                     <Icon className="w-3 h-3" />
                     <span>{banner.badge}</span>
                   </span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-950/70 border border-slate-800/80 backdrop-blur-md">
                     <Truck className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-[10px] text-slate-300 font-semibold">Lagos MMIA Cargo</span>
+                    <span className="text-[10px] text-slate-200 font-semibold">Lagos MMIA Cargo</span>
                   </div>
                 </div>
 
-                <div className="my-1.5">
-                  <h3 className="text-sm font-extrabold text-white tracking-tight">{banner.title}</h3>
-                  <p className="text-[11px] text-slate-300 line-clamp-1">{banner.subtitle}</p>
+                {/* Overlaid Content Middle: Headline & Subtitle */}
+                <div className="relative z-10 my-auto py-1">
+                  <h3 className="text-sm sm:text-base font-extrabold text-white tracking-tight drop-shadow-md">
+                    {banner.title}
+                  </h3>
+                  <p className="text-[11px] text-slate-300 line-clamp-1 drop-shadow-sm font-medium">
+                    {banner.subtitle}
+                  </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-1 border-t border-white/5">
-                  <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                {/* Overlaid Content Bottom Row: Trust Badge & Dot Pagination */}
+                <div className="relative z-10 flex items-center justify-between pt-1 border-t border-white/10">
+                  <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 drop-shadow-sm">
                     <ShieldCheck className="w-3 h-3" />
                     <span>Escrow Guaranteed Protection</span>
                   </span>
-                  {/* Carousel indicator dots */}
-                  <div className="flex gap-1">
+
+                  {/* Carousel Indicator Dots */}
+                  <div className="flex items-center gap-1.5">
                     {marketBanners.map((_, dotIdx) => (
                       <button
                         key={dotIdx}
                         type="button"
-                        onClick={() => setActiveBannerIndex(dotIdx)}
-                        className={`h-1.5 rounded-full transition-all ${
-                          dotIdx === activeBannerIndex ? 'w-4 bg-emerald-400' : 'w-1.5 bg-slate-700'
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveBannerIndex(dotIdx);
+                        }}
+                        className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                          dotIdx === activeBannerIndex 
+                            ? 'w-5 bg-emerald-400 shadow-sm shadow-emerald-400/50' 
+                            : 'w-1.5 bg-slate-600 hover:bg-slate-400'
                         }`}
+                        aria-label={`Go to banner slide ${dotIdx + 1}`}
                       />
                     ))}
                   </div>

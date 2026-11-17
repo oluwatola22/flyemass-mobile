@@ -558,6 +558,13 @@ export interface BannerDocument {
   destinationRoute: ScreenRoute;
   isActive: boolean;
   displayOrder: number;
+  placement?: 'home' | 'shop' | 'all';
+  badge?: string;
+  subtitle?: string;
+  linkUrl?: string;
+  productId?: string;
+  createdAt?: number;
+  updatedAt?: number;
 }
 
 export interface DestinationHubSurcharge {

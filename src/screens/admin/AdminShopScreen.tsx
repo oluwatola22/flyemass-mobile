@@ -4,7 +4,7 @@ import { AdminLayout } from '../../components/admin/AdminLayout';
 import { db, DatabaseState } from '../../services/db';
 import { firebaseSync } from '../../services/firebase';
 import { TECH_PRODUCTS } from '../../data/mockData';
-import { TechProduct, ShopOrderDocument, ProductVariant } from '../../types';
+import { TechProduct, ShopOrderDocument, ProductVariant, BannerDocument, ScreenRoute } from '../../types';
 import { 
   ShoppingBag, 
   Search, 
@@ -33,7 +33,10 @@ import {
   Check,
   MoveUp,
   MoveDown,
-  Star
+  Star,
+  ArrowUp,
+  ArrowDown,
+  Edit3
 } from 'lucide-react';
 
 export const AdminShopScreen: React.FC = () => {
@@ -45,9 +48,139 @@ export const AdminShopScreen: React.FC = () => {
     return list.length > 0 ? list : TECH_PRODUCTS;
   });
   
-  const [activeTab, setActiveTab] = useState<'fulfillment' | 'catalog' | 'settings'>('fulfillment');
+  const [activeTab, setActiveTab] = useState<'fulfillment' | 'catalog' | 'banners' | 'settings'>('fulfillment');
   const [orderStatusFilter, setOrderStatusFilter] = useState<'all' | 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Shop Banners State & Actions (Apple & Tech Store Carousel)
+  const [shopBanners, setShopBanners] = useState<BannerDocument[]>(() => db.getAllShopBanners());
+  const [showShopBannerModal, setShowShopBannerModal] = useState(false);
+  const [editingShopBanner, setEditingShopBanner] = useState<BannerDocument | null>(null);
+  const [isUploadingShopBanner, setIsUploadingShopBanner] = useState(false);
+  const [shopBannerForm, setShopBannerForm] = useState<Partial<BannerDocument>>({
+    title: '',
+    subtitle: '',
+    badge: 'Hong Kong Direct Hub',
+    imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1200&q=80',
+    destinationRoute: 'shop' as ScreenRoute,
+    placement: 'shop',
+    displayOrder: 1,
+    isActive: true
+  });
+
+  useEffect(() => {
+    return db.subscribe(() => {
+      setShopBanners(db.getAllShopBanners());
+    });
+  }, []);
+
+  const handleUploadShopBannerFile = async (file: File) => {
+    setIsUploadingShopBanner(true);
+    try {
+      const res = await db.uploadBannerImage(file);
+      if (res && res.success) {
+        setShopBannerForm(prev => ({ ...prev, imageUrl: res.url }));
+        showToast('Banner photo uploaded to Supabase Storage (public.shop_banners)!', 'success');
+      } else {
+        showToast('Failed to upload banner photo', 'error');
+      }
+    } catch {
+      showToast('Error uploading banner photo', 'error');
+    } finally {
+      setIsUploadingShopBanner(false);
+    }
+  };
+
+  const handleOpenAddShopBanner = () => {
+    setEditingShopBanner(null);
+    setShopBannerForm({
+      title: '',
+      subtitle: '',
+      badge: 'Hong Kong Direct Hub',
+      imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1200&q=80',
+      destinationRoute: 'shop' as ScreenRoute,
+      placement: 'shop',
+      displayOrder: shopBanners.length + 1,
+      isActive: true
+    });
+    setShowShopBannerModal(true);
+  };
+
+  const handleOpenEditShopBanner = (banner: BannerDocument) => {
+    setEditingShopBanner(banner);
+    setShopBannerForm({ ...banner });
+    setShowShopBannerModal(true);
+  };
+
+  const handleSaveShopBanner = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!shopBannerForm.title) {
+      showToast('Banner title is required', 'error');
+      return;
+    }
+
+    if (editingShopBanner) {
+      const updated: BannerDocument = {
+        ...editingShopBanner,
+        title: shopBannerForm.title || editingShopBanner.title,
+        subtitle: shopBannerForm.subtitle || '',
+        badge: shopBannerForm.badge || '',
+        description: shopBannerForm.description || shopBannerForm.subtitle || '',
+        placement: 'shop',
+        imageUrl: shopBannerForm.imageUrl || editingShopBanner.imageUrl,
+        destinationRoute: (shopBannerForm.destinationRoute as ScreenRoute) || 'shop',
+        isActive: shopBannerForm.isActive !== undefined ? shopBannerForm.isActive : editingShopBanner.isActive,
+        displayOrder: Number(shopBannerForm.displayOrder) || editingShopBanner.displayOrder
+      };
+      db.updateBanner(updated, 'Admin Shop Manager');
+      showToast('Shop image banner updated & synced live', 'success');
+    } else {
+      const created: BannerDocument = {
+        id: `ban_shop_${Date.now()}`,
+        title: shopBannerForm.title!,
+        subtitle: shopBannerForm.subtitle || '',
+        badge: shopBannerForm.badge || 'Hong Kong Direct Hub',
+        description: shopBannerForm.description || shopBannerForm.subtitle || '',
+        placement: 'shop',
+        imageUrl: shopBannerForm.imageUrl || 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1200&q=80',
+        destinationRoute: (shopBannerForm.destinationRoute as ScreenRoute) || 'shop',
+        isActive: shopBannerForm.isActive !== undefined ? shopBannerForm.isActive : true,
+        displayOrder: Number(shopBannerForm.displayOrder) || (shopBanners.length + 1)
+      };
+      db.addBanner(created, 'Admin Shop Manager');
+      showToast('New dynamic image banner published to mobile storefront', 'success');
+    }
+    setShowShopBannerModal(false);
+  };
+
+  const handleToggleShopBanner = (id: string, currentStatus: boolean) => {
+    db.toggleBanner(id, !currentStatus, 'Admin Shop Manager');
+    showToast(`Banner ${!currentStatus ? 'activated live' : 'hidden from mobile'}`, 'info');
+  };
+
+  const handleDeleteShopBanner = (id: string) => {
+    if (window.confirm('Delete this shop banner from the mobile storefront?')) {
+      db.deleteBanner(id, 'Admin Shop Manager');
+      showToast('Banner deleted successfully', 'success');
+    }
+  };
+
+  const handleMoveShopBanner = (id: string, direction: 'up' | 'down') => {
+    const list = shopBanners.slice().sort((a, b) => a.displayOrder - b.displayOrder);
+    const index = list.findIndex(b => b.id === id);
+    if (index === -1) return;
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === list.length - 1) return;
+
+    const targetIdx = direction === 'up' ? index - 1 : index + 1;
+    const temp = list[index];
+    list[index] = list[targetIdx];
+    list[targetIdx] = temp;
+
+    const reorderedIds = list.map(b => b.id);
+    db.reorderBanners(reorderedIds, 'Admin Shop Manager');
+    showToast(`Banner display priority adjusted (${direction === 'up' ? 'promoted' : 'demoted'})`, 'info');
+  };
 
   // Delivery settings
   const [deliveryFeeNGN, setDeliveryFeeNGN] = useState<number>(() => {
@@ -591,6 +724,16 @@ export const AdminShopScreen: React.FC = () => {
           </button>
 
           <button
+            onClick={() => setActiveTab('banners')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              activeTab === 'banners' ? 'bg-emerald-500 text-slate-950 shadow-md font-extrabold' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Images className="w-3.5 h-3.5" />
+            <span>Shop Banners Carousel ({shopBanners.length})</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('settings')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
               activeTab === 'settings' ? 'bg-emerald-500 text-slate-950 shadow-md font-extrabold' : 'text-slate-400 hover:text-white'
@@ -921,6 +1064,148 @@ export const AdminShopScreen: React.FC = () => {
                 </tbody>
               </table>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2.5: SHOP BANNERS CAROUSEL MANAGEMENT */}
+        {activeTab === 'banners' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-800">
+              <div>
+                <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                  <Images className="w-5 h-5 text-emerald-400" />
+                  <span>Apple & Tech Store Image Carousel Management</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Upload and control dynamic rotating image banners with instant Supabase Storage (public.shop_banners) and real-time storefront synchronization.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleOpenAddShopBanner}
+                className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center gap-2 cursor-pointer shrink-0"
+              >
+                <Plus className="w-4 h-4 stroke-[3]" />
+                <span>+ Upload / Add Shop Banner</span>
+              </button>
+            </div>
+
+            {/* Banners Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {shopBanners
+                .slice()
+                .sort((a, b) => a.displayOrder - b.displayOrder)
+                .map((banner, idx, arr) => (
+                  <div
+                    key={banner.id}
+                    className="rounded-3xl bg-slate-900 border border-slate-800 overflow-hidden flex flex-col justify-between hover:border-slate-700 transition-all group shadow-xl"
+                  >
+                    <div>
+                      {/* Banner Image Preview */}
+                      <div className="relative h-44 w-full overflow-hidden bg-slate-950">
+                        <img
+                          src={banner.imageUrl}
+                          alt={banner.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+
+                        <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                            banner.isActive 
+                              ? 'bg-emerald-500/90 text-slate-950 shadow-md shadow-emerald-500/20' 
+                              : 'bg-slate-800/90 text-slate-400'
+                          }`}>
+                            {banner.isActive ? 'Active on App' : 'Draft / Paused'}
+                          </span>
+
+                          <span className="px-2 py-0.8 rounded-full bg-slate-950/80 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">
+                            Order #{banner.displayOrder}
+                          </span>
+                        </div>
+
+                        <div className="absolute bottom-3 left-3 right-3">
+                          {banner.badge && (
+                            <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-black uppercase mb-1">
+                              {banner.badge}
+                            </span>
+                          )}
+                          <h3 className="text-sm font-bold text-white line-clamp-1">{banner.title}</h3>
+                          {banner.subtitle && (
+                            <p className="text-[11px] text-slate-300 line-clamp-1">{banner.subtitle}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Banner Description */}
+                      <div className="p-4 space-y-1">
+                        <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
+                          {banner.description || banner.subtitle || 'High-fidelity rotating banner for mobile tech storefront.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Banner Controls & Reordering */}
+                    <div className="p-4 pt-0 border-t border-slate-800/80 mt-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleShopBanner(banner.id, banner.isActive)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            banner.isActive
+                              ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                              : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                          }`}
+                        >
+                          {banner.isActive ? 'Pause' : 'Publish'}
+                        </button>
+
+                        {/* Reorder Buttons */}
+                        <div className="flex items-center bg-slate-950 rounded-xl border border-slate-800 p-0.5">
+                          <button
+                            type="button"
+                            disabled={idx === 0}
+                            onClick={() => handleMoveShopBanner(banner.id, 'up')}
+                            className="p-1 text-slate-400 hover:text-white disabled:opacity-30 disabled:hover:text-slate-400 cursor-pointer"
+                            title="Move Earlier in Carousel"
+                          >
+                            <ArrowUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={idx === arr.length - 1}
+                            onClick={() => handleMoveShopBanner(banner.id, 'down')}
+                            className="p-1 text-slate-400 hover:text-white disabled:opacity-30 disabled:hover:text-slate-400 cursor-pointer"
+                            title="Move Later in Carousel"
+                          >
+                            <ArrowDown className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditShopBanner(banner)}
+                          className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer"
+                          title="Edit Banner"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteShopBanner(banner.id)}
+                          className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-all cursor-pointer"
+                          title="Delete Banner"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
             </div>
           </div>
         )}
@@ -1805,6 +2090,173 @@ export const AdminShopScreen: React.FC = () => {
                   className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-98 transition-all disabled:opacity-50"
                 >
                   {isUpdatingProduct ? 'Saving Updates...' : 'Save Product & Prices'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* MODAL: CREATE / EDIT SHOP BANNER */}
+      {showShopBannerModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-start justify-center pt-6 sm:pt-10 p-4 overflow-y-auto">
+          <div className="w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 my-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <Images className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-sm font-bold text-white">
+                  {editingShopBanner ? 'Edit Apple Storefront Banner' : 'Upload New Shop Banner'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowShopBannerModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveShopBanner} className="space-y-4">
+              {/* Banner Cover Image & Supabase Upload */}
+              <div>
+                <label className="text-xs font-semibold text-slate-400 block mb-1.5">
+                  Banner Cover Image (Supabase Storage: <span className="font-mono text-emerald-400">public.shop_banners</span>)
+                </label>
+
+                {shopBannerForm.imageUrl && (
+                  <div className="relative h-28 w-full rounded-2xl overflow-hidden mb-2.5 border border-slate-800 bg-slate-950">
+                    <img 
+                      src={shopBannerForm.imageUrl} 
+                      alt="Banner Preview" 
+                      className="w-full h-full object-cover" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-2.5">
+                      <span className="text-[10px] text-slate-300 font-medium line-clamp-1">
+                        Preview: {shopBannerForm.title || 'Untitled Banner'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                  <label className={`flex-1 w-full p-3 rounded-xl border border-dashed border-slate-700 hover:border-emerald-500/50 bg-slate-950/70 hover:bg-slate-950 flex items-center justify-center gap-2 text-xs text-slate-300 cursor-pointer transition-all ${
+                    isUploadingShopBanner ? 'opacity-60 pointer-events-none' : ''
+                  }`}>
+                    <UploadCloud className={`w-4 h-4 ${isUploadingShopBanner ? 'animate-bounce text-emerald-400' : 'text-slate-400'}`} />
+                    <span>{isUploadingShopBanner ? 'Uploading to Supabase Storage...' : 'Upload Image (PNG/JPG/WebP)'}</span>
+                    <input 
+                      type="file" 
+                      accept="image/png,image/jpeg,image/webp,image/jpg" 
+                      className="hidden" 
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleUploadShopBannerFile(file);
+                      }} 
+                    />
+                  </label>
+
+                  <div className="w-full sm:w-1/2">
+                    <input
+                      type="url"
+                      placeholder="Or direct image URL..."
+                      value={shopBannerForm.imageUrl}
+                      onChange={(e) => setShopBannerForm({ ...shopBannerForm, imageUrl: e.target.value })}
+                      className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 block mb-1">Banner Headline</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Apple iPhone 16 Pro Max"
+                    value={shopBannerForm.title}
+                    onChange={(e) => setShopBannerForm({ ...shopBannerForm, title: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500 font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 block mb-1">Badge Tag</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Hong Kong Direct Hub"
+                    value={shopBannerForm.badge}
+                    onChange={(e) => setShopBannerForm({ ...shopBannerForm, badge: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-emerald-400 focus:outline-none focus:border-emerald-500 font-medium"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-400 block mb-1">Subtitle / Key Promotion Specs</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Factory Sealed HK Spec • Dual SIM with 2-4 Days Express Air Cargo to Lagos"
+                  value={shopBannerForm.subtitle}
+                  onChange={(e) => setShopBannerForm({ ...shopBannerForm, subtitle: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 block mb-1">Action Link / Route</label>
+                  <select
+                    value={shopBannerForm.destinationRoute}
+                    onChange={(e) => setShopBannerForm({ ...shopBannerForm, destinationRoute: e.target.value as ScreenRoute })}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="shop">Apple & Tech Store (/shop)</option>
+                    <option value="cart">Cart & Checkout (/cart)</option>
+                    <option value="logistics">Logistics & Air Cargo (/logistics)</option>
+                    <option value="suppliers">VIP Verified Suppliers (/suppliers)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 block mb-1">Rotation Order</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={shopBannerForm.displayOrder}
+                    onChange={(e) => setShopBannerForm({ ...shopBannerForm, displayOrder: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="isActiveShopBanner"
+                  checked={shopBannerForm.isActive}
+                  onChange={(e) => setShopBannerForm({ ...shopBannerForm, isActive: e.target.checked })}
+                  className="w-4 h-4 rounded text-emerald-500 bg-slate-950 border-slate-800 cursor-pointer"
+                />
+                <label htmlFor="isActiveShopBanner" className="text-xs text-slate-300 font-semibold cursor-pointer">
+                  Display active in customer mobile app carousel
+                </label>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowShopBannerModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 text-xs font-bold transition-all shadow-md shadow-emerald-500/20 hover:brightness-110 cursor-pointer"
+                >
+                  {editingShopBanner ? 'Save Changes' : 'Publish Banner'}
                 </button>
               </div>
             </form>

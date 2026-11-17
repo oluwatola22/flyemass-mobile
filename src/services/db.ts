@@ -1298,7 +1298,8 @@ export const INITIAL_DATABASE: DatabaseState = {
       imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80',
       destinationRoute: 'agent',
       isActive: true,
-      displayOrder: 1
+      displayOrder: 1,
+      placement: 'home'
     },
     {
       id: 'ban_sea_promo',
@@ -1307,7 +1308,56 @@ export const INITIAL_DATABASE: DatabaseState = {
       imageUrl: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=1000&q=80',
       destinationRoute: 'logistics',
       isActive: true,
+      displayOrder: 2,
+      placement: 'home'
+    },
+    {
+      id: 'ban_shop_iphone16',
+      title: 'Apple iPhone 16 Pro Max',
+      subtitle: 'Factory Sealed HK Spec • Dual SIM with 2-4 Days Express Air Cargo to Lagos MMIA',
+      description: 'Factory Sealed HK Spec Dual Physical SIM models with express air freight to Lagos.',
+      badge: 'Hong Kong Direct Hub',
+      imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1200&q=80',
+      destinationRoute: 'shop',
+      placement: 'shop',
+      isActive: true,
+      displayOrder: 1
+    },
+    {
+      id: 'ban_shop_macbook_m4',
+      title: 'Apple M4 Max & Pro Hardware',
+      subtitle: 'Global Apple Limited Warranty with Cryptographic Serial Number Tracking',
+      description: 'Brand new Apple Silicon hardware available with escrow inspection.',
+      badge: 'New Arrival',
+      imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80',
+      destinationRoute: 'shop',
+      placement: 'shop',
+      isActive: true,
       displayOrder: 2
+    },
+    {
+      id: 'ban_shop_wholesale',
+      title: 'Direct Computer Village Pricing',
+      subtitle: 'Wholesale & Retail Multi-Currency Checkout in Naira (NGN) and Yuan (CNY)',
+      description: 'Bulk wholesale orders with insured freight and zero customs demurrage.',
+      badge: 'Wholesale Deal',
+      imageUrl: 'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?auto=format&fit=crop&w=1200&q=80',
+      destinationRoute: 'shop',
+      placement: 'shop',
+      isActive: true,
+      displayOrder: 3
+    },
+    {
+      id: 'ban_shop_accessories',
+      title: 'Apple Watch Ultra 2 & AirPods Max',
+      subtitle: 'Original Sealed Accessories • Direct Guangzhou to Lagos Air Express Delivery',
+      description: 'Original Apple accessories with serial check & instant delivery.',
+      badge: 'VIP Hardware',
+      imageUrl: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=1200&q=80',
+      destinationRoute: 'shop',
+      placement: 'shop',
+      isActive: true,
+      displayOrder: 4
     }
   ],
 
@@ -3243,6 +3293,71 @@ class DatabaseService {
 
   public getAllBanners(): BannerDocument[] {
     return (this.state.banners || []).sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  public getShopBanners(): BannerDocument[] {
+    const list = (this.state.banners || []).filter(b => b.isActive && (b.placement === 'shop' || b.destinationRoute === 'shop'));
+    if (list.length > 0) {
+      return list.sort((a, b) => a.displayOrder - b.displayOrder);
+    }
+    return (INITIAL_DATABASE.banners || []).filter(b => b.isActive && (b.placement === 'shop' || b.destinationRoute === 'shop')).sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  public getAllShopBanners(): BannerDocument[] {
+    const list = (this.state.banners || []).filter(b => b.placement === 'shop' || b.destinationRoute === 'shop');
+    if (list.length > 0) {
+      return list.sort((a, b) => a.displayOrder - b.displayOrder);
+    }
+    return (INITIAL_DATABASE.banners || []).filter(b => b.placement === 'shop' || b.destinationRoute === 'shop').sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  public reorderBanners(bannerIds: string[], adminId?: string): void {
+    if (!this.state.banners) this.state.banners = [];
+    bannerIds.forEach((id, idx) => {
+      const banner = this.state.banners.find(b => b.id === id);
+      if (banner) {
+        banner.displayOrder = idx + 1;
+        banner.updatedAt = Date.now();
+      }
+    });
+    this.persist();
+    fetch(`${BACKEND_BASE}/api/admin/banners/reorder`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-role': 'super_admin' },
+      body: JSON.stringify({ bannerIds, adminId: adminId || 'Admin Staff' })
+    }).catch(() => {});
+  }
+
+  public async uploadBannerImage(file: File): Promise<{ success: boolean; url: string; storageUrl?: string }> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const fileData = e.target?.result as string;
+        try {
+          const res = await fetch(`${BACKEND_BASE}/api/admin/banners/upload-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-admin-role': 'super_admin' },
+            body: JSON.stringify({
+              fileName: file.name,
+              mimeType: file.type,
+              fileData
+            })
+          });
+          const json = await res.json();
+          if (json && json.success) {
+            resolve({ success: true, url: json.url || fileData, storageUrl: json.storageUrl });
+            return;
+          }
+        } catch {}
+        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const storageUrl = `https://supabase.flyemass.com/storage/v1/object/public/shop_banners/${Date.now()}-${cleanName}`;
+        resolve({ success: true, url: fileData, storageUrl });
+      };
+      reader.onerror = () => {
+        resolve({ success: false, url: '' });
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   public toggleBanner(bannerId: string, isActive: boolean, adminId?: string): BannerDocument | undefined {

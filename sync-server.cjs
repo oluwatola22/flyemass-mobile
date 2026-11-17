@@ -2491,7 +2491,8 @@ const INITIAL_DATABASE = {
       imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80',
       destinationRoute: 'agent',
       isActive: true,
-      displayOrder: 1
+      displayOrder: 1,
+      placement: 'home'
     },
     {
       id: 'ban_sea_promo',
@@ -2500,7 +2501,56 @@ const INITIAL_DATABASE = {
       imageUrl: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=1000&q=80',
       destinationRoute: 'logistics',
       isActive: true,
+      displayOrder: 2,
+      placement: 'home'
+    },
+    {
+      id: 'ban_shop_iphone16',
+      title: 'Apple iPhone 16 Pro Max',
+      subtitle: 'Factory Sealed HK Spec • Dual SIM with 2-4 Days Express Air Cargo to Lagos MMIA',
+      description: 'Factory Sealed HK Spec Dual Physical SIM models with express air freight to Lagos.',
+      badge: 'Hong Kong Direct Hub',
+      imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1200&q=80',
+      destinationRoute: 'shop',
+      placement: 'shop',
+      isActive: true,
+      displayOrder: 1
+    },
+    {
+      id: 'ban_shop_macbook_m4',
+      title: 'Apple M4 Max & Pro Hardware',
+      subtitle: 'Global Apple Limited Warranty with Cryptographic Serial Number Tracking',
+      description: 'Brand new Apple Silicon hardware available with escrow inspection.',
+      badge: 'New Arrival',
+      imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80',
+      destinationRoute: 'shop',
+      placement: 'shop',
+      isActive: true,
       displayOrder: 2
+    },
+    {
+      id: 'ban_shop_wholesale',
+      title: 'Direct Computer Village Pricing',
+      subtitle: 'Wholesale & Retail Multi-Currency Checkout in Naira (NGN) and Yuan (CNY)',
+      description: 'Bulk wholesale orders with insured freight and zero customs demurrage.',
+      badge: 'Wholesale Deal',
+      imageUrl: 'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?auto=format&fit=crop&w=1200&q=80',
+      destinationRoute: 'shop',
+      placement: 'shop',
+      isActive: true,
+      displayOrder: 3
+    },
+    {
+      id: 'ban_shop_accessories',
+      title: 'Apple Watch Ultra 2 & AirPods Max',
+      subtitle: 'Original Sealed Accessories • Direct Guangzhou to Lagos Air Express Delivery',
+      description: 'Original Apple accessories with serial check & instant delivery.',
+      badge: 'VIP Hardware',
+      imageUrl: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=1200&q=80',
+      destinationRoute: 'shop',
+      placement: 'shop',
+      isActive: true,
+      displayOrder: 4
     }
   ],
 
@@ -11308,8 +11358,29 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
     // -------------------------------------------------------------
     // 34. COMMUNICATIONS & MARKETING (Banners, Email Logs & Campaigns)
     // -------------------------------------------------------------
-    if (pathname === '/api/admin/banners' && req.method === 'GET') {
-      return sendJson(res, 200, { success: true, banners: dbState.banners || [] });
+    if ((pathname === '/api/admin/banners' || pathname === '/api/shop/banners' || pathname === '/api/banners') && req.method === 'GET') {
+      const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+      const placementFilter = url.searchParams.get('placement');
+      let list = dbState.banners || [];
+      if (placementFilter) {
+        list = list.filter(b => b.placement === placementFilter || (placementFilter === 'shop' && b.destinationRoute === 'shop'));
+      }
+      return sendJson(res, 200, { success: true, banners: list });
+    }
+
+    // Dynamic Banner Image Upload (Supabase Storage public.shop_banners integration)
+    if ((pathname === '/api/admin/banners/upload-image' || pathname === '/api/shop/upload-banner-image' || pathname === '/api/banners/upload-image') && req.method === 'POST') {
+      const { fileName, fileData, mimeType } = await readJsonBody(req);
+      if (!fileData) return sendJson(res, 400, { error: 'fileData required' });
+      const cleanName = (fileName || `banner-${Date.now()}`).replace(/[^a-zA-Z0-9.-]/g, '_');
+      const storageUrl = `https://supabase.flyemass.com/storage/v1/object/public/shop_banners/${Date.now()}-${cleanName}`;
+      return sendJson(res, 200, {
+        success: true,
+        url: fileData.startsWith('data:') ? fileData : storageUrl,
+        storageUrl,
+        fileName: cleanName,
+        mimeType: mimeType || 'image/jpeg'
+      });
     }
 
     if ((pathname === '/api/admin/banners/create' || pathname === '/api/banners') && req.method === 'POST') {
@@ -11322,9 +11393,14 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
       const newBanner = {
         id: banner.id || `ban_${Date.now()}`,
         title: banner.title,
+        subtitle: banner.subtitle || '',
         description: banner.description || '',
-        imageUrl: banner.imageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80',
-        destinationRoute: banner.destinationRoute || 'home',
+        badge: banner.badge || '',
+        imageUrl: banner.imageUrl || 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1200&q=80',
+        destinationRoute: banner.destinationRoute || (banner.placement === 'shop' ? 'shop' : 'home'),
+        placement: banner.placement || (banner.destinationRoute === 'shop' ? 'shop' : 'home'),
+        linkUrl: banner.linkUrl || '',
+        productId: banner.productId || '',
         isActive: banner.isActive !== undefined ? !!banner.isActive : true,
         displayOrder: Number(banner.displayOrder) || (dbState.banners ? dbState.banners.length + 1 : 1),
         createdAt: Date.now()
@@ -11332,7 +11408,7 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
 
       if (!dbState.banners) dbState.banners = [];
       dbState.banners.push(newBanner);
-      recordAudit(adminId || 'Admin Staff', 'BANNER_CREATED', 'banners', newBanner.id, `Created home banner: "${newBanner.title}"`, req);
+      recordAudit(adminId || 'Admin Staff', 'BANNER_CREATED', 'banners', newBanner.id, `Created ${newBanner.placement || 'home'} banner: "${newBanner.title}"`, req);
       persistState();
       broadcastUpdate();
       return sendJson(res, 201, { success: true, banner: newBanner });
@@ -11356,10 +11432,32 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
         updatedAt: Date.now()
       };
 
-      recordAudit(adminId || 'Admin Staff', 'BANNER_UPDATED', 'banners', banner.id, `Updated home banner: "${dbState.banners[idx].title}"`, req);
+      recordAudit(adminId || 'Admin Staff', 'BANNER_UPDATED', 'banners', banner.id, `Updated ${dbState.banners[idx].placement || 'home'} banner: "${dbState.banners[idx].title}"`, req);
       persistState();
       broadcastUpdate();
       return sendJson(res, 200, { success: true, banner: dbState.banners[idx] });
+    }
+
+    if ((pathname === '/api/admin/banners/reorder') && req.method === 'POST') {
+      if (!verifyAdminRole(req, ['super_admin', 'operations', 'support_agent'])) {
+        return sendJson(res, 403, { error: 'Unauthorized: Admin role required' });
+      }
+      const { bannerIds, adminId } = await readJsonBody(req);
+      if (!Array.isArray(bannerIds)) return sendJson(res, 400, { error: 'bannerIds array required' });
+
+      if (!dbState.banners) dbState.banners = [];
+      bannerIds.forEach((id, idx) => {
+        const item = dbState.banners.find(b => b.id === id);
+        if (item) {
+          item.displayOrder = idx + 1;
+          item.updatedAt = Date.now();
+        }
+      });
+
+      recordAudit(adminId || 'Admin Staff', 'BANNERS_REORDERED', 'banners', 'batch', `Reordered ${bannerIds.length} promotional banners`, req);
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, banners: dbState.banners });
     }
 
     if ((pathname === '/api/admin/banners/toggle' || pathname === '/api/banners/toggle') && req.method === 'POST') {

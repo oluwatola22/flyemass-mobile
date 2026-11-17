@@ -25,7 +25,13 @@ import {
   ArrowRight,
   ShieldCheck,
   Check,
-  X
+  X,
+  UploadCloud,
+  ArrowUp,
+  ArrowDown,
+  Image,
+  Sparkles,
+  ShoppingBag
 } from 'lucide-react';
 
 export const AdminCommunicationsScreen: React.FC = () => {
@@ -68,24 +74,49 @@ export const AdminCommunicationsScreen: React.FC = () => {
   // TAB 1: BANNERS STATE & ACTIONS
   // -------------------------------------------------------------
   const banners = dbState.banners || [];
+  const [bannerPlacementFilter, setBannerPlacementFilter] = useState<'all' | 'shop' | 'home'>('all');
   const [editingBanner, setEditingBanner] = useState<BannerDocument | null>(null);
   const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [bannerForm, setBannerForm] = useState<Partial<BannerDocument>>({
     title: '',
+    subtitle: '',
     description: '',
-    imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80',
-    destinationRoute: 'agent' as ScreenRoute,
+    badge: 'Hong Kong Direct Hub',
+    placement: 'shop',
+    imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1200&q=80',
+    destinationRoute: 'shop' as ScreenRoute,
     isActive: true,
     displayOrder: 1
   });
+
+  const handleUploadBannerFile = async (file: File) => {
+    setIsUploadingBanner(true);
+    try {
+      const res = await db.uploadBannerImage(file);
+      if (res && res.success) {
+        setBannerForm(prev => ({ ...prev, imageUrl: res.url }));
+        showToast('Banner image uploaded to Supabase Storage (public.shop_banners)!', 'success');
+      } else {
+        showToast('Image upload failed, please retry or use URL', 'error');
+      }
+    } catch {
+      showToast('Image upload failed', 'error');
+    } finally {
+      setIsUploadingBanner(false);
+    }
+  };
 
   const handleOpenCreateBanner = () => {
     setEditingBanner(null);
     setBannerForm({
       title: '',
+      subtitle: '',
       description: '',
-      imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80',
-      destinationRoute: 'agent' as ScreenRoute,
+      badge: bannerPlacementFilter === 'home' ? 'VIP Campaign' : 'Hong Kong Direct Hub',
+      placement: bannerPlacementFilter === 'home' ? 'home' : 'shop',
+      imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1200&q=80',
+      destinationRoute: (bannerPlacementFilter === 'home' ? 'home' : 'shop') as ScreenRoute,
       isActive: true,
       displayOrder: banners.length + 1
     });
@@ -94,8 +125,34 @@ export const AdminCommunicationsScreen: React.FC = () => {
 
   const handleOpenEditBanner = (banner: BannerDocument) => {
     setEditingBanner(banner);
-    setBannerForm({ ...banner });
+    setBannerForm({ 
+      ...banner,
+      placement: banner.placement || (banner.destinationRoute === 'shop' ? 'shop' : 'home'),
+      badge: banner.badge || '',
+      subtitle: banner.subtitle || ''
+    });
     setIsBannerModalOpen(true);
+  };
+
+  const handleMoveBanner = (bannerId: string, direction: 'up' | 'down') => {
+    const filtered = (bannerPlacementFilter === 'all' 
+      ? banners 
+      : banners.filter(b => b.placement === bannerPlacementFilter || (bannerPlacementFilter === 'shop' && b.destinationRoute === 'shop'))
+    ).slice().sort((a, b) => a.displayOrder - b.displayOrder);
+
+    const index = filtered.findIndex(b => b.id === bannerId);
+    if (index === -1) return;
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === filtered.length - 1) return;
+
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const temp = filtered[index];
+    filtered[index] = filtered[targetIndex];
+    filtered[targetIndex] = temp;
+
+    const reorderedIds = filtered.map(b => b.id);
+    db.reorderBanners(reorderedIds, adminUser?.name || 'Admin Staff');
+    showToast(`Banner display priority adjusted (${direction === 'up' ? 'promoted' : 'demoted'})`, 'info');
   };
 
   const handleSaveBanner = (e: React.FormEvent) => {
@@ -105,37 +162,45 @@ export const AdminCommunicationsScreen: React.FC = () => {
       return;
     }
 
+    const effectivePlacement = bannerForm.placement || (bannerForm.destinationRoute === 'shop' ? 'shop' : 'home');
+
     if (editingBanner) {
       const updated: BannerDocument = {
         ...editingBanner,
         title: bannerForm.title || editingBanner.title,
+        subtitle: bannerForm.subtitle || '',
+        badge: bannerForm.badge || '',
         description: bannerForm.description || '',
+        placement: effectivePlacement,
         imageUrl: bannerForm.imageUrl || editingBanner.imageUrl,
         destinationRoute: (bannerForm.destinationRoute as ScreenRoute) || editingBanner.destinationRoute,
         isActive: bannerForm.isActive !== undefined ? bannerForm.isActive : editingBanner.isActive,
         displayOrder: Number(bannerForm.displayOrder) || editingBanner.displayOrder
       };
       db.updateBanner(updated, adminUser?.name || 'Admin Staff');
-      showToast('Promotional banner updated successfully', 'success');
+      showToast('Promotional image banner updated & synced live', 'success');
     } else {
       const created: BannerDocument = {
         id: `ban_${Date.now()}`,
         title: bannerForm.title!,
+        subtitle: bannerForm.subtitle || '',
+        badge: bannerForm.badge || (effectivePlacement === 'shop' ? 'Hong Kong Direct' : 'VIP Campaign'),
         description: bannerForm.description || '',
-        imageUrl: bannerForm.imageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80',
-        destinationRoute: (bannerForm.destinationRoute as ScreenRoute) || 'home',
+        placement: effectivePlacement,
+        imageUrl: bannerForm.imageUrl || 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1200&q=80',
+        destinationRoute: (bannerForm.destinationRoute as ScreenRoute) || (effectivePlacement === 'shop' ? 'shop' : 'home'),
         isActive: bannerForm.isActive !== undefined ? bannerForm.isActive : true,
         displayOrder: Number(bannerForm.displayOrder) || (banners.length + 1)
       };
       db.addBanner(created, adminUser?.name || 'Admin Staff');
-      showToast('New promotional banner published to mobile app', 'success');
+      showToast('New dynamic image banner published to mobile storefront', 'success');
     }
     setIsBannerModalOpen(false);
   };
 
   const handleToggleBannerStatus = (id: string, currentStatus: boolean) => {
     db.toggleBanner(id, !currentStatus, adminUser?.name || 'Admin Staff');
-    showToast(`Banner ${!currentStatus ? 'activated' : 'deactivated'}`, 'info');
+    showToast(`Banner ${!currentStatus ? 'activated live' : 'hidden from app'}`, 'info');
   };
 
   const handleDeleteBanner = (id: string) => {
@@ -395,22 +460,72 @@ export const AdminCommunicationsScreen: React.FC = () => {
         </div>
 
         {/* -------------------------------------------------------------
-            TAB 1: BANNERS CONTENT
+            TAB 1: BANNERS CONTENT (Admin-Controlled Image Banners)
         ------------------------------------------------------------- */}
         {activeTab === 'banners' && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-800/80">
               <div>
-                <h2 className="text-base font-bold text-white">Customer App Promotional Carousels</h2>
-                <p className="text-xs text-slate-400">These banners rotate automatically at the top of the mobile home page</p>
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <Megaphone className="w-4 h-4 text-emerald-400" />
+                  <span>Promotional Banner & Storefront Carousel Management</span>
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Upload and control dynamic rotating image carousels for the Apple & Tech Store and Mobile Home screen with Supabase Storage integration.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleOpenCreateBanner}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/20 hover:brightness-110 transition-all cursor-pointer"
+                >
+                  <Plus className="w-4 h-4 stroke-[3]" />
+                  <span>+ Create New Banner</span>
+                </button>
               </div>
             </div>
 
+            {/* Placement Filter Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              {[
+                { id: 'all', label: 'All Banners', count: banners.length },
+                { id: 'shop', label: 'Apple & Tech Store (/shop)', count: banners.filter(b => b.placement === 'shop' || b.destinationRoute === 'shop').length },
+                { id: 'home', label: 'Mobile Home Campaigns (/home)', count: banners.filter(b => b.placement === 'home' || (!b.placement && b.destinationRoute !== 'shop')).length }
+              ].map((pill) => (
+                <button
+                  key={pill.id}
+                  onClick={() => setBannerPlacementFilter(pill.id as any)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                    bannerPlacementFilter === pill.id
+                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-sm'
+                      : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <span>{pill.label}</span>
+                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                    bannerPlacementFilter === pill.id ? 'bg-emerald-500/25 text-emerald-300' : 'bg-slate-800 text-slate-400'
+                  }`}>
+                    {pill.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Banners Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {banners.map((banner) => (
+              {banners
+                .filter(b => {
+                  if (bannerPlacementFilter === 'all') return true;
+                  if (bannerPlacementFilter === 'shop') return b.placement === 'shop' || b.destinationRoute === 'shop';
+                  return b.placement === 'home' || (!b.placement && b.destinationRoute !== 'shop');
+                })
+                .sort((a, b) => a.displayOrder - b.displayOrder)
+                .map((banner, idx, arr) => (
                 <div
                   key={banner.id}
-                  className="rounded-3xl bg-slate-900 border border-slate-800 overflow-hidden flex flex-col justify-between hover:border-slate-700 transition-all group"
+                  className="rounded-3xl bg-slate-900 border border-slate-800 overflow-hidden flex flex-col justify-between hover:border-slate-700 transition-all group shadow-xl"
                 >
                   <div>
                     {/* Banner Card Image */}
@@ -422,7 +537,7 @@ export const AdminCommunicationsScreen: React.FC = () => {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
                       
-                      <div className="absolute top-3 left-3 flex items-center gap-2">
+                      <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5">
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
                           banner.isActive 
                             ? 'bg-emerald-500/90 text-slate-950 shadow-md shadow-emerald-500/20' 
@@ -430,51 +545,90 @@ export const AdminCommunicationsScreen: React.FC = () => {
                         }`}>
                           {banner.isActive ? 'Active on App' : 'Draft / Paused'}
                         </span>
-                        <span className="px-2 py-1 rounded-full bg-slate-950/80 text-slate-300 text-[10px] font-bold border border-slate-700/60">
+                        
+                        <span className="px-2 py-0.8 rounded-full bg-slate-950/80 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">
+                          {banner.placement === 'shop' || banner.destinationRoute === 'shop' ? 'Tech Store' : 'Home'}
+                        </span>
+
+                        <span className="px-2 py-0.8 rounded-full bg-slate-950/80 text-slate-300 text-[10px] font-bold border border-slate-700/60">
                           Order #{banner.displayOrder}
                         </span>
                       </div>
 
                       <div className="absolute bottom-3 left-3 right-3">
-                        <span className="text-[10px] font-black uppercase text-emerald-400 tracking-wider">
-                          Route: /{banner.destinationRoute}
-                        </span>
-                        <h3 className="text-sm font-bold text-white line-clamp-1 mt-0.5">{banner.title}</h3>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          {banner.badge && (
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-black uppercase">
+                              {banner.badge}
+                            </span>
+                          )}
+                          <span className="text-[10px] font-mono text-slate-400">
+                            /{banner.destinationRoute || 'shop'}
+                          </span>
+                        </div>
+                        <h3 className="text-sm font-bold text-white line-clamp-1">{banner.title}</h3>
+                        {banner.subtitle && (
+                          <p className="text-[11px] text-slate-300 line-clamp-1">{banner.subtitle}</p>
+                        )}
                       </div>
                     </div>
 
                     {/* Banner Description */}
-                    <div className="p-4 space-y-3">
+                    <div className="p-4 space-y-2">
                       <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
-                        {banner.description || 'No description provided.'}
+                        {banner.description || banner.subtitle || 'High-fidelity rotating banner for mobile users.'}
                       </p>
                     </div>
                   </div>
 
-                  {/* Banner Controls */}
+                  {/* Banner Controls & Reordering */}
                   <div className="p-4 pt-0 border-t border-slate-800/80 mt-2 flex items-center justify-between">
-                    <button
-                      onClick={() => handleToggleBannerStatus(banner.id, banner.isActive)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                        banner.isActive
-                          ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400'
-                          : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400'
-                      }`}
-                    >
-                      {banner.isActive ? 'Pause Display' : 'Publish Live'}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleToggleBannerStatus(banner.id, banner.isActive)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          banner.isActive
+                            ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        }`}
+                      >
+                        {banner.isActive ? 'Pause' : 'Publish'}
+                      </button>
+
+                      {/* Sorting / Ordering controls */}
+                      <div className="flex items-center bg-slate-950 rounded-xl border border-slate-800 p-0.5">
+                        <button
+                          type="button"
+                          disabled={idx === 0}
+                          onClick={() => handleMoveBanner(banner.id, 'up')}
+                          className="p-1 text-slate-400 hover:text-white disabled:opacity-30 disabled:hover:text-slate-400 cursor-pointer"
+                          title="Move Earlier in Carousel"
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={idx === arr.length - 1}
+                          onClick={() => handleMoveBanner(banner.id, 'down')}
+                          className="p-1 text-slate-400 hover:text-white disabled:opacity-30 disabled:hover:text-slate-400 cursor-pointer"
+                          title="Move Later in Carousel"
+                        >
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
 
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => handleOpenEditBanner(banner)}
-                        className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all"
+                        className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer"
                         title="Edit Banner"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDeleteBanner(banner.id)}
-                        className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-all"
+                        className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-all cursor-pointer"
                         title="Delete Banner"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -886,71 +1040,170 @@ export const AdminCommunicationsScreen: React.FC = () => {
         )}
 
         {/* -------------------------------------------------------------
-            MODAL: CREATE / EDIT BANNER
+            MODAL: CREATE / EDIT BANNER (Dynamic Supabase Storage Image Upload)
         ------------------------------------------------------------- */}
         {isBannerModalOpen && (
-          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-white">
-                  {editingBanner ? 'Edit Promotional Banner' : 'Create Mobile Home Banner'}
-                </h3>
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-start justify-center pt-6 sm:pt-10 p-4 overflow-y-auto">
+            <div className="w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 my-auto">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Image className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-sm font-bold text-white">
+                    {editingBanner ? 'Edit Promotional Banner' : 'Create High-Fidelity Banner'}
+                  </h3>
+                </div>
                 <button
+                  type="button"
                   onClick={() => setIsBannerModalOpen(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white"
+                  className="p-1 rounded-lg text-slate-400 hover:text-white cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleSaveBanner} className="space-y-4">
+                {/* Target Placement */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1.5">Banner Headline</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. 136th Canton Fair VIP Delegation"
-                    value={bannerForm.title}
-                    onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  />
+                  <label className="text-xs font-semibold text-slate-400 block mb-1.5">Storefront Placement</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setBannerForm({ ...bannerForm, placement: 'shop', destinationRoute: 'shop' as ScreenRoute })}
+                      className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left flex items-center justify-between cursor-pointer ${
+                        bannerForm.placement === 'shop' || bannerForm.destinationRoute === 'shop'
+                          ? 'bg-emerald-500/15 border-emerald-500/50 text-white shadow-sm'
+                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <ShoppingBag className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Apple & Tech Store</span>
+                      </div>
+                      {(bannerForm.placement === 'shop' || bannerForm.destinationRoute === 'shop') && (
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setBannerForm({ ...bannerForm, placement: 'home', destinationRoute: 'agent' as ScreenRoute })}
+                      className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left flex items-center justify-between cursor-pointer ${
+                        bannerForm.placement === 'home' && bannerForm.destinationRoute !== 'shop'
+                          ? 'bg-indigo-500/15 border-indigo-500/50 text-white shadow-sm'
+                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Smartphone className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Mobile Home Desk</span>
+                      </div>
+                      {bannerForm.placement === 'home' && bannerForm.destinationRoute !== 'shop' && (
+                        <Check className="w-3.5 h-3.5 text-indigo-400" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Banner Image Upload & Live Preview */}
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 block mb-1.5">
+                    Banner Cover Image (Supabase Storage: <span className="font-mono text-emerald-400">public.shop_banners</span>)
+                  </label>
+                  
+                  {/* Image Live Preview */}
+                  {bannerForm.imageUrl && (
+                    <div className="relative h-28 w-full rounded-2xl overflow-hidden mb-2.5 border border-slate-800 bg-slate-950 group">
+                      <img 
+                        src={bannerForm.imageUrl} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover" 
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-2.5">
+                        <span className="text-[10px] text-slate-300 font-medium line-clamp-1">
+                          Preview: {bannerForm.title || 'Untitled Banner'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Dropzone & File Input */}
+                  <div className="flex flex-col sm:flex-row items-center gap-2">
+                    <label className={`flex-1 w-full p-3 rounded-xl border border-dashed border-slate-700 hover:border-emerald-500/50 bg-slate-950/70 hover:bg-slate-950 flex items-center justify-center gap-2 text-xs text-slate-300 cursor-pointer transition-all ${
+                      isUploadingBanner ? 'opacity-60 pointer-events-none' : ''
+                    }`}>
+                      <UploadCloud className={`w-4 h-4 ${isUploadingBanner ? 'animate-bounce text-emerald-400' : 'text-slate-400'}`} />
+                      <span>{isUploadingBanner ? 'Uploading to Supabase Storage...' : 'Upload Image (PNG/JPG/WebP)'}</span>
+                      <input 
+                        type="file" 
+                        accept="image/png,image/jpeg,image/webp,image/jpg" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleUploadBannerFile(file);
+                        }} 
+                      />
+                    </label>
+
+                    <div className="w-full sm:w-1/2">
+                      <input
+                        type="url"
+                        placeholder="Or direct image URL..."
+                        value={bannerForm.imageUrl}
+                        onChange={(e) => setBannerForm({ ...bannerForm, imageUrl: e.target.value })}
+                        className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 block mb-1">Banner Title / Headline</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Apple iPhone 16 Pro Max"
+                      value={bannerForm.title}
+                      onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500 font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 block mb-1">Badge Tag</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Hong Kong Direct Hub"
+                      value={bannerForm.badge}
+                      onChange={(e) => setBannerForm({ ...bannerForm, badge: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-emerald-400 focus:outline-none focus:border-emerald-500 font-medium"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1.5">Subtitle / Description</label>
+                  <label className="text-xs font-semibold text-slate-400 block mb-1">Subtitle / Key Promotion Details</label>
                   <input
                     type="text"
-                    placeholder="Brief description shown under the title"
-                    value={bannerForm.description}
-                    onChange={(e) => setBannerForm({ ...bannerForm, description: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1.5">Image URL</label>
-                  <input
-                    type="url"
-                    required
-                    placeholder="https://images.unsplash.com/..."
-                    value={bannerForm.imageUrl}
-                    onChange={(e) => setBannerForm({ ...bannerForm, imageUrl: e.target.value })}
+                    placeholder="e.g. Factory Sealed HK Spec • Dual SIM with 2-4 Days Express Air Cargo to Lagos"
+                    value={bannerForm.subtitle}
+                    onChange={(e) => setBannerForm({ ...bannerForm, subtitle: e.target.value })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-slate-400 block mb-1.5">Click Action Route</label>
+                    <label className="text-xs font-semibold text-slate-400 block mb-1">Target Click Route</label>
                     <select
                       value={bannerForm.destinationRoute}
                       onChange={(e) => setBannerForm({ ...bannerForm, destinationRoute: e.target.value as ScreenRoute })}
                       className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500"
                     >
+                      <option value="shop">Apple & Tech Store (/shop)</option>
                       <option value="agent">Agent & Sourcing (/agent)</option>
                       <option value="logistics">Logistics & Shipping (/logistics)</option>
-                      <option value="shop">Apple Gadgets Shop (/shop)</option>
-                      <option value="suppliers">VIP Suppliers (/suppliers)</option>
+                      <option value="suppliers">VIP Verified Suppliers (/suppliers)</option>
                       <option value="hotels">Hotel Bookings (/hotels)</option>
                       <option value="rentals">Apartments & Offices (/rentals)</option>
                       <option value="fund">Fund Wallet (/fund)</option>
@@ -958,42 +1211,42 @@ export const AdminCommunicationsScreen: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-slate-400 block mb-1.5">Display Order</label>
+                    <label className="text-xs font-semibold text-slate-400 block mb-1">Display Priority Order</label>
                     <input
                       type="number"
                       min={1}
-                      max={10}
+                      max={20}
                       value={bannerForm.displayOrder}
                       onChange={(e) => setBannerForm({ ...bannerForm, displayOrder: parseInt(e.target.value) || 1 })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2">
+                <div className="flex items-center gap-2 pt-1">
                   <input
                     type="checkbox"
                     id="isActiveBanner"
                     checked={bannerForm.isActive}
                     onChange={(e) => setBannerForm({ ...bannerForm, isActive: e.target.checked })}
-                    className="w-4 h-4 rounded text-emerald-500 bg-slate-950 border-slate-800"
+                    className="w-4 h-4 rounded text-emerald-500 bg-slate-950 border-slate-800 cursor-pointer"
                   />
                   <label htmlFor="isActiveBanner" className="text-xs text-slate-300 font-semibold cursor-pointer">
-                    Publish immediately on mobile app
+                    Publish immediately live on customer mobile app
                   </label>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
+                <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
                   <button
                     type="button"
                     onClick={() => setIsBannerModalOpen(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white"
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition-all shadow-md shadow-emerald-500/10"
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 text-xs font-bold transition-all shadow-md shadow-emerald-500/20 hover:brightness-110 cursor-pointer"
                   >
                     {editingBanner ? 'Save Changes' : 'Publish Banner'}
                   </button>

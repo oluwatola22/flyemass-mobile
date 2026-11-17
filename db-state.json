@@ -89,12 +89,12 @@
       "role": "client",
       "createdAt": 1791047745841,
       "balances": {
-        "NGN": 159941275,
-        "CNY": 1464978.0699999998,
-        "USD": 4780
+        "NGN": 159915775,
+        "CNY": 1464778.0699999998,
+        "USD": 18695
       },
-      "pinHash": "813564f221821be97fe89c6f2e54a8ee9250ac9bf89046a2baf2b410bafb4375",
-      "pinSalt": "c5e36543a05c9c2a56ccb847809ccb12",
+      "pinHash": "d7fa48e1553539261832b7a3dedff068fd8c3badf6b92d07c726b0708d9c8a2d",
+      "pinSalt": "a488b0bc1d6746edf6af91374c26bbfc",
       "pinFailedAttempts": 0,
       "pinLockedUntil": 0,
       "kycLevel": "Tier 3 (BVN & CAC Verified)",
@@ -127,8 +127,8 @@
         "NGN": 0,
         "CNY": 520000
       },
-      "pinHash": "43e91642d58c66843b62c5b605858796d487678fb410b7ac5271e6f248ae37c3",
-      "pinSalt": "435952d32a4616f6274165087dd9ad34",
+      "pinHash": "d777c60c8d0f93ef794416d4403c038b15d0994e98587ac178eccdaa0522e167",
+      "pinSalt": "6d319754c256c15550666330ddbe9615",
       "pinFailedAttempts": 0,
       "pinLockedUntil": 0,
       "flyeTag": "FM-USR-5036",
@@ -42967,6 +42967,291 @@
         }
       ],
       "metadata": {}
+    },
+    "je_1794958320315_543": {
+      "id": "je_1794958320315_543",
+      "reference": "PROVIDUS-SIM-1794958320314",
+      "timestamp": 1794958320315,
+      "userId": "usr_alade_01",
+      "transactionType": "FUND",
+      "description": "Simulated Sandbox Inflow: PROVIDUS Settlement",
+      "postings": [
+        {
+          "account": "assets:bank:providus_clearing:ngn",
+          "currency": "NGN",
+          "debit": 500000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500000
+        }
+      ],
+      "metadata": {
+        "provider": "providus",
+        "simulated": true
+      }
+    },
+    "je_1794958320379_600": {
+      "id": "je_1794958320379_600",
+      "reference": "FLYE-FUND-1794958320377",
+      "timestamp": 1794958320379,
+      "userId": "usr_alade_01",
+      "transactionType": "FUND",
+      "description": "Deposit via Test Card",
+      "postings": [
+        {
+          "account": "assets:bank:clearing:usd",
+          "currency": "USD",
+          "debit": 5000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 5000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794958320504_778": {
+      "id": "je_1794958320504_778",
+      "reference": "RMB-19392185",
+      "timestamp": 1794958320504,
+      "userId": "usr_alade_01",
+      "transactionType": "PAY_SUPPLIER",
+      "description": "Supplier payment queued to Shenzhen MicroTech Electronic Co. via bank_card funded from CNY",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 200,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:supplier_escrow:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 200
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794958320635_889": {
+      "id": "je_1794958320635_889",
+      "reference": "DISB-RMB-19392185",
+      "timestamp": 1794958320635,
+      "userId": "usr_alade_01",
+      "transactionType": "SUPPLIER_PAYMENT_DISBURSED",
+      "description": "Disbursement completed for supplier payment pay_1794958320503 via bank_card",
+      "postings": [
+        {
+          "account": "liabilities:supplier_escrow:cny",
+          "currency": "CNY",
+          "debit": 200,
+          "credit": 0
+        },
+        {
+          "account": "assets:china:bank_card_disbursement:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 200
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794958320700_904": {
+      "id": "je_1794958320700_904",
+      "reference": "WD-68488315",
+      "timestamp": 1794958320700,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_RESERVED",
+      "description": "Withdrawal payout to Zenith Bank (2089140022)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 25500,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:pending_withdrawals:wth_1794958320700",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 25000
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 500
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794958320795_921": {
+      "id": "je_1794958320795_921",
+      "reference": "NIBSS-ZNT-290182",
+      "timestamp": 1794958320795,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_CLEARED",
+      "description": "NIBSS disbursement completed for 2089140022 via Manual Settlement",
+      "postings": [
+        {
+          "account": "liabilities:pending_withdrawals:wth_1794958320700",
+          "currency": "NGN",
+          "debit": 25000,
+          "credit": 0
+        },
+        {
+          "account": "assets:nigeria:nibss_clearing:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 25000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794958321110_369": {
+      "id": "je_1794958321110_369",
+      "reference": "WAYBILL-SP-0B2456FA-4",
+      "timestamp": 1794958321110,
+      "userId": "usr_alade_01",
+      "transactionType": "CARGO_FREIGHT",
+      "description": "Freight settlement for Waybill #SP-0B2456FA-4",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:usd",
+          "currency": "USD",
+          "debit": 425,
+          "credit": 0
+        },
+        {
+          "account": "revenue:fees:freight",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 425
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794958321234_585": {
+      "id": "je_1794958321234_585",
+      "reference": "FLYE-FUND-1794958321233",
+      "timestamp": 1794958321234,
+      "userId": "usr_alade_01",
+      "transactionType": "FUND",
+      "description": "Deposit via Test Card",
+      "postings": [
+        {
+          "account": "assets:bank:clearing:usd",
+          "currency": "USD",
+          "debit": 10000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:usd",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 10000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794958321482_995": {
+      "id": "je_1794958321482_995",
+      "reference": "ORD-2026-98110",
+      "timestamp": 1794958321482,
+      "userId": "usr_alade_01",
+      "transactionType": "SHOP_ORDER",
+      "description": "Apple Tech Wholesale: MacBook Pro 16\" M3 Max",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:usd",
+          "currency": "USD",
+          "debit": 3260,
+          "credit": 0
+        },
+        {
+          "account": "revenue:sales:tech_gadgets",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 3260
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794958321794_319": {
+      "id": "je_1794958321794_319",
+      "reference": "BK-2026-28713",
+      "timestamp": 1794958321794,
+      "userId": "usr_alade_01",
+      "transactionType": "HOTEL_BOOKING",
+      "description": "Reservation: The Westin Pazhou Guangzhou (4 nights, Standard Room)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:usd",
+          "currency": "USD",
+          "debit": 640,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:hotel_escrow:bk_1794958321793",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 640
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794958448773_567": {
+      "id": "je_1794958448773_567",
+      "reference": "SUB-VIP-448772",
+      "timestamp": 1794958448773,
+      "userId": "usr_alade_01",
+      "transactionType": "SUPPLIER_SUB",
+      "description": "30-Day VIP Supplier Contacts Pass (USD 10)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:USD",
+          "currency": "USD",
+          "debit": 10,
+          "credit": 0
+        },
+        {
+          "account": "revenue:fees:vip_supplier_directory",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 10
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794958448854_151": {
+      "id": "je_1794958448854_151",
+      "reference": "SUB-VIP-448854",
+      "timestamp": 1794958448854,
+      "userId": "usr_alade_01",
+      "transactionType": "SUPPLIER_SUB",
+      "description": "30-Day VIP Supplier Contacts Pass (USD 10)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:USD",
+          "currency": "USD",
+          "debit": 10,
+          "credit": 0
+        },
+        {
+          "account": "revenue:fees:vip_supplier_directory",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 10
+        }
+      ],
+      "metadata": {}
     }
   },
   "wallets_ledger": {
@@ -43025,10 +43310,12 @@
       "fee": 500,
       "openingBalance": 28450200,
       "closingBalance": 28450200,
-      "status": "pending",
+      "status": "completed",
       "reference": "WTH-NIP-443239",
       "timestamp": 1793640443240,
-      "notes": "Payout ₦50,000 to Zenith Bank Plc (2089140022)"
+      "notes": "Payout ₦50,000 to Zenith Bank Plc (2089140022)",
+      "paymentProofUrl": "",
+      "receiptUrl": ""
     },
     "ldg_1793640443288": {
       "id": "ldg_1793640443288",
@@ -65615,6 +65902,158 @@
       "reference": "SUB-VIP-956047",
       "timestamp": 1794956956048,
       "notes": "30-Day VIP Supplier Directory Pass Renewal (+30d extended to 12/17/2028)"
+    },
+    "ldg_1794958320315": {
+      "id": "ldg_1794958320315",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 500000,
+      "fee": 0,
+      "openingBalance": 159941275,
+      "closingBalance": 159941275,
+      "status": "completed",
+      "reference": "PROVIDUS-SIM-1794958320314",
+      "timestamp": 1794958320315,
+      "notes": "Sandbox Webhook Simulation confirmed (PROVIDUS-SIM-1794958320314)"
+    },
+    "ldg_1794958320379_536": {
+      "id": "ldg_1794958320379_536",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 5000,
+      "fee": 0,
+      "openingBalance": 4780,
+      "closingBalance": 9780,
+      "status": "completed",
+      "reference": "FLYE-FUND-1794958320377",
+      "timestamp": 1794958320379,
+      "notes": "Wallet credited with $5,000 via Test Card"
+    },
+    "ldg_1794958320504": {
+      "id": "ldg_1794958320504",
+      "userId": "usr_alade_01",
+      "type": "PAY_SUPPLIER",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "CNY",
+      "amount": 200,
+      "fee": 0,
+      "openingBalance": 1464978.0699999998,
+      "closingBalance": 1464778.0699999998,
+      "status": "completed",
+      "reference": "RMB-19392185",
+      "timestamp": 1794958320504,
+      "notes": "Transfer ¥200 to Shenzhen MicroTech Electronic Co. via bank_card (Funded via CNY 200)",
+      "paymentProofUrl": "https://storage.flyemass.com/receipts/cny_tx_902.pdf",
+      "receiptUrl": "https://storage.flyemass.com/receipts/cny_tx_902.pdf"
+    },
+    "ldg_1794958320700": {
+      "id": "ldg_1794958320700",
+      "userId": "usr_alade_01",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 25000,
+      "fee": 500,
+      "openingBalance": 159941275,
+      "closingBalance": 159915775,
+      "status": "pending",
+      "reference": "WD-68488315",
+      "timestamp": 1794958320700,
+      "notes": "Payout ₦25,000 to Zenith Bank (2089140022)"
+    },
+    "ldg_1794958321110": {
+      "id": "ldg_1794958321110",
+      "userId": "usr_alade_01",
+      "type": "CARGO_FREIGHT",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 425,
+      "fee": 0,
+      "openingBalance": 9780,
+      "closingBalance": 9355,
+      "status": "completed",
+      "reference": "WAYBILL-SP-0B2456FA-4",
+      "timestamp": 1794958321110,
+      "notes": "Freight settlement for Waybill #SP-0B2456FA-4"
+    },
+    "ldg_1794958321234_783": {
+      "id": "ldg_1794958321234_783",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 10000,
+      "fee": 0,
+      "openingBalance": 9355,
+      "closingBalance": 19355,
+      "status": "completed",
+      "reference": "FLYE-FUND-1794958321233",
+      "timestamp": 1794958321234,
+      "notes": "Wallet credited with $10,000 via Test Card"
+    },
+    "ldg_1794958321482": {
+      "id": "ldg_1794958321482",
+      "userId": "usr_alade_01",
+      "type": "SHOP_ORDER",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 3260,
+      "fee": 0,
+      "openingBalance": 19355,
+      "closingBalance": 19355,
+      "status": "completed",
+      "reference": "ORD-2026-98110",
+      "timestamp": 1794958321482,
+      "notes": "Apple Tech Wholesale: MacBook Pro 16\" M3 Max"
+    },
+    "ldg_1794958321794": {
+      "id": "ldg_1794958321794",
+      "userId": "usr_alade_01",
+      "type": "HOTEL_BOOKING",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 640,
+      "fee": 0,
+      "openingBalance": 19355,
+      "closingBalance": 18715,
+      "status": "completed",
+      "reference": "BK-2026-28713",
+      "timestamp": 1794958321794,
+      "notes": "Reservation: The Westin Pazhou Guangzhou (4 nights)"
+    },
+    "ldg_1794958448773": {
+      "id": "ldg_1794958448773",
+      "userId": "usr_alade_01",
+      "type": "SUPPLIER_SUB",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 10,
+      "fee": 0,
+      "openingBalance": 18715,
+      "closingBalance": 18705,
+      "status": "completed",
+      "reference": "SUB-VIP-448772",
+      "timestamp": 1794958448773,
+      "notes": "30-Day VIP Supplier Directory Pass Renewal (+30d extended to 1/16/2029)"
+    },
+    "ldg_1794958448854": {
+      "id": "ldg_1794958448854",
+      "userId": "usr_alade_01",
+      "type": "SUPPLIER_SUB",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 10,
+      "fee": 0,
+      "openingBalance": 18705,
+      "closingBalance": 18695,
+      "status": "completed",
+      "reference": "SUB-VIP-448854",
+      "timestamp": 1794958448854,
+      "notes": "30-Day VIP Supplier Directory Pass Renewal (+30d extended to 2/15/2029)"
     }
   },
   "shipments": {
@@ -75751,6 +76190,103 @@
       ],
       "createdAt": 1794872359700,
       "updatedAt": 1794872359700
+    },
+    "shp_1794958320860": {
+      "id": "shp_1794958320860",
+      "shipmentCode": "SL-2026-00203",
+      "trackingCode": "SP-0B2456FA-4",
+      "trackingNumber": "SF368824432711CN",
+      "chineseCourierTracking": "SF368824432711CN",
+      "userId": "usr_alade_01",
+      "receiverName": "Chief Babatunde Alade",
+      "customerPhone": "+234 803 555 9201",
+      "originWarehouse": "Guangzhou Main Bonded Hub",
+      "destination": "Lagos, NG",
+      "destinationHub": "Ikeja MMIA Cargo Terminal",
+      "deliveryType": "pickup",
+      "fulfillmentMethod": "pickup",
+      "fulfillment_method": "pickup",
+      "pickupHub": "Ikeja MMIA Cargo Terminal",
+      "lagosHubLabel": "Ikeja MMIA Cargo Terminal",
+      "lagos_hub_label": "Ikeja MMIA Cargo Terminal",
+      "shippingMode": "air_cargo",
+      "mode": "Air Freight",
+      "courierCompany": "SF Express",
+      "packageDescription": "High-Density Lithium Inverters (10 Cartons)",
+      "title": "High-Density Lithium Inverters (10 Cartons)",
+      "sender": "Domestic Chinese Supplier",
+      "storeName": "Domestic Chinese Supplier",
+      "expectedWarehouseArrival": null,
+      "expectedArrivalDate": null,
+      "shippingMark": "FM / FM-USR-8924 / Chief Babatunde Alade",
+      "cartonsCount": 1,
+      "weightKg": 42.5,
+      "actualWeightKg": 42.5,
+      "billableWeightKg": 42.5,
+      "declaredValueRMB": 8500,
+      "consolidationPreference": "Keep original packaging",
+      "currentStatus": "in_transit",
+      "status": "in_transit",
+      "paymentStatus": "paid",
+      "freightPaid": true,
+      "freightFeeUSD": 425,
+      "freightFee": 425,
+      "costEstimate": 47.5,
+      "costCurrency": "USD",
+      "pickupOtp": "3564",
+      "location": "Guangzhou, CN",
+      "eta": "",
+      "timeline": [
+        {
+          "status": "Package Registered",
+          "location": "Guangzhou Main Bonded Hub, CN",
+          "timestamp": "03:32 PM",
+          "notes": "Package registered (High-Density Lithium Inverters (10 Cartons), 5 kg via air_cargo). Tracking: SP-0B2456FA-4."
+        },
+        {
+          "status": "inspection",
+          "location": "Guangzhou Main Bonded Hub Warehouse Receiving Dock",
+          "timestamp": "03:32 PM",
+          "notes": "Package weighed (42.5 kg actual, 42.5 kg billable). Packaging condition: Good condition / Factory seals intact. Inspection photos recorded."
+        },
+        {
+          "status": "Awaiting Payment",
+          "location": "Guangzhou Warehouse Billing & Repackaging Desk",
+          "timestamp": "03:32 PM",
+          "notes": "Repackaged & billed: $425.00 USD (≈ ₦631,125 NGN / ¥3,077 CNY) — Air Freight: 42.5kg @ $10.00/kg. Awaiting customer payment."
+        },
+        {
+          "status": "Freight Paid",
+          "location": "Lagos Clearing Escrow",
+          "timestamp": "03:32 PM",
+          "notes": "Freight cleared in full (USD 425). Ready for customs release and flight dispatch."
+        },
+        {
+          "status": "in_transit",
+          "location": "In Flight — Can/Addis/Los",
+          "timestamp": "03:32 PM",
+          "notes": "Cargo departed Guangzhou Baiyun Airport en route to Lagos"
+        }
+      ],
+      "createdAt": 1794958320861,
+      "updatedAt": 1794958321171,
+      "dimensions": {
+        "lengthCm": 60,
+        "widthCm": 50,
+        "heightCm": 40
+      },
+      "cbm": 0.12,
+      "inspectionNotes": "All 10 cartons verified with zero cosmetic defects.",
+      "packagingCondition": "Good condition / Factory seals intact",
+      "freightFeeNGN": 631125,
+      "freightFeeCNY": 3077,
+      "ratePerKg": 10,
+      "billingNotes": "Air Freight: 42.5kg @ $10.00/kg",
+      "customerNotes": "Air Freight: 42.5kg @ $10.00/kg",
+      "isBilled": true,
+      "paymentTiming": "immediate",
+      "paidCurrency": "USD",
+      "paidAmount": 425
     }
   },
   "supplier_payments": {
@@ -79870,6 +80406,42 @@
       "notes": "PO #203 - Kitchen supplies bulk order",
       "processingStartedAt": 1794119658442,
       "reviewer": "adm-001"
+    },
+    "pay_1794958320503": {
+      "id": "pay_1794958320503",
+      "userId": "usr_alade_01",
+      "customerName": "Chief Babatunde Alade",
+      "customerEmail": "babatunde@aladeholding.ng",
+      "customerPhone": "+234 803 555 9201",
+      "paymentMethod": "bank_card",
+      "receiverAccount": "6228480039201928",
+      "receiverName": "Shenzhen MicroTech Electronic Co.",
+      "bankName": "China Construction Bank (Guangzhou Pazhou Branch)",
+      "swiftBic": "",
+      "qrCodeUrl": "",
+      "purpose": "Supplier Payment",
+      "purposeExplanation": "",
+      "amountRMB": 200,
+      "fundingCurrency": "CNY",
+      "fundingAmount": 200,
+      "exchangeRate": 1,
+      "feeCNY": 0,
+      "totalDeductionCNY": 200,
+      "equivalentNGN": 43040,
+      "status": "successful",
+      "createdAt": 1794958320504,
+      "reference": "RMB-19392185",
+      "notes": "Deposit for electronics batch #802",
+      "completed": true,
+      "clearingSessionId": "CCB-CORP-90218",
+      "paymentProofUrl": "https://storage.flyemass.com/receipts/cny_tx_902.pdf",
+      "receiptUrl": "https://storage.flyemass.com/receipts/cny_tx_902.pdf",
+      "safeDeclarationRef": "SAFE-DECL-2026-08",
+      "externalPaymentRef": "CCB-CORP-90218",
+      "adminNotes": "Disbursed via CCB Corporate Remittance Desk",
+      "reviewer": "Finance Officer",
+      "disbursedAt": 1794958320634,
+      "completedAt": 1794958320634
     }
   },
   "withdrawals": {
@@ -83746,6 +84318,35 @@
       "refundReason": "NIBSS destination account unverified",
       "refundedAt": 1793775206241,
       "reviewer": "Finance Officer"
+    },
+    "wth_1794958320700": {
+      "id": "wth_1794958320700",
+      "userId": "usr_alade_01",
+      "customerName": "Chief Babatunde Alade",
+      "customerEmail": "babatunde@aladeholding.ng",
+      "customerPhone": "+234 803 555 9201",
+      "channel": "naira_bank",
+      "currency": "NGN",
+      "bankName": "Zenith Bank",
+      "bankCode": "057",
+      "accountNumber": "2089140022",
+      "accountName": "Chief Babatunde Alade",
+      "amountNGN": 25000,
+      "feeNGN": 500,
+      "totalDebit": 25500,
+      "note": "Bank transfer",
+      "status": "successful",
+      "reference": "WD-68488315",
+      "transferReference": "NIBSS-ZNT-290182",
+      "createdAt": 1794958320700,
+      "completed": true,
+      "payoutMode": "manual",
+      "gatewayProvider": "Manual Settlement",
+      "paymentProofUrl": "",
+      "receiptUrl": "",
+      "adminNotes": "",
+      "reviewer": "Finance Officer",
+      "completedAt": 1794958320795
     }
   },
   "agent_requests": {
@@ -88843,6 +89444,62 @@
       "refundedAt": 1793777110989,
       "cancelledAt": 1793777110989,
       "cancellationReason": "Supplier factory failed quality audit criteria"
+    },
+    "rfq_1794958321663": {
+      "id": "rfq_1794958321663",
+      "reference": "AGT-SRC-2026-86055",
+      "userId": "usr_alade_01",
+      "clientName": "Chief Babatunde Alade",
+      "customerPhone": "+234 803 555 9201",
+      "customerEmail": "babatunde@aladeholding.ng",
+      "serviceType": "Product Sourcing & Procurement",
+      "serviceKind": "sourcing",
+      "productName": "Solar Hybrid Inverters 5KW 48V",
+      "category": "Electronics & Tech",
+      "targetQuantity": 100,
+      "targetUnitUSD": 10,
+      "targetUnitCNY": 70,
+      "totalBudgetCNY": 120000,
+      "specifications": "Pure sine wave, MPPT 100A, dual AC inputs, CE & RoHS certified",
+      "referencePhotos": [],
+      "supplierCity": "Guangzhou",
+      "inspectionRequired": true,
+      "cantonFairBooth": null,
+      "status": "quote_ready",
+      "paymentStatus": "awaiting_payment",
+      "timeline": [
+        {
+          "status": "pending_review",
+          "timestamp": 1794958321663,
+          "location": "Guangzhou Trade Desk",
+          "notes": "Request submitted by client. Reference: AGT-SRC-2026-86055. Assigned to China trade team for review."
+        },
+        {
+          "status": "awaiting_payment",
+          "location": "Guangzhou Trade Desk",
+          "timestamp": 1794958321724,
+          "notes": "Quotation issued: $15100 USD (≈ ₦22,423,500 NGN / ¥109,350 CNY). Lead time: 7 days."
+        }
+      ],
+      "createdAt": 1794958321663,
+      "updatedAt": 1794958321724,
+      "productCostCNY": 105000,
+      "sourcingCommissionCNY": 3150,
+      "chinaShippingCNY": 1200,
+      "totalPayableCNY": 109350,
+      "quoteAmountUSD": 15100,
+      "quoteAmountNGN": 22423500,
+      "quoteAmountCNY": 109350,
+      "quoteFeeUSD": 15100,
+      "quoteFeeNGN": 22423500,
+      "quoteFeeRMB": 109350,
+      "quoteCurrency": "USD",
+      "leadTimeDays": 7,
+      "adminNotes": "Tier-1 manufacturer verified in Foshan with 2-year warranty.",
+      "assignedAgent": "David Zhang (Guangzhou Sourcing Office)",
+      "displayStatus": "Quotation Sent",
+      "quotationStatus": "Quotation Sent",
+      "quotedAt": 1794958321724
     }
   },
   "supplier_subscriptions": {
@@ -88855,12 +89512,12 @@
       "type": "directory_30d",
       "currency": "USD",
       "amountPaid": 10,
-      "purchasedAt": 1794956956048,
-      "activeUntil": 1860730774716,
+      "purchasedAt": 1794958448854,
+      "activeUntil": 1865914774716,
       "status": "active",
-      "reference": "SUB-VIP-956047",
+      "reference": "SUB-VIP-448854",
       "autoRenew": false,
-      "renewalCount": 25,
+      "renewalCount": 27,
       "emailReceiptSent": true
     },
     "sub_sup_1_alade": {
@@ -89892,6 +90549,28 @@
       "active": false,
       "createdAt": 1794956956574,
       "updatedAt": 1794956956760
+    },
+    "sup_1794958449115": {
+      "name": "Foshan Precision Aluminium Extrusions Ltd",
+      "chineseName": "佛山精密铝型材实业有限公司",
+      "city": "Foshan (Dali)",
+      "category": "Machinery",
+      "wechatId": "dali_aluminum_oem",
+      "phone": "+86 757 8555 4321",
+      "whatsapp": "+86 138 8555 4321",
+      "businessAddress": "Dali Non-Ferrous Metals Industrial Zone, Foshan, China",
+      "minOrderValue": "¥8,000",
+      "verifiedYears": 10,
+      "tags": [
+        "Gold Supplier",
+        "Factory Direct",
+        "10+ Years"
+      ],
+      "id": "sup_1794958449115",
+      "inspectionPassed": true,
+      "active": false,
+      "createdAt": 1794958449115,
+      "updatedAt": 1794958449192
     }
   },
   "shop_orders": {
@@ -96481,6 +97160,50 @@
           "title": "Dispatched via Air Cargo",
           "description": "Order transitioned to shipped",
           "timestamp": 1793775210126,
+          "location": "Hong Kong Int Airport Hub"
+        }
+      ]
+    },
+    "ord_tech_1794958321482": {
+      "id": "ord_tech_1794958321482",
+      "userId": "usr_alade_01",
+      "items": [
+        {
+          "productId": "prod_test_1794958321296",
+          "quantity": 1,
+          "product": {
+            "id": "prod_test_1794958321296",
+            "title": "MacBook Pro 16\" M3 Max",
+            "priceUSD": 3260,
+            "priceNGN": 4850000
+          }
+        }
+      ],
+      "subtotalNGN": 4850000,
+      "deliveryFeeNGN": 0,
+      "totalAmount": 3260,
+      "currency": "USD",
+      "deliveryAddress": "Plot 12, Victoria Island Corporate Tower, Lagos",
+      "paymentWalletUsed": "USD",
+      "fulfillmentStatus": "shipped",
+      "createdAt": 1794958321482,
+      "updatedAt": 1794958321598,
+      "orderNumber": "ORD-2026-98110",
+      "trackingNumber": "FM-HK-LOS-10095",
+      "courierName": "FlyeMass Lagos Express Fleet",
+      "timeline": [
+        {
+          "status": "pending",
+          "title": "Order Confirmed",
+          "description": "Payment verified and order allocated in Hong Kong Logistics Hub",
+          "timestamp": 1794958321482,
+          "location": "Hong Kong Logistics Hub"
+        },
+        {
+          "status": "shipped",
+          "title": "Dispatched via Air Cargo",
+          "description": "Order transitioned to shipped",
+          "timestamp": 1794958321598,
           "location": "Hong Kong Int Airport Hub"
         }
       ]
@@ -106414,6 +107137,110 @@
       "updatedAt": 1793830708631,
       "cancelledAt": 1793830708632,
       "cancellationReason": "Guest requested early flight departure cancellation refund."
+    },
+    "bk_1794958321793": {
+      "id": "bk_1794958321793",
+      "reference": "BK-2026-28713",
+      "userId": "usr_alade_01",
+      "hotelId": "hotel-gz-westin",
+      "hotelName": "The Westin Pazhou Guangzhou",
+      "chineseName": "广州广交会威斯汀酒店",
+      "hotel": {
+        "id": "hotel-gz-westin",
+        "name": "The Westin Pazhou Guangzhou",
+        "chineseName": "广州广交会威斯汀酒店",
+        "city": "Guangzhou",
+        "district": "Haizhu Pazhou Complex Zone",
+        "englishAddress": "Area C, Canton Fair Complex, No. 1 Fengpu Middle Road, Haizhu District, Guangzhou",
+        "chineseAddress": "广州市海珠区凤浦中���681号广交会展馆C���",
+        "description": "The only hotel with direct skybridge covered access to the Canton Fair Exhibition Complex.",
+        "pricePerNightUSD": 185,
+        "pricePerNightCNY": 1340,
+        "pricePerNightNGN": 274725,
+        "rating": 4.9,
+        "reviewsCount": 520,
+        "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80",
+        "images": [
+          "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
+          "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80"
+        ],
+        "tags": [
+          "Direct Skybridge to Canton Fair",
+          "English Concierge",
+          "Halal Dining Option"
+        ],
+        "distanceToMarket": "0.1 km from Canton Fair Exhibition Complex",
+        "amenities": [
+          "Direct Fair Access",
+          "High-speed VPN Wi-Fi",
+          "Airport Limousine",
+          "Currency Exchange"
+        ],
+        "roomType": "Deluxe King City View",
+        "roomTypes": [
+          {
+            "id": "rm-std",
+            "name": "Standard Room",
+            "nightlySurchargeUSD": 0,
+            "maxGuests": 2,
+            "description": "Comfortable king bed, city view, high-speed Wi-Fi",
+            "amenities": [
+              "King Bed",
+              "Free Wi-Fi",
+              "Rain Shower"
+            ]
+          },
+          {
+            "id": "rm-dlx",
+            "name": "Deluxe Double",
+            "nightlySurchargeUSD": 30,
+            "maxGuests": 3,
+            "description": "Spacious double bed suite, complimentary executive breakfast",
+            "amenities": [
+              "Twin Double Beds",
+              "Breakfast Included",
+              "Work Desk"
+            ]
+          },
+          {
+            "id": "rm-ste",
+            "name": "Executive Suite",
+            "nightlySurchargeUSD": 80,
+            "maxGuests": 4,
+            "description": "Luxury 65sqm suite with private meeting lounge & panoramic skyline view",
+            "amenities": [
+              "Separate Living Area",
+              "Executive Lounge Access",
+              "Bathtub",
+              "Airport Transfer"
+            ]
+          }
+        ],
+        "cancellationPolicy": "Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.",
+        "isPublished": true,
+        "taxiCardZh": "师傅，请带我去广州琶洲广交会威斯汀酒店（海珠区会展东路1号）。谢谢！"
+      },
+      "roomType": "Standard Room",
+      "roomSurchargeUSD": 0,
+      "checkIn": "2026-11-10",
+      "checkOut": "2026-11-14",
+      "nights": 4,
+      "totalUSD": 640,
+      "currency": "USD",
+      "amountDebited": 640,
+      "guestCount": 1,
+      "guestName": "Chief Babatunde Alade",
+      "guestEmail": "babatunde@aladeholding.ng",
+      "guestPhone": "+234 803 555 9201",
+      "confirmationCode": "WST-GUA-165614",
+      "qrVerificationToken": "FLYEMASS|BK-2026-28713|hotel-gz-westin|2026-11-10",
+      "voucherPdfUrl": "/api/vouchers/hotel/BK-2026-28713.pdf",
+      "cancellationPolicy": "Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.",
+      "emailSent": true,
+      "status": "confirmed",
+      "taxiCardZh": "师傅您好，请带我到：广州广交会威斯汀酒店（广州市海珠区凤浦中���681号广交会展馆C���）。谢谢！",
+      "createdAt": 1794958321794,
+      "updatedAt": 1794958321855
     }
   },
   "hotels": {
@@ -112678,6 +113505,24 @@
       "warrantyInfo": "1-Year Apple Global Warranty",
       "deliveryInfo": "Direct air freight dispatch to Lagos Hub with escrow guarantee",
       "isPublished": true
+    },
+    "prod_test_1794958321296": {
+      "id": "prod_test_1794958321296",
+      "title": "MacBook Pro 16\" M3 Max 36GB / 1TB Space Black",
+      "category": "MacBook",
+      "condition": "Brand New",
+      "priceNGN": 4850000,
+      "priceUSD": 3260,
+      "priceCNY": 23600,
+      "stockCount": 5,
+      "inStock": true,
+      "image": "",
+      "images": [
+        "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80",
+        "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80",
+        "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?auto=format&fit=crop&w=600&q=80"
+      ],
+      "createdAt": 1794958321358
     }
   },
   "device_shop_settings": {
@@ -112689,159 +113534,7 @@
     "usr_alade_01": []
   },
   "device_cart_items": {
-    "usr_alade_01": [
-      {
-        "id": "ci-1794294617489-t65t6",
-        "product": {
-          "id": "prod-iphone-15-pro",
-          "title": "Apple iPhone 15 Pro",
-          "subtitle": "Blue Titanium • Grade-A Apple Certified Refurbished",
-          "category": "iPhone",
-          "condition": "Refurbished",
-          "priceUSD": 976,
-          "priceNGN": 1450000,
-          "priceCNY": 7070,
-          "image": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80",
-          "images": [
-            "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80",
-            "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?auto=format&fit=crop&w=600&q=80"
-          ],
-          "rating": 4.8,
-          "reviewsCount": 164,
-          "specs": [
-            "A17 Pro Chip",
-            "Grade 5 Aerospace Titanium",
-            "Action Button",
-            "USB-C 10Gbps"
-          ],
-          "technicalSpecs": {
-            "chip": "Apple A17 Pro (6-core CPU, 6-core GPU)",
-            "ram": "8GB LPDDR5",
-            "camera": "48MP Main + 12MP Ultra-Wide + 12MP 3x Telephoto",
-            "display": "6.1\" Super Retina XDR OLED (120Hz ProMotion)",
-            "batteryHealth": "98% (Grade-A Tested)",
-            "biometrics": "Face ID",
-            "waterResistance": "IP68",
-            "warranty": "6-Month FlyeMass Escrow Warranty",
-            "deliveryEstimate": "2-4 Days Express Air Cargo"
-          },
-          "inStock": true,
-          "stockCount": 36,
-          "tag": "Certified Refurbished Deal",
-          "colors": [
-            {
-              "name": "Blue Titanium",
-              "hex": "#2D3A4B"
-            },
-            {
-              "name": "Natural Titanium",
-              "hex": "#9A958E"
-            },
-            {
-              "name": "Black Titanium",
-              "hex": "#2F3133"
-            }
-          ],
-          "storageOptions": [
-            "128GB",
-            "256GB",
-            "512GB"
-          ],
-          "variants": [
-            {
-              "id": "v-ip15p-128-bt",
-              "color": "Blue Titanium",
-              "colorHex": "#2D3A4B",
-              "storage": "128GB",
-              "priceAdjustmentNGN": 0,
-              "stockCount": 6,
-              "isActive": true
-            },
-            {
-              "id": "v-ip15p-256-bt",
-              "color": "Blue Titanium",
-              "colorHex": "#2D3A4B",
-              "storage": "256GB",
-              "priceAdjustmentNGN": 150000,
-              "stockCount": 5,
-              "isActive": true
-            },
-            {
-              "id": "v-ip15p-512-bt",
-              "color": "Blue Titanium",
-              "colorHex": "#2D3A4B",
-              "storage": "512GB",
-              "priceAdjustmentNGN": 350000,
-              "stockCount": 3,
-              "isActive": true
-            },
-            {
-              "id": "v-ip15p-128-nt",
-              "color": "Natural Titanium",
-              "colorHex": "#9A958E",
-              "storage": "128GB",
-              "priceAdjustmentNGN": 0,
-              "stockCount": 4,
-              "isActive": true
-            },
-            {
-              "id": "v-ip15p-256-nt",
-              "color": "Natural Titanium",
-              "colorHex": "#9A958E",
-              "storage": "256GB",
-              "priceAdjustmentNGN": 150000,
-              "stockCount": 4,
-              "isActive": true
-            },
-            {
-              "id": "v-ip15p-512-nt",
-              "color": "Natural Titanium",
-              "colorHex": "#9A958E",
-              "storage": "512GB",
-              "priceAdjustmentNGN": 350000,
-              "stockCount": 3,
-              "isActive": true
-            },
-            {
-              "id": "v-ip15p-128-bk",
-              "color": "Black Titanium",
-              "colorHex": "#2F3133",
-              "storage": "128GB",
-              "priceAdjustmentNGN": 0,
-              "stockCount": 5,
-              "isActive": true
-            },
-            {
-              "id": "v-ip15p-256-bk",
-              "color": "Black Titanium",
-              "colorHex": "#2F3133",
-              "storage": "256GB",
-              "priceAdjustmentNGN": 150000,
-              "stockCount": 4,
-              "isActive": true
-            },
-            {
-              "id": "v-ip15p-512-bk",
-              "color": "Black Titanium",
-              "colorHex": "#2F3133",
-              "storage": "512GB",
-              "priceAdjustmentNGN": 350000,
-              "stockCount": 2,
-              "isActive": true
-            }
-          ],
-          "warrantyInfo": "6-Month Comprehensive Hardware Replacement Guarantee",
-          "deliveryInfo": "Air Cargo to Lagos Hub or Doorstep Delivery",
-          "isPublished": true
-        },
-        "quantity": 1,
-        "variantId": "v-ip15p-128-bt",
-        "selectedColor": "Blue Titanium",
-        "selectedStorage": "128GB",
-        "priceAdjustmentNGN": 0,
-        "unitPriceNGN": 1450000
-      }
-    ]
+    "usr_alade_01": []
   },
   "chat_messages": [
     {
@@ -115266,6 +115959,57 @@
       ],
       "createdAt": 1794956956261,
       "updatedAt": 1794956956261
+    },
+    "tkt_1794958321911": {
+      "id": "tkt_1794958321911",
+      "ticketNumber": "FM-4472",
+      "userId": "usr_alade_01",
+      "userName": "Chief Babatunde Alade",
+      "subject": "Customs Valuation Documentation Request",
+      "category": "logistics",
+      "status": "resolved",
+      "priority": "high",
+      "messages": [
+        {
+          "senderId": "usr_alade_01",
+          "senderName": "Chief Babatunde Alade",
+          "text": "",
+          "isAdmin": false,
+          "timestamp": "03:32 PM"
+        },
+        {
+          "senderId": "adm-002",
+          "senderName": "FlyeMass Concierge Supervisor",
+          "text": "Ticket marked as RESOLVED: Official stamped documents transmitted to customer vault",
+          "isAdmin": true,
+          "timestamp": "03:32 PM"
+        }
+      ],
+      "createdAt": 1794958321911,
+      "updatedAt": 1794958321911,
+      "resolvedAt": 1794958322033,
+      "resolutionNotes": "Official stamped documents transmitted to customer vault"
+    },
+    "tkt_1794958448960": {
+      "id": "tkt_1794958448960",
+      "ticketNumber": "FM-4510",
+      "userId": "usr_alade_01",
+      "userName": "Chief Babatunde Alade",
+      "subject": "Supplier Verification: Shenzhen Kingzone Microelectronics Ltd",
+      "category": "Supplier Escrow",
+      "status": "open",
+      "priority": "High",
+      "messages": [
+        {
+          "senderId": "usr_alade_01",
+          "senderName": "Chief Babatunde Alade",
+          "text": "Hello FlyeMass, please help verify supplier Shenzhen Kingzone Microelectronics Ltd in Electronics before I make payment. I would like assistance with supplier verification, transaction coordination, and warehouse inspection.",
+          "isAdmin": false,
+          "timestamp": "03:34 PM"
+        }
+      ],
+      "createdAt": 1794958448961,
+      "updatedAt": 1794958448961
     }
   },
   "banners": [
@@ -115276,7 +116020,8 @@
       "imageUrl": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80",
       "destinationRoute": "agent",
       "isActive": true,
-      "displayOrder": 1
+      "displayOrder": 1,
+      "placement": "home"
     },
     {
       "id": "ban_sea_promo",
@@ -115285,18 +116030,67 @@
       "imageUrl": "https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=1000&q=80",
       "destinationRoute": "logistics",
       "isActive": true,
+      "displayOrder": 2,
+      "placement": "home"
+    },
+    {
+      "id": "ban_shop_iphone16",
+      "title": "Apple iPhone 16 Pro Max",
+      "subtitle": "Factory Sealed HK Spec • Dual SIM with 2-4 Days Express Air Cargo to Lagos MMIA",
+      "description": "Factory Sealed HK Spec Dual Physical SIM models with express air freight to Lagos.",
+      "badge": "Hong Kong Direct Hub",
+      "imageUrl": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1200&q=80",
+      "destinationRoute": "shop",
+      "placement": "shop",
+      "isActive": true,
+      "displayOrder": 1
+    },
+    {
+      "id": "ban_shop_macbook_m4",
+      "title": "Apple M4 Max & Pro Hardware",
+      "subtitle": "Global Apple Limited Warranty with Cryptographic Serial Number Tracking",
+      "description": "Brand new Apple Silicon hardware available with escrow inspection.",
+      "badge": "New Arrival",
+      "imageUrl": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80",
+      "destinationRoute": "shop",
+      "placement": "shop",
+      "isActive": true,
       "displayOrder": 2
+    },
+    {
+      "id": "ban_shop_wholesale",
+      "title": "Direct Computer Village Pricing",
+      "subtitle": "Wholesale & Retail Multi-Currency Checkout in Naira (NGN) and Yuan (CNY)",
+      "description": "Bulk wholesale orders with insured freight and zero customs demurrage.",
+      "badge": "Wholesale Deal",
+      "imageUrl": "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?auto=format&fit=crop&w=1200&q=80",
+      "destinationRoute": "shop",
+      "placement": "shop",
+      "isActive": true,
+      "displayOrder": 3
+    },
+    {
+      "id": "ban_shop_accessories",
+      "title": "Apple Watch Ultra 2 & AirPods Max",
+      "subtitle": "Original Sealed Accessories • Direct Guangzhou to Lagos Air Express Delivery",
+      "description": "Original Apple accessories with serial check & instant delivery.",
+      "badge": "VIP Hardware",
+      "imageUrl": "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=1200&q=80",
+      "destinationRoute": "shop",
+      "placement": "shop",
+      "isActive": true,
+      "displayOrder": 4
     }
   ],
   "system_settings": {
     "rates": {
-      "USD_NGN": 1400,
+      "USD_NGN": 1490,
       "USD_CNY": 7.26,
       "NGN_CNY": 215.2,
       "spreadPercent": 0.75,
-      "lastUpdated": 1794551373129,
-      "updatedBy": "Chief Babatunde Alade",
-      "NGN_USD": 1400,
+      "lastUpdated": 1794958322455,
+      "updatedBy": "Admin Central Treasury",
+      "NGN_USD": 1490,
       "CNY_NGN": 215.2,
       "CNY_USD": 0.137741,
       "CNY_to_NGN": 213.59,
@@ -115332,7 +116126,7 @@
       "ngn": 15000,
       "usd": 10,
       "cny": 70,
-      "updatedAt": 1794956955086,
+      "updatedAt": 1794958447984,
       "updatedBy": "Chief Babatunde Alade (Super Admin)"
     },
     "shipping_corridors": [
@@ -115489,7 +116283,7 @@
       }
     },
     "logistics_fx_rates": {
-      "usdToNgn": 1400,
+      "usdToNgn": 1490,
       "usdToCny": 7.26
     },
     "live_fx_display": {
@@ -115624,9 +116418,22 @@
     "PROV-AUTOTEST-1793777092463": true,
     "SQUAD-TEST-1793777093070": true,
     "SQUAD-REPLAY-1793777093809": true,
-    "SQUAD-RECON-1793777094786": true
+    "SQUAD-RECON-1793777094786": true,
+    "PROVIDUS-SIM-1794958320314": true
   },
   "webhook_events": [
+    {
+      "id": "whk_1794958320315",
+      "provider": "Providus",
+      "reference": "PROVIDUS-SIM-1794958320314",
+      "amount": 500000,
+      "currency": "NGN",
+      "status": "SUCCESS",
+      "timestamp": 1794958320315,
+      "accountNumber": "9082341902",
+      "userId": "usr_alade_01",
+      "simulated": true
+    },
     {
       "id": "whk_1793777094788",
       "provider": "squad",
@@ -152540,6 +153347,578 @@
       "ipAddress": "127.0.0.1",
       "previousHash": "b17bc79ab42cf3e79e1387d14663611e08c53e0b6c00644e11e3d0f262f05737",
       "hash": "bed3469d36650950a4ee6106f6d378ec39fbdec6b6820e07b9d631954db311db"
+    },
+    {
+      "id": "log_1794958320185_6868",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "PIN_UPDATED",
+      "targetCollection": "users",
+      "targetId": "usr_alade_01",
+      "details": "Established new 6-digit cryptographic PIN",
+      "timestamp": 1794958320185,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "bed3469d36650950a4ee6106f6d378ec39fbdec6b6820e07b9d631954db311db",
+      "hash": "c146509b44feb6cefa2edb810096ab2c72f5b9e9b73e375d032e23eda7931f9f"
+    },
+    {
+      "id": "log_1794958320252_3562",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SETTINGS_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "config",
+      "details": "Updated exchange rates and operational margins",
+      "timestamp": 1794958320252,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "c146509b44feb6cefa2edb810096ab2c72f5b9e9b73e375d032e23eda7931f9f",
+      "hash": "e96dc42aa163fe41961a744d00dbe385e0e5a35bcbd098bc3849dfac585cd54c"
+    },
+    {
+      "id": "log_1794958320315_4554",
+      "adminId": "adm-001",
+      "adminName": "Treasury Admin",
+      "action": "WEBHOOK_SIMULATED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1794958320315",
+      "details": "Simulated ₦500000 inflow from PROVIDUS",
+      "timestamp": 1794958320315,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "e96dc42aa163fe41961a744d00dbe385e0e5a35bcbd098bc3849dfac585cd54c",
+      "hash": "d37ca664df158b16b2735a5bf68414181ade1f671a388ad016fe118252c0dbed"
+    },
+    {
+      "id": "log_1794958320379_9490",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WALLET_FUNDED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1794958320379_536",
+      "details": "Credited USD 5000 via Test Card",
+      "timestamp": 1794958320379,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "d37ca664df158b16b2735a5bf68414181ade1f671a388ad016fe118252c0dbed",
+      "hash": "316bd6daf0a622520e530b99fc5018b37425f729b48c71a3bf7ebcf359ed3d58"
+    },
+    {
+      "id": "log_1794958320504_4289",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_PAYMENT_DISBURSED",
+      "targetCollection": "supplier_payments",
+      "targetId": "pay_1794958320503",
+      "details": "Queued ¥200 to Shenzhen MicroTech Electronic Co.",
+      "timestamp": 1794958320504,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "316bd6daf0a622520e530b99fc5018b37425f729b48c71a3bf7ebcf359ed3d58",
+      "hash": "df08a3156a0765354d190c667dc1c0846633fd64ecfcb5128ebcc8ceb9a2e51c"
+    },
+    {
+      "id": "log_1794958320635_3186",
+      "adminId": "adm-001",
+      "adminName": "China Desk",
+      "action": "SUPPLIER_PAYMENT_DISBURSED",
+      "targetCollection": "supplier_payments",
+      "targetId": "pay_1794958320503",
+      "details": "Disbursed ¥200 to Shenzhen MicroTech Electronic Co. (Ref: RMB-19392185)",
+      "timestamp": 1794958320635,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "df08a3156a0765354d190c667dc1c0846633fd64ecfcb5128ebcc8ceb9a2e51c",
+      "hash": "1bf76e1e462205ecc39e39d1e79b1881a1ef321c84a705922525eec0172fb984"
+    },
+    {
+      "id": "log_1794958320700_9159",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WITHDRAWAL_INITIATED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1794958320700",
+      "details": "Initiated withdrawal of ₦25000 to Zenith Bank",
+      "timestamp": 1794958320700,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "1bf76e1e462205ecc39e39d1e79b1881a1ef321c84a705922525eec0172fb984",
+      "hash": "8ffdcaa9fc7be92a48a83bd9db110f9c8e9219603b4224593db84374b2899bd4"
+    },
+    {
+      "id": "log_1794958320796_6239",
+      "adminId": "adm-001",
+      "adminName": "Treasury Desk",
+      "action": "WITHDRAWAL_DISBURSED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1794958320700",
+      "details": "Disbursed ₦25000 via NIBSS (Ref: NIBSS-ZNT-290182)",
+      "timestamp": 1794958320796,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "8ffdcaa9fc7be92a48a83bd9db110f9c8e9219603b4224593db84374b2899bd4",
+      "hash": "1769c58916d0147abef0396e0c1ade7f35226bebbafa45e80078827b36e806fe"
+    },
+    {
+      "id": "log_1794958320861_4936",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHIPMENT_REGISTERED",
+      "targetCollection": "shipments",
+      "targetId": "shp_1794958320860",
+      "details": "Registered package SP-0B2456FA-4 (SL-2026-00203)",
+      "timestamp": 1794958320861,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "1769c58916d0147abef0396e0c1ade7f35226bebbafa45e80078827b36e806fe",
+      "hash": "137e6c16bd494b16e9f22d9398661624f38688803dd833ee727b3c06f1bcfe12"
+    },
+    {
+      "id": "log_1794958320922_2037",
+      "adminId": "adm-001",
+      "adminName": "Warehouse Officer",
+      "action": "SHIPMENT_INSPECTED",
+      "targetCollection": "shipments",
+      "targetId": "shp_1794958320860",
+      "details": "Inspected & weighed SF368824432711CN: 42.5 kg",
+      "timestamp": 1794958320922,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "137e6c16bd494b16e9f22d9398661624f38688803dd833ee727b3c06f1bcfe12",
+      "hash": "fb561c19776dd8de8c5f0c00d50cf406027b4da120d59806da5b672c109ccb66"
+    },
+    {
+      "id": "log_1794958321047_1928",
+      "adminId": "adm-001",
+      "adminName": "Billing Officer",
+      "action": "SHIPMENT_REPACKAGED_AND_BILLED",
+      "targetCollection": "shipments",
+      "targetId": "shp_1794958320860",
+      "details": "Repackaged & billed $425 for SF368824432711CN",
+      "timestamp": 1794958321047,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "fb561c19776dd8de8c5f0c00d50cf406027b4da120d59806da5b672c109ccb66",
+      "hash": "7c2c665ee609cb015a54738d8867dcaa24172c4d37ef6c97f3072168d9b85a11"
+    },
+    {
+      "id": "log_1794958321110_4250",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FREIGHT_PAID",
+      "targetCollection": "shipments",
+      "targetId": "shp_1794958320860",
+      "details": "Cleared freight of USD 425 for SF368824432711CN",
+      "timestamp": 1794958321110,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "7c2c665ee609cb015a54738d8867dcaa24172c4d37ef6c97f3072168d9b85a11",
+      "hash": "2316b6c3258b81aad37988481324ee3b6793589f72e51b7b5680cd3162d178b0"
+    },
+    {
+      "id": "log_1794958321171_2865",
+      "adminId": "adm-001",
+      "adminName": "Logistics Officer",
+      "action": "SHIPMENT_STATUS_UPDATED",
+      "targetCollection": "shipments",
+      "targetId": "shp_1794958320860",
+      "details": "Updated status to in_transit",
+      "timestamp": 1794958321171,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "2316b6c3258b81aad37988481324ee3b6793589f72e51b7b5680cd3162d178b0",
+      "hash": "9140f463c86b16c024183d0192630693cccc19925982b3e53e7d1e3b77860593"
+    },
+    {
+      "id": "log_1794958321234_1629",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WALLET_FUNDED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1794958321234_783",
+      "details": "Credited USD 10000 via Test Card",
+      "timestamp": 1794958321234,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "9140f463c86b16c024183d0192630693cccc19925982b3e53e7d1e3b77860593",
+      "hash": "3de84e11378c28a47ae106fd82c23eae189dd07e53923f3b8a74b14a3e0ff106"
+    },
+    {
+      "id": "log_1794958321358_9217",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "ADD_PRODUCT",
+      "targetCollection": "products",
+      "targetId": "prod_test_1794958321296",
+      "details": "Created tech product MacBook Pro 16\" M3 Max 36GB / 1TB Space Black with 0 gallery images",
+      "timestamp": 1794958321358,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "3de84e11378c28a47ae106fd82c23eae189dd07e53923f3b8a74b14a3e0ff106",
+      "hash": "fe3137de74f2bbee00be6121dd6cdaa8c97fd8764882aa39032e71e5e6581c1f"
+    },
+    {
+      "id": "log_1794958321419_4940",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "UPDATE_STOCK",
+      "targetCollection": "products",
+      "targetId": "prod_test_1794958321296",
+      "details": "Adjusted stock by -2 to 6",
+      "timestamp": 1794958321419,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "fe3137de74f2bbee00be6121dd6cdaa8c97fd8764882aa39032e71e5e6581c1f",
+      "hash": "8a3337b8a5dde452db48242ffdd2d91a03cc3b65e73f61fa709b0bfba468b16c"
+    },
+    {
+      "id": "log_1794958321482_7175",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SHOP_ORDER_PLACED",
+      "targetCollection": "shop_orders",
+      "targetId": "ord_tech_1794958321482",
+      "details": "Placed order #ORD-2026-98110 (USD 3260)",
+      "timestamp": 1794958321482,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "8a3337b8a5dde452db48242ffdd2d91a03cc3b65e73f61fa709b0bfba468b16c",
+      "hash": "46754e06188269432e17698600b7ac70d598bbb47eb8ff0480c28df8e65a7ac8"
+    },
+    {
+      "id": "log_1794958321598_5606",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "ORDER_FULFILLED",
+      "targetCollection": "shop_orders",
+      "targetId": "ord_tech_1794958321482",
+      "details": "Status updated to shipped",
+      "timestamp": 1794958321598,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "46754e06188269432e17698600b7ac70d598bbb47eb8ff0480c28df8e65a7ac8",
+      "hash": "b9212cf57cb7d1768d9fbe288e261e5ec23ec295668452d5a3e784aa777ecafd"
+    },
+    {
+      "id": "log_1794958321663_5506",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "AGENT_REQUEST_CREATED",
+      "targetCollection": "agent_requests",
+      "targetId": "rfq_1794958321663",
+      "details": "Submitted Product Sourcing & Procurement: Solar Hybrid Inverters 5KW 48V (#AGT-SRC-2026-86055)",
+      "timestamp": 1794958321663,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "b9212cf57cb7d1768d9fbe288e261e5ec23ec295668452d5a3e784aa777ecafd",
+      "hash": "1a038936e72e900174943da58c1ca20ac7dbb416d517d85f40b595b11d8fe43b"
+    },
+    {
+      "id": "log_1794958321724_8694",
+      "adminId": "adm-001",
+      "adminName": "Agent Desk",
+      "action": "AGENT_QUOTE_ISSUED",
+      "targetCollection": "agent_requests",
+      "targetId": "rfq_1794958321663",
+      "details": "Quoted $15100 USD for Solar Hybrid Inverters 5KW 48V (#AGT-SRC-2026-86055)",
+      "timestamp": 1794958321724,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "1a038936e72e900174943da58c1ca20ac7dbb416d517d85f40b595b11d8fe43b",
+      "hash": "b2affcdcefa8e54ba4baf41a47e4893842d0f7f004929acbd404fc1ae40917cc"
+    },
+    {
+      "id": "log_1794958321794_5054",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "HOTEL_BOOKED",
+      "targetCollection": "hotel_bookings",
+      "targetId": "bk_1794958321793",
+      "details": "Booked The Westin Pazhou Guangzhou (BK-2026-28713) for Chief Babatunde Alade",
+      "timestamp": 1794958321794,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "b2affcdcefa8e54ba4baf41a47e4893842d0f7f004929acbd404fc1ae40917cc",
+      "hash": "56ba5c4085cb72c33c106da46f4e2c4648b4a1f6633271633bac742a947755d5"
+    },
+    {
+      "id": "log_1794958321855_9044",
+      "adminId": "adm-001",
+      "adminName": "Hotels Desk",
+      "action": "HOTEL_STATUS_UPDATED",
+      "targetCollection": "hotel_bookings",
+      "targetId": "bk_1794958321793",
+      "details": "Status updated from confirmed to confirmed. Notes: None",
+      "timestamp": 1794958321855,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "56ba5c4085cb72c33c106da46f4e2c4648b4a1f6633271633bac742a947755d5",
+      "hash": "b368517ad21a966732715723ad5cc844c91199d9d0dd1b8ee2b909c9e42ec810"
+    },
+    {
+      "id": "log_1794958321911_5956",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "TICKET_CREATED",
+      "targetCollection": "support_tickets",
+      "targetId": "tkt_1794958321911",
+      "details": "Opened ticket #FM-4472: Customs Valuation Documentation Request",
+      "timestamp": 1794958321911,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "b368517ad21a966732715723ad5cc844c91199d9d0dd1b8ee2b909c9e42ec810",
+      "hash": "9bac2d1d1f820a738dc48e220062f79edc9d84f95f2fdb49892346a85ffc26bd"
+    },
+    {
+      "id": "log_1794958322033_8744",
+      "adminId": "adm-001",
+      "adminName": "Support Desk",
+      "action": "TICKET_RESOLVED",
+      "targetCollection": "support_tickets",
+      "targetId": "tkt_1794958321911",
+      "details": "Resolved ticket #FM-4472",
+      "timestamp": 1794958322033,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "9bac2d1d1f820a738dc48e220062f79edc9d84f95f2fdb49892346a85ffc26bd",
+      "hash": "a7f53d198082aca3a6875915f8474f69c163d307f6455654ce88ac0605ffabdb"
+    },
+    {
+      "id": "log_1794958322153_209",
+      "adminId": "adm-001",
+      "adminName": "Admin Staff",
+      "action": "BANNER_CREATED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794958322153",
+      "details": "Created home banner: \"Guangzhou Sea Freight Promotion 2026\"",
+      "timestamp": 1794958322153,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "a7f53d198082aca3a6875915f8474f69c163d307f6455654ce88ac0605ffabdb",
+      "hash": "afa19dc425097c4d0975669d9bb7e855d61620254bbf6753e1ba17803a1a28e6"
+    },
+    {
+      "id": "log_1794958322214_6705",
+      "adminId": "adm-001",
+      "adminName": "Admin Staff",
+      "action": "BANNER_TOGGLED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794958322153",
+      "details": "Set banner active status: false",
+      "timestamp": 1794958322214,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "afa19dc425097c4d0975669d9bb7e855d61620254bbf6753e1ba17803a1a28e6",
+      "hash": "f8a9d4b1b82d03321294447af7201ce697e50ccb04f5ab2a7545f526122f68b9"
+    },
+    {
+      "id": "log_1794958322272_79",
+      "adminId": "adm-001",
+      "adminName": "Admin Staff",
+      "action": "NOTIFICATION_DISPATCHED",
+      "targetCollection": "notifications",
+      "targetId": "notif_1794958322272",
+      "details": "Dispatched: \"Yiwu Warehouse Holiday Notice\" to usr_alade_01",
+      "timestamp": 1794958322272,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "f8a9d4b1b82d03321294447af7201ce697e50ccb04f5ab2a7545f526122f68b9",
+      "hash": "9fe46b6d2999b4ce0000a56854ed448599a1fa431e912764389462fbf12b0dee"
+    },
+    {
+      "id": "log_1794958322333_1717",
+      "adminId": "adm-001",
+      "adminName": "Admin Staff",
+      "action": "EMAIL_CAMPAIGN_DISPATCHED",
+      "targetCollection": "email_receipts",
+      "targetId": "eml_1794958322333",
+      "details": "Dispatched email \"136th Canton Fair VIP Logistics Passes Confirmed\" to babatunde@aladeholding.ng",
+      "timestamp": 1794958322333,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "9fe46b6d2999b4ce0000a56854ed448599a1fa431e912764389462fbf12b0dee",
+      "hash": "693c0005d539a0fd34237184b0310f79dd941864815fafc785898b3d63a1f8f6"
+    },
+    {
+      "id": "log_1794958322399_6619",
+      "adminId": "adm-001",
+      "adminName": "Admin Staff",
+      "action": "BANNER_DELETED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794958322153",
+      "details": "Removed home banner ban_1794958322153",
+      "timestamp": 1794958322399,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "693c0005d539a0fd34237184b0310f79dd941864815fafc785898b3d63a1f8f6",
+      "hash": "c79000fff8a05b627a664e6a1de44488bef482a1d197c58811320b8d0f7efeba"
+    },
+    {
+      "id": "log_1794958322455_9156",
+      "adminId": "adm-001",
+      "adminName": "Admin Desk",
+      "action": "SETTINGS_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "config",
+      "details": "Updated exchange rates and operational margins",
+      "timestamp": 1794958322455,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "c79000fff8a05b627a664e6a1de44488bef482a1d197c58811320b8d0f7efeba",
+      "hash": "e81938005e3e5a005a08317723498a23120e6843672548123bf8ac176c8413f9"
+    },
+    {
+      "id": "log_1794958433427_9527",
+      "adminId": "sys",
+      "adminName": "Super Admin Test",
+      "action": "BANNER_CREATED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794958433427",
+      "details": "Created shop banner: \"Apple iPad Pro M4 Ultra Thin\"",
+      "timestamp": 1794958433427,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "e81938005e3e5a005a08317723498a23120e6843672548123bf8ac176c8413f9",
+      "hash": "c6b55d01330829a237b4efeaa75816b76bdabbe2763aad1c1f00231b671083b2"
+    },
+    {
+      "id": "log_1794958433492_6465",
+      "adminId": "sys",
+      "adminName": "Admin Staff",
+      "action": "BANNER_TOGGLED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794958433427",
+      "details": "Set banner active status: false",
+      "timestamp": 1794958433492,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "c6b55d01330829a237b4efeaa75816b76bdabbe2763aad1c1f00231b671083b2",
+      "hash": "3a2987074672f85913a87ddb396630ac5adb80d20d91626562e9670b7baf2755"
+    },
+    {
+      "id": "log_1794958433550_415",
+      "adminId": "sys",
+      "adminName": "Admin Staff",
+      "action": "BANNER_DELETED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794958433427",
+      "details": "Removed home banner ban_1794958433427",
+      "timestamp": 1794958433550,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "3a2987074672f85913a87ddb396630ac5adb80d20d91626562e9670b7baf2755",
+      "hash": "9b8e5b0bdf45c9c9c1eb39eb803bd3a38e870692d82318dadab59a2114eb5e83"
+    },
+    {
+      "id": "log_1794958447847_6283",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "PIN_UPDATED",
+      "targetCollection": "users",
+      "targetId": "usr_alade_01",
+      "details": "Established new 6-digit cryptographic PIN",
+      "timestamp": 1794958447847,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "9b8e5b0bdf45c9c9c1eb39eb803bd3a38e870692d82318dadab59a2114eb5e83",
+      "hash": "17b13952f9de9d00e7bd33e591eb934634181a6a289125d4dc234aa8f260db98"
+    },
+    {
+      "id": "log_1794958447914_9470",
+      "adminId": "sys",
+      "adminName": "Chen Wei",
+      "action": "PIN_UPDATED",
+      "targetCollection": "users",
+      "targetId": "usr_chen_agent",
+      "details": "Established new 6-digit cryptographic PIN",
+      "timestamp": 1794958447914,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "17b13952f9de9d00e7bd33e591eb934634181a6a289125d4dc234aa8f260db98",
+      "hash": "ac08400c4e0f295cf311a1ff836b7ea6fad2da9896182cfc75cea36ef2ff97a5"
+    },
+    {
+      "id": "log_1794958448008_3987",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade (Super Admin)",
+      "action": "SUPPLIER_PRICES_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "supplier_directory_prices",
+      "details": "Updated 30-day VIP fees: ₦15,000 NGN / $10 USD / ¥70 CNY",
+      "timestamp": 1794958448008,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "ac08400c4e0f295cf311a1ff836b7ea6fad2da9896182cfc75cea36ef2ff97a5",
+      "hash": "742c12b6a48aa6fefa9669f574a3b86b653049db4da8e1064935a4d49d0ff04e"
+    },
+    {
+      "id": "log_1794958448779_2970",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_SUB_PURCHASED",
+      "targetCollection": "supplier_subscriptions",
+      "targetId": "sub_vip_usr_alade_01",
+      "details": "Purchased 30-day VIP pass for 10 USD (Ref: SUB-VIP-448772)",
+      "timestamp": 1794958448779,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "742c12b6a48aa6fefa9669f574a3b86b653049db4da8e1064935a4d49d0ff04e",
+      "hash": "3c26932be6498f140873203b424e1418d52327cf537fe66b19dd2ccf61921d69"
+    },
+    {
+      "id": "log_1794958448854_6862",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_SUB_PURCHASED",
+      "targetCollection": "supplier_subscriptions",
+      "targetId": "sub_vip_usr_alade_01",
+      "details": "Purchased 30-day VIP pass for 10 USD (Ref: SUB-VIP-448854)",
+      "timestamp": 1794958448854,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "3c26932be6498f140873203b424e1418d52327cf537fe66b19dd2ccf61921d69",
+      "hash": "cafb913aac860dbeb978fa9503e36e00f9bdfe580ce4abbb9a8e0307c98b7b5b"
+    },
+    {
+      "id": "log_1794958448961_7040",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "TICKET_CREATED",
+      "targetCollection": "support_tickets",
+      "targetId": "tkt_1794958448960",
+      "details": "Opened ticket #FM-4510: Supplier Verification: Shenzhen Kingzone Microelectronics Ltd",
+      "timestamp": 1794958448961,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "cafb913aac860dbeb978fa9503e36e00f9bdfe580ce4abbb9a8e0307c98b7b5b",
+      "hash": "c9f0e82b3af69b65c66e90836af611b274156cc5d6b8bf27135585af3d114b76"
+    },
+    {
+      "id": "log_1794958449115_3537",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade (Super Admin)",
+      "action": "SUPPLIER_REGISTERED",
+      "targetCollection": "suppliers",
+      "targetId": "sup_1794958449115",
+      "details": "Registered supplier: Foshan Precision Aluminium Extrusions Ltd (Foshan (Dali)) in category Machinery",
+      "timestamp": 1794958449115,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "c9f0e82b3af69b65c66e90836af611b274156cc5d6b8bf27135585af3d114b76",
+      "hash": "2581b268f28203bdcc74fe81d59ef39549bb00b7f709539bfdbfc6ba7c78cb40"
+    },
+    {
+      "id": "log_1794958449192_5479",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "SUPPLIER_STATUS_TOGGLED",
+      "targetCollection": "suppliers",
+      "targetId": "sup_1794958449115",
+      "details": "Deactivated supplier: Foshan Precision Aluminium Extrusions Ltd",
+      "timestamp": 1794958449192,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "2581b268f28203bdcc74fe81d59ef39549bb00b7f709539bfdbfc6ba7c78cb40",
+      "hash": "cc614d551798a48b32be14187b5e2783cfccf65b89b346d1008c786c3c32d408"
+    },
+    {
+      "id": "log_1794958449926_9629",
+      "adminId": "sys",
+      "adminName": "Super Admin Test",
+      "action": "BANNER_CREATED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794958449926",
+      "details": "Created shop banner: \"Apple iPad Pro M4 Ultra Thin\"",
+      "timestamp": 1794958449926,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "cc614d551798a48b32be14187b5e2783cfccf65b89b346d1008c786c3c32d408",
+      "hash": "95df6655bf9a81c2059f561df5d852646cfc8846e089197514ee98b18f9af490"
+    },
+    {
+      "id": "log_1794958450040_8237",
+      "adminId": "sys",
+      "adminName": "Admin Staff",
+      "action": "BANNER_TOGGLED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794958449926",
+      "details": "Set banner active status: false",
+      "timestamp": 1794958450040,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "95df6655bf9a81c2059f561df5d852646cfc8846e089197514ee98b18f9af490",
+      "hash": "92d63a48a5a8562ff112ddc1c025dc3b22899155153e1e43ebd3b79e3b04de41"
+    },
+    {
+      "id": "log_1794958450133_6518",
+      "adminId": "sys",
+      "adminName": "Admin Staff",
+      "action": "BANNER_DELETED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794958449926",
+      "details": "Removed home banner ban_1794958449926",
+      "timestamp": 1794958450133,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "92d63a48a5a8562ff112ddc1c025dc3b22899155153e1e43ebd3b79e3b04de41",
+      "hash": "f4f83d0fe94d87e6a6ac688f1880f129b4e12444f0b9c0268cde2d8c8ac6bbec"
     }
   ],
   "manual_payments": {
@@ -152853,6 +154232,40 @@
       "createdAt": 1794346537452,
       "updatedAt": 1794346537452,
       "adminNotes": "Gateway authorization completed via Korapay Automated Payment Gateway"
+    },
+    "req_1794958320379_920": {
+      "id": "req_1794958320379_920",
+      "userId": "usr_alade_01",
+      "customerName": "Chief Babatunde Alade",
+      "customerEmail": "babatunde@aladeholding.ng",
+      "currency": "USD",
+      "amount": 5000,
+      "paymentMethod": "Test Card",
+      "senderName": "Chief Babatunde Alade",
+      "originatingBank": "Test Card",
+      "destinationBank": "JPMorgan Chase Bank",
+      "reference": "FLYE-FUND-1794958320377",
+      "status": "approved",
+      "createdAt": 1794958320379,
+      "updatedAt": 1794958320379,
+      "adminNotes": "Instant clearing via Test Card"
+    },
+    "req_1794958321234_150": {
+      "id": "req_1794958321234_150",
+      "userId": "usr_alade_01",
+      "customerName": "Chief Babatunde Alade",
+      "customerEmail": "babatunde@aladeholding.ng",
+      "currency": "USD",
+      "amount": 10000,
+      "paymentMethod": "Test Card",
+      "senderName": "Chief Babatunde Alade",
+      "originatingBank": "Test Card",
+      "destinationBank": "JPMorgan Chase Bank",
+      "reference": "FLYE-FUND-1794958321233",
+      "status": "approved",
+      "createdAt": 1794958321234,
+      "updatedAt": 1794958321234,
+      "adminNotes": "Instant clearing via Test Card"
     }
   },
   "warehouses": {
@@ -156360,6 +157773,254 @@
     "primaryAdminId": "adm-001"
   },
   "notifications": [
+    {
+      "id": "notif_1794958449041_mi6",
+      "userId": "usr_alade_01",
+      "title": "[Ticket FM-4510] Status Update: Open - Under AI Concierge Review",
+      "message": "Support Ticket FM-4510 Status Update: Open - Under AI Concierge Review. Subject: Supplier Verification: Shenzhen Kingzone Microelectronics Ltd. Latest: Hello Fl",
+      "type": "info",
+      "timestamp": 1794958449041,
+      "read": false,
+      "linkRoute": "support"
+    },
+    {
+      "id": "notif_1794958448854",
+      "userId": "usr_alade_01",
+      "title": "VIP Directory Pass Renewed!",
+      "message": "Your 30-Day VIP pass is active until 2/15/2029. Contacts & verified factory cards are unlocked. Renews manually.",
+      "type": "success",
+      "timestamp": 1794958448854,
+      "read": false,
+      "linkRoute": "suppliers"
+    },
+    {
+      "id": "notif_1794958448779",
+      "userId": "usr_alade_01",
+      "title": "VIP Directory Pass Renewed!",
+      "message": "Your 30-Day VIP pass is active until 1/16/2029. Contacts & verified factory cards are unlocked. Renews manually.",
+      "type": "success",
+      "timestamp": 1794958448779,
+      "read": false,
+      "linkRoute": "suppliers"
+    },
+    {
+      "id": "notif_1794958322272",
+      "title": "Yiwu Warehouse Holiday Notice",
+      "message": "Intake will remain open 24/7 during the national trade week.",
+      "time": "Just now",
+      "timestamp": 1794958322272,
+      "read": false,
+      "type": "cargo",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "logistics"
+    },
+    {
+      "id": "notif_1794958322092_1ol",
+      "userId": "usr_alade_01",
+      "title": "[Ticket FM-4472] Status Update: Resolved",
+      "message": "Support Ticket FM-4472 Status Update: Resolved. Subject: Customs Valuation Documentation Request. Latest: Official stamped documents transmitted to customer vau",
+      "type": "info",
+      "timestamp": 1794958322092,
+      "read": false,
+      "linkRoute": "support"
+    },
+    {
+      "id": "notif_1794958321972_kym",
+      "userId": "usr_alade_01",
+      "title": "[Ticket FM-4472] Status Update: Open - Under AI Concierge Review",
+      "message": "Support Ticket FM-4472 Status Update: Open - Under AI Concierge Review. Subject: Customs Valuation Documentation Request. Latest: Inquiry registered with trade ",
+      "type": "info",
+      "timestamp": 1794958321972,
+      "read": false,
+      "linkRoute": "support"
+    },
+    {
+      "id": "notif_1794958321724",
+      "userId": "usr_alade_01",
+      "title": "Quotation Ready: AGT-SRC-2026-86055",
+      "message": "Your quote for $15100 USD (¥109350 CNY) is ready for review and wallet authorization!",
+      "type": "procurement",
+      "timestamp": 1794958321724,
+      "read": false,
+      "linkRoute": "agent"
+    },
+    {
+      "id": "notif_1794958321663",
+      "userId": "usr_alade_01",
+      "title": "Request Registered: AGT-SRC-2026-86055",
+      "message": "Your Product Sourcing & Procurement request for \"Solar Hybrid Inverters 5KW 48V\" is under review by our China desk.",
+      "type": "procurement",
+      "timestamp": 1794958321663,
+      "read": false,
+      "linkRoute": "agent"
+    },
+    {
+      "id": "notif_1794958321598",
+      "userId": "usr_alade_01",
+      "title": "✈️ Apple Order Dispatched!",
+      "message": "Your order #ORD-2026-98110 has been dispatched via FlyeMass Lagos Express Fleet. Tracking: FM-HK-LOS-10095",
+      "type": "shop_order",
+      "read": false,
+      "timestamp": 1794958321598
+    },
+    {
+      "id": "notif_1794958321540_f8v",
+      "userId": "usr_alade_01",
+      "title": "Order Confirmed: MacBook Pro 16\" M3 Max (Ref: ORD-2026-98110)",
+      "message": "Order Confirmed: MacBook Pro 16\" M3 Max (ORD-2026-98110) for $3,260.00 USD. Destination: Plot 12, Victoria Island Corporate Tower, Lagos.",
+      "type": "success",
+      "timestamp": 1794958321540,
+      "read": false,
+      "linkRoute": "shop"
+    },
+    {
+      "id": "notif_1794958321482",
+      "userId": "usr_alade_01",
+      "title": "🛒 Apple Order Placed!",
+      "message": "Your order #ORD-2026-98110 (USD 3,260) has been confirmed. Tracking: FM-HK-LOS-10095",
+      "type": "shop_order",
+      "read": false,
+      "timestamp": 1794958321482
+    },
+    {
+      "id": "notif_1794958321296_4og",
+      "userId": "usr_alade_01",
+      "title": "Deposit Confirmed: USD 10,000.00 Credited to Your Wallet",
+      "message": "Deposit Confirmed: $10,000.00 USD credited via Test Card. Reference: FLYE-FUND-1794958321233. Settlement Time: Nov 18, 2026, 12:32 AM.",
+      "type": "success",
+      "timestamp": 1794958321296,
+      "read": false,
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794958321171",
+      "title": "Shipment Milestone: in_transit",
+      "message": "Waybill #SP-0B2456FA-4 has advanced: Cargo departed Guangzhou Baiyun Airport en route to Lagos",
+      "time": "Just now",
+      "timestamp": 1794958321171,
+      "read": false,
+      "type": "shipment",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "track"
+    },
+    {
+      "id": "notif_1794958321110",
+      "title": "Freight Settlement Confirmed",
+      "message": "Freight for #SP-0B2456FA-4 paid in full (USD 425). Consignment is ready for dispatch.",
+      "time": "Just now",
+      "timestamp": 1794958321110,
+      "read": false,
+      "type": "shipment",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "track"
+    },
+    {
+      "id": "notif_1794958321047",
+      "title": "Freight Invoice Ready for Settlement",
+      "message": "Freight for #SP-0B2456FA-4 is ready: $425.00 USD (≈ ₦631,125). Note: Air Freight: 42.5kg @ $10.00/kg Settle via your multi-currency wallet.",
+      "time": "Just now",
+      "timestamp": 1794958321047,
+      "read": false,
+      "type": "shipment",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "track"
+    },
+    {
+      "id": "notif_1794958320983_sr9",
+      "userId": "usr_alade_01",
+      "title": "Shipment Received at Dock: SP-0B2456FA-4 (42.5 kg)",
+      "message": "Shipment Received at Dock: SP-0B2456FA-4 (42.5 kg) logged at Guangzhou Main Bonded Hub Dock. Mark: FM-USR-8924.",
+      "type": "info",
+      "timestamp": 1794958320983,
+      "read": false,
+      "linkRoute": "logistics"
+    },
+    {
+      "id": "notif_1794958320922",
+      "title": "Package Received & Weighed at China Dock",
+      "message": "Package #SP-0B2456FA-4 received at Guangzhou Main Bonded Hub warehouse. Actual weight: 42.5 kg. Inspection photos ready.",
+      "time": "Just now",
+      "timestamp": 1794958320922,
+      "read": false,
+      "type": "shipment",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "track"
+    },
+    {
+      "id": "notif_1794958320861",
+      "title": "Package Pre-Alert Registered",
+      "message": "Package #SP-0B2456FA-4 (SL-2026-00203) registered for Guangzhou Main Bonded Hub delivery.",
+      "time": "Just now",
+      "timestamp": 1794958320861,
+      "read": false,
+      "type": "shipment",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "track"
+    },
+    {
+      "id": "notif_1794958320796",
+      "title": "Withdrawal Payout Cleared",
+      "message": "₦25,000 has been sent to Zenith Bank (2089140022). Ref: NIBSS-ZNT-290182.",
+      "time": "Just now",
+      "timestamp": 1794958320796,
+      "read": false,
+      "type": "withdrawal",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794958320700",
+      "title": "Withdrawal Request Submitted",
+      "message": "₦25,000 withdrawal to Zenith Bank queued for processing (Ref: WD-68488315).",
+      "time": "Just now",
+      "timestamp": 1794958320700,
+      "read": false,
+      "type": "withdrawal",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794958320635",
+      "title": "Payment Completed",
+      "message": "¥200 has been successfully sent to Shenzhen MicroTech Electronic Co.. Reference: RMB-19392185.",
+      "time": "Just now",
+      "timestamp": 1794958320635,
+      "read": false,
+      "type": "payment",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794958320568_76f",
+      "userId": "usr_alade_01",
+      "title": "Supplier Disbursement Dispatched: ¥200.00 via bank_card",
+      "message": "Supplier Disbursement Dispatched: ¥200.00 CNY dispatched to Shenzhen MicroTech Electronic Co. via bank_card. Ref: RMB-19392185.",
+      "type": "info",
+      "timestamp": 1794958320568,
+      "read": false,
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794958320504",
+      "title": "Send Money Request Queued",
+      "message": "Your transfer of ¥200 to Shenzhen MicroTech Electronic Co. is queued for review (Ref: RMB-19392185).",
+      "time": "Just now",
+      "timestamp": 1794958320504,
+      "read": false,
+      "type": "payment",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794958320443_8aa",
+      "userId": "usr_alade_01",
+      "title": "Deposit Confirmed: USD 5,000.00 Credited to Your Wallet",
+      "message": "Deposit Confirmed: $5,000.00 USD credited via Test Card. Reference: FLYE-FUND-1794958320377. Settlement Time: Nov 18, 2026, 12:32 AM.",
+      "type": "success",
+      "timestamp": 1794958320443,
+      "read": false,
+      "linkRoute": "wallets"
+    },
     {
       "id": "notif_1794956956418_v7s",
       "userId": "usr_alade_01",
@@ -167841,6 +169502,14 @@
       "directManager": "General Export Manager",
       "factoryAddress": "Dali Non-Ferrous Metals Industrial Zone, Foshan, China",
       "description": ""
+    },
+    "sup_1794958449115": {
+      "wechatId": "dali_aluminum_oem",
+      "phone": "+86 757 8555 4321",
+      "whatsapp": "+86 138 8555 4321",
+      "directManager": "General Export Manager",
+      "factoryAddress": "Dali Non-Ferrous Metals Industrial Zone, Foshan, China",
+      "description": ""
     }
   },
   "email_receipts": {
@@ -168579,6 +170248,226 @@
       },
       "deliveredAt": 1794956956418,
       "timestamp": 1794956956418,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_wallet_funding_1794958320443_8686": {
+      "id": "eml_wallet_funding_1794958320443_8686",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "Deposit Confirmed: USD 5,000.00 Credited to Your Wallet",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>Deposit Confirmed: USD 5,000.00 Credited to Your Wallet</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-emerald\">Deposit Successful • Instant Credit</div>\n        <h1 class=\"title\">Deposit Confirmed: USD 5,000.00 Credited to Your Wallet</h1>\n        \n        <p class=\"lead\">\n          Your wallet funding request has completed successfully. Funds have been posted to your FlyeMass multi-currency ledger with 0.00% zero-slippage guarantee.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Funding Channel:</span>\n            <span class=\"data-value\">Test Card</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Amount Credited:</span>\n            <span class=\"data-value\" style=\"color: #10b981; font-size: 15px;\">$5,000.00 USD</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Transaction Reference:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">FLYE-FUND-1794958320377</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Settlement Time:</span>\n            <span class=\"data-value\">Nov 18, 2026, 12:32 AM</span>\n          </div>\n          \n          <div class=\"data-row\">\n            <span class=\"data-label\">New USD Balance:</span>\n            <span class=\"data-value\" style=\"color: #38bdf8;\">$9,780.00</span>\n          </div>\n        </div>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/wallets\" class=\"btn\" target=\"_blank\">View Multi-Currency Wallets</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Deposit Confirmed: $5,000.00 USD credited via Test Card. Reference: FLYE-FUND-1794958320377. Settlement Time: Nov 18, 2026, 12:32 AM.",
+      "eventType": "WALLET_FUNDING",
+      "payload": {
+        "currency": "USD",
+        "amount": 5000,
+        "channel": "Test Card",
+        "reference": "FLYE-FUND-1794958320377",
+        "newBalance": 9780
+      },
+      "deliveredAt": 1794958320443,
+      "timestamp": 1794958320443,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_supplier_payout_1794958320568_8xg0": {
+      "id": "eml_supplier_payout_1794958320568_8xg0",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "Supplier Disbursement Dispatched: ¥200.00 via bank_card",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>Supplier Disbursement Dispatched: ¥200.00 via bank_card</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-emerald\">Disbursement Dispatched to China</div>\n        <h1 class=\"title\">Supplier Disbursement Dispatched: ¥200.00 via bank_card</h1>\n        \n        <p class=\"lead\">\n          Your payment to China has been dispatched through our licensed cross-border commercial settlement window.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Supplier / Beneficiary:</span>\n            <span class=\"data-value\">Shenzhen MicroTech Electronic Co.</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Account / Mobile:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">6228480039201928</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Settlement Method:</span>\n            <span class=\"data-value\">bank_card</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Disbursed Amount (RMB):</span>\n            <span class=\"data-value\" style=\"color: #10b981; font-size: 15px;\">¥200.00 CNY</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Transfer Reference:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">RMB-19392185</span>\n          </div>\n        </div>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/wallets/transfer-history\" class=\"btn\" target=\"_blank\">Download Settlement Proof</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Supplier Disbursement Dispatched: ¥200.00 CNY dispatched to Shenzhen MicroTech Electronic Co. via bank_card. Ref: RMB-19392185.",
+      "eventType": "SUPPLIER_PAYOUT",
+      "payload": {
+        "supplierName": "Shenzhen MicroTech Electronic Co.",
+        "beneficiaryAccount": "6228480039201928",
+        "paymentMethod": "bank_card",
+        "cnyAmount": 200,
+        "fundingCurrency": "CNY",
+        "fundingAmount": 200,
+        "rate": 1,
+        "reference": "RMB-19392185"
+      },
+      "deliveredAt": 1794958320568,
+      "timestamp": 1794958320568,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_cargo_received_1794958320983_81gh": {
+      "id": "eml_cargo_received_1794958320983_81gh",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "Shipment Received at Dock: SP-0B2456FA-4 (42.5 kg)",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>Shipment Received at Dock: SP-0B2456FA-4 (42.5 kg)</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-indigo\">Cargo Scanned & Intake Complete</div>\n        <h1 class=\"title\">Shipment Received at Dock: SP-0B2456FA-4 (42.5 kg)</h1>\n        \n        <p class=\"lead\">\n          Our receiving dock team has scanned and verified your incoming parcel at the <strong>Guangzhou Main Bonded Hub Dock</strong> under shipping mark <strong>FM-USR-8924</strong>.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Waybill / Tracking:</span>\n            <span class=\"data-value\" style=\"font-family: monospace; color: #38bdf8;\">SP-0B2456FA-4</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Receiving Hub:</span>\n            <span class=\"data-value\">Guangzhou Main Bonded Hub Dock</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Verified Weight:</span>\n            <span class=\"data-value\">42.5 kg</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Total Pieces:</span>\n            <span class=\"data-value\">1 carton(s)</span>\n          </div>\n        </div>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/logistics/track?code=SP-0B2456FA-4\" class=\"btn\" target=\"_blank\">Track Live Freight Status</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Shipment Received at Dock: SP-0B2456FA-4 (42.5 kg) logged at Guangzhou Main Bonded Hub Dock. Mark: FM-USR-8924.",
+      "eventType": "CARGO_RECEIVED",
+      "payload": {
+        "trackingNumber": "SP-0B2456FA-4",
+        "warehouseLocation": "Guangzhou Main Bonded Hub Dock",
+        "weightKg": 42.5,
+        "pieces": 1,
+        "cbm": 0.12
+      },
+      "deliveredAt": 1794958320983,
+      "timestamp": 1794958320983,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_wallet_funding_1794958321296_88cj": {
+      "id": "eml_wallet_funding_1794958321296_88cj",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "Deposit Confirmed: USD 10,000.00 Credited to Your Wallet",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>Deposit Confirmed: USD 10,000.00 Credited to Your Wallet</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-emerald\">Deposit Successful • Instant Credit</div>\n        <h1 class=\"title\">Deposit Confirmed: USD 10,000.00 Credited to Your Wallet</h1>\n        \n        <p class=\"lead\">\n          Your wallet funding request has completed successfully. Funds have been posted to your FlyeMass multi-currency ledger with 0.00% zero-slippage guarantee.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Funding Channel:</span>\n            <span class=\"data-value\">Test Card</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Amount Credited:</span>\n            <span class=\"data-value\" style=\"color: #10b981; font-size: 15px;\">$10,000.00 USD</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Transaction Reference:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">FLYE-FUND-1794958321233</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Settlement Time:</span>\n            <span class=\"data-value\">Nov 18, 2026, 12:32 AM</span>\n          </div>\n          \n          <div class=\"data-row\">\n            <span class=\"data-label\">New USD Balance:</span>\n            <span class=\"data-value\" style=\"color: #38bdf8;\">$19,355.00</span>\n          </div>\n        </div>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/wallets\" class=\"btn\" target=\"_blank\">View Multi-Currency Wallets</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Deposit Confirmed: $10,000.00 USD credited via Test Card. Reference: FLYE-FUND-1794958321233. Settlement Time: Nov 18, 2026, 12:32 AM.",
+      "eventType": "WALLET_FUNDING",
+      "payload": {
+        "currency": "USD",
+        "amount": 10000,
+        "channel": "Test Card",
+        "reference": "FLYE-FUND-1794958321233",
+        "newBalance": 19355
+      },
+      "deliveredAt": 1794958321296,
+      "timestamp": 1794958321296,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_shop_order_1794958321540_9iy3": {
+      "id": "eml_shop_order_1794958321540_9iy3",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "Order Confirmed: MacBook Pro 16\" M3 Max (Ref: ORD-2026-98110)",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>Order Confirmed: MacBook Pro 16\" M3 Max (Ref: ORD-2026-98110)</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-emerald\">Wholesale Order Placed</div>\n        <h1 class=\"title\">Order Confirmed: MacBook Pro 16\" M3 Max (Ref: ORD-2026-98110)</h1>\n        \n        <p class=\"lead\">\n          Your order has been confirmed and submitted to the FlyeMass Hong Kong Wholesale Depot for packaging, inspection, and air cargo flight dispatch.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Order Number:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">ORD-2026-98110</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Product / Items:</span>\n            <span class=\"data-value\">MacBook Pro 16\" M3 Max</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Total Charged:</span>\n            <span class=\"data-value\" style=\"color: #10b981; font-size: 15px;\">$3,260.00 USD</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Destination Address:</span>\n            <span class=\"data-value\">Plot 12, Victoria Island Corporate Tower, Lagos</span>\n          </div>\n        </div>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/shop\" class=\"btn\" target=\"_blank\">View Order Status</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Order Confirmed: MacBook Pro 16\" M3 Max (ORD-2026-98110) for $3,260.00 USD. Destination: Plot 12, Victoria Island Corporate Tower, Lagos.",
+      "eventType": "SHOP_ORDER",
+      "payload": {
+        "orderId": "ORD-2026-98110",
+        "productTitle": "MacBook Pro 16\" M3 Max",
+        "quantity": 1,
+        "totalUsd": 3260,
+        "deliveryAddress": "Plot 12, Victoria Island Corporate Tower, Lagos"
+      },
+      "deliveredAt": 1794958321540,
+      "timestamp": 1794958321540,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_support_ticket_1794958321972_ozlo": {
+      "id": "eml_support_ticket_1794958321972_ozlo",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "[Ticket FM-4472] Status Update: Open - Under AI Concierge Review",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>[Ticket FM-4472] Status Update: Open - Under AI Concierge Review</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-indigo\">Trade Concierge Desk • Open - Under AI Concierge Review</div>\n        <h1 class=\"title\">[Ticket FM-4472] Status Update: Open - Under AI Concierge Review</h1>\n        \n        <p class=\"lead\">\n          Your support inquiry <strong>FM-4472</strong> has an active update from the FlyeMass Trade Concierge desk.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Ticket ID:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">FM-4472</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Subject:</span>\n            <span class=\"data-value\">Customs Valuation Documentation Request</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Current Status:</span>\n            <span class=\"data-value\" style=\"color: #38bdf8;\">Open - Under AI Concierge Review</span>\n          </div>\n          \n          <div class=\"data-row\">\n            <span class=\"data-label\">Assigned Trade Officer:</span>\n            <span class=\"data-value\">Chen Wei / Trade AI</span>\n          </div>\n          \n          <div style=\"margin-top: 12px; padding-top: 12px; border-top: 1px solid #0f172a;\">\n            <span style=\"font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;\">Latest Update:</span>\n            <p style=\"font-size: 12px; color: #e2e8f0; line-height: 1.5; margin: 6px 0 0 0;\">\"Inquiry registered with trade desk.\"</p>\n          </div>\n        </div>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/profile/support-chat?ticketId=FM-4472\" class=\"btn\" target=\"_blank\">Open Live Concierge Chat</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Support Ticket FM-4472 Status Update: Open - Under AI Concierge Review. Subject: Customs Valuation Documentation Request. Latest: Inquiry registered with trade desk.",
+      "eventType": "SUPPORT_TICKET",
+      "payload": {
+        "ticketNumber": "FM-4472",
+        "subject": "Customs Valuation Documentation Request",
+        "status": "Open - Under AI Concierge Review",
+        "assignedAgent": "Chen Wei / Trade AI",
+        "latestMessageSnippet": "Inquiry registered with trade desk."
+      },
+      "deliveredAt": 1794958321972,
+      "timestamp": 1794958321972,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_support_ticket_1794958322092_og0p": {
+      "id": "eml_support_ticket_1794958322092_og0p",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "[Ticket FM-4472] Status Update: Resolved",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>[Ticket FM-4472] Status Update: Resolved</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-indigo\">Trade Concierge Desk • Resolved</div>\n        <h1 class=\"title\">[Ticket FM-4472] Status Update: Resolved</h1>\n        \n        <p class=\"lead\">\n          Your support inquiry <strong>FM-4472</strong> has an active update from the FlyeMass Trade Concierge desk.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Ticket ID:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">FM-4472</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Subject:</span>\n            <span class=\"data-value\">Customs Valuation Documentation Request</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Current Status:</span>\n            <span class=\"data-value\" style=\"color: #38bdf8;\">Resolved</span>\n          </div>\n          \n          <div class=\"data-row\">\n            <span class=\"data-label\">Assigned Trade Officer:</span>\n            <span class=\"data-value\">Trade Concierge Supervisor</span>\n          </div>\n          \n          <div style=\"margin-top: 12px; padding-top: 12px; border-top: 1px solid #0f172a;\">\n            <span style=\"font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;\">Latest Update:</span>\n            <p style=\"font-size: 12px; color: #e2e8f0; line-height: 1.5; margin: 6px 0 0 0;\">\"Official stamped documents transmitted to customer vault\"</p>\n          </div>\n        </div>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/profile/support-chat?ticketId=FM-4472\" class=\"btn\" target=\"_blank\">Open Live Concierge Chat</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Support Ticket FM-4472 Status Update: Resolved. Subject: Customs Valuation Documentation Request. Latest: Official stamped documents transmitted to customer vault",
+      "eventType": "SUPPORT_TICKET",
+      "payload": {
+        "ticketNumber": "FM-4472",
+        "subject": "Customs Valuation Documentation Request",
+        "status": "Resolved",
+        "assignedAgent": "Trade Concierge Supervisor",
+        "latestMessageSnippet": "Official stamped documents transmitted to customer vault"
+      },
+      "deliveredAt": 1794958322092,
+      "timestamp": 1794958322092,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_1794958322333": {
+      "id": "eml_1794958322333",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "subject": "136th Canton Fair VIP Logistics Passes Confirmed",
+      "body": "Your VIP delegation passes have been issued with complimentary factory shuttle access.",
+      "campaignType": "marketing_broadcast",
+      "deliveredAt": 1794958322333,
+      "status": "delivered",
+      "sentBy": "Admin Desk"
+    },
+    "supplier-subscription-SUB-VIP-448772": {
+      "id": "supplier-subscription-SUB-VIP-448772",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "reference": "SUB-VIP-448772",
+      "currency": "USD",
+      "amount": 10,
+      "startDate": 1794958448779,
+      "expirationDate": 1863322774716,
+      "durationDays": 30,
+      "manualRenewalNotice": "Your VIP Supplier Contacts subscription renews manually. FlyeMass will never automatically debit your wallet when your subscription expires.",
+      "tradeSafetyNotice": "You are free to negotiate prices directly with suppliers. However, before making any payment or finalizing deals, please contact FlyeMass Customer Service. Our team can assist with supplier verification, transaction coordination, and overseas warehouse inspection before shipping to your destination country.",
+      "deliveredAt": 1794958448779,
+      "status": "sent"
+    },
+    "supplier-subscription-SUB-VIP-448854": {
+      "id": "supplier-subscription-SUB-VIP-448854",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "reference": "SUB-VIP-448854",
+      "currency": "USD",
+      "amount": 10,
+      "startDate": 1794958448854,
+      "expirationDate": 1865914774716,
+      "durationDays": 30,
+      "manualRenewalNotice": "Your VIP Supplier Contacts subscription renews manually. FlyeMass will never automatically debit your wallet when your subscription expires.",
+      "tradeSafetyNotice": "You are free to negotiate prices directly with suppliers. However, before making any payment or finalizing deals, please contact FlyeMass Customer Service. Our team can assist with supplier verification, transaction coordination, and overseas warehouse inspection before shipping to your destination country.",
+      "deliveredAt": 1794958448854,
+      "status": "sent"
+    },
+    "eml_support_ticket_1794958449041_u6q3": {
+      "id": "eml_support_ticket_1794958449041_u6q3",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "[Ticket FM-4510] Status Update: Open - Under AI Concierge Review",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>[Ticket FM-4510] Status Update: Open - Under AI Concierge Review</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-indigo\">Trade Concierge Desk • Open - Under AI Concierge Review</div>\n        <h1 class=\"title\">[Ticket FM-4510] Status Update: Open - Under AI Concierge Review</h1>\n        \n        <p class=\"lead\">\n          Your support inquiry <strong>FM-4510</strong> has an active update from the FlyeMass Trade Concierge desk.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Ticket ID:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">FM-4510</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Subject:</span>\n            <span class=\"data-value\">Supplier Verification: Shenzhen Kingzone Microelectronics Ltd</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Current Status:</span>\n            <span class=\"data-value\" style=\"color: #38bdf8;\">Open - Under AI Concierge Review</span>\n          </div>\n          \n          <div class=\"data-row\">\n            <span class=\"data-label\">Assigned Trade Officer:</span>\n            <span class=\"data-value\">Chen Wei / Trade AI</span>\n          </div>\n          \n          <div style=\"margin-top: 12px; padding-top: 12px; border-top: 1px solid #0f172a;\">\n            <span style=\"font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;\">Latest Update:</span>\n            <p style=\"font-size: 12px; color: #e2e8f0; line-height: 1.5; margin: 6px 0 0 0;\">\"Hello FlyeMass, please help verify supplier Shenzhen Kingzone Microelectronics Ltd in Electronics before I make payment. I would like assistance with supplier verification, transaction coordination, and warehouse inspection.\"</p>\n          </div>\n        </div>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/profile/support-chat?ticketId=FM-4510\" class=\"btn\" target=\"_blank\">Open Live Concierge Chat</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Support Ticket FM-4510 Status Update: Open - Under AI Concierge Review. Subject: Supplier Verification: Shenzhen Kingzone Microelectronics Ltd. Latest: Hello FlyeMass, please help verify supplier Shenzhen Kingzone Microelectronics Ltd in Electronics before I make payment. I would like assistance with supplier verification, transaction coordination, and warehouse inspection.",
+      "eventType": "SUPPORT_TICKET",
+      "payload": {
+        "ticketNumber": "FM-4510",
+        "subject": "Supplier Verification: Shenzhen Kingzone Microelectronics Ltd",
+        "status": "Open - Under AI Concierge Review",
+        "assignedAgent": "Chen Wei / Trade AI",
+        "latestMessageSnippet": "Hello FlyeMass, please help verify supplier Shenzhen Kingzone Microelectronics Ltd in Electronics before I make payment. I would like assistance with supplier verification, transaction coordination, and warehouse inspection."
+      },
+      "deliveredAt": 1794958449041,
+      "timestamp": 1794958449041,
       "status": "delivered",
       "provider": "in_memory_vault"
     }
@@ -172093,13 +173982,13 @@
     }
   },
   "fx_rates": {
-    "USD_NGN": 1400,
+    "USD_NGN": 1490,
     "USD_CNY": 7.26,
     "NGN_CNY": 215.2,
     "spreadPercent": 0.75,
-    "lastUpdated": 1794551373129,
-    "updatedBy": "Chief Babatunde Alade",
-    "NGN_USD": 1400,
+    "lastUpdated": 1794958322455,
+    "updatedBy": "Admin Central Treasury",
+    "NGN_USD": 1490,
     "CNY_NGN": 215.2,
     "CNY_USD": 0.137741,
     "CNY_to_NGN": 213.59,
