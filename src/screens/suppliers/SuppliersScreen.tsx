@@ -48,7 +48,9 @@ import {
   ZoomOut,
   RotateCcw,
   Maximize2,
-  ChevronDown
+  BadgeCheck,
+  Briefcase,
+  Factory
 } from 'lucide-react';
 import { Supplier, Currency } from '../../types';
 
@@ -95,13 +97,12 @@ export const SuppliersScreen: React.FC = () => {
   // Supplier Detail Dossier Modal
   const [activeProfileSupplier, setActiveProfileSupplier] = useState<Supplier | null>(null);
 
-  // Business Card Interactive Expansion & Lightbox Modal States
-  const [expandedCardSupplierId, setExpandedCardSupplierId] = useState<string | null>(null);
+  // Business Card Pop-up Modal States
   const [cardModalSupplier, setCardModalSupplier] = useState<Supplier | null>(null);
   const [signedCardUrl, setSignedCardUrl] = useState<string | null>(null);
   const [isLoadingCard, setIsLoadingCard] = useState(false);
 
-  // In-memory Signed Card URL Cache for instant 0ms transitions
+  // In-memory Signed Card URL Cache for instant 0ms pop-up display
   const cardUrlCache = useRef<Record<string, { url: string; expires: number }>>({});
 
   // Lightbox Zoom and Pan Controls
@@ -127,12 +128,12 @@ export const SuppliersScreen: React.FC = () => {
   ];
 
   const cityHubs = [
-    { id: 'All', name: 'All Hubs', zh: '全部' },
-    { id: 'Guangzhou', name: 'Guangzhou', zh: '广州' },
-    { id: 'Yiwu', name: 'Yiwu', zh: '义乌' },
-    { id: 'Shenzhen', name: 'Shenzhen', zh: '深圳' },
-    { id: 'Foshan', name: 'Foshan', zh: '佛山' },
-    { id: 'Dongguan', name: 'Dongguan', zh: '东莞' }
+    { id: 'All', name: 'All Hubs', zh: '全部', flag: '🇨🇳' },
+    { id: 'Guangzhou', name: 'Guangzhou', zh: '广州', flag: '🏭' },
+    { id: 'Yiwu', name: 'Yiwu', zh: '义乌', flag: '📦' },
+    { id: 'Shenzhen', name: 'Shenzhen', zh: '深圳', flag: '⚡' },
+    { id: 'Foshan', name: 'Foshan', zh: '佛山', flag: '🛋️' },
+    { id: 'Dongguan', name: 'Dongguan', zh: '东莞', flag: '⚙️' }
   ];
 
   const verificationTags = [
@@ -202,8 +203,8 @@ export const SuppliersScreen: React.FC = () => {
           });
           setCategoryCounts(counts);
 
-          // Subtle background prefetch for first 12 cards to guarantee 0ms instant display
-          dirRes.suppliers.slice(0, 12).forEach((s: Supplier) => {
+          // Background prefetch for instant 0ms pop-up display
+          dirRes.suppliers.slice(0, 15).forEach((s: Supplier) => {
             if (!s.businessCardUrl && !cardUrlCache.current[s.id]) {
               db.getSupplierCardSignedUrl(s.id, activeUserId, 'card')
                 .then(res => {
@@ -341,30 +342,7 @@ export const SuppliersScreen: React.FC = () => {
     window.location.href = `tel:${cleanNumber}`;
   };
 
-  // Option A: Toggle in-place smooth card expansion
-  const handleToggleInlineBusinessCard = async (supplier: Supplier) => {
-    if (!effectiveIsSubscribed) {
-      setShowPaywallModal(true);
-      return;
-    }
-
-    if (expandedCardSupplierId === supplier.id) {
-      setExpandedCardSupplierId(null);
-      return;
-    }
-
-    setExpandedCardSupplierId(supplier.id);
-
-    // Ensure URL is cached in background if not already present
-    const cached = cardUrlCache.current[supplier.id]?.url || supplier.businessCardUrl;
-    if (!cached) {
-      setIsLoadingCard(true);
-      await getOrFetchCardUrl(supplier);
-      setIsLoadingCard(false);
-    }
-  };
-
-  // Option B: View Business Card via Smooth Interactive Lightbox Modal
+  // Whenever user clicks on business card, pop up the modal for user to see the supplier business card!
   const handleViewBusinessCard = async (supplier: Supplier) => {
     if (!effectiveIsSubscribed) {
       setShowPaywallModal(true);
@@ -515,7 +493,7 @@ export const SuppliersScreen: React.FC = () => {
   const isExpiredState = testPerspective === 'expired' || (!effectiveIsSubscribed && subscriptionDetails?.status === 'expired');
 
   return (
-    <div className="min-h-full pb-32 bg-slate-950 text-white selection:bg-amber-500 selection:text-slate-950 font-sans relative">
+    <div className="min-h-full pb-36 bg-slate-950 text-white selection:bg-amber-500 selection:text-slate-950 font-sans relative">
       <Header title="VIP Supplier Directory" />
 
       {/* Floating Haptic Toast Notification Banner */}
@@ -794,6 +772,7 @@ export const SuppliersScreen: React.FC = () => {
                       : 'bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700'
                   }`}
                 >
+                  <span>{hub.flag}</span>
                   <span>{hub.name}</span>
                   <span className={`text-[10px] font-normal ${isSelected ? 'text-white/80' : 'text-slate-500'}`}>{hub.zh}</span>
                 </button>
@@ -875,7 +854,7 @@ export const SuppliersScreen: React.FC = () => {
         </div>
 
         {/* =====================================================================
-            SHOWCASE: RE-DESIGNED VETTED FACTORY CARDS WITH INLINE CARD EXPANSION
+            SHOWCASE: RE-DESIGNED VETTED FACTORY CARDS WITH POP-UP BUSINESS CARD
            ===================================================================== */}
         {isLoading ? (
           <div className="py-16 text-center text-slate-400 text-xs">
@@ -901,8 +880,6 @@ export const SuppliersScreen: React.FC = () => {
           <div className="space-y-4">
             {visibleSuppliers.map((supplier) => {
               const contactPerson = (supplier as any).directManager || 'General Export Manager';
-              const isInlineExpanded = expandedCardSupplierId === supplier.id;
-              const cardUrl = cardUrlCache.current[supplier.id]?.url || supplier.businessCardUrl;
 
               return (
                 <div
@@ -1212,77 +1189,6 @@ export const SuppliersScreen: React.FC = () => {
                     </div>
                   )}
 
-                  {/* =========================================================
-                      OPTION A: IN-PLACE INLINE CARD EXPANSION VIEWER
-                     ========================================================= */}
-                  {effectiveIsSubscribed && isInlineExpanded && (
-                    <div className="p-3 sm:p-4 rounded-2xl bg-gradient-to-b from-slate-950 to-slate-900 border border-amber-500/40 space-y-3 animate-in fade-in slide-in-from-top-3 duration-300 shadow-2xl">
-                      <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5 text-xs">
-                        <div className="flex items-center gap-2">
-                          <span className="p-1.5 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                            <CreditCard className="w-4 h-4" />
-                          </span>
-                          <div>
-                            <span className="text-white font-extrabold block text-xs">Official Verified Business Card</span>
-                            <span className="text-[10px] text-slate-400 font-serif">{supplier.chineseName || 'China Direct Manufacturer'}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => handleViewBusinessCard(supplier)}
-                            className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors border border-slate-700 shadow-sm"
-                            title="Open Fullscreen Lightbox"
-                          >
-                            <Maximize2 className="w-3 h-3 text-cyan-400" />
-                            <span className="hidden sm:inline">Fullscreen</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setExpandedCardSupplierId(null)}
-                            className="w-6 h-6 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer text-xs"
-                            title="Close inline preview"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Inline Business Card Canvas / Shimmer */}
-                      <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800/80 p-1.5 shadow-inner">
-                        {cardUrl ? (
-                          <img
-                            src={cardUrl}
-                            alt={`${supplier.name} Business Card`}
-                            className="w-full h-auto rounded-xl object-contain max-h-[320px] mx-auto transition-transform duration-200"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="py-16 text-center text-xs text-slate-400 space-y-2">
-                            <CreditCard className="w-8 h-8 text-amber-400/60 animate-pulse mx-auto" />
-                            <p className="text-[11px] font-medium">Decrypting official factory card credentials...</p>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
-                        <span className="font-mono text-emerald-400 flex items-center gap-1">
-                          <ShieldCheck className="w-3 h-3" />
-                          <span>1-Hour Secure Enclave Signature Verified</span>
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleViewBusinessCard(supplier)}
-                          className="text-amber-400 font-bold hover:underline flex items-center gap-1 cursor-pointer"
-                        >
-                          <span>Pinch & Zoom</span>
-                          <ZoomIn className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
                   {/* 4. Card Footer: MOQ + Actions */}
                   <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
                     <div className="space-y-0.5">
@@ -1302,18 +1208,14 @@ export const SuppliersScreen: React.FC = () => {
                             <span>View Profile</span>
                           </button>
 
+                          {/* DIRECT POP-UP BUTTON: whenever user clicks on business card, pop up the modal for user to see the supplier business card */}
                           <button
                             type="button"
-                            onClick={() => handleToggleInlineBusinessCard(supplier)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all active:scale-95 cursor-pointer border ${
-                              isInlineExpanded
-                                ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-md ring-1 ring-amber-500/30'
-                                : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700/60'
-                            }`}
+                            onClick={() => handleViewBusinessCard(supplier)}
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-yellow-500/20 hover:from-amber-500/30 hover:to-yellow-500/30 text-amber-300 font-bold text-[11px] transition-all active:scale-95 cursor-pointer border border-amber-500/40 shadow-sm"
                           >
                             <CreditCard className="w-3.5 h-3.5 text-amber-400" />
                             <span>Official Business Card</span>
-                            <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isInlineExpanded ? 'rotate-180 text-amber-400' : 'text-slate-400'}`} />
                           </button>
                         </>
                       ) : (
@@ -1695,7 +1597,7 @@ export const SuppliersScreen: React.FC = () => {
       )}
 
       {/* =====================================================================
-          OPTION B: CLEAN FULL-SCREEN LIGHTBOX MODAL WITH PINCH-TO-ZOOM & PAN
+          BUSINESS CARD POP-UP LIGHTBOX MODAL (PROMINENT FULL PREVIEW)
          ===================================================================== */}
       {cardModalSupplier && (
         <div 
@@ -1723,7 +1625,7 @@ export const SuppliersScreen: React.FC = () => {
               </div>
             </div>
 
-            {/* Interactive Zoom Toolbar & Close Button */}
+            {/* Interactive Zoom Toolbar & Prominent Close Button */}
             <div className="flex items-center gap-1.5 shrink-0">
               <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 shadow-inner">
                 <button
@@ -1763,7 +1665,7 @@ export const SuppliersScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* Lightbox Interactive Canvas */}
+          {/* Lightbox Pop-up Interactive Canvas */}
           <div className="flex-1 flex items-center justify-center p-3 relative overflow-hidden touch-none">
             {isLoadingCard ? (
               <div className="text-center space-y-3">
