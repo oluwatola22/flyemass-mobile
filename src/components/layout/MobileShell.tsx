@@ -99,6 +99,7 @@ const AUTH_ROUTES: ScreenRoute[] = [
 export const MobileShell: React.FC = () => {
   const { 
     currentRoute, 
+    routeParam,
     navigate, 
     isFrameMockup, 
     toggleFrameMockup, 
@@ -136,6 +137,53 @@ export const MobileShell: React.FC = () => {
   const scrollPositions = React.useRef<Record<string, number>>({});
   const isSwitchingRouteRef = React.useRef(false);
 
+  // Aggressive instant scroll reset on route change: enforce load from top
+  React.useLayoutEffect(() => {
+    isSwitchingRouteRef.current = true;
+    const resetScrollToTop = () => {
+      if (mainScrollRef.current) {
+        mainScrollRef.current.scrollTop = 0;
+      }
+      if (typeof window !== 'undefined') {
+        window.scrollTo(0, 0);
+        try {
+          if ('scrollRestoration' in window.history) {
+            window.history.scrollRestoration = 'manual';
+          }
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+          const scrollables = document.querySelectorAll('main, .momentum-scroll, [data-scroll-container]');
+          scrollables.forEach((el) => { el.scrollTop = 0; });
+        } catch (_) {}
+      }
+    };
+
+    resetScrollToTop();
+
+    // Reset again on animation frames and microtasks to handle delayed rendering or image layouts
+    const rAF1 = requestAnimationFrame(() => {
+      resetScrollToTop();
+      const rAF2 = requestAnimationFrame(() => {
+        resetScrollToTop();
+        isSwitchingRouteRef.current = false;
+      });
+      return () => cancelAnimationFrame(rAF2);
+    });
+
+    const t0 = setTimeout(resetScrollToTop, 0);
+    const t30 = setTimeout(resetScrollToTop, 30);
+    const t80 = setTimeout(resetScrollToTop, 80);
+    const t200 = setTimeout(resetScrollToTop, 200);
+
+    return () => {
+      cancelAnimationFrame(rAF1);
+      clearTimeout(t0);
+      clearTimeout(t30);
+      clearTimeout(t80);
+      clearTimeout(t200);
+    };
+  }, [currentRoute, routeParam]);
+
   useEffect(() => {
     if (!AUTH_ROUTES.includes(currentRoute)) {
       setCachedRoutes((prev) => {
@@ -146,22 +194,13 @@ export const MobileShell: React.FC = () => {
       });
     }
 
-    isSwitchingRouteRef.current = true;
     // Whenever user clicks on any page, let the page load from the top immediately
     if (mainScrollRef.current) {
       mainScrollRef.current.scrollTop = 0;
     }
     if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+      window.scrollTo(0, 0);
     }
-
-    const timer = requestAnimationFrame(() => {
-      isSwitchingRouteRef.current = false;
-      if (mainScrollRef.current) {
-        mainScrollRef.current.scrollTop = 0;
-      }
-    });
-    return () => cancelAnimationFrame(timer);
   }, [currentRoute]);
 
   // Listen for route prefetch events from touch/pointer down triggers
@@ -192,7 +231,10 @@ export const MobileShell: React.FC = () => {
   }, [navigate]);
 
   const handleScroll = (e: React.UIEvent<HTMLElement>) => {
-    if (isSwitchingRouteRef.current) return;
+    if (isSwitchingRouteRef.current) {
+      e.currentTarget.scrollTop = 0;
+      return;
+    }
     scrollPositions.current[currentRoute] = e.currentTarget.scrollTop;
   };
 

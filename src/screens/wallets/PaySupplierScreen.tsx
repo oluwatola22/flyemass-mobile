@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { PinPad } from '../../components/ui/PinPad';
@@ -62,6 +62,16 @@ const PAYMENT_PURPOSES = [
 
 export const PaySupplierScreen: React.FC = () => {
   const { wallets, goBack, showToast, activeUserId } = useApp();
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+      try {
+        const mainEl = document.querySelector('main');
+        if (mainEl) mainEl.scrollTop = 0;
+      } catch (_) {}
+    }
+  }, []);
   const [activeTab, setActiveTab] = useState<PayMethod>('alipay');
   const [fundingCurrency, setFundingCurrency] = useState<'CNY' | 'NGN'>('CNY');
   

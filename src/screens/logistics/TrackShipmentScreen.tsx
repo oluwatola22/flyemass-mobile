@@ -60,6 +60,16 @@ export const TrackShipmentScreen: React.FC = () => {
   const [isConverting, setIsConverting] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+      try {
+        const mainEl = document.querySelector('main');
+        if (mainEl) mainEl.scrollTop = 0;
+      } catch (_) {}
+    }
+  }, []);
+
+  useEffect(() => {
     let isMounted = true;
     db.lagosHubsQuery(true).then((hubs) => {
       if (isMounted && hubs && hubs.length > 0) {

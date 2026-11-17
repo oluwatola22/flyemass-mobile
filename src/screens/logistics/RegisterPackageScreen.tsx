@@ -75,6 +75,17 @@ export const RegisterPackageScreen: React.FC = () => {
     }
   }, [activeWarehouseIds, selectedWarehouseId]);
 
+  // Scroll to top immediately on screen mount and step advance
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+      try {
+        const mainEl = document.querySelector('main');
+        if (mainEl) mainEl.scrollTop = 0;
+      } catch (_) {}
+    }
+  }, [currentStep]);
+
   const currentWarehouse: any = useMemo(() => {
     return activeWarehouses.find((w) => w.id === selectedWarehouseId) || activeWarehouses[0] || {
       id: 'wh_gz_main',

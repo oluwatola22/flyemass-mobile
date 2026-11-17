@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { 
@@ -22,6 +22,16 @@ import { db } from '../../services/db';
 // Legacy references for tests: US89JPMC02100002148902 CN6227003320094892
 export const FundWalletScreen: React.FC = () => {
   const { wallets, activeUserId, goBack, navigate, showToast } = useApp();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+      try {
+        const mainEl = document.querySelector('main');
+        if (mainEl) mainEl.scrollTop = 0;
+      } catch (_) {}
+    }
+  }, []);
   const [amount, setAmount] = useState<string>('500000');
   const [method, setMethod] = useState<'providus' | 'korapay'>('providus');
   const [copiedField, setCopiedField] = useState<string | null>(null);

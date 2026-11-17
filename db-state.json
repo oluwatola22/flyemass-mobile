@@ -91,10 +91,10 @@
       "balances": {
         "NGN": 159915775,
         "CNY": 1464778.0699999998,
-        "USD": 18695
+        "USD": 18675
       },
-      "pinHash": "d7fa48e1553539261832b7a3dedff068fd8c3badf6b92d07c726b0708d9c8a2d",
-      "pinSalt": "a488b0bc1d6746edf6af91374c26bbfc",
+      "pinHash": "a11caab3ec728137961b41b433ba58962e8247737becd8daaf338f8174e68847",
+      "pinSalt": "91b447866e3f6192a6eeb65bcdd907ea",
       "pinFailedAttempts": 0,
       "pinLockedUntil": 0,
       "kycLevel": "Tier 3 (BVN & CAC Verified)",
@@ -127,8 +127,8 @@
         "NGN": 0,
         "CNY": 520000
       },
-      "pinHash": "d777c60c8d0f93ef794416d4403c038b15d0994e98587ac178eccdaa0522e167",
-      "pinSalt": "6d319754c256c15550666330ddbe9615",
+      "pinHash": "e0e4e25c5f6640ff6e5bf3d066f97989fff65eae9c5257f83ecfa771d10f16c4",
+      "pinSalt": "79400187e9a6d5ba34a9d7481f3f4a57",
       "pinFailedAttempts": 0,
       "pinLockedUntil": 0,
       "flyeTag": "FM-USR-5036",
@@ -43252,6 +43252,52 @@
         }
       ],
       "metadata": {}
+    },
+    "je_1794959426934_523": {
+      "id": "je_1794959426934_523",
+      "reference": "SUB-VIP-426934",
+      "timestamp": 1794959426934,
+      "userId": "usr_alade_01",
+      "transactionType": "SUPPLIER_SUB",
+      "description": "30-Day VIP Supplier Contacts Pass (USD 10)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:USD",
+          "currency": "USD",
+          "debit": 10,
+          "credit": 0
+        },
+        {
+          "account": "revenue:fees:vip_supplier_directory",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 10
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794959427016_537": {
+      "id": "je_1794959427016_537",
+      "reference": "SUB-VIP-427016",
+      "timestamp": 1794959427016,
+      "userId": "usr_alade_01",
+      "transactionType": "SUPPLIER_SUB",
+      "description": "30-Day VIP Supplier Contacts Pass (USD 10)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:USD",
+          "currency": "USD",
+          "debit": 10,
+          "credit": 0
+        },
+        {
+          "account": "revenue:fees:vip_supplier_directory",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 10
+        }
+      ],
+      "metadata": {}
     }
   },
   "wallets_ledger": {
@@ -66054,6 +66100,36 @@
       "reference": "SUB-VIP-448854",
       "timestamp": 1794958448854,
       "notes": "30-Day VIP Supplier Directory Pass Renewal (+30d extended to 2/15/2029)"
+    },
+    "ldg_1794959426935": {
+      "id": "ldg_1794959426935",
+      "userId": "usr_alade_01",
+      "type": "SUPPLIER_SUB",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 10,
+      "fee": 0,
+      "openingBalance": 18695,
+      "closingBalance": 18685,
+      "status": "completed",
+      "reference": "SUB-VIP-426934",
+      "timestamp": 1794959426935,
+      "notes": "30-Day VIP Supplier Directory Pass Renewal (+30d extended to 3/17/2029)"
+    },
+    "ldg_1794959427016": {
+      "id": "ldg_1794959427016",
+      "userId": "usr_alade_01",
+      "type": "SUPPLIER_SUB",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 10,
+      "fee": 0,
+      "openingBalance": 18685,
+      "closingBalance": 18675,
+      "status": "completed",
+      "reference": "SUB-VIP-427016",
+      "timestamp": 1794959427016,
+      "notes": "30-Day VIP Supplier Directory Pass Renewal (+30d extended to 4/16/2029)"
     }
   },
   "shipments": {
@@ -89512,12 +89588,12 @@
       "type": "directory_30d",
       "currency": "USD",
       "amountPaid": 10,
-      "purchasedAt": 1794958448854,
-      "activeUntil": 1865914774716,
+      "purchasedAt": 1794959427016,
+      "activeUntil": 1871098774716,
       "status": "active",
-      "reference": "SUB-VIP-448854",
+      "reference": "SUB-VIP-427016",
       "autoRenew": false,
-      "renewalCount": 27,
+      "renewalCount": 29,
       "emailReceiptSent": true
     },
     "sub_sup_1_alade": {
@@ -90571,6 +90647,28 @@
       "active": false,
       "createdAt": 1794958449115,
       "updatedAt": 1794958449192
+    },
+    "sup_1794959427302": {
+      "name": "Foshan Precision Aluminium Extrusions Ltd",
+      "chineseName": "佛山精密铝型材实业有限公司",
+      "city": "Foshan (Dali)",
+      "category": "Machinery",
+      "wechatId": "dali_aluminum_oem",
+      "phone": "+86 757 8555 4321",
+      "whatsapp": "+86 138 8555 4321",
+      "businessAddress": "Dali Non-Ferrous Metals Industrial Zone, Foshan, China",
+      "minOrderValue": "¥8,000",
+      "verifiedYears": 10,
+      "tags": [
+        "Gold Supplier",
+        "Factory Direct",
+        "10+ Years"
+      ],
+      "id": "sup_1794959427302",
+      "inspectionPassed": true,
+      "active": false,
+      "createdAt": 1794959427302,
+      "updatedAt": 1794959427377
     }
   },
   "shop_orders": {
@@ -116010,6 +116108,27 @@
       ],
       "createdAt": 1794958448961,
       "updatedAt": 1794958448961
+    },
+    "tkt_1794959427134": {
+      "id": "tkt_1794959427134",
+      "ticketNumber": "FM-5810",
+      "userId": "usr_alade_01",
+      "userName": "Chief Babatunde Alade",
+      "subject": "Supplier Verification: Shenzhen Kingzone Microelectronics Ltd",
+      "category": "Supplier Escrow",
+      "status": "open",
+      "priority": "High",
+      "messages": [
+        {
+          "senderId": "usr_alade_01",
+          "senderName": "Chief Babatunde Alade",
+          "text": "Hello FlyeMass, please help verify supplier Shenzhen Kingzone Microelectronics Ltd in Electronics before I make payment. I would like assistance with supplier verification, transaction coordination, and warehouse inspection.",
+          "isAdmin": false,
+          "timestamp": "03:50 PM"
+        }
+      ],
+      "createdAt": 1794959427134,
+      "updatedAt": 1794959427134
     }
   },
   "banners": [
@@ -116126,7 +116245,7 @@
       "ngn": 15000,
       "usd": 10,
       "cny": 70,
-      "updatedAt": 1794958447984,
+      "updatedAt": 1794959426171,
       "updatedBy": "Chief Babatunde Alade (Super Admin)"
     },
     "shipping_corridors": [
@@ -153919,6 +154038,149 @@
       "ipAddress": "127.0.0.1",
       "previousHash": "92d63a48a5a8562ff112ddc1c025dc3b22899155153e1e43ebd3b79e3b04de41",
       "hash": "f4f83d0fe94d87e6a6ac688f1880f129b4e12444f0b9c0268cde2d8c8ac6bbec"
+    },
+    {
+      "id": "log_1794959425476_7390",
+      "adminId": "sys",
+      "adminName": "Super Admin Test",
+      "action": "BANNER_CREATED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794959425476",
+      "details": "Created shop banner: \"Apple iPad Pro M4 Ultra Thin\"",
+      "timestamp": 1794959425476,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "f4f83d0fe94d87e6a6ac688f1880f129b4e12444f0b9c0268cde2d8c8ac6bbec",
+      "hash": "1f4a64b88e2856e33258a70500114fa293299de583cdc4fc0f133caa3efdf887"
+    },
+    {
+      "id": "log_1794959425535_9129",
+      "adminId": "sys",
+      "adminName": "Admin Staff",
+      "action": "BANNER_TOGGLED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794959425476",
+      "details": "Set banner active status: false",
+      "timestamp": 1794959425535,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "1f4a64b88e2856e33258a70500114fa293299de583cdc4fc0f133caa3efdf887",
+      "hash": "b5ceb876e644ce691d08b9e8d0c9d9d129a0491703b44b2ba7829055aecc3b1c"
+    },
+    {
+      "id": "log_1794959425594_9495",
+      "adminId": "sys",
+      "adminName": "Admin Staff",
+      "action": "BANNER_DELETED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794959425476",
+      "details": "Removed home banner ban_1794959425476",
+      "timestamp": 1794959425594,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "b5ceb876e644ce691d08b9e8d0c9d9d129a0491703b44b2ba7829055aecc3b1c",
+      "hash": "8a6844e4e7dc56868f0d115fdf8606064574755b6e38d0d9ec8208d8abc39f56"
+    },
+    {
+      "id": "log_1794959425994_7993",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "PIN_UPDATED",
+      "targetCollection": "users",
+      "targetId": "usr_alade_01",
+      "details": "Established new 6-digit cryptographic PIN",
+      "timestamp": 1794959425994,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "8a6844e4e7dc56868f0d115fdf8606064574755b6e38d0d9ec8208d8abc39f56",
+      "hash": "195d5b2ffb3e920fbf4f6ccc1f675807f5c29c79c01c4e48eaa6070bf4fdc495"
+    },
+    {
+      "id": "log_1794959426072_7550",
+      "adminId": "sys",
+      "adminName": "Chen Wei",
+      "action": "PIN_UPDATED",
+      "targetCollection": "users",
+      "targetId": "usr_chen_agent",
+      "details": "Established new 6-digit cryptographic PIN",
+      "timestamp": 1794959426072,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "195d5b2ffb3e920fbf4f6ccc1f675807f5c29c79c01c4e48eaa6070bf4fdc495",
+      "hash": "054546623f150a9bba52783c07e69fc121980298b4bfcdeda5ec7ee370f6f190"
+    },
+    {
+      "id": "log_1794959426171_5172",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade (Super Admin)",
+      "action": "SUPPLIER_PRICES_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "supplier_directory_prices",
+      "details": "Updated 30-day VIP fees: ₦15,000 NGN / $10 USD / ¥70 CNY",
+      "timestamp": 1794959426171,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "054546623f150a9bba52783c07e69fc121980298b4bfcdeda5ec7ee370f6f190",
+      "hash": "adb85b11ae6beeb51e742999f74b70ea2bbc01e70e1634d480881c9732870375"
+    },
+    {
+      "id": "log_1794959426935_7142",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_SUB_PURCHASED",
+      "targetCollection": "supplier_subscriptions",
+      "targetId": "sub_vip_usr_alade_01",
+      "details": "Purchased 30-day VIP pass for 10 USD (Ref: SUB-VIP-426934)",
+      "timestamp": 1794959426935,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "adb85b11ae6beeb51e742999f74b70ea2bbc01e70e1634d480881c9732870375",
+      "hash": "2a13f30d129accf8614f27379fd2260a7975956574e95ad2a024f946a9d565ab"
+    },
+    {
+      "id": "log_1794959427016_7711",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_SUB_PURCHASED",
+      "targetCollection": "supplier_subscriptions",
+      "targetId": "sub_vip_usr_alade_01",
+      "details": "Purchased 30-day VIP pass for 10 USD (Ref: SUB-VIP-427016)",
+      "timestamp": 1794959427016,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "2a13f30d129accf8614f27379fd2260a7975956574e95ad2a024f946a9d565ab",
+      "hash": "cac9ea413b622ec5c24a1812edd141b96d89c6330bd7b34cde2cfe48486d2ef3"
+    },
+    {
+      "id": "log_1794959427134_128",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "TICKET_CREATED",
+      "targetCollection": "support_tickets",
+      "targetId": "tkt_1794959427134",
+      "details": "Opened ticket #FM-5810: Supplier Verification: Shenzhen Kingzone Microelectronics Ltd",
+      "timestamp": 1794959427134,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "cac9ea413b622ec5c24a1812edd141b96d89c6330bd7b34cde2cfe48486d2ef3",
+      "hash": "d86c72a32011652eab759277934ff5a4f0771375de84781adf2d664ad66e9ce0"
+    },
+    {
+      "id": "log_1794959427302_5070",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade (Super Admin)",
+      "action": "SUPPLIER_REGISTERED",
+      "targetCollection": "suppliers",
+      "targetId": "sup_1794959427302",
+      "details": "Registered supplier: Foshan Precision Aluminium Extrusions Ltd (Foshan (Dali)) in category Machinery",
+      "timestamp": 1794959427302,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "d86c72a32011652eab759277934ff5a4f0771375de84781adf2d664ad66e9ce0",
+      "hash": "53a6a3f20abf942c01f95e9e7b6fdee8b40513b09aa0dd98d56d2d2322e6689c"
+    },
+    {
+      "id": "log_1794959427377_2689",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "SUPPLIER_STATUS_TOGGLED",
+      "targetCollection": "suppliers",
+      "targetId": "sup_1794959427302",
+      "details": "Deactivated supplier: Foshan Precision Aluminium Extrusions Ltd",
+      "timestamp": 1794959427377,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "53a6a3f20abf942c01f95e9e7b6fdee8b40513b09aa0dd98d56d2d2322e6689c",
+      "hash": "5d40972ee3088d0670b328863bd6195f4db36c75aa25c4c26acb6c4b61c74216"
     }
   ],
   "manual_payments": {
@@ -157773,6 +158035,36 @@
     "primaryAdminId": "adm-001"
   },
   "notifications": [
+    {
+      "id": "notif_1794959427215_ddn",
+      "userId": "usr_alade_01",
+      "title": "[Ticket FM-5810] Status Update: Open - Under AI Concierge Review",
+      "message": "Support Ticket FM-5810 Status Update: Open - Under AI Concierge Review. Subject: Supplier Verification: Shenzhen Kingzone Microelectronics Ltd. Latest: Hello Fl",
+      "type": "info",
+      "timestamp": 1794959427215,
+      "read": false,
+      "linkRoute": "support"
+    },
+    {
+      "id": "notif_1794959427016",
+      "userId": "usr_alade_01",
+      "title": "VIP Directory Pass Renewed!",
+      "message": "Your 30-Day VIP pass is active until 4/16/2029. Contacts & verified factory cards are unlocked. Renews manually.",
+      "type": "success",
+      "timestamp": 1794959427016,
+      "read": false,
+      "linkRoute": "suppliers"
+    },
+    {
+      "id": "notif_1794959426935",
+      "userId": "usr_alade_01",
+      "title": "VIP Directory Pass Renewed!",
+      "message": "Your 30-Day VIP pass is active until 3/17/2029. Contacts & verified factory cards are unlocked. Renews manually.",
+      "type": "success",
+      "timestamp": 1794959426935,
+      "read": false,
+      "linkRoute": "suppliers"
+    },
     {
       "id": "notif_1794958449041_mi6",
       "userId": "usr_alade_01",
@@ -169510,6 +169802,14 @@
       "directManager": "General Export Manager",
       "factoryAddress": "Dali Non-Ferrous Metals Industrial Zone, Foshan, China",
       "description": ""
+    },
+    "sup_1794959427302": {
+      "wechatId": "dali_aluminum_oem",
+      "phone": "+86 757 8555 4321",
+      "whatsapp": "+86 138 8555 4321",
+      "directManager": "General Export Manager",
+      "factoryAddress": "Dali Non-Ferrous Metals Industrial Zone, Foshan, China",
+      "description": ""
     }
   },
   "email_receipts": {
@@ -170468,6 +170768,58 @@
       },
       "deliveredAt": 1794958449041,
       "timestamp": 1794958449041,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "supplier-subscription-SUB-VIP-426934": {
+      "id": "supplier-subscription-SUB-VIP-426934",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "reference": "SUB-VIP-426934",
+      "currency": "USD",
+      "amount": 10,
+      "startDate": 1794959426935,
+      "expirationDate": 1868506774716,
+      "durationDays": 30,
+      "manualRenewalNotice": "Your VIP Supplier Contacts subscription renews manually. FlyeMass will never automatically debit your wallet when your subscription expires.",
+      "tradeSafetyNotice": "You are free to negotiate prices directly with suppliers. However, before making any payment or finalizing deals, please contact FlyeMass Customer Service. Our team can assist with supplier verification, transaction coordination, and overseas warehouse inspection before shipping to your destination country.",
+      "deliveredAt": 1794959426935,
+      "status": "sent"
+    },
+    "supplier-subscription-SUB-VIP-427016": {
+      "id": "supplier-subscription-SUB-VIP-427016",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "reference": "SUB-VIP-427016",
+      "currency": "USD",
+      "amount": 10,
+      "startDate": 1794959427016,
+      "expirationDate": 1871098774716,
+      "durationDays": 30,
+      "manualRenewalNotice": "Your VIP Supplier Contacts subscription renews manually. FlyeMass will never automatically debit your wallet when your subscription expires.",
+      "tradeSafetyNotice": "You are free to negotiate prices directly with suppliers. However, before making any payment or finalizing deals, please contact FlyeMass Customer Service. Our team can assist with supplier verification, transaction coordination, and overseas warehouse inspection before shipping to your destination country.",
+      "deliveredAt": 1794959427016,
+      "status": "sent"
+    },
+    "eml_support_ticket_1794959427215_sgoc": {
+      "id": "eml_support_ticket_1794959427215_sgoc",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "[Ticket FM-5810] Status Update: Open - Under AI Concierge Review",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>[Ticket FM-5810] Status Update: Open - Under AI Concierge Review</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-indigo\">Trade Concierge Desk • Open - Under AI Concierge Review</div>\n        <h1 class=\"title\">[Ticket FM-5810] Status Update: Open - Under AI Concierge Review</h1>\n        \n        <p class=\"lead\">\n          Your support inquiry <strong>FM-5810</strong> has an active update from the FlyeMass Trade Concierge desk.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Ticket ID:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">FM-5810</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Subject:</span>\n            <span class=\"data-value\">Supplier Verification: Shenzhen Kingzone Microelectronics Ltd</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Current Status:</span>\n            <span class=\"data-value\" style=\"color: #38bdf8;\">Open - Under AI Concierge Review</span>\n          </div>\n          \n          <div class=\"data-row\">\n            <span class=\"data-label\">Assigned Trade Officer:</span>\n            <span class=\"data-value\">Chen Wei / Trade AI</span>\n          </div>\n          \n          <div style=\"margin-top: 12px; padding-top: 12px; border-top: 1px solid #0f172a;\">\n            <span style=\"font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;\">Latest Update:</span>\n            <p style=\"font-size: 12px; color: #e2e8f0; line-height: 1.5; margin: 6px 0 0 0;\">\"Hello FlyeMass, please help verify supplier Shenzhen Kingzone Microelectronics Ltd in Electronics before I make payment. I would like assistance with supplier verification, transaction coordination, and warehouse inspection.\"</p>\n          </div>\n        </div>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/profile/support-chat?ticketId=FM-5810\" class=\"btn\" target=\"_blank\">Open Live Concierge Chat</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Support Ticket FM-5810 Status Update: Open - Under AI Concierge Review. Subject: Supplier Verification: Shenzhen Kingzone Microelectronics Ltd. Latest: Hello FlyeMass, please help verify supplier Shenzhen Kingzone Microelectronics Ltd in Electronics before I make payment. I would like assistance with supplier verification, transaction coordination, and warehouse inspection.",
+      "eventType": "SUPPORT_TICKET",
+      "payload": {
+        "ticketNumber": "FM-5810",
+        "subject": "Supplier Verification: Shenzhen Kingzone Microelectronics Ltd",
+        "status": "Open - Under AI Concierge Review",
+        "assignedAgent": "Chen Wei / Trade AI",
+        "latestMessageSnippet": "Hello FlyeMass, please help verify supplier Shenzhen Kingzone Microelectronics Ltd in Electronics before I make payment. I would like assistance with supplier verification, transaction coordination, and warehouse inspection."
+      },
+      "deliveredAt": 1794959427215,
+      "timestamp": 1794959427215,
       "status": "delivered",
       "provider": "in_memory_vault"
     }

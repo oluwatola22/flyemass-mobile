@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { PinPad } from '../../components/ui/PinPad';
@@ -34,6 +34,16 @@ export const CheckoutScreen: React.FC = () => {
 
   const [paymentWallet, setPaymentWallet] = useState<Currency>('NGN');
   
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+      try {
+        const mainEl = document.querySelector('main');
+        if (mainEl) mainEl.scrollTop = 0;
+      } catch (_) {}
+    }
+  }, []);
+
   // Shipping Mark & Delivery Address State
   const shippingMark = userProfile ? `FM / ${userProfile.flyeTag?.replace('@', '').toUpperCase() || 'USR-8924'} / ${(userProfile.name || 'Chief Babatunde Alade').toUpperCase()}` : 'FM / USR-8924 / BABATUNDE ALADE';
   const [recipientName, setRecipientName] = useState(userProfile?.name || 'Chief Babatunde Alade');

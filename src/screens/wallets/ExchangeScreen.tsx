@@ -25,6 +25,16 @@ import { formatMinor, fromMinor as fxFromMinor } from '../../services/fxEngine';
 
 export const ExchangeScreen: React.FC = () => {
   const { wallets, goBack, navigate, showToast, activeUserId } = useApp();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+      try {
+        const mainEl = document.querySelector('main');
+        if (mainEl) mainEl.scrollTop = 0;
+      } catch (_) {}
+    }
+  }, []);
   
   const [fromCurrency, setFromCurrency] = useState<Currency>('NGN');
   const [toCurrency, setToCurrency] = useState<Currency>('CNY');

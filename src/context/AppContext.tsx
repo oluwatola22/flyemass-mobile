@@ -1293,6 +1293,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const initial = getInitialRoute();
         setCurrentRoute(initial);
       }
+
+      if (typeof window !== 'undefined') {
+        window.scrollTo(0, 0);
+        try {
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+          const mainEl = document.querySelector('main');
+          if (mainEl) mainEl.scrollTop = 0;
+        } catch (_) {}
+      }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -1365,11 +1375,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (typeof window !== 'undefined') {
       window.scrollTo(0, 0);
       try {
+        if ('scrollRestoration' in window.history) {
+          window.history.scrollRestoration = 'manual';
+        }
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
         const mainEl = document.querySelector('main');
         if (mainEl) {
           mainEl.scrollTop = 0;
         }
       } catch (_) {}
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0);
+        try {
+          const mainEl = document.querySelector('main');
+          if (mainEl) mainEl.scrollTop = 0;
+        } catch (_) {}
+      });
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        try {
+          const mainEl = document.querySelector('main');
+          if (mainEl) mainEl.scrollTop = 0;
+        } catch (_) {}
+      }, 50);
     }
   }, [openSwapModal, showToast]);
 
@@ -1391,11 +1420,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (typeof window !== 'undefined') {
           window.scrollTo(0, 0);
           try {
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
             const mainEl = document.querySelector('main');
             if (mainEl) {
               mainEl.scrollTop = 0;
             }
           } catch (_) {}
+          requestAnimationFrame(() => {
+            window.scrollTo(0, 0);
+            try {
+              const mainEl = document.querySelector('main');
+              if (mainEl) mainEl.scrollTop = 0;
+            } catch (_) {}
+          });
+          setTimeout(() => {
+            window.scrollTo(0, 0);
+            try {
+              const mainEl = document.querySelector('main');
+              if (mainEl) mainEl.scrollTop = 0;
+            } catch (_) {}
+          }, 50);
         }
         return nextHistory;
       } else {
@@ -1403,11 +1448,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (typeof window !== 'undefined') {
           window.scrollTo(0, 0);
           try {
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
             const mainEl = document.querySelector('main');
             if (mainEl) {
               mainEl.scrollTop = 0;
             }
           } catch (_) {}
+          requestAnimationFrame(() => {
+            window.scrollTo(0, 0);
+            try {
+              const mainEl = document.querySelector('main');
+              if (mainEl) mainEl.scrollTop = 0;
+            } catch (_) {}
+          });
+          setTimeout(() => {
+            window.scrollTo(0, 0);
+            try {
+              const mainEl = document.querySelector('main');
+              if (mainEl) mainEl.scrollTop = 0;
+            } catch (_) {}
+          }, 50);
         }
         return ['home'];
       }

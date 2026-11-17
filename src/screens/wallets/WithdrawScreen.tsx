@@ -73,6 +73,16 @@ export type PayoutChannel = 'alipay' | 'wechat' | 'china_bank' | 'naira_bank';
 
 export const WithdrawScreen: React.FC = () => {
   const { wallets, goBack, showToast, activeUserId } = useApp();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+      try {
+        const mainEl = document.querySelector('main');
+        if (mainEl) mainEl.scrollTop = 0;
+      } catch (_) {}
+    }
+  }, []);
   const [selectedChannel, setSelectedChannel] = useState<PayoutChannel>('alipay');
 
   // Amount inputs

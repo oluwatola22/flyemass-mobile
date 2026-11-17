@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { db } from '../../services/db';
@@ -60,6 +60,16 @@ export const ProductDetailScreen: React.FC = () => {
 
   const dbState = db.getState();
   const rates = dbState.system_settings?.rates || { USD_NGN: 1485, USD_CNY: 7.24 };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+      try {
+        const mainEl = document.querySelector('main');
+        if (mainEl) mainEl.scrollTop = 0;
+      } catch (_) {}
+    }
+  }, [routeParam]);
 
   // Image Gallery
   const images = (product.images && product.images.length > 0) ? product.images : [product.image];
