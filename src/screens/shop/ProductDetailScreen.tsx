@@ -626,10 +626,10 @@ export const ProductDetailScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Instant Wallet Checkout Modal */}
+      {/* Instant Wallet Checkout Modal (Shows from the Top) */}
       {showInstantBuyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-12 p-4 bg-black/80 backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar animate-in slide-in-from-top-4 duration-200 mt-2">
             <button
               onClick={() => setShowInstantBuyModal(false)}
               className="absolute right-4 top-4 text-slate-400 hover:text-white"

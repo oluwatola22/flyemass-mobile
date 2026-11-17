@@ -313,13 +313,13 @@ export const CurrencySwapModal: React.FC<CurrencySwapModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in transition-all"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-12 p-4 bg-black/80 backdrop-blur-md animate-in fade-in transition-all overflow-y-auto"
       onClick={(e) => {
         if (e.target === e.currentTarget) handleCloseModal();
       }}
     >
       <div 
-        className="w-full max-w-sm sm:max-w-md max-h-[92vh] overflow-y-auto bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl relative text-white space-y-4"
+        className="w-full max-w-sm sm:max-w-md max-h-[92vh] overflow-y-auto bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl relative text-white space-y-4 animate-in slide-in-from-top-4 duration-200 mt-2"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ======================================================== */}

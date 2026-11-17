@@ -485,14 +485,18 @@ export const HotelDetailScreen: React.FC = () => {
         </button>
       </div>
 
-      {/* 6-Digit Transaction PIN Modal */}
+      {/* 6-Digit Transaction PIN Modal (Shows from the Top) */}
       {showPinModal && (
-        <PinPad
-          onComplete={handlePinSuccess}
-          onCancel={() => setShowPinModal(false)}
-          title="Confirm Hotel Reservation"
-          subtitle={`Enter 6-digit transaction PIN to debit ${paymentCurrency} ${debitAmount.toLocaleString()} to hotel escrow`}
-        />
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-12 p-4 bg-black/80 backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl animate-in slide-in-from-top-4 duration-200 mt-2">
+            <PinPad
+              onComplete={handlePinSuccess}
+              onCancel={() => setShowPinModal(false)}
+              title="Confirm Hotel Reservation"
+              subtitle={`Enter 6-digit transaction PIN to debit ${paymentCurrency} ${debitAmount.toLocaleString()} to hotel escrow`}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

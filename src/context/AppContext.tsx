@@ -1363,7 +1363,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       window.history.pushState({ route: targetRoute, param }, '', targetPath);
     }
     if (typeof window !== 'undefined') {
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+      try {
+        const mainEl = document.querySelector('main');
+        if (mainEl) {
+          mainEl.scrollTop = 0;
+          mainEl.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+        }
+      } catch (_) {}
     }
   }, [openSwapModal, showToast]);
 
@@ -1382,9 +1389,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         nextHistory.pop();
         const previous = nextHistory[nextHistory.length - 1];
         setCurrentRoute(previous);
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+          try {
+            const mainEl = document.querySelector('main');
+            if (mainEl) {
+              mainEl.scrollTop = 0;
+              mainEl.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+            }
+          } catch (_) {}
+        }
         return nextHistory;
       } else {
         setCurrentRoute('home');
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+          try {
+            const mainEl = document.querySelector('main');
+            if (mainEl) {
+              mainEl.scrollTop = 0;
+            }
+          } catch (_) {}
+        }
         return ['home'];
       }
     });

@@ -877,10 +877,10 @@ export const TrackShipmentScreen: React.FC = () => {
         </div>
       )}
 
-      {/* PAY FREIGHT MODAL */}
+      {/* PAY FREIGHT MODAL (Shows from the Top) */}
       {showPayFreightModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-12 p-4 bg-black/85 backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 animate-in slide-in-from-top-4 duration-200 mt-2">
             <div className="text-center">
               <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">
                 Multi-Wallet Freight Debit

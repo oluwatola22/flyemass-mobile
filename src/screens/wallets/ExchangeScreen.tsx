@@ -528,11 +528,11 @@ export const ExchangeScreen: React.FC = () => {
       )}
 
       {/* ======================================================== */}
-      {/* 6-DIGIT TRANSACTION PIN PAD MODAL */}
+      {/* 6-DIGIT TRANSACTION PIN PAD MODAL (Shows from the Top) */}
       {/* ======================================================== */}
       {showPinModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-12 p-4 bg-black/85 backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl animate-in slide-in-from-top-4 duration-200 mt-2">
             <PinPad
               title="Authorize FX Swap"
               subtitle={`Swap ${fromCurrency} ${parsedFrom.toLocaleString()} to ${toCurrency} ${calculatedTo.toLocaleString()}`}

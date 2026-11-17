@@ -264,7 +264,26 @@ export const SuppliersScreen: React.FC = () => {
     }
   }, [cardModalSupplier, activeProfileSupplier, showPaywallModal]);
 
-  // Teleport modals directly to body root to avoid containment traps and ensure immediate centered viewport visibility
+  // Ensure page loads from the top immediately upon mounting or switching to this screen
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+      const mainEl = document.querySelector('main');
+      if (mainEl) {
+        mainEl.scrollTop = 0;
+      }
+    }
+  }, []);
+
+  const paywallScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (showPaywallModal && paywallScrollRef.current) {
+      paywallScrollRef.current.scrollTop = 0;
+    }
+  }, [showPaywallModal]);
+
+  // Teleport modals directly to body root to avoid containment traps and ensure immediate top-aligned viewport visibility
   const renderPortal = (children: React.ReactNode) => {
     if (typeof document === 'undefined') return children;
     return createPortal(children, document.body);
@@ -1271,15 +1290,18 @@ export const SuppliersScreen: React.FC = () => {
       </div>
 
       {/* =====================================================================
-          VIP SUBSCRIPTION BOTTOM SHEET PAYWALL MODAL (CENTERED AT THE MIDDLE)
+          VIP SUBSCRIPTION BOTTOM SHEET PAYWALL MODAL (FROM THE TOP FOR USER TO ENTER PIN)
          ===================================================================== */}
       {showPaywallModal && renderPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-4 sm:pt-8 p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
           <div 
-            className="absolute inset-0" 
+            className="fixed inset-0" 
             onClick={() => setShowPaywallModal(false)} 
           />
-          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto my-auto z-10 animate-in zoom-in-95 duration-200">
+          <div 
+            ref={paywallScrollRef}
+            className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto z-10 animate-in slide-in-from-top-4 duration-200"
+          >
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2.5">
                 <span className="p-2 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30">
@@ -1459,15 +1481,15 @@ export const SuppliersScreen: React.FC = () => {
       )}
 
       {/* =====================================================================
-          SUPPLIER COMPLETE PROFILE / DOSSIER MODAL (CENTERED AT THE MIDDLE OF MOBILE APP)
+          SUPPLIER COMPLETE PROFILE / DOSSIER MODAL (SHOWS FROM THE TOP IMMEDIATELY)
          ===================================================================== */}
       {activeProfileSupplier && renderPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-4 sm:pt-8 p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
           <div 
-            className="absolute inset-0" 
+            className="fixed inset-0" 
             onClick={() => setActiveProfileSupplier(null)} 
           />
-          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4 max-h-[82vh] overflow-y-auto my-auto z-10 animate-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto z-10 animate-in slide-in-from-top-4 duration-200">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2.5 min-w-0 pr-2">
                 <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
@@ -1625,18 +1647,18 @@ export const SuppliersScreen: React.FC = () => {
       )}
 
       {/* =====================================================================
-          BUSINESS CARD POP-UP MODAL (CENTERED AT THE MIDDLE OF MOBILE APP)
+          BUSINESS CARD POP-UP MODAL (SHOWS FROM THE TOP IMMEDIATELY)
          ===================================================================== */}
       {cardModalSupplier && renderPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-4 sm:pt-8 p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
           {/* Backdrop dismiss */}
           <div 
-            className="absolute inset-0" 
+            className="fixed inset-0" 
             onClick={() => { setCardModalSupplier(null); setSignedCardUrl(null); }} 
           />
 
-          {/* Centered Modal Card Container in the Middle */}
-          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl shadow-black/80 overflow-hidden flex flex-col max-h-[82vh] my-auto z-10 animate-in zoom-in-95 duration-200">
+          {/* Modal Card Container Showing from the Top */}
+          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl shadow-black/80 overflow-hidden flex flex-col max-h-[88vh] z-10 animate-in slide-in-from-top-4 duration-200">
             {/* Header */}
             <div className="px-4 py-3 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5 min-w-0 pr-2">

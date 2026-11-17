@@ -147,13 +147,19 @@ export const MobileShell: React.FC = () => {
     }
 
     isSwitchingRouteRef.current = true;
+    // Whenever user clicks on any page, let the page load from the top immediately
     if (mainScrollRef.current) {
-      const targetY = scrollPositions.current[currentRoute] || 0;
-      mainScrollRef.current.scrollTop = targetY;
+      mainScrollRef.current.scrollTop = 0;
+    }
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
     }
 
     const timer = requestAnimationFrame(() => {
       isSwitchingRouteRef.current = false;
+      if (mainScrollRef.current) {
+        mainScrollRef.current.scrollTop = 0;
+      }
     });
     return () => cancelAnimationFrame(timer);
   }, [currentRoute]);

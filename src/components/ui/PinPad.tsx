@@ -59,9 +59,17 @@ export const PinPad: React.FC<PinPadProps> = ({
   };
 
   const dotIndices = Array.from({ length }, (_, i) => i);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    // Whenever user wants to enter pin, ensure pin pad container is scrolled into view from the top immediately
+    if (containerRef.current) {
+      containerRef.current.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }
+  }, []);
 
   return (
-    <div className="flex flex-col items-center justify-between w-full max-w-xs mx-auto py-4">
+    <div ref={containerRef} className="flex flex-col items-center justify-between w-full max-w-xs mx-auto py-4">
       {/* Header */}
       <div className="text-center mb-6">
         <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/5">

@@ -245,10 +245,10 @@ export const SecurityScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Multi-Step PIN Modal */}
+      {/* Multi-Step PIN Modal (Shows from the Top) */}
       {pinModalMode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-12 p-4 bg-black/80 backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl relative animate-in slide-in-from-top-4 duration-200 mt-2">
             <button
               onClick={handleCloseModal}
               className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white"
