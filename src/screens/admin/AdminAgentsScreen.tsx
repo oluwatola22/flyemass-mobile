@@ -35,16 +35,30 @@ import {
   FileCheck
 } from 'lucide-react';
 
-export const AdminAgentsScreen: React.FC = () => {
+interface AdminAgentsScreenProps {
+  initialTab?: 'rfqs' | 'settings';
+}
+
+export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab = 'rfqs' }) => {
   const { showToast, navigate } = useApp();
-  const [activeTab, setActiveTab] = useState<'rfqs' | 'settings'>('rfqs');
+  const [activeTab, setActiveTab] = useState<'rfqs' | 'settings'>(initialTab);
   const [rfqs, setRfqs] = useState<AgentRequestDocument[]>(() => db.getAgentRequests());
   const [suppliersList, setSuppliersList] = useState<Supplier[]>(VETTED_SUPPLIERS);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
   
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [serviceFilter, setServiceFilter] = useState<string>('all');
+
+  // Manage Request Drawer State
+  const [manageDrawerRfq, setManageDrawerRfq] = useState<AgentRequestDocument | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // Quotation Modal State
   const [quoteModalRfq, setQuoteModalRfq] = useState<AgentRequestDocument | null>(null);
@@ -56,6 +70,11 @@ export const AdminAgentsScreen: React.FC = () => {
   const [quoteAgentName, setQuoteAgentName] = useState('Zhang Wei (Bilingual Ground Agent)');
   const [quoteFindings, setQuoteFindings] = useState('Manufacturer verified on 1688 with Gold Supplier status (5 years). Production capacity confirmed.');
   const [quoteNotes, setQuoteNotes] = useState('Formal quotation includes FlyeMass QA check and Guangzhou hub consolidation.');
+  const [quoteSupplierName, setQuoteSupplierName] = useState('');
+  const [quoteDocUrl, setQuoteDocUrl] = useState('');
+  const [fxOverrideUSD_CNY, setFxOverrideUSD_CNY] = useState('');
+  const [fxOverrideUSD_NGN, setFxOverrideUSD_NGN] = useState('');
+  const [quoteCurrency, setQuoteCurrency] = useState<'USD' | 'NGN' | 'RMB'>('USD');
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
 
   // Operations Progress Drawer State
@@ -67,7 +86,20 @@ export const AdminAgentsScreen: React.FC = () => {
   const [opsAuditFindings, setOpsAuditFindings] = useState('');
   const [opsQcFindings, setOpsQcFindings] = useState('');
   const [opsReportPdfUrl, setOpsReportPdfUrl] = useState('');
+  const [opsReportSummary, setOpsReportSummary] = useState('');
   const [isSavingOps, setIsSavingOps] = useState(false);
+
+  // Assign Agent Modal State
+  const [assignModalRfq, setAssignModalRfq] = useState<AgentRequestDocument | null>(null);
+  const [selectedAgentToAssign, setSelectedAgentToAssign] = useState('Zhang Wei (Guangzhou Sourcing & Escort Desk)');
+  const [assignNotes, setAssignNotes] = useState('Assigned for on-site mission coordination.');
+  const [isAssigningAgent, setIsAssigningAgent] = useState(false);
+
+  // Client Communication Modal State
+  const [communicateModalRfq, setCommunicateModalRfq] = useState<AgentRequestDocument | null>(null);
+  const [clientMessage, setClientMessage] = useState('');
+  const [clientMessageStatus, setClientMessageStatus] = useState('in_progress');
+  const [isSendingClientMessage, setIsSendingClientMessage] = useState(false);
 
   // Cancellation & Refund Modal State
   const [refundModalRfq, setRefundModalRfq] = useState<AgentRequestDocument | null>(null);
@@ -78,6 +110,7 @@ export const AdminAgentsScreen: React.FC = () => {
   // Fee Settings State
   const [feeSettings, setFeeSettings] = useState<any>({
     sourcingCommissionPercent: 5.0,
+    minSourcingFeeEnabled: true,
     minSourcingCommissionCNY: 500,
     supplierVerificationUSD: 150,
     factoryAuditUSD: 250,
@@ -96,17 +129,28 @@ export const AdminAgentsScreen: React.FC = () => {
 
   useEffect(() => {
     db.getAgentSettings().then(setFeeSettings).catch(() => {});
-    return db.subscribe(() => setRfqs(db.getAgentRequests()));
+    return db.subscribe(() => {
+      const nextRfqs = db.getAgentRequests();
+      setRfqs((prev) => {
+        if (
+          prev.length === nextRfqs.length &&
+          prev.every((r, i) => r.id === nextRfqs[i]?.id && r.status === nextRfqs[i]?.status && r.paymentStatus === nextRfqs[i]?.paymentStatus)
+        ) {
+          return prev;
+        }
+        return nextRfqs;
+      });
+    });
   }, []);
 
   // Filtered RFQs
   const filteredRfqs = rfqs.filter(r => {
     // Status filter
     if (statusFilter !== 'all') {
-      if (statusFilter === 'pending_review' && r.status !== 'pending_review' && r.status !== 'pending_quote') return false;
-      if (statusFilter === 'awaiting_payment' && r.status !== 'awaiting_payment' && r.status !== 'quote_ready') return false;
-      if (statusFilter === 'in_progress' && r.status !== 'in_progress') return false;
-      if (statusFilter === 'completed' && r.status !== 'completed') return false;
+      if ((statusFilter === 'pending_review' || statusFilter === 'Pending Review') && r.status !== 'pending_review' && r.status !== 'pending_quote' && r.status !== 'submitted') return false;
+      if ((statusFilter === 'quotation_sent' || statusFilter === 'awaiting_payment' || statusFilter === 'Quotation Sent') && r.status !== 'awaiting_payment' && r.status !== 'quote_ready' && r.status !== 'quotation_sent') return false;
+      if ((statusFilter === 'in_progress' || statusFilter === 'paid_active' || statusFilter === 'approved' || statusFilter === 'Approved') && r.status !== 'in_progress' && r.status !== 'paid_active' && r.status !== 'approved') return false;
+      if ((statusFilter === 'completed' || statusFilter === 'Completed') && r.status !== 'completed') return false;
       if (statusFilter === 'refunded' && r.status !== 'refunded' && r.paymentStatus !== 'refunded') return false;
     }
     // Service filter
@@ -127,9 +171,9 @@ export const AdminAgentsScreen: React.FC = () => {
 
   // Metrics
   const totalCount = rfqs.length;
-  const pendingCount = rfqs.filter(r => r.status === 'pending_review' || r.status === 'pending_quote').length;
-  const awaitingPaymentCount = rfqs.filter(r => r.status === 'awaiting_payment' || r.status === 'quote_ready').length;
-  const inProgressCount = rfqs.filter(r => r.status === 'in_progress').length;
+  const pendingCount = rfqs.filter(r => r.status === 'pending_review' || r.status === 'pending_quote' || r.status === 'submitted').length;
+  const awaitingPaymentCount = rfqs.filter(r => r.status === 'awaiting_payment' || r.status === 'quote_ready' || r.status === 'quotation_sent').length;
+  const inProgressCount = rfqs.filter(r => r.status === 'in_progress' || r.status === 'paid_active' || r.status === 'approved').length;
   const completedCount = rfqs.filter(r => r.status === 'completed').length;
   const totalQuotedValueUSD = rfqs.reduce((acc, r) => acc + (r.quoteAmountUSD || 0), 0);
 
@@ -142,13 +186,21 @@ export const AdminAgentsScreen: React.FC = () => {
       setQuoteCommPercent(String(rfq.sourcingCommissionPercent || feeSettings.sourcingCommissionPercent || 5.0));
       setQuoteShippingCNY(String(rfq.chinaShippingCNY || 120));
       setQuoteLeadDays(String(rfq.leadTimeDays || 7));
+      setFxOverrideUSD_CNY(rfq.fxOverrideUSD_CNY ? String(rfq.fxOverrideUSD_CNY) : '');
+      setFxOverrideUSD_NGN(rfq.fxOverrideUSD_NGN ? String(rfq.fxOverrideUSD_NGN) : '');
     } else {
-      setQuoteServiceFeeUSD(String(rfq.serviceFeeUSD || (rfq.serviceKind === 'supplier_verification' ? feeSettings.supplierVerificationUSD : rfq.serviceKind === 'factory_audit' ? feeSettings.factoryAuditUSD : feeSettings.qualityControlUSD || 250)));
+      const defaultFee = rfq.serviceFeeUSD || rfq.quoteAmountUSD || (rfq.serviceKind === 'supplier_verification' ? feeSettings.supplierVerificationUSD : rfq.serviceKind === 'factory_audit' ? feeSettings.factoryAuditUSD : feeSettings.qualityControlUSD || 250);
+      setQuoteServiceFeeUSD(String(defaultFee));
       setQuoteLeadDays(String(rfq.leadTimeDays || 3));
+      setFxOverrideUSD_CNY('');
+      setFxOverrideUSD_NGN('');
     }
+    setQuoteCurrency('USD');
     setQuoteAgentName(rfq.assignedAgent || 'Zhang Wei (Guangzhou Sourcing Desk)');
     setQuoteFindings(rfq.supplierFindings || 'Direct manufacturer identified and preliminary catalog reviewed.');
     setQuoteNotes(rfq.adminNotes || 'Quotation formulated according to client specifications.');
+    setQuoteSupplierName(rfq.supplierName || 'Shenzhen TopPower Electronics Co., Ltd');
+    setQuoteDocUrl(rfq.supplierInvoiceUrl || '');
   };
 
   // Submit Official Quotation
@@ -161,6 +213,8 @@ export const AdminAgentsScreen: React.FC = () => {
       const isSourcing = quoteModalRfq.serviceKind === 'sourcing';
       let payload: any = {
         requestId: quoteModalRfq.id,
+        supplierName: quoteSupplierName.trim() || undefined,
+        supplierInvoiceUrl: quoteDocUrl.trim() || undefined,
         assignedAgent: quoteAgentName,
         supplierFindings: quoteFindings,
         quotationNotes: quoteNotes,
@@ -171,12 +225,16 @@ export const AdminAgentsScreen: React.FC = () => {
       if (isSourcing) {
         const costCNY = parseFloat(quoteCostCNY) || 0;
         const commPct = parseFloat(quoteCommPercent) || 5.0;
+        const rawComm = Math.round(costCNY * (commPct / 100));
         const minCNY = feeSettings.minSourcingCommissionCNY || 500;
-        const commCNY = Math.max(minCNY, Math.round(costCNY * (commPct / 100)));
+        const commCNY = (feeSettings.minSourcingFeeEnabled !== false) ? Math.max(minCNY, rawComm) : rawComm;
         const shipCNY = parseFloat(quoteShippingCNY) || 0;
         const totalCNY = costCNY + commCNY + shipCNY;
-        const totalUSD = Math.round((totalCNY / 7.24) * 100) / 100;
-        const totalNGN = Math.round(totalCNY * 214.50);
+
+        const rateUSD_CNY = parseFloat(fxOverrideUSD_CNY) || 7.24;
+        const rateUSD_NGN = parseFloat(fxOverrideUSD_NGN) || 1485;
+        const totalUSD = Math.round((totalCNY / rateUSD_CNY) * 100) / 100;
+        const totalNGN = Math.round(totalUSD * rateUSD_NGN);
 
         payload = {
           ...payload,
@@ -187,12 +245,28 @@ export const AdminAgentsScreen: React.FC = () => {
           totalPayableCNY: totalCNY,
           quoteAmountCNY: totalCNY,
           quoteAmountUSD: totalUSD,
-          quoteAmountNGN: totalNGN
+          quoteAmountNGN: totalNGN,
+          quoteFeeUSD: totalUSD,
+          quoteFeeNGN: totalNGN,
+          quoteFeeRMB: totalCNY,
+          quoteCurrency: 'RMB'
         };
+        if (fxOverrideUSD_CNY) payload.fxOverrideUSD_CNY = parseFloat(fxOverrideUSD_CNY);
+        if (fxOverrideUSD_NGN) payload.fxOverrideUSD_NGN = parseFloat(fxOverrideUSD_NGN);
       } else {
-        const feeUSD = parseFloat(quoteServiceFeeUSD) || 250;
-        const feeNGN = Math.round(feeUSD * 1485);
-        const feeCNY = Math.round(feeUSD * 7.24);
+        let feeUSD = parseFloat(quoteServiceFeeUSD) || 250;
+        let feeNGN = Math.round(feeUSD * 1485);
+        let feeCNY = Math.round(feeUSD * 7.24);
+
+        if (quoteCurrency === 'NGN') {
+          feeNGN = parseFloat(quoteServiceFeeUSD) || 371250;
+          feeUSD = Math.round((feeNGN / 1485) * 100) / 100;
+          feeCNY = Math.round((feeUSD * 7.24) * 100) / 100;
+        } else if (quoteCurrency === 'RMB') {
+          feeCNY = parseFloat(quoteServiceFeeUSD) || 1810;
+          feeUSD = Math.round((feeCNY / 7.24) * 100) / 100;
+          feeNGN = Math.round(feeUSD * 1485);
+        }
 
         payload = {
           ...payload,
@@ -200,6 +274,10 @@ export const AdminAgentsScreen: React.FC = () => {
           quoteAmountUSD: feeUSD,
           quoteAmountNGN: feeNGN,
           quoteAmountCNY: feeCNY,
+          quoteFeeUSD: feeUSD,
+          quoteFeeNGN: feeNGN,
+          quoteFeeRMB: feeCNY,
+          quoteCurrency,
           totalPayableCNY: feeCNY
         };
       }
@@ -225,6 +303,7 @@ export const AdminAgentsScreen: React.FC = () => {
     setOpsAuditFindings(rfq.factoryAuditFindings || '');
     setOpsQcFindings(rfq.qualityControlFindings || '');
     setOpsReportPdfUrl(rfq.inspectionReportUrl || '');
+    setOpsReportSummary(rfq.reportSummary || '');
   };
 
   // Save Operations Progress
@@ -241,16 +320,71 @@ export const AdminAgentsScreen: React.FC = () => {
         businessRegistrationFindings: opsRegFindings || undefined,
         factoryAuditFindings: opsAuditFindings || undefined,
         qualityControlFindings: opsQcFindings || undefined,
-        inspectionReportUrl: opsReportPdfUrl || undefined
+        inspectionReportUrl: opsReportPdfUrl || undefined,
+        reportSummary: opsReportSummary || undefined
       }, 'adm-001');
 
-      showToast(`Milestone update saved for #${opsDrawerRfq.reference || opsDrawerRfq.id}!`, 'success');
+      showToast(`Milestone update and deliverables saved for #${opsDrawerRfq.reference || opsDrawerRfq.id}!`, 'success');
       setOpsDrawerRfq(null);
       setRfqs(db.getAgentRequests());
     } catch (err: any) {
       showToast(err.message || 'Failed to update status', 'error');
     } finally {
       setIsSavingOps(false);
+    }
+  };
+
+  // Assign Agent Handler
+  const openAssignModal = (rfq: AgentRequestDocument) => {
+    setAssignModalRfq(rfq);
+    setSelectedAgentToAssign(rfq.assignedAgent || 'Zhang Wei (Guangzhou Sourcing & Escort Desk)');
+    setAssignNotes('Assigned for on-site mission coordination.');
+  };
+
+  const handleConfirmAssignAgent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!assignModalRfq) return;
+    setIsAssigningAgent(true);
+    try {
+      await db.assignAgent(assignModalRfq.id, selectedAgentToAssign, assignNotes, `${assignModalRfq.supplierCity || 'Guangzhou'} Trade Desk`, 'adm-001');
+      showToast(`Agent ${selectedAgentToAssign} assigned to request #${assignModalRfq.reference || assignModalRfq.id}!`, 'success');
+      setAssignModalRfq(null);
+      setRfqs(db.getAgentRequests());
+    } catch (err: any) {
+      showToast(err.message || 'Failed to assign agent', 'error');
+    } finally {
+      setIsAssigningAgent(false);
+    }
+  };
+
+  // Communicate Client Update Handler
+  const openCommunicateModal = (rfq: AgentRequestDocument) => {
+    setCommunicateModalRfq(rfq);
+    setClientMessage(`Ground agent has initiated verification in ${rfq.supplierCity || 'Guangzhou'}. Next checkpoint expected within 24 hours.`);
+    setClientMessageStatus(rfq.status || 'in_progress');
+  };
+
+  const handleSendClientUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!communicateModalRfq) return;
+    setIsSendingClientMessage(true);
+    try {
+      await db.sendAgentClientUpdate(
+        communicateModalRfq.id,
+        clientMessage,
+        clientMessageStatus,
+        `${communicateModalRfq.supplierCity || 'Guangzhou'} Ground Desk`,
+        undefined,
+        undefined,
+        'adm-001'
+      );
+      showToast(`Client update sent for #${communicateModalRfq.reference || communicateModalRfq.id}!`, 'success');
+      setCommunicateModalRfq(null);
+      setRfqs(db.getAgentRequests());
+    } catch (err: any) {
+      showToast(err.message || 'Failed to send client update', 'error');
+    } finally {
+      setIsSendingClientMessage(false);
     }
   };
 
@@ -432,8 +566,9 @@ export const AdminAgentsScreen: React.FC = () => {
                 >
                   <option value="all">All Statuses</option>
                   <option value="pending_review">Pending Review</option>
+                  <option value="quotation_sent">Quotation Sent</option>
                   <option value="awaiting_payment">Awaiting Payment</option>
-                  <option value="in_progress">In Progress</option>
+                  <option value="in_progress">Approved / Paid & Active</option>
                   <option value="completed">Completed</option>
                   <option value="refunded">Refunded</option>
                 </select>
@@ -449,6 +584,7 @@ export const AdminAgentsScreen: React.FC = () => {
                   <option value="supplier_verification">Supplier Verification</option>
                   <option value="factory_audit">Factory Audit</option>
                   <option value="quality_control">Quality Control</option>
+                  <option value="canton_fair_escort">Canton Fair Escort</option>
                 </select>
               </div>
             </div>
@@ -467,18 +603,28 @@ export const AdminAgentsScreen: React.FC = () => {
                         <span className="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] font-bold text-slate-300 uppercase">
                           {rfq.serviceType}
                         </span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          rfq.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300' :
-                          rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
-                          rfq.status === 'in_progress' ? 'bg-indigo-500/20 text-indigo-300' :
-                          rfq.status === 'refunded' ? 'bg-rose-500/20 text-rose-300' :
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          rfq.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                          rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' || rfq.status === 'quotation_sent' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                          rfq.status === 'in_progress' || rfq.status === 'paid_active' || rfq.status === 'approved' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' :
+                          rfq.status === 'refunded' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
                           'bg-slate-800 text-slate-300'
                         }`}>
-                          {rfq.status === 'awaiting_payment' ? 'Awaiting Payment' : rfq.status.replace('_', ' ')}
+                          {rfq.status === 'completed' ? 'Completed' :
+                           rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' || rfq.status === 'quotation_sent' ? 'Quotation Sent' :
+                           rfq.status === 'in_progress' || rfq.status === 'paid_active' || rfq.status === 'approved' ? 'Paid & Active' :
+                           rfq.status === 'pending_review' || rfq.status === 'submitted' || rfq.status === 'pending_quote' ? 'Pending Review' :
+                           rfq.status.replace('_', ' ')}
                         </span>
                         {rfq.paymentStatus && (
                           <span className="px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-400 text-[10px] font-mono font-bold border border-emerald-900/40">
                             Escrow: {rfq.paymentStatus}
+                          </span>
+                        )}
+                        {rfq.assignedAgent && (
+                          <span className="px-2 py-0.5 rounded-full bg-indigo-950/60 text-indigo-400 text-[10px] font-bold border border-indigo-900/40 flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            <span>{rfq.assignedAgent}</span>
                           </span>
                         )}
                       </div>
@@ -492,6 +638,12 @@ export const AdminAgentsScreen: React.FC = () => {
                         {rfq.targetUnitCNY && (
                           <span> @ <strong className="font-mono text-slate-200">¥{rfq.targetUnitCNY} CNY/unit</strong></span>
                         )}
+                        {rfq.supplierCity && (
+                          <span> • City: <strong className="text-slate-200">{rfq.supplierCity}</strong></span>
+                        )}
+                        {rfq.cantonFairBooth && (
+                          <span> • Booth: <strong className="text-amber-400 font-mono">{rfq.cantonFairBooth}</strong></span>
+                        )}
                       </p>
 
                       {/* Product URL */}
@@ -500,6 +652,47 @@ export const AdminAgentsScreen: React.FC = () => {
                           <ExternalLink className="w-3 h-3" />
                           <a href={rfq.productUrl} target="_blank" rel="noreferrer" className="hover:underline max-w-md truncate">
                             {rfq.productUrl}
+                          </a>
+                        </p>
+                      )}
+
+                      {/* Specifications */}
+                      {rfq.specifications && (
+                        <p className="text-xs text-slate-300 bg-slate-950/60 p-2 rounded-xl border border-slate-800">
+                          <strong className="text-slate-400">Specifications:</strong> {rfq.specifications}
+                        </p>
+                      )}
+
+                      {/* Reference Photos Thumbnails */}
+                      {((rfq.referencePhotos && rfq.referencePhotos.length > 0) || (rfq.sampleImages && rfq.sampleImages.length > 0)) && (
+                        <div className="flex items-center gap-1.5 overflow-x-auto py-1">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase">Photos:</span>
+                          {(rfq.referencePhotos || rfq.sampleImages || []).map((img, i) => (
+                            <img
+                              key={i}
+                              src={img}
+                              alt={`ref-${i}`}
+                              onClick={() => setPreviewImage(img)}
+                              className="w-9 h-9 object-cover rounded-lg border border-slate-800 cursor-pointer hover:border-emerald-500 transition-all shrink-0"
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Negotiated Factory Partner */}
+                      {rfq.supplierName && (
+                        <p className="text-xs text-slate-300">
+                          <strong className="text-slate-400">Negotiated Factory:</strong> <span className="text-white font-semibold">{rfq.supplierName}</span>
+                        </p>
+                      )}
+
+                      {/* Official Quotation Proforma Link */}
+                      {rfq.supplierInvoiceUrl && (
+                        <p className="flex items-center gap-1.5 text-amber-400 text-xs font-medium">
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>Proforma Sheet: </span>
+                          <a href={rfq.supplierInvoiceUrl} target="_blank" rel="noreferrer" className="underline font-mono truncate max-w-sm">
+                            {rfq.supplierInvoiceUrl}
                           </a>
                         </p>
                       )}
@@ -534,31 +727,67 @@ export const AdminAgentsScreen: React.FC = () => {
                   </div>
 
                   {/* Ground Notes Preview if available */}
-                  {(rfq.adminNotes || rfq.supplierFindings || rfq.operationalNotes) && (
+                  {(rfq.adminNotes || rfq.supplierFindings || rfq.operationalNotes || rfq.inspectionReportUrl) && (
                     <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-300 space-y-1">
                       {rfq.supplierFindings && <p><strong className="text-slate-400">Findings:</strong> {rfq.supplierFindings}</p>}
                       {rfq.operationalNotes && <p><strong className="text-emerald-400">Milestone:</strong> {rfq.operationalNotes}</p>}
+                      {rfq.inspectionReportUrl && (
+                        <p className="flex items-center gap-1.5 text-cyan-400 font-medium">
+                          <FileCheck className="w-3.5 h-3.5" />
+                          <span>Report Attached: </span>
+                          <a href={rfq.inspectionReportUrl} target="_blank" rel="noreferrer" className="underline font-mono truncate max-w-sm">
+                            {rfq.inspectionReportUrl}
+                          </a>
+                        </p>
+                      )}
                     </div>
                   )}
 
                   {/* Action Buttons */}
                   <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800">
+                    {/* View / Manage Request Details */}
+                    <button
+                      onClick={() => setManageDrawerRfq(rfq)}
+                      className="px-3.5 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Manage Details</span>
+                    </button>
+
+                    {/* Assign Agent */}
+                    <button
+                      onClick={() => openAssignModal(rfq)}
+                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-purple-300 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Users className="w-3.5 h-3.5 text-purple-400" />
+                      <span>{rfq.assignedAgent ? 'Reassign Agent' : 'Assign Agent'}</span>
+                    </button>
+
+                    {/* Communicate Client Update */}
+                    <button
+                      onClick={() => openCommunicateModal(rfq)}
+                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Send className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Send Client Update</span>
+                    </button>
+
                     {/* Formulate Quote */}
                     <button
                       onClick={() => openQuoteModal(rfq)}
-                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all flex items-center gap-1.5"
+                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
                     >
                       <FileText className="w-3.5 h-3.5 text-emerald-400" />
                       <span>{rfq.quoteAmountUSD ? 'Edit Quotation' : 'Formulate Quote'}</span>
                     </button>
 
-                    {/* Update Operations Progress (Milestone updates) */}
+                    {/* Update Operations Progress (Milestone updates & reports) */}
                     <button
                       onClick={() => openOpsDrawer(rfq)}
-                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center gap-1.5"
+                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
                     >
                       <Layers className="w-3.5 h-3.5" />
-                      <span>Update Ground Progress & Deliverables</span>
+                      <span>Upload Reports & Deliverables</span>
                     </button>
 
                     {/* Cancel & Refund Action */}
@@ -568,7 +797,7 @@ export const AdminAgentsScreen: React.FC = () => {
                           setRefundModalRfq(rfq);
                           setForceOverride(false);
                         }}
-                        className="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs transition-all flex items-center gap-1.5"
+                        className="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
                         <span>Cancel & Refund</span>
@@ -592,6 +821,27 @@ export const AdminAgentsScreen: React.FC = () => {
             </div>
 
             <div className="space-y-3 text-xs">
+              {/* Minimum Sourcing Fee Toggle */}
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+                <div>
+                  <span className="text-xs font-bold text-white block">Enforce Minimum Sourcing Commission</span>
+                  <span className="text-[11px] text-slate-400 block">Apply minimum floor fee to low-value sourcing requests</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFeeSettings({ ...feeSettings, minSourcingFeeEnabled: !(feeSettings.minSourcingFeeEnabled ?? true) })}
+                  className={`w-12 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${
+                    (feeSettings.minSourcingFeeEnabled ?? true) ? 'bg-emerald-500' : 'bg-slate-700'
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-full bg-white transition-transform ${
+                      (feeSettings.minSourcingFeeEnabled ?? true) ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
@@ -619,7 +869,7 @@ export const AdminAgentsScreen: React.FC = () => {
                     className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500"
                     required
                   />
-                  <span className="text-[10px] text-slate-500 mt-1 block">Default: ¥500 CNY</span>
+                  <span className="text-[10px] text-slate-500 mt-1 block">Default: ¥500 CNY {(feeSettings.minSourcingFeeEnabled ?? true) ? '(Active)' : '(Disabled)'}</span>
                 </div>
               </div>
 
@@ -708,14 +958,52 @@ export const AdminAgentsScreen: React.FC = () => {
             </div>
 
             <div className="space-y-3.5 text-xs">
-              {/* Client & Product Info */}
-              <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1 text-slate-400">
-                <p><strong>Client:</strong> <span className="text-white">{quoteModalRfq.clientName}</span></p>
-                <p><strong>Product / Assignment:</strong> <span className="text-white">{quoteModalRfq.productName}</span></p>
+              {/* Client & Product Info & Target Comparison */}
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5 text-slate-400">
+                <div className="flex items-center justify-between">
+                  <p><strong>Client:</strong> <span className="text-white font-semibold">{quoteModalRfq.clientName}</span></p>
+                  <span className="text-[10px] font-mono font-bold text-slate-400">ID: {quoteModalRfq.userId}</span>
+                </div>
+                <p><strong>Assignment:</strong> <span className="text-white">{quoteModalRfq.productName}</span></p>
+                {quoteModalRfq.serviceKind === 'sourcing' && (
+                  <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] flex items-center justify-between">
+                    <div>
+                      <span className="text-slate-400 block font-bold uppercase text-[9px]">Client Target Budget:</span>
+                      <span className="font-mono font-bold text-amber-400">
+                        {quoteModalRfq.targetQuantity || 0} units @ ¥{quoteModalRfq.targetUnitCNY || 0} = ¥{((quoteModalRfq.targetQuantity || 0) * (quoteModalRfq.targetUnitCNY || 0)).toLocaleString()} CNY
+                      </span>
+                    </div>
+                    {quoteModalRfq.specifications && (
+                      <span className="text-slate-400 text-[10px] italic max-w-[200px] truncate">
+                        Specs: {quoteModalRfq.specifications}
+                      </span>
+                    )}
+                  </div>
+                )}
                 {quoteModalRfq.productUrl && (
-                  <p className="truncate text-indigo-400">
-                    <strong>URL:</strong> <a href={quoteModalRfq.productUrl} target="_blank" rel="noreferrer" className="hover:underline">{quoteModalRfq.productUrl}</a>
+                  <p className="truncate text-indigo-400 flex items-center gap-1 text-[11px]">
+                    <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                    <a href={quoteModalRfq.productUrl} target="_blank" rel="noreferrer" className="hover:underline truncate">{quoteModalRfq.productUrl}</a>
                   </p>
+                )}
+
+                {/* Client Reference Photos */}
+                {((quoteModalRfq.referencePhotos && quoteModalRfq.referencePhotos.length > 0) || 
+                  (quoteModalRfq.sampleImages && quoteModalRfq.sampleImages.length > 0)) && (
+                  <div className="pt-2 border-t border-slate-900">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1.5">Client Reference Photos</span>
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {(quoteModalRfq.referencePhotos || quoteModalRfq.sampleImages || []).map((img, i) => (
+                        <img
+                          key={i}
+                          src={img}
+                          alt={`ref-${i}`}
+                          onClick={() => setPreviewImage(img)}
+                          className="w-14 h-14 object-cover rounded-xl border border-slate-800 cursor-pointer hover:border-emerald-500 transition-all shrink-0"
+                        />
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
 
@@ -777,34 +1065,106 @@ export const AdminAgentsScreen: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Optional FX Rate Overrides */}
+                  <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-2">
+                    <span className="text-[10px] font-bold uppercase text-slate-400 block">Optional FX Overrides (Blank = System Rates)</span>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="text-[10px] text-slate-400 block mb-0.5">CNY per USD (Default: 7.24)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="7.24"
+                          value={fxOverrideUSD_CNY}
+                          onChange={(e) => setFxOverrideUSD_CNY(e.target.value)}
+                          className="w-full p-2 rounded-xl bg-slate-900 border border-slate-800 text-white font-mono text-xs outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-400 block mb-0.5">NGN per USD (Default: 1,485)</label>
+                        <input
+                          type="number"
+                          step="1"
+                          placeholder="1485"
+                          value={fxOverrideUSD_NGN}
+                          onChange={(e) => setFxOverrideUSD_NGN(e.target.value)}
+                          className="w-full p-2 rounded-xl bg-slate-900 border border-slate-800 text-white font-mono text-xs outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Calculated Totals Box */}
                   {(() => {
                     const c = parseFloat(quoteCostCNY) || 0;
                     const p = parseFloat(quoteCommPercent) || 5;
+                    const rawComm = Math.round(c * (p / 100));
                     const min = feeSettings.minSourcingCommissionCNY || 500;
-                    const comm = Math.max(min, Math.round(c * (p / 100)));
+                    const comm = (feeSettings.minSourcingFeeEnabled !== false) ? Math.max(min, rawComm) : rawComm;
                     const s = parseFloat(quoteShippingCNY) || 0;
                     const total = c + comm + s;
+                    const rateUSD_CNY = parseFloat(fxOverrideUSD_CNY) || 7.24;
+                    const rateUSD_NGN = parseFloat(fxOverrideUSD_NGN) || 1485;
+                    const totalUSD = Math.round((total / rateUSD_CNY) * 100) / 100;
+                    const totalNGN = Math.round(totalUSD * rateUSD_NGN);
                     return (
                       <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex justify-between items-center">
                         <div>
                           <span className="text-[10px] text-slate-400 block uppercase font-bold">Total Client Payable:</span>
                           <span className="text-emerald-400 font-mono font-black text-sm">¥{total.toLocaleString()} CNY</span>
+                          <span className="text-[10px] text-slate-400 block font-mono">Commission: ¥{comm.toLocaleString()} CNY</span>
                         </div>
                         <div className="text-right text-[11px] text-slate-400 font-mono">
-                          <span>≈ ${Math.round((total / 7.24) * 100) / 100} USD</span>
-                          <span className="block text-slate-500">≈ ₦{Math.round(total * 214.50).toLocaleString()} NGN</span>
+                          <span className="text-white font-bold">≈ ${totalUSD.toLocaleString()} USD</span>
+                          <span className="block text-slate-400">≈ ₦{totalNGN.toLocaleString()} NGN</span>
                         </div>
                       </div>
                     );
                   })()}
                 </div>
               ) : (
-                <div className="space-y-2.5">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1.5">
+                      Select Quotation Fee Currency
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['USD', 'NGN', 'RMB'] as const).map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => {
+                            if (quoteCurrency !== c) {
+                              const currentVal = parseFloat(quoteServiceFeeUSD) || 0;
+                              if (c === 'USD') {
+                                const newUSD = quoteCurrency === 'NGN' ? Math.round((currentVal / 1485) * 100) / 100 : Math.round((currentVal / 7.24) * 100) / 100;
+                                setQuoteServiceFeeUSD(String(newUSD || 250));
+                              } else if (c === 'NGN') {
+                                const newNGN = quoteCurrency === 'USD' ? Math.round(currentVal * 1485) : Math.round((currentVal / 7.24) * 1485);
+                                setQuoteServiceFeeUSD(String(newNGN || 371250));
+                              } else {
+                                const newRMB = quoteCurrency === 'USD' ? Math.round(currentVal * 7.24) : Math.round((currentVal / 1485) * 7.24);
+                                setQuoteServiceFeeUSD(String(newRMB || 1810));
+                              }
+                              setQuoteCurrency(c);
+                            }
+                          }}
+                          className={`py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                            quoteCurrency === c
+                              ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          {c === 'USD' ? '$ USD' : c === 'NGN' ? '₦ NGN' : '¥ RMB'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-2.5">
                     <div>
                       <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
-                        Service Fee ($ USD)
+                        Official Service Fee ({quoteCurrency === 'USD' ? '$ USD' : quoteCurrency === 'NGN' ? '₦ NGN' : '¥ RMB'})
                       </label>
                       <input
                         type="number"
@@ -827,8 +1187,54 @@ export const AdminAgentsScreen: React.FC = () => {
                       />
                     </div>
                   </div>
+
+                  <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-400 flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold text-slate-500">Cross-Currency Equivalents:</span>
+                    <span className="text-emerald-400 font-bold">
+                      {(() => {
+                        const val = parseFloat(quoteServiceFeeUSD) || 0;
+                        if (quoteCurrency === 'USD') {
+                          return `≈ ₦${Math.round(val * 1485).toLocaleString()} NGN / ¥${Math.round(val * 7.24).toLocaleString()} RMB`;
+                        } else if (quoteCurrency === 'NGN') {
+                          const u = Math.round((val / 1485) * 100) / 100;
+                          return `≈ $${u} USD / ¥${Math.round(u * 7.24).toLocaleString()} RMB`;
+                        } else {
+                          const u = Math.round((val / 7.24) * 100) / 100;
+                          return `≈ $${u} USD / ₦${Math.round(u * 1485).toLocaleString()} NGN`;
+                        }
+                      })()}
+                    </span>
+                  </div>
                 </div>
               )}
+
+              {/* Negotiated Manufacturer & Official Quotation Sheet */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                    Negotiated Manufacturer / Factory Partner
+                  </label>
+                  <input
+                    type="text"
+                    value={quoteSupplierName}
+                    onChange={(e) => setQuoteSupplierName(e.target.value)}
+                    placeholder="e.g. Shenzhen TopPower Co., Ltd"
+                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white text-xs outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                    Official Quotation Sheet / Proforma URL
+                  </label>
+                  <input
+                    type="url"
+                    value={quoteDocUrl}
+                    onChange={(e) => setQuoteDocUrl(e.target.value)}
+                    placeholder="https://docs.flyemass.com/quotes/proforma.pdf"
+                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono text-xs outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
 
               {/* Inspector Notes & Findings */}
               <div>
@@ -1000,6 +1406,20 @@ export const AdminAgentsScreen: React.FC = () => {
                 />
               </div>
 
+              {/* Inspection Report Executive Summary */}
+              <div>
+                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  Inspection Report Executive Summary
+                </label>
+                <textarea
+                  value={opsReportSummary}
+                  onChange={(e) => setOpsReportSummary(e.target.value)}
+                  rows={2}
+                  placeholder="Factory inspection successfully passed all structural and machinery criteria. Official certificate issued."
+                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
+                />
+              </div>
+
               {/* Operational Progress Log */}
               <div>
                 <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
@@ -1010,7 +1430,7 @@ export const AdminAgentsScreen: React.FC = () => {
                   onChange={(e) => setOpsNotes(e.target.value)}
                   rows={2}
                   placeholder="Goods arrived at Guangzhou Baiyun clearing hub. Inspection checklist completed."
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500"
+                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
                   required
                 />
               </div>
@@ -1020,21 +1440,173 @@ export const AdminAgentsScreen: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSavingOps}
-                  className="w-1/2 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5"
+                  className="w-1/2 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Save Milestone Update</span>
+                  <span>Save Milestone & Deliverables</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleCompleteRequest}
-                  className="w-1/2 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                  className="w-1/2 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Mark Completed & Disburse Escrow</span>
                 </button>
               </div>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ===================== MODAL: ASSIGN GROUND AGENT ===================== */}
+      {assignModalRfq && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+          <form 
+            onSubmit={handleConfirmAssignAgent}
+            className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <div className="flex items-center gap-2 text-purple-400 font-bold text-sm">
+                <Users className="w-4 h-4" />
+                <span>Assign Ground Sourcing Agent</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAssignModalRfq(null)}
+                className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-slate-300 space-y-1">
+                <p><strong>Request Ref:</strong> <span className="font-mono text-emerald-400">{assignModalRfq.reference || assignModalRfq.id}</span></p>
+                <p><strong>Assignment:</strong> {assignModalRfq.productName}</p>
+                <p><strong>Client:</strong> {assignModalRfq.clientName}</p>
+                <p><strong>Location:</strong> {assignModalRfq.supplierCity || 'Guangzhou'}</p>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  Select Verified Ground Agent
+                </label>
+                <select
+                  value={selectedAgentToAssign}
+                  onChange={(e) => setSelectedAgentToAssign(e.target.value)}
+                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-purple-500 text-xs"
+                >
+                  <option value="Zhang Wei (Guangzhou Sourcing & Escort Desk)">Zhang Wei (Guangzhou Sourcing & Escort Desk)</option>
+                  <option value="Chen Tao (Foshan Machinery & Hardware Inspector)">Chen Tao (Foshan Machinery & Hardware Inspector)</option>
+                  <option value="Lin Xiaomei (Shenzhen Electronics & Tech Specialist)">Lin Xiaomei (Shenzhen Electronics & Tech Specialist)</option>
+                  <option value="Wang Jing (Yiwu Small Commodities & QC Agent)">Wang Jing (Yiwu Small Commodities & QC Agent)</option>
+                  <option value="Canton Fair Bilingual Escort Squad">Canton Fair Bilingual Escort Squad (Pazhou Complex)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  Custom Agent Name / Notes (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={assignNotes}
+                  onChange={(e) => setAssignNotes(e.target.value)}
+                  placeholder="Special instructions or field deployment notes..."
+                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-purple-500 text-xs"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isAssigningAgent}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold text-xs shadow-md shadow-purple-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                {isAssigningAgent ? <span>Assigning Agent...</span> : (
+                  <>
+                    <Users className="w-4 h-4" />
+                    <span>Confirm Agent Assignment & Notify Client</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ===================== MODAL: COMMUNICATE CLIENT UPDATE ===================== */}
+      {communicateModalRfq && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+          <form 
+            onSubmit={handleSendClientUpdate}
+            className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <div className="flex items-center gap-2 text-cyan-400 font-bold text-sm">
+                <Send className="w-4 h-4" />
+                <span>Communicate Update to Client</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCommunicateModalRfq(null)}
+                className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-slate-300 space-y-1">
+                <p><strong>Recipient:</strong> <span className="text-white font-semibold">{communicateModalRfq.clientName}</span> ({communicateModalRfq.userId})</p>
+                <p><strong>Request Ref:</strong> <span className="font-mono text-emerald-400">{communicateModalRfq.reference || communicateModalRfq.id}</span></p>
+                <p><strong>Service:</strong> {communicateModalRfq.serviceType}</p>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  Operational Progress Message
+                </label>
+                <textarea
+                  value={clientMessage}
+                  onChange={(e) => setClientMessage(e.target.value)}
+                  rows={3}
+                  placeholder="Type real-time ground progress, booth visit details, factory audit notes..."
+                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-cyan-500 text-xs"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  Progress Milestone Stage
+                </label>
+                <select
+                  value={clientMessageStatus}
+                  onChange={(e) => setClientMessageStatus(e.target.value)}
+                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-cyan-500 text-xs"
+                >
+                  <option value="in_progress">In Progress (Agent On-Site)</option>
+                  <option value="factory_visited">Factory / Booth Visited</option>
+                  <option value="samples_collected">Samples Collected & Evaluated</option>
+                  <option value="report_ready">Inspection Report Formulated</option>
+                  <option value="completed">Mission Complete</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSendingClientMessage}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 font-bold text-xs shadow-md shadow-cyan-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                {isSendingClientMessage ? <span>Sending Update...</span> : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Send Update & Push Notification</span>
+                  </>
+                )}
+              </button>
             </div>
           </form>
         </div>
@@ -1115,7 +1687,310 @@ export const AdminAgentsScreen: React.FC = () => {
         </div>
       )}
 
-      {/* ===================== MODAL 4: REGISTER SUPPLIER ===================== */}
+      {/* ===================== MODAL 5: MANAGE REQUEST DRAWER ===================== */}
+      {manageDrawerRfq && (
+        <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-xl h-full bg-slate-900 border-l border-slate-800 p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
+            <div className="space-y-5">
+              {/* Drawer Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-bold text-emerald-400">
+                      {manageDrawerRfq.reference || manageDrawerRfq.id}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] font-bold text-slate-300 uppercase">
+                      {manageDrawerRfq.serviceType || manageDrawerRfq.serviceKind}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                      manageDrawerRfq.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300' :
+                      manageDrawerRfq.status === 'awaiting_payment' || manageDrawerRfq.status === 'quote_ready' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                      manageDrawerRfq.status === 'in_progress' ? 'bg-indigo-500/20 text-indigo-300' :
+                      manageDrawerRfq.status === 'refunded' ? 'bg-rose-500/20 text-rose-300' :
+                      'bg-slate-800 text-slate-300'
+                    }`}>
+                      {manageDrawerRfq.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <h3 className="text-base font-extrabold text-white mt-1">Sourcing Request Details</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setManageDrawerRfq(null)}
+                  className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Customer Profile Card */}
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer Information</span>
+                <div className="grid grid-cols-2 gap-2 text-slate-300">
+                  <div>
+                    <span className="text-slate-500 block text-[11px]">Client Name:</span>
+                    <strong className="text-white text-xs">{manageDrawerRfq.clientName || 'Chief Babatunde Alade'}</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block text-[11px]">Customer ID:</span>
+                    <span className="font-mono text-slate-300 text-xs">{manageDrawerRfq.userId || 'usr_alade_01'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block text-[11px]">Contact Email:</span>
+                    <span className="text-slate-300 text-xs">{manageDrawerRfq.clientEmail || 'alade.investments@flyemass.ng'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block text-[11px]">Submission Date:</span>
+                    <span className="text-slate-300 text-xs">
+                      {manageDrawerRfq.createdAt ? new Date(manageDrawerRfq.createdAt).toLocaleDateString() : 'Recent'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Product Specifications Card */}
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3 text-xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Requested Product Specifications</span>
+                <div>
+                  <span className="text-slate-500 block text-[11px]">Product Title:</span>
+                  <h4 className="text-white font-bold text-sm">{manageDrawerRfq.productName}</h4>
+                </div>
+
+                {manageDrawerRfq.specifications && (
+                  <div>
+                    <span className="text-slate-500 block text-[11px]">Detailed Specifications (Color, Size, Material, Packaging):</span>
+                    <p className="text-slate-200 bg-slate-900 p-2.5 rounded-xl border border-slate-800 mt-1 leading-relaxed">
+                      {manageDrawerRfq.specifications}
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                  <div>
+                    <span className="text-[10px] text-slate-400 block uppercase font-bold">Target Quantity</span>
+                    <span className="font-mono font-bold text-white text-xs">{manageDrawerRfq.targetQuantity || 'N/A'} units</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 block uppercase font-bold">Target Unit CNY</span>
+                    <span className="font-mono font-bold text-emerald-400 text-xs">¥{manageDrawerRfq.targetUnitCNY || 0}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 block uppercase font-bold">Total Budget CNY</span>
+                    <span className="font-mono font-bold text-amber-400 text-xs">
+                      ¥{((manageDrawerRfq.targetQuantity || 0) * (manageDrawerRfq.targetUnitCNY || 0)).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Sourcing Link */}
+                {manageDrawerRfq.productUrl && (
+                  <div>
+                    <span className="text-slate-500 block text-[11px] mb-1">Chinese Supplier / Marketplace Link:</span>
+                    <a
+                      href={manageDrawerRfq.productUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 p-2.5 rounded-xl bg-indigo-950/40 border border-indigo-800/60 text-indigo-300 hover:text-white transition-all text-xs break-all"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span className="truncate">{manageDrawerRfq.productUrl}</span>
+                    </a>
+                  </div>
+                )}
+
+                {/* Reference Photos Gallery */}
+                <div>
+                  <span className="text-slate-500 block text-[11px] mb-1.5">Customer Reference Photos:</span>
+                  {(() => {
+                    const photos = (manageDrawerRfq.referencePhotos && manageDrawerRfq.referencePhotos.length > 0)
+                      ? manageDrawerRfq.referencePhotos
+                      : (manageDrawerRfq.sampleImages || []);
+                    if (photos.length === 0) {
+                      return (
+                        <div className="p-3 rounded-xl bg-slate-900 border border-dashed border-slate-800 text-center text-slate-500 text-xs">
+                          No reference photos attached to this request.
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="grid grid-cols-4 gap-2">
+                        {photos.map((imgUrl: string, idx: number) => (
+                          <div
+                            key={idx}
+                            onClick={() => setPreviewImage(imgUrl)}
+                            className="relative aspect-square rounded-xl overflow-hidden border border-slate-800 hover:border-emerald-500 group cursor-pointer"
+                          >
+                            <img src={imgUrl} alt={`Ref ${idx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                              <Eye className="w-4 h-4 text-white" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Quotation Breakdown Card */}
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Official Quotation Breakdown</span>
+                {manageDrawerRfq.quoteAmountUSD ? (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">Factory Cost</span>
+                        <span className="font-mono font-bold text-white text-xs">¥{manageDrawerRfq.productCostCNY || 0} CNY</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">Commission ({manageDrawerRfq.sourcingCommissionPercent || 5}%)</span>
+                        <span className="font-mono font-bold text-emerald-400 text-xs">¥{manageDrawerRfq.sourcingCommissionCNY || 0} CNY</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">China Domestic Freight</span>
+                        <span className="font-mono font-bold text-white text-xs">¥{manageDrawerRfq.chinaShippingCNY || 0} CNY</span>
+                      </div>
+                    </div>
+                    <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-900/40 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] text-emerald-300 font-bold block uppercase">Grand Total Payable</span>
+                        <span className="font-mono font-black text-emerald-400 text-sm">
+                          ¥{manageDrawerRfq.totalPayableCNY?.toLocaleString()} CNY
+                        </span>
+                      </div>
+                      <div className="text-right text-[11px] font-mono text-slate-300">
+                        <span>≈ ${manageDrawerRfq.quoteAmountUSD} USD</span>
+                        <span className="block text-slate-400">≈ ₦{manageDrawerRfq.quoteAmountNGN?.toLocaleString()} NGN</span>
+                      </div>
+                    </div>
+                    {manageDrawerRfq.supplierFindings && (
+                      <p className="text-slate-300 text-xs">
+                        <strong className="text-slate-400">Ground Sourcing Findings:</strong> {manageDrawerRfq.supplierFindings}
+                      </p>
+                    )}
+                    {manageDrawerRfq.adminNotes && (
+                      <p className="text-slate-300 text-xs">
+                        <strong className="text-slate-400">Quotation Terms:</strong> {manageDrawerRfq.adminNotes}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs">
+                    Pending quote formulation. Use the quote builder below to calculate factory pricing and dispatch quotation to customer.
+                  </div>
+                )}
+              </div>
+
+              {/* Escrow Payment Card */}
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Wallet Payment & Escrow Liability</span>
+                <div className="grid grid-cols-2 gap-2 text-slate-300">
+                  <div>
+                    <span className="text-slate-500 block text-[11px]">Escrow Status:</span>
+                    <span className="font-bold text-white uppercase text-xs">{manageDrawerRfq.paymentStatus || 'unpaid'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block text-[11px]">Paid Amount:</span>
+                    <span className="font-mono font-bold text-emerald-400 text-xs">
+                      {manageDrawerRfq.paidAmount ? `${manageDrawerRfq.paidAmount.toLocaleString()} ${manageDrawerRfq.paidWith}` : 'None'}
+                    </span>
+                  </div>
+                  {manageDrawerRfq.paymentReference && (
+                    <div className="col-span-2">
+                      <span className="text-slate-500 block text-[11px]">Transaction Reference:</span>
+                      <span className="font-mono text-indigo-300 text-xs">{manageDrawerRfq.paymentReference}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Linked Cargo Waybill Card */}
+              {manageDrawerRfq.linkedShipmentCode && (
+                <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-800/60 space-y-2 text-xs">
+                  <div className="flex items-center gap-2 text-indigo-400">
+                    <Truck className="w-4 h-4" />
+                    <span className="font-bold text-xs uppercase tracking-wider">Linked Logistics Cargo Shipment</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-slate-300">
+                    <div>
+                      <span className="text-slate-400 block text-[11px]">Waybill Tracking:</span>
+                      <strong className="font-mono text-white text-xs">{manageDrawerRfq.linkedShipmentCode}</strong>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[11px]">China Local Tracking:</span>
+                      <strong className="font-mono text-white text-xs">{manageDrawerRfq.linkedTrackingCode || 'SF-EXPRESS'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[11px]">Current Status:</span>
+                      <span className="font-bold text-emerald-400 text-xs uppercase">
+                        {manageDrawerRfq.linkedShipmentStatus || 'received_warehouse'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Drawer Action Bar */}
+            <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => {
+                  openQuoteModal(manageDrawerRfq);
+                  setManageDrawerRfq(null);
+                }}
+                className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5"
+              >
+                <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{manageDrawerRfq.quoteAmountUSD ? 'Edit Quotation' : 'Formulate Quote'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  openOpsDrawer(manageDrawerRfq);
+                  setManageDrawerRfq(null);
+                }}
+                className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Update Progress</span>
+              </button>
+
+              {manageDrawerRfq.status !== 'refunded' && manageDrawerRfq.paymentStatus !== 'refunded' && (
+                <button
+                  onClick={() => {
+                    setRefundModalRfq(manageDrawerRfq);
+                    setForceOverride(false);
+                    setManageDrawerRfq(null);
+                  }}
+                  className="py-3 px-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs transition-all flex items-center justify-center gap-1.5"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Cancel / Refund</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== MODAL 6: IMAGE LIGHTBOX PREVIEW ===================== */}
+      {previewImage && (
+        <div 
+          onClick={() => setPreviewImage(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in cursor-zoom-out"
+        >
+          <div className="relative max-w-3xl max-h-[90vh]">
+            <img src={previewImage} alt="Reference Preview" className="max-w-full max-h-[85vh] rounded-2xl object-contain shadow-2xl" />
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {showAddSupplier && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
           <form onSubmit={handleCreateSupplier} className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">

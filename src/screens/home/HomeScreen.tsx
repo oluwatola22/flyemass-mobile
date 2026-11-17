@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { db } from '../../services/db';
@@ -37,17 +37,66 @@ export const HomeScreen: React.FC = () => {
     transactions, 
     shipments, 
     navigate, 
+    prefetchRoute,
     showToast,
-    setIsQuickActionOpen
+    setIsQuickActionOpen,
+    openSwapModal,
+    t
   } = useApp();
 
   const [activeCardIndex, setActiveCardIndex] = useState<number>(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [banners, setBanners] = useState<BannerDocument[]>(() => db.getBanners());
+  const [dbRates, setDbRates] = useState(() => db.getState().system_settings?.rates);
+  const [liveFxDisplay, setLiveFxDisplay] = useState(() => db.getState().system_settings?.live_fx_display);
 
   useEffect(() => {
-    return db.subscribe(() => setBanners(db.getBanners()));
+    return db.subscribe(() => {
+      const nextBanners = db.getBanners();
+      setBanners((prev) => {
+        if (
+          prev.length === nextBanners.length &&
+          prev.every((b, i) => b.id === nextBanners[i]?.id && b.isActive === nextBanners[i]?.isActive && b.imageUrl === nextBanners[i]?.imageUrl)
+        ) {
+          return prev;
+        }
+        return nextBanners;
+      });
+
+      const nextSettings = db.getState().system_settings;
+      const nextRates = nextSettings?.rates;
+      setDbRates((prev: any) => {
+        if (
+          prev &&
+          prev.NGN_CNY === nextRates?.NGN_CNY &&
+          prev.USD_NGN === nextRates?.USD_NGN &&
+          prev.USD_CNY === nextRates?.USD_CNY &&
+          prev.lastUpdated === nextRates?.lastUpdated
+        ) {
+          return prev;
+        }
+        return nextRates ? { ...nextRates } : prev;
+      });
+
+      if (nextSettings?.live_fx_display) {
+        setLiveFxDisplay(nextSettings.live_fx_display);
+      }
+    });
   }, []);
+
+  const liveRatesList = useMemo(() => {
+    const cnyToNgn = Number(dbRates?.CNY_to_NGN || liveFxDisplay?.displayNgnRmb || dbRates?.NGN_CNY || 215.20);
+    const usdToNgn = Number(dbRates?.USD_to_NGN || liveFxDisplay?.displayUsdNgn || dbRates?.USD_NGN || 1490.00);
+    const usdToCny = Number(dbRates?.USD_to_CNY || liveFxDisplay?.displayUsdCny || dbRates?.USD_CNY || 7.26);
+    const ngnToCny = Number(dbRates?.NGN_to_CNY || (1 / (dbRates?.naira_per_rmb || cnyToNgn)));
+    const ngnToUsd = Number(dbRates?.NGN_to_USD || (1 / (dbRates?.naira_per_usd || usdToNgn)));
+    const cnyToUsd = Number(dbRates?.CNY_to_USD || (1 / usdToCny));
+
+    return [
+      { pair: 'RMB ➔ NGN', from: 'CNY' as Currency, to: 'NGN' as Currency, display: `1 RMB = ₦${cnyToNgn.toFixed(2)}`, rate: cnyToNgn, change24h: 0.42, isPositive: true },
+      { pair: 'NGN ➔ RMB', from: 'NGN' as Currency, to: 'CNY' as Currency, display: dbRates?.naira_per_rmb ? `₦${Number(dbRates.naira_per_rmb).toFixed(2)}/RMB` : `1 NGN = ¥${ngnToCny.toFixed(4)}`, rate: ngnToCny, change24h: -0.35, isPositive: false }
+    ];
+  }, [dbRates, liveFxDisplay]);
 
   const defaultWallet: WalletBalance = {
     currency: 'NGN',
@@ -64,10 +113,10 @@ export const HomeScreen: React.FC = () => {
   const activeShipment = shipments?.[0]; // Active air cargo
 
   const quickActions = [
-    { title: 'Fund', desc: 'Add money', icon: ArrowDownLeft, route: 'fund', color: 'from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30' },
-    { title: 'Pay Supplier', desc: 'Alipay / WeChat', icon: Send, route: 'pay', color: 'from-indigo-500/20 to-blue-500/20 text-indigo-400 border-indigo-500/30' },
-    { title: 'FX Swap', desc: 'Live lock', icon: ArrowLeftRight, route: 'exchange', color: 'from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/30' },
-    { title: 'Withdraw', desc: 'Naira NUBAN', icon: ArrowUpRight, route: 'withdraw', color: 'from-teal-500/20 to-cyan-500/20 text-teal-400 border-teal-500/30' },
+    { title: t('action.fund', 'Fund'), desc: 'Instant NGN', icon: ArrowDownLeft, route: 'fund', color: 'from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30' },
+    { title: t('action.pay_supplier', 'Pay Supplier'), desc: 'Direct RMB', icon: Send, route: 'pay', color: 'from-indigo-500/20 to-blue-500/20 text-indigo-400 border-indigo-500/30' },
+    { title: 'FX Swap', desc: 'Live Rates', icon: ArrowLeftRight, route: 'exchange', action: () => openSwapModal(), color: 'from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/30' },
+    { title: t('action.withdraw', 'Withdraw'), desc: 'Naira NUBAN', icon: ArrowUpRight, route: 'withdraw', color: 'from-teal-500/20 to-cyan-500/20 text-teal-400 border-teal-500/30' },
   ];
 
   return (
@@ -75,23 +124,43 @@ export const HomeScreen: React.FC = () => {
       {/* Top Header */}
       <Header />
 
-      {/* Live FX Ticker Marquee */}
-      <div className="bg-slate-900/80 border-y border-slate-800/80 py-2 overflow-hidden flex items-center relative">
-        <div className="px-3 text-[10px] uppercase font-bold text-emerald-400 bg-slate-900/90 z-10 flex items-center gap-1 border-r border-slate-800 shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-          <span>Live FX</span>
+      {/* Sticky Live FX Ticker Marquee directly below top header */}
+      <div className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md border-b border-slate-800/80 py-1.5 overflow-hidden flex items-center relative">
+        {/* Clean Financial Live FX Badge */}
+        <div 
+          onClick={() => openSwapModal()}
+          className="px-3 py-1 text-[10px] uppercase font-bold text-emerald-400 bg-slate-900/95 z-10 flex items-center gap-2 border-r border-slate-800 shrink-0 cursor-pointer hover:bg-slate-800/80 transition-all"
+          title="Open FX Swap"
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <div className="flex flex-col text-left">
+            <span className="font-extrabold text-[10px] text-white tracking-wider">LIVE FX</span>
+            <span className="text-[9px] font-mono text-emerald-400 font-bold">WHOLESALE</span>
+          </div>
         </div>
         
-        <div className="flex overflow-x-auto no-scrollbar py-0.5 whitespace-nowrap animate-marquee">
-          {LIVE_FX_RATES.concat(LIVE_FX_RATES).map((rate, i) => (
+        <div className="flex overflow-x-auto no-scrollbar py-0.5 whitespace-nowrap animate-marquee items-center">
+          {liveFxDisplay?.announcementText && (
+            <div 
+              onClick={() => openSwapModal()}
+              className="inline-flex items-center gap-1.5 mx-3 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-bold cursor-pointer hover:bg-emerald-500/20 transition-all shrink-0"
+            >
+              <span>{liveFxDisplay.announcementText}</span>
+            </div>
+          )}
+          {liveRatesList.concat(liveRatesList).map((rate, i) => (
             <div 
               key={`${rate.pair}-${i}`} 
-              onClick={() => navigate('exchange')}
+              onClick={() => {
+                const from = rate.from;
+                const to = rate.to;
+                openSwapModal(from, to);
+              }}
               className="inline-flex items-center gap-2 mx-4 cursor-pointer hover:opacity-80 transition-opacity"
             >
               <span className="text-xs font-semibold text-slate-300">{rate.pair}</span>
               <span className="text-xs font-extrabold text-white num-tabular">
-                {rate.pair.includes('NGN') ? `₦${rate.rate.toFixed(2)}` : rate.rate.toFixed(3)}
+                {rate.display}
               </span>
               <span className={`text-[10px] font-bold flex items-center ${rate.isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {rate.isPositive ? <TrendingUp className="w-2.5 h-2.5 mr-0.5" /> : <TrendingDown className="w-2.5 h-2.5 mr-0.5" />}
@@ -107,7 +176,7 @@ export const HomeScreen: React.FC = () => {
         <div>
           <div className="flex items-center justify-between mb-2.5 px-1">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Multi-Currency Vaults
+              {t('wallets.multi_currency_vaults', 'Multi-Currency Vaults')}
             </span>
             <div className="flex gap-1.5">
               {(wallets || []).map((w, idx) => (
@@ -143,13 +212,13 @@ export const HomeScreen: React.FC = () => {
               </div>
 
               <span className="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-[10px] font-bold text-emerald-400">
-                ACTIVE
+                {t('wallets.active', 'ACTIVE')}
               </span>
             </div>
 
             {/* Big Balance Display */}
             <div className="mt-5 relative z-10">
-              <span className="text-xs text-slate-400 font-medium">Available Balance</span>
+              <span className="text-xs text-slate-400 font-medium">{t('wallets.available_balance', 'Available Balance')}</span>
               <div className="flex items-baseline gap-1 mt-1">
                 <span className="text-2xl font-bold text-emerald-400">{currentWallet?.symbol ?? '₦'}</span>
                 <span className="text-3xl font-extrabold text-white tracking-tight num-tabular">
@@ -167,7 +236,9 @@ export const HomeScreen: React.FC = () => {
               <p className="text-[11px] text-slate-400 mt-1 num-tabular">
                 ≈ {isBalanceHidden 
                   ? '••••' 
-                  : `$${(currentWallet?.equivalentUSD ?? ((currentWallet?.balance ?? 0) / (currentWallet?.currency === 'CNY' ? 7.24 : currentWallet?.currency === 'NGN' ? 1485 : 1))).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`}
+                  : currentWallet?.currency === 'CNY'
+                  ? `₦${Math.round((currentWallet?.balance ?? 0) * 215.2).toLocaleString()} NGN`
+                  : `¥${((currentWallet?.balance ?? 0) / 215.2).toLocaleString('en-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} RMB`}
               </p>
             </div>
           </div>
@@ -177,13 +248,13 @@ export const HomeScreen: React.FC = () => {
         <div>
           <div className="flex items-center justify-between mb-3 px-1">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Instant Actions
+              {t('wallets.instant_actions', 'Instant Actions')}
             </span>
             <button 
               onClick={() => setIsQuickActionOpen(true)}
               className="text-xs font-semibold text-emerald-400 hover:underline"
             >
-              All Services
+              {t('action.all_services', 'All Services')}
             </button>
           </div>
 
@@ -193,8 +264,11 @@ export const HomeScreen: React.FC = () => {
               return (
                 <button
                   key={act.title}
-                  onClick={() => navigate(act.route as any)}
-                  className="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 active:scale-95 transition-all flex flex-col items-center text-center group"
+                  onClick={() => (act as any).action ? (act as any).action() : navigate((act as any).route)}
+                  onPointerDown={() => (act as any).route && prefetchRoute((act as any).route)}
+                  onTouchStart={() => (act as any).route && prefetchRoute((act as any).route)}
+                  onMouseEnter={() => (act as any).route && prefetchRoute((act as any).route)}
+                  className="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 active:scale-95 transition-all flex flex-col items-center text-center group cursor-pointer touch-manipulation"
                 >
                   <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${act.color} border flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform shadow-md`}>
                     <Icon className="w-4 h-4" />
@@ -220,7 +294,9 @@ export const HomeScreen: React.FC = () => {
               </span>
               <button
                 onClick={() => navigate('track')}
-                className="text-xs font-semibold text-emerald-400 flex items-center gap-0.5 hover:underline"
+                onPointerDown={() => prefetchRoute('track')}
+                onTouchStart={() => prefetchRoute('track')}
+                className="text-xs font-semibold text-emerald-400 flex items-center gap-0.5 hover:underline touch-manipulation"
               >
                 <span>Track Details</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -229,7 +305,10 @@ export const HomeScreen: React.FC = () => {
 
             <div 
               onClick={() => navigate('track')}
-              className="p-4 rounded-3xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer relative overflow-hidden shadow-lg group"
+              onPointerDown={() => prefetchRoute('track')}
+              onTouchStart={() => prefetchRoute('track')}
+              onMouseEnter={() => prefetchRoute('track')}
+              className="p-4 rounded-3xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 active:scale-[0.99] transition-all cursor-pointer relative overflow-hidden shadow-lg group touch-manipulation"
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2.5">

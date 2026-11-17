@@ -13,6 +13,7 @@ import {
   Globe, 
   LogOut, 
   ChevronRight, 
+  ChevronDown,
   Moon, 
   Sun, 
   Smartphone,
@@ -20,7 +21,8 @@ import {
   Share2,
   Edit,
   X,
-  Check
+  Check,
+  Copy
 } from 'lucide-react';
 
 export const ProfileScreen: React.FC = () => {
@@ -34,14 +36,19 @@ export const ProfileScreen: React.FC = () => {
     themeMode,
     toggleTheme,
     isFrameMockup,
-    toggleFrameMockup
+    toggleFrameMockup,
+    language,
+    setLanguage,
+    t
   } = useApp();
-
-  const [language, setLanguage] = useState<'EN' | 'ZH' | 'YO' | 'HA'>('EN');
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
+  const [copiedTag, setCopiedTag] = useState(false);
   const [editName, setEditName] = useState(userProfile.name);
   const [editCompany, setEditCompany] = useState(userProfile.company);
   const [editPhone, setEditPhone] = useState(userProfile.phone);
+
+  const uniqueUserId = (userProfile as any).shippingMark || userProfile.flyeTag || (activeUserId === 'usr_alade_01' ? 'FM-USR-8924' : `FM-USR-${activeUserId.slice(-4).toUpperCase()}`);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,27 +71,26 @@ export const ProfileScreen: React.FC = () => {
 
   const menuSections = [
     {
-      title: 'Security & Hardware Enclave',
+      title: t('profile.security_section', 'Security & Hardware Enclave'),
       items: [
-        { title: 'Security Settings & PIN', desc: 'Manage 4-digit PIN, 2FA & sessions', icon: Lock, route: 'security', color: 'text-indigo-400 bg-indigo-500/10' },
-        { title: 'Device Migration & Biometrics', desc: 'Re-bind hardware terminal keys', icon: Smartphone, route: 'switch-device', color: 'text-cyan-400 bg-cyan-500/10' },
-        { title: 'KYC & Trade Compliance', desc: 'CAC RC-1849204 • Tier 3 Exporter', icon: ShieldCheck, route: 'profile', color: 'text-emerald-400 bg-emerald-500/10' }
+        { title: t('profile.security_pin', 'Security Settings & PIN'), desc: 'Manage 4-digit PIN, 2FA & sessions', icon: Lock, route: 'security', color: 'text-indigo-400 bg-indigo-500/10' },
+        { title: t('profile.device_migration', 'Device Migration & Biometrics'), desc: 'Re-bind hardware terminal keys', icon: Smartphone, route: 'switch-device', color: 'text-cyan-400 bg-cyan-500/10' }
       ]
     },
     {
-      title: 'Concierge & Trade Support',
+      title: t('profile.concierge_section', 'Concierge & Trade Support'),
       items: [
-        { title: 'FlyeMass Live Concierge', desc: 'Guangzhou & Lagos active trade desks', icon: Headphones, route: 'support-chat', color: 'text-emerald-400 bg-emerald-500/10' },
-        { title: 'Support Tickets Desk', desc: 'Air waybills, customs disputes & Form M', icon: FileText, route: 'support-tickets', color: 'text-cyan-400 bg-cyan-500/10' },
-        { title: 'Help Center & Trade FAQs', desc: 'Import guidelines, customs & clearing', icon: FileText, route: 'support', color: 'text-amber-400 bg-amber-500/10' }
+        { title: t('profile.live_concierge', 'FlyeMass Live Concierge'), desc: 'Guangzhou & Lagos active trade desks', icon: Headphones, route: 'support-chat', color: 'text-emerald-400 bg-emerald-500/10' },
+        { title: t('profile.tickets_desk', 'Support Tickets Desk'), desc: 'Air waybills, customs disputes & Form M', icon: FileText, route: 'support-tickets', color: 'text-cyan-400 bg-cyan-500/10' },
+        { title: t('profile.help_center', 'Help Center & Trade FAQs'), desc: 'Import guidelines, customs & clearing', icon: FileText, route: 'support', color: 'text-amber-400 bg-amber-500/10' }
       ]
     },
     {
-      title: 'Legal, Compliance & Governance',
+      title: t('profile.legal_section', 'Legal, Compliance & Governance'),
       items: [
-        { title: 'Terms of Trade Service', desc: 'Cross-border escrow and logistics rules', icon: FileText, route: 'terms', color: 'text-slate-400 bg-slate-800' },
-        { title: 'Privacy Policy & NDPR', desc: 'Nigeria Data Protection Regulation', icon: ShieldCheck, route: 'privacy', color: 'text-slate-400 bg-slate-800' },
-        { title: 'Account Deletion Request', desc: 'Store compliant data purge protocol', icon: LogOut, route: 'delete-account', color: 'text-rose-400 bg-rose-500/10' }
+        { title: t('profile.terms', 'Terms of Trade Service'), desc: 'Cross-border escrow and logistics rules', icon: FileText, route: 'terms', color: 'text-slate-400 bg-slate-800' },
+        { title: t('profile.privacy', 'Privacy Policy & NDPR'), desc: 'Nigeria Data Protection Regulation', icon: ShieldCheck, route: 'privacy', color: 'text-slate-400 bg-slate-800' },
+        { title: t('profile.delete_account', 'Account Deletion Request'), desc: 'Store compliant data purge protocol', icon: LogOut, route: 'delete-account', color: 'text-rose-400 bg-rose-500/10' }
       ]
     }
   ];
@@ -133,14 +139,51 @@ export const ProfileScreen: React.FC = () => {
 
           <div className="mt-4 pt-3 border-t border-slate-800/80 grid grid-cols-2 gap-2 text-xs">
             <div>
-              <span className="text-[10px] text-slate-500 block">FlyeTag Username</span>
-              <span className="font-mono font-bold text-slate-200">{userProfile.flyeTag}</span>
+              <span className="text-[10px] text-slate-500 block">Unique User ID / FlyeTag</span>
+              <span className="font-mono font-bold text-emerald-400">{uniqueUserId}</span>
             </div>
             <div>
               <span className="text-[10px] text-slate-500 block">Contact Phone</span>
               <span className="font-mono font-bold text-slate-200">{userProfile.phone}</span>
             </div>
           </div>
+        </div>
+
+        {/* Unique User ID / FlyeTag & Official Shipping Mark Card */}
+        <div className="p-4 rounded-3xl bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-950 border border-indigo-500/30 shadow-xl space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              Unique Shipping ID / FlyeTag
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-bold">
+              Official Shipping Mark
+            </span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-slate-950/90 border border-slate-800 flex items-center justify-between gap-2">
+            <div className="overflow-hidden">
+              <span className="text-[9px] text-slate-400 block font-sans">UNIQUE ID (MARK ON ALL CARTONS):</span>
+              <p className="font-mono text-sm font-black text-emerald-400 tracking-wider truncate">
+                {uniqueUserId}
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard?.writeText(uniqueUserId);
+                setCopiedTag(true);
+                setTimeout(() => setCopiedTag(false), 2000);
+                showToast(`Unique Shipping ID copied: ${uniqueUserId}`, 'success');
+              }}
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-1.5 hover:bg-emerald-500/25 active:scale-95 transition-all shrink-0 cursor-pointer shadow-sm"
+            >
+              {copiedTag ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedTag ? 'Copied' : 'Copy ID'}</span>
+            </button>
+          </div>
+          <p className="text-[10px] text-slate-400 leading-tight">
+            Use this automated ID on all warehouse shipments. China dock personnel scan this ID to instantly route packages to your FlyeMass account.
+          </p>
         </div>
 
         {/* Display & Layout Controls Card */}
@@ -171,27 +214,40 @@ export const ProfileScreen: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex items-center justify-between border-t border-slate-800/80 pt-3">
+          {/* Trade Language iOS-Style Selector Row */}
+          <div 
+            onClick={() => setShowLanguagePicker(true)}
+            className="flex items-center justify-between border-t border-slate-800/80 pt-3 cursor-pointer group select-none transition-colors hover:bg-slate-800/20 -mx-1 px-1 rounded-xl"
+          >
             <div className="flex items-center gap-2.5">
-              <Globe className="w-4 h-4 text-cyan-400" />
+              <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:scale-105 transition-transform">
+                <Globe className="w-4 h-4" />
+              </div>
               <div>
-                <p className="text-xs font-bold text-white">Trade Language</p>
-                <p className="text-[10px] text-slate-400">English, Chinese, Yoruba, Hausa</p>
+                <p className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">
+                  {t('profile.trade_language', 'Trade Language')}
+                </p>
+                <p className="text-[10px] text-slate-400">
+                  {t('profile.language_subtitle', 'English (Primary), French (Français)')}
+                </p>
               </div>
             </div>
-            <div className="flex gap-1">
-              {(['EN', 'ZH', 'YO'] as const).map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => setLanguage(lang)}
-                  className={`px-2 py-1 rounded-lg text-[10px] font-bold ${
-                    language === lang ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400'
-                  }`}
-                >
-                  {lang === 'EN' ? 'English' : lang === 'ZH' ? '中文' : 'Yorùbá'}
-                </button>
-              ))}
-            </div>
+
+            {/* Dropdown / Chevron Trigger showing active language */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowLanguagePicker(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700/60 hover:border-emerald-500/40 transition-all cursor-pointer shadow-sm group-hover:border-slate-600"
+              aria-label="Select Trade Language"
+            >
+              <span className="text-xs font-bold text-emerald-400">
+                {language === 'FR' ? 'Français' : 'English (Primary)'}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-colors" />
+            </button>
           </div>
         </div>
 
@@ -207,7 +263,13 @@ export const ProfileScreen: React.FC = () => {
               return (
                 <div
                   key={item.title}
-                  onClick={() => navigate(item.route as any)}
+                  onClick={() => {
+                    if ((item as any).action) {
+                      (item as any).action();
+                    } else if ((item as any).route) {
+                      navigate((item as any).route);
+                    }
+                  }}
                   className="p-3 rounded-2xl bg-slate-950/60 hover:bg-slate-950 border border-slate-800/70 hover:border-slate-700 transition-all cursor-pointer flex items-center justify-between group"
                 >
                   <div className="flex items-center gap-3">
@@ -294,6 +356,126 @@ export const ProfileScreen: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {/* Trade Language Selection Modal / Minimalist Bottom Sheet */}
+        {showLanguagePicker && (
+          <div 
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in p-0 sm:p-4"
+            onClick={() => setShowLanguagePicker(false)}
+          >
+            <div 
+              className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-4 animate-in slide-in-from-bottom duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* iOS-Style Top Pull Handle on Mobile */}
+              <div className="w-10 h-1 bg-slate-700/80 rounded-full mx-auto sm:hidden" />
+
+              {/* Modal Header */}
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                    <Globe className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-white">
+                      {t('profile.trade_language', 'Trade Language')}
+                    </h3>
+                    <p className="text-[10px] text-slate-400">
+                      {language === 'FR' ? 'Choisir la langue d\'affichage' : 'Choose interface display language'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowLanguagePicker(false)}
+                  className="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  aria-label="Close"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Language Options List */}
+              <div className="space-y-2.5">
+                {[
+                  {
+                    id: 'EN' as const,
+                    name: 'English (Primary)',
+                    nativeLabel: 'English',
+                    description: 'Default language for global trade & logistics'
+                  },
+                  {
+                    id: 'FR' as const,
+                    name: 'Français (French)',
+                    nativeLabel: 'Français',
+                    description: 'Langue officielle pour le commerce et la facturation'
+                  }
+                ].map((option) => {
+                  const isSelected = language === option.id;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => {
+                        setLanguage(option.id);
+                        setShowLanguagePicker(false);
+                        showToast(
+                          option.id === 'FR' 
+                            ? 'Langue modifiée avec succès : Français' 
+                            : 'Trade language updated successfully: English',
+                          'success'
+                        );
+                      }}
+                      className={`w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all text-left cursor-pointer ${
+                        isSelected
+                          ? 'bg-emerald-500/10 border-emerald-500/50 shadow-md shadow-emerald-500/10 ring-1 ring-emerald-500/30'
+                          : 'bg-slate-950/70 hover:bg-slate-800/80 border-slate-800 text-slate-300'
+                      }`}
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-slate-200'}`}>
+                            {option.name}
+                          </span>
+                          {isSelected && (
+                            <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[9px] font-extrabold uppercase tracking-wider">
+                              Active
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-slate-400">
+                          {option.description}
+                        </p>
+                      </div>
+
+                      {/* Crisp Checkmark / Radio Indicator */}
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all shrink-0 ml-3 ${
+                        isSelected 
+                          ? 'bg-emerald-500 text-slate-950 shadow-sm' 
+                          : 'border border-slate-700 bg-slate-900'
+                      }`}>
+                        {isSelected ? (
+                          <Check className="w-3 h-3 stroke-[3]" />
+                        ) : (
+                          <div className="w-1.5 h-1.5 rounded-full bg-transparent" />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Instant Application Subtext */}
+              <div className="p-2.5 rounded-xl bg-slate-950/50 border border-slate-800/60 text-center">
+                <p className="text-[10px] text-slate-400">
+                  {language === 'FR' 
+                    ? '⚡ La mise à jour s\'applique instantanément sans recharger la page.' 
+                    : '⚡ Changes apply instantly across all screens without reloading.'}
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </div>

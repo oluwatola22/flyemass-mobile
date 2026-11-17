@@ -74,8 +74,8 @@ export const VerifyEmailScreen: React.FC = () => {
   return (
     <div className="min-h-full flex flex-col justify-between p-6 bg-slate-950 text-white">
       <div>
-        {/* Header */}
-        <div className="flex items-center justify-between pt-2 mb-8">
+        {/* Sticky Header */}
+        <div className="sticky top-0 z-30 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80 -mx-6 px-6 py-3 mb-8 flex items-center justify-between safe-top shrink-0">
           <button
             onClick={() => navigate('signup')}
             className="w-10 h-10 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-95"

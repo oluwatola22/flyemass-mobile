@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { getAdminAppUrl } from '../../utils/environment';
 import { BottomNav } from './BottomNav';
+import { Header } from './Header';
+import { HeaderContext } from './HeaderContext';
+import { ScreenErrorBoundary } from '../ui/ScreenErrorBoundary';
 import { QuickActionSheet } from '../ui/QuickActionSheet';
+import { CurrencySwapModal } from '../wallet/CurrencySwapModal';
 import { Toast } from '../ui/Toast';
 import { 
   Wifi, 
@@ -75,6 +78,24 @@ import { SupportChatScreen } from '../../screens/profile/SupportChatScreen';
 import { SupportTicketsScreen } from '../../screens/profile/SupportTicketsScreen';
 import { TermsScreen, PrivacyScreen, DeleteAccountScreen } from '../../screens/profile/LegalScreens';
 
+const PRIMARY_TABS: ScreenRoute[] = ['home', 'wallets', 'logistics', 'shop', 'profile'];
+const PREWARMED_ROUTES: ScreenRoute[] = [
+  'home',
+  'wallets',
+  'logistics',
+  'shop',
+  'profile'
+];
+const AUTH_ROUTES: ScreenRoute[] = [
+  'welcome',
+  'login',
+  'signup',
+  'reset-password',
+  'verify-email',
+  'setup-pin',
+  'switch-device'
+];
+
 export const MobileShell: React.FC = () => {
   const { 
     currentRoute, 
@@ -91,6 +112,83 @@ export const MobileShell: React.FC = () => {
     const d = new Date();
     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   });
+
+  // Aggressive instant route cache & keep-alive registry (visitedTabs tracking)
+  const [cachedRoutes, setCachedRoutes] = useState<Set<ScreenRoute>>(() => {
+    const set = new Set<ScreenRoute>(PREWARMED_ROUTES);
+    if (!AUTH_ROUTES.includes(currentRoute)) {
+      set.add(currentRoute);
+    }
+    return set;
+  });
+  const visitedTabs = cachedRoutes;
+
+  // Ensure active screen is synchronously present in the render set without a 1-tick delay
+  const activeCachedRoutes = React.useMemo(() => {
+    const set = new Set(cachedRoutes);
+    if (!PRIMARY_TABS.includes(currentRoute) && !AUTH_ROUTES.includes(currentRoute)) {
+      set.add(currentRoute);
+    }
+    return Array.from(set);
+  }, [cachedRoutes, currentRoute]);
+
+  const mainScrollRef = React.useRef<HTMLElement>(null);
+  const scrollPositions = React.useRef<Record<string, number>>({});
+  const isSwitchingRouteRef = React.useRef(false);
+
+  useEffect(() => {
+    if (!AUTH_ROUTES.includes(currentRoute)) {
+      setCachedRoutes((prev) => {
+        if (prev.has(currentRoute)) return prev;
+        const next = new Set(prev);
+        next.add(currentRoute);
+        return next;
+      });
+    }
+
+    isSwitchingRouteRef.current = true;
+    if (mainScrollRef.current) {
+      const targetY = scrollPositions.current[currentRoute] || 0;
+      mainScrollRef.current.scrollTop = targetY;
+    }
+
+    const timer = requestAnimationFrame(() => {
+      isSwitchingRouteRef.current = false;
+    });
+    return () => cancelAnimationFrame(timer);
+  }, [currentRoute]);
+
+  // Listen for route prefetch events from touch/pointer down triggers
+  useEffect(() => {
+    const handlePrefetch = (e: Event) => {
+      const customEvent = e as CustomEvent<{ route: ScreenRoute }>;
+      if (customEvent.detail && customEvent.detail.route) {
+        const r = customEvent.detail.route;
+        if (!AUTH_ROUTES.includes(r)) {
+          setCachedRoutes((prev) => {
+            if (prev.has(r)) return prev;
+            const next = new Set(prev);
+            next.add(r);
+            return next;
+          });
+        }
+      }
+    };
+    window.addEventListener('flyemass:prefetch-route', handlePrefetch);
+    return () => window.removeEventListener('flyemass:prefetch-route', handlePrefetch);
+  }, []);
+
+  // Listen for global navigate-home events from error boundaries
+  useEffect(() => {
+    const onNavHome = () => navigate('home');
+    window.addEventListener('flyemass:navigate-home', onNavHome);
+    return () => window.removeEventListener('flyemass:navigate-home', onNavHome);
+  }, [navigate]);
+
+  const handleScroll = (e: React.UIEvent<HTMLElement>) => {
+    if (isSwitchingRouteRef.current) return;
+    scrollPositions.current[currentRoute] = e.currentTarget.scrollTop;
+  };
 
   useEffect(() => {
     const handleOnline = () => {
@@ -117,8 +215,8 @@ export const MobileShell: React.FC = () => {
     };
   }, [showToast]);
 
-  const renderCurrentScreen = () => {
-    switch (currentRoute) {
+  const renderScreenByRoute = (route: ScreenRoute) => {
+    switch (route) {
       // 1. Auth & Security
       case 'welcome': return <WelcomeScreen />;
       case 'login': return <LoginScreen />;
@@ -129,24 +227,20 @@ export const MobileShell: React.FC = () => {
       case 'switch-device': return <SwitchDeviceScreen />;
 
       // 2. Core App Hub & Dashboard
-      case 'home': return <HomeScreen />;
       case 'history': return <HistoryScreen />;
       case 'notifications': return <NotificationsScreen />;
 
       // 3. Banking & Money Flows
-      case 'wallets': return <WalletsScreen />;
       case 'fund': return <FundWalletScreen />;
       case 'pay': return <PaySupplierScreen />;
       case 'exchange': return <ExchangeScreen />;
       case 'withdraw': return <WithdrawScreen />;
 
       // 4. Logistics & Cargo Tracking
-      case 'logistics': return <LogisticsScreen />;
       case 'track': return <TrackShipmentScreen />;
       case 'register-package': return <RegisterPackageScreen />;
 
       // 5. Apple & Tech Gadget Shop
-      case 'shop': return <ShopScreen />;
       case 'product-detail': return <ProductDetailScreen />;
       case 'cart': return <CartScreen />;
       case 'checkout': return <CheckoutScreen />;
@@ -168,7 +262,6 @@ export const MobileShell: React.FC = () => {
       case 'rentals-offices': return <OfficeRentalsScreen />;
 
       // 8. Profile, Security & Support
-      case 'profile': return <ProfileScreen />;
       case 'security': return <SecurityScreen />;
       case 'support': return <SupportScreen />;
       case 'support-chat': return <SupportChatScreen />;
@@ -179,7 +272,7 @@ export const MobileShell: React.FC = () => {
       case 'privacy': return <PrivacyScreen />;
       case 'delete-account': return <DeleteAccountScreen />;
 
-      default: return <HomeScreen />;
+      default: return null;
     }
   };
 
@@ -251,9 +344,9 @@ export const MobileShell: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-slate-950 flex flex-col items-center justify-start text-slate-100 ${themeMode === 'light' ? 'light-mode' : ''}`}>
-      {/* Top Reviewer Bar / Route Switcher */}
-      <div className="w-full bg-slate-900/90 backdrop-blur-xl border-b border-slate-800 px-4 py-2.5 z-50 flex items-center justify-between text-xs gap-3">
+    <div className={`w-full h-full h-screen h-dvh fixed inset-0 flex flex-col items-center justify-start bg-slate-950 text-slate-100 overflow-hidden select-none ${themeMode === 'light' ? 'light-mode' : ''}`}>
+      {/* Top Reviewer Bar / Route Switcher (Visible on desktop/tablet for dev testing) */}
+      <div className="hidden sm:flex w-full bg-slate-900/90 backdrop-blur-xl border-b border-slate-800 px-4 py-2.5 z-50 items-center justify-between text-xs gap-3 shrink-0">
         {/* Brand */}
         <div 
           onClick={() => navigate('home')}
@@ -307,55 +400,135 @@ export const MobileShell: React.FC = () => {
       </div>
 
       {/* Main Viewport Container */}
-      <div className={`w-full flex-1 flex items-center justify-center p-0 ${isFrameMockup ? 'sm:py-6 sm:px-4' : ''}`}>
+      <div className={`w-full flex-1 min-h-0 flex items-center justify-center overflow-hidden p-0 ${isFrameMockup ? 'sm:py-6 sm:px-4' : ''}`}>
         <div
-          className={`w-full transition-all duration-300 relative flex flex-col ${
+          className={`w-full h-full relative flex flex-col ${
             isFrameMockup
-              ? 'max-w-[400px] h-[852px] bg-slate-950 rounded-[50px] ring-[10px] ring-slate-850 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_50px_rgba(16,185,129,0.15)] overflow-hidden border border-slate-750'
-              : 'max-w-md min-h-screen bg-slate-950 shadow-2xl'
+              ? 'max-w-[400px] max-h-[852px] sm:h-[min(852px,calc(100vh-80px))] bg-slate-950 sm:rounded-[44px] sm:ring-[8px] sm:ring-slate-800 shadow-2xl overflow-hidden sm:border sm:border-slate-700'
+              : 'max-w-md w-full h-full bg-slate-950 shadow-2xl overflow-hidden'
           }`}
         >
-          {/* iOS Status Bar & Dynamic Island (when frame mockup enabled) */}
-          <div className="sticky top-0 z-40 bg-slate-950 pt-3 pb-2 px-6 flex items-center justify-between select-none">
-            {/* Left: Clock */}
-            <span className="text-xs font-semibold text-white num-tabular tracking-tight">
-              {currentTime}
-            </span>
+          {/* iOS Status Bar & Dynamic Island (only when frame mockup bezel is enabled) */}
+          {isFrameMockup && (
+            <div className="sticky top-0 z-40 bg-slate-950 pt-3 pb-2 px-6 flex items-center justify-between select-none shrink-0">
+              {/* Left: Clock */}
+              <span className="text-xs font-semibold text-white num-tabular tracking-tight">
+                {currentTime}
+              </span>
 
-            {/* Dynamic Island Notch */}
-            {isFrameMockup && (
+              {/* Dynamic Island Notch */}
               <div className="w-24 h-6 rounded-full bg-black border border-slate-800/60 flex items-center justify-between px-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700" />
                 <span className="w-2 h-2 rounded-full bg-emerald-500/80 animate-pulse" />
               </div>
-            )}
 
-            {/* Right: Icons (Signal, Wifi, Battery) */}
-            <div className="flex items-center gap-1.5 text-white">
-              <Signal className="w-3.5 h-3.5" />
-              {isOnline ? (
-                <Wifi className="w-3.5 h-3.5 text-emerald-400" />
-              ) : (
-                <WifiOff className="w-3.5 h-3.5 text-amber-400" />
-              )}
-              <div className="flex items-center gap-0.5">
-                <span className="text-[10px] font-mono font-bold">98%</span>
-                <Battery className="w-4 h-4 text-emerald-400" />
+              {/* Right: Icons (Signal, Wifi, Battery) */}
+              <div className="flex items-center gap-1.5 text-white">
+                <Signal className="w-3.5 h-3.5" />
+                {isOnline ? (
+                  <Wifi className="w-3.5 h-3.5 text-emerald-400" />
+                ) : (
+                  <WifiOff className="w-3.5 h-3.5 text-amber-400" />
+                )}
+                <div className="flex items-center gap-0.5">
+                  <span className="text-[10px] font-mono font-bold">98%</span>
+                  <Battery className="w-4 h-4 text-emerald-400" />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Network Offline Status Banner */}
           {!isOnline && (
-            <div className="bg-amber-500/20 border-b border-amber-500/40 px-3 py-1 flex items-center justify-center gap-1.5 text-[11px] font-bold text-amber-300 animate-pulse">
+            <div className="bg-amber-500/20 border-b border-amber-500/40 px-3 py-1 flex items-center justify-center gap-1.5 text-[11px] font-bold text-amber-300 animate-pulse shrink-0">
               <WifiOff className="w-3.5 h-3.5 shrink-0" />
               <span>Offline Mode — Changes queued locally</span>
             </div>
           )}
 
-          {/* Active Screen View */}
-          <main className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
-            {renderCurrentScreen()}
+          {/* Hoisted Top Sticky Header — Permanently fixed outside of the scrolling main view */}
+          {!AUTH_ROUTES.includes(currentRoute) && (
+            <div className="w-full shrink-0 z-40">
+              <Header />
+            </div>
+          )}
+
+          {/* Active Screen View with Instant Route Cache & Keep-Alive */}
+          <main 
+            ref={mainScrollRef} 
+            onScroll={handleScroll}
+            className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col min-h-0 momentum-scroll w-full will-change-scroll"
+          >
+            <HeaderContext.Provider value={true}>
+              {/* Primary 5 Tabs (Pre-mounted & permanently cached for 0ms transitions) */}
+              <div 
+                style={{ display: currentRoute === 'home' ? 'contents' : 'none' }}
+                className="w-full flex-1 flex-col min-h-full"
+              >
+                <ScreenErrorBoundary screenName="Home">
+                  <HomeScreen />
+                </ScreenErrorBoundary>
+              </div>
+              <div 
+                style={{ display: currentRoute === 'wallets' ? 'contents' : 'none' }}
+                className="w-full flex-1 flex-col min-h-full"
+              >
+                <ScreenErrorBoundary screenName="Wallets">
+                  <WalletsScreen />
+                </ScreenErrorBoundary>
+              </div>
+              <div 
+                style={{ display: currentRoute === 'logistics' ? 'contents' : 'none' }}
+                className="w-full flex-1 flex-col min-h-full"
+              >
+                <ScreenErrorBoundary screenName="Logistics">
+                  <LogisticsScreen />
+                </ScreenErrorBoundary>
+              </div>
+              <div 
+                style={{ display: currentRoute === 'shop' ? 'contents' : 'none' }}
+                className="w-full flex-1 flex-col min-h-full"
+              >
+                <ScreenErrorBoundary screenName="Shop">
+                  <ShopScreen />
+                </ScreenErrorBoundary>
+              </div>
+              <div 
+                style={{ display: currentRoute === 'profile' ? 'contents' : 'none' }}
+                className="w-full flex-1 flex-col min-h-full"
+              >
+                <ScreenErrorBoundary screenName="Profile">
+                  <ProfileScreen />
+                </ScreenErrorBoundary>
+              </div>
+
+              {/* Cached & Keep-Alive Secondary Screens (Rendered once, preserved for instant re-entry) */}
+              {activeCachedRoutes.map((route) => {
+                if (PRIMARY_TABS.includes(route) || AUTH_ROUTES.includes(route)) return null;
+                const isCurrent = currentRoute === route;
+                return (
+                  <div 
+                    key={route} 
+                    style={{ display: isCurrent ? 'flex' : 'none' }}
+                    className="w-full flex-1 flex-col min-h-full"
+                    aria-hidden={!isCurrent}
+                  >
+                    <ScreenErrorBoundary screenName={route}>
+                      {renderScreenByRoute(route)}
+                    </ScreenErrorBoundary>
+                  </div>
+                );
+              })}
+
+              {/* Auth Screens (Rendered directly on-demand during login/signup flows) */}
+              {AUTH_ROUTES.includes(currentRoute) && (
+                <div className="w-full flex-1 flex flex-col min-h-full">
+                  <ScreenErrorBoundary screenName={currentRoute}>
+                    {renderScreenByRoute(currentRoute)}
+                  </ScreenErrorBoundary>
+                </div>
+              )}
+            </HeaderContext.Provider>
           </main>
 
           {/* Bottom Tab Bar */}
@@ -369,6 +542,7 @@ export const MobileShell: React.FC = () => {
           )}
 
           {/* Global Modals & Toasts */}
+          <CurrencySwapModal />
           <QuickActionSheet />
           <Toast />
         </div>

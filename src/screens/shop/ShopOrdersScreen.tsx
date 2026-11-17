@@ -26,7 +26,16 @@ export const ShopOrdersScreen: React.FC = () => {
 
   useEffect(() => {
     return db.subscribe(() => {
-      setAllDbOrders(Object.values(db.getState().shop_orders || {}).sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0)));
+      const nextOrders = Object.values(db.getState().shop_orders || {}).sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+      setAllDbOrders((prev) => {
+        if (
+          prev.length === nextOrders.length &&
+          prev.every((o, i) => o.id === nextOrders[i]?.id && (o.fulfillmentStatus || o.status) === (nextOrders[i]?.fulfillmentStatus || nextOrders[i]?.status))
+        ) {
+          return prev;
+        }
+        return nextOrders;
+      });
     });
   }, []);
 

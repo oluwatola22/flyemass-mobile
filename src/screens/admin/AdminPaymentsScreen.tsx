@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { db, DatabaseState } from '../../services/db';
 import { firebaseSync } from '../../services/firebase';
-import { SupplierPaymentDocument, WithdrawalDocument } from '../../types';
+import { SupplierPaymentDocument, WithdrawalDocument, ManualPaymentDocument } from '../../types';
 import { getBackendBaseUrl } from '../../utils/environment';
 import { 
   CreditCard, 
@@ -27,15 +27,28 @@ import {
   RefreshCw,
   Eye,
   AlertCircle,
-  QrCode
+  QrCode,
+  Zap
 } from 'lucide-react';
 
 export const AdminPaymentsScreen: React.FC = () => {
   const { showToast } = useApp();
-  const [dbState, setDbState] = useState<DatabaseState>(db.getState());
-  const [activeTab, setActiveTab] = useState<'supplier' | 'withdrawals' | 'ledger' | 'reconciliation' | 'rates' | 'gateways'>('supplier');
+  const [, setDbRev] = useState(() => db.getStateRevision());
+  const dbState = db.getState();
+  const [activeTab, setActiveTab] = useState<'deposits' | 'supplier' | 'withdrawals' | 'ledger' | 'reconciliation' | 'rates' | 'gateways'>('deposits');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'processing' | 'disbursed' | 'rejected'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Manual Customer Deposits filtering & Drawer
+  const [depositStatusFilter, setDepositStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [depositCurrencyFilter, setDepositCurrencyFilter] = useState<'all' | 'NGN' | 'USD' | 'CNY'>('all');
+  const [depositSearchQuery, setDepositSearchQuery] = useState('');
+  const [reviewDrawerDeposit, setReviewDrawerDeposit] = useState<ManualPaymentDocument | null>(null);
+  const [depositInternalNotes, setDepositInternalNotes] = useState('');
+  const [rejectDepositModal, setRejectDepositModal] = useState<ManualPaymentDocument | null>(null);
+  const [depositRejectReason, setDepositRejectReason] = useState('Payment receipt could not be reconciled with corporate bank statement');
+  const [isProcessingDeposit, setIsProcessingDeposit] = useState(false);
+  const [proofPreviewModalUrl, setProofPreviewModalUrl] = useState<string | null>(null);
   
   // Naira withdrawals filtering
   const [withdrawalStatusFilter, setWithdrawalStatusFilter] = useState<'all' | 'pending' | 'processing' | 'approved' | 'rejected'>('all');
@@ -65,6 +78,13 @@ export const AdminPaymentsScreen: React.FC = () => {
   // Payout confirmation modal state
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalDocument | null>(null);
   const [transferRefInput, setTransferRefInput] = useState('');
+  const [wthPayoutMode, setWthPayoutMode] = useState<'gateway' | 'manual'>('gateway');
+  const [wthGatewayProvider, setWthGatewayProvider] = useState('Providus NIP Instant Switch');
+  const [wthGatewaySessionRef, setWthGatewaySessionRef] = useState('');
+  const [wthManualTransferRef, setWthManualTransferRef] = useState('');
+  const [wthPaymentProofUrl, setWthPaymentProofUrl] = useState('');
+  const [wthAdminNotes, setWthAdminNotes] = useState('');
+  const [isSubmittingWthPayout, setIsSubmittingWthPayout] = useState(false);
 
   // Supplier Disbursement Evidence Modal state (Phase 3 Requirement)
   const [disburseModalPayment, setDisburseModalPayment] = useState<SupplierPaymentDocument | null>(null);
@@ -81,7 +101,7 @@ export const AdminPaymentsScreen: React.FC = () => {
   const [isSimulating, setIsSimulating] = useState(false);
 
   useEffect(() => {
-    return db.subscribe(() => setDbState({ ...db.getState() }));
+    return db.subscribe(() => setDbRev(db.getStateRevision()));
   }, []);
 
   const paymentsList = Object.values(dbState.supplier_payments || {}).filter((p) => {
@@ -119,6 +139,68 @@ export const AdminPaymentsScreen: React.FC = () => {
     return matchesStatus && matchesSearch;
   }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
+  // Manual Customer Deposits metrics & filtering
+  const manualPayments: ManualPaymentDocument[] = Object.values(dbState.manual_payments || {}).sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+  const pendingDeposits = manualPayments.filter(p => p.status === 'pending');
+  const pendingVolumeNGN = pendingDeposits.filter(p => p.currency === 'NGN').reduce((acc, p) => acc + (p.amount || 0), 0);
+  const pendingVolumeUSD = pendingDeposits.filter(p => p.currency === 'USD').reduce((acc, p) => acc + (p.amount || 0), 0);
+  const pendingVolumeCNY = pendingDeposits.filter(p => p.currency === 'CNY').reduce((acc, p) => acc + (p.amount || 0), 0);
+  const approvedDepositsCount = manualPayments.filter(p => p.status === 'approved' || p.status === 'completed').length;
+  const rejectedDepositsCount = manualPayments.filter(p => p.status === 'rejected' || p.status === 'failed').length;
+
+  const filteredDeposits = manualPayments.filter((p) => {
+    if (depositStatusFilter !== 'all' && p.status !== depositStatusFilter) return false;
+    if (depositCurrencyFilter !== 'all' && p.currency !== depositCurrencyFilter) return false;
+    if (depositSearchQuery.trim()) {
+      const q = depositSearchQuery.toLowerCase();
+      const ref = (p.reference || p.id).toLowerCase();
+      const name = (p.customerName || '').toLowerCase();
+      const email = (p.customerEmail || '').toLowerCase();
+      const phone = (p.customerPhone || '').toLowerCase();
+      const sender = (p.senderName || '').toLowerCase();
+      const bank = (p.originatingBank || '').toLowerCase();
+      if (!ref.includes(q) && !name.includes(q) && !email.includes(q) && !phone.includes(q) && !sender.includes(q) && !bank.includes(q)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  const handleApproveDeposit = async (paymentId: string) => {
+    setIsProcessingDeposit(true);
+    try {
+      const res = await db.approveManualPayment(paymentId, depositInternalNotes, 'adm-001');
+      showToast(`Deposit approved! ${res.payment.currency} ${res.payment.amount.toLocaleString()} credited to customer wallet.`, 'success');
+      setReviewDrawerDeposit(null);
+      setDepositInternalNotes('');
+      setDbRev(db.getStateRevision());
+    } catch (err: any) {
+      showToast(err.message || 'Failed to approve deposit', 'error');
+    } finally {
+      setIsProcessingDeposit(false);
+    }
+  };
+
+  const handleRejectDeposit = async () => {
+    if (!rejectDepositModal) return;
+    if (!depositRejectReason || depositRejectReason.trim().length < 5) {
+      showToast('Rejection reason must be at least 5 characters', 'error');
+      return;
+    }
+    setIsProcessingDeposit(true);
+    try {
+      await db.rejectManualPayment(rejectDepositModal.id, depositRejectReason.trim(), 'adm-001');
+      showToast(`Deposit #${rejectDepositModal.reference} rejected. No wallet deduction or credit occurred.`, 'info');
+      setRejectDepositModal(null);
+      setReviewDrawerDeposit(null);
+      setDbRev(db.getStateRevision());
+    } catch (err: any) {
+      showToast(err.message || 'Failed to reject deposit', 'error');
+    } finally {
+      setIsProcessingDeposit(false);
+    }
+  };
+
   const webhookEvents = dbState.webhook_events || db.getWebhookEvents();
 
   const handleSimulateWebhook = async (e: React.FormEvent) => {
@@ -128,7 +210,7 @@ export const AdminPaymentsScreen: React.FC = () => {
       const res = await db.simulateWebhook(simProvider, parseFloat(simAmount) || 100000, simUserId, 'adm-001');
       showToast(`Sandbox ${simProvider.toUpperCase()} webhook processed! ₦${(parseFloat(simAmount) || 100000).toLocaleString()} credited with double-entry. Ref: ${res.reference}`, 'success');
       setShowSimulateModal(false);
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (err: any) {
       showToast(err.message || 'Webhook simulation failed', 'error');
     } finally {
@@ -144,7 +226,7 @@ export const AdminPaymentsScreen: React.FC = () => {
         return;
       }
       showToast(`Payment ${p.reference || p.id} marked as Processing! Customer notified.`, 'success');
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (e: any) {
       showToast(e.message || 'Failed to update payment status', 'error');
     }
@@ -158,7 +240,7 @@ export const AdminPaymentsScreen: React.FC = () => {
         return;
       }
       showToast(`Withdrawal ${w.reference || w.id} marked as Processing! Customer notified.`, 'success');
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (e: any) {
       showToast(e.message || 'Failed to update withdrawal status', 'error');
     }
@@ -186,7 +268,7 @@ export const AdminPaymentsScreen: React.FC = () => {
       }
       showToast(`Disbursed ¥${disburseModalPayment.amountRMB.toLocaleString()} to ${disburseModalPayment.receiverName}! Proof logged.`, 'success');
       setDisburseModalPayment(null);
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (e) {
       showToast('Disbursement failed', 'error');
     }
@@ -215,7 +297,7 @@ export const AdminPaymentsScreen: React.FC = () => {
       }
       showToast(`Payment rejected and ¥${rejectSupplierModalPayment.amountRMB.toLocaleString()} refunded to customer CNY wallet!`, 'info');
       setRejectSupplierModalPayment(null);
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (e: any) {
       showToast(e.message || 'Refund failed', 'error');
     }
@@ -245,7 +327,7 @@ export const AdminPaymentsScreen: React.FC = () => {
       const refundTotal = rejectWithdrawalModal.amountNGN + (rejectWithdrawalModal.feeNGN || 50);
       showToast(`Withdrawal rejected and ₦${refundTotal.toLocaleString()} refunded to customer NGN wallet!`, 'info');
       setRejectWithdrawalModal(null);
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (e: any) {
       showToast(e.message || 'Refund failed', 'error');
     }
@@ -265,27 +347,58 @@ export const AdminPaymentsScreen: React.FC = () => {
       `Flagged for Compliance ¥${payment.amountRMB} to ${payment.receiverName}`
     );
     showToast(`Payment to ${payment.receiverName} marked as FLAGGED!`, 'error');
-    setDbState({ ...db.getState() });
+    setDbRev(db.getStateRevision());
   };
 
   const handleApproveWithdrawal = (w: WithdrawalDocument) => {
     setSelectedWithdrawal(w);
-    setTransferRefInput(`NIP-DISB-${Date.now().toString().slice(-6)}`);
+    setWthPayoutMode('gateway');
+    setWthGatewayProvider('Providus NIP Instant Switch');
+    const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+    setWthGatewaySessionRef(`PROV-NIP-${randomSuffix}`);
+    setWthManualTransferRef(`MAN-NIP-${randomSuffix}`);
+    setWthPaymentProofUrl('');
+    setWthAdminNotes(`Disbursed to ${w.accountName} (${w.bankName} - ${w.accountNumber})`);
+  };
+
+  const handleRegenerateWthGatewayRef = () => {
+    const prefix = wthGatewayProvider.includes('Monnify') ? 'MNFY-NIP' : wthGatewayProvider.includes('Korapay') ? 'KORA-NIP' : 'PROV-NIP';
+    const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+    setWthGatewaySessionRef(`${prefix}-${randomSuffix}`);
   };
 
   const handleConfirmDisbursement = async () => {
     if (!selectedWithdrawal) return;
+    const refToUse = wthPayoutMode === 'gateway' ? wthGatewaySessionRef : wthManualTransferRef;
+    if (!refToUse || !refToUse.trim()) {
+      showToast('Please provide a valid transfer / gateway reference', 'error');
+      return;
+    }
+    setIsSubmittingWthPayout(true);
     try {
-      const res = await db.disburseWithdrawal(selectedWithdrawal.id, transferRefInput, 'adm-001');
+      const res = await db.disburseWithdrawal(
+        selectedWithdrawal.id, 
+        refToUse.trim(), 
+        'adm-001',
+        {
+          payoutMode: wthPayoutMode,
+          gatewayProvider: wthPayoutMode === 'gateway' ? wthGatewayProvider : 'Manual Settlement',
+          gatewaySessionId: wthPayoutMode === 'gateway' ? refToUse.trim() : undefined,
+          paymentProofUrl: wthPaymentProofUrl.trim(),
+          adminNotes: wthAdminNotes.trim()
+        }
+      );
       if (res && res.error) {
         showToast(res.error, 'error');
         return;
       }
-      showToast(`Payout of ₦${selectedWithdrawal.amountNGN.toLocaleString()} confirmed paid to ${selectedWithdrawal.accountName}!`, 'success');
+      showToast(`Payout of ₦${selectedWithdrawal.amountNGN.toLocaleString()} confirmed via ${wthPayoutMode === 'gateway' ? wthGatewayProvider : 'Manual Bank Settlement'}!`, 'success');
       setSelectedWithdrawal(null);
-      setDbState({ ...db.getState() });
-    } catch (e) {
-      showToast('Disbursement failed', 'error');
+      setDbRev(db.getStateRevision());
+    } catch (e: any) {
+      showToast(e.message || 'Disbursement failed', 'error');
+    } finally {
+      setIsSubmittingWthPayout(false);
     }
   };
 
@@ -308,10 +421,11 @@ export const AdminPaymentsScreen: React.FC = () => {
     await db.updateSystemSettings('Finance Officer Ngozi', {
       NGN_CNY: Number(ngnRmbRate),
       USD_NGN: Number(usdNgnRate),
+      NGN_USD: Number(usdNgnRate),
       USD_CNY: Number(usdCnyRate),
       spreadPercent: Number(spreadPercent)
     });
-    showToast(`Authoritative exchange rates & margins updated! 1 RMB = ₦${ngnRmbRate} NGN`, 'success');
+    showToast(`Authoritative exchange rates & margins updated! 1 RMB = ₦${ngnRmbRate} NGN, 1 USD = ₦${usdNgnRate} NGN`, 'success');
   };
 
   const handleVerifyReference = async (e: React.FormEvent) => {
@@ -409,6 +523,14 @@ export const AdminPaymentsScreen: React.FC = () => {
 
           <div className="flex flex-wrap gap-2">
             <button
+              onClick={() => setActiveTab('deposits')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                activeTab === 'deposits' ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-900 border border-slate-800 text-slate-300'
+              }`}
+            >
+              Customer Deposits ({manualPayments.length})
+            </button>
+            <button
               onClick={() => setActiveTab('supplier')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                 activeTab === 'supplier' ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-900 border border-slate-800 text-slate-300'
@@ -459,6 +581,240 @@ export const AdminPaymentsScreen: React.FC = () => {
           </div>
         </div>
 
+        {/* 0. CUSTOMER FUNDING & MANUAL DEPOSITS QUEUE */}
+        {activeTab === 'deposits' && (
+          <div className="space-y-6">
+            {/* Top Metrics Row */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm">
+                <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
+                  <span>Pending Deposits</span>
+                  <Clock className="w-4 h-4 text-amber-400" />
+                </div>
+                <div className="text-xl font-black text-amber-400">{pendingDeposits.length}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Awaiting finance review</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm">
+                <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
+                  <span>Pending NGN</span>
+                  <DollarSign className="w-4 h-4 text-emerald-400" />
+                </div>
+                <div className="text-lg font-black text-white">₦{pendingVolumeNGN.toLocaleString()}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Uncredited bank transfers</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm">
+                <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
+                  <span>Pending USD</span>
+                  <DollarSign className="w-4 h-4 text-sky-400" />
+                </div>
+                <div className="text-lg font-black text-white">${pendingVolumeUSD.toLocaleString()}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Uncredited wire transfers</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm">
+                <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
+                  <span>Approved Count</span>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                </div>
+                <div className="text-xl font-black text-emerald-400">{approvedDepositsCount}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Credited to wallets</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm">
+                <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
+                  <span>Rejected Count</span>
+                  <XCircle className="w-4 h-4 text-rose-400" />
+                </div>
+                <div className="text-xl font-black text-rose-400">{rejectedDepositsCount}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Zero balance mutation</div>
+              </div>
+            </div>
+
+            {/* Deposits Management Panel */}
+            <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-800">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="text"
+                    value={depositSearchQuery}
+                    onChange={(e) => setDepositSearchQuery(e.target.value)}
+                    placeholder="Search customer, reference, sender, bank..."
+                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex gap-1.5 p-1 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-bold">
+                    {(['all', 'pending', 'approved', 'rejected'] as const).map((st) => (
+                      <button
+                        key={st}
+                        onClick={() => setDepositStatusFilter(st)}
+                        className={`px-2.5 py-1 rounded-lg capitalize transition-all ${
+                          depositStatusFilter === st
+                            ? 'bg-emerald-500 text-slate-950'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {st}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-1.5 p-1 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-bold">
+                    {(['all', 'NGN', 'USD', 'CNY'] as const).map((curr) => (
+                      <button
+                        key={curr}
+                        onClick={() => setDepositCurrencyFilter(curr)}
+                        className={`px-2.5 py-1 rounded-lg transition-all ${
+                          depositCurrencyFilter === curr
+                            ? 'bg-emerald-500 text-slate-950'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {curr}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Deposit Records List */}
+              {filteredDeposits.length === 0 ? (
+                <div className="text-center py-12 text-slate-500 text-xs">
+                  <FileText className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                  No customer deposit submissions found matching the selected filters.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredDeposits.map((dep) => (
+                    <div
+                      key={dep.id}
+                      className="p-4 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`p-2.5 rounded-xl mt-0.5 ${
+                          dep.status === 'pending'
+                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            : (dep.status === 'approved' || dep.status === 'completed')
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                        }`}>
+                          {dep.status === 'pending' ? (
+                            <Clock className="w-5 h-5 animate-pulse" />
+                          ) : (dep.status === 'approved' || dep.status === 'completed') ? (
+                            <CheckCircle2 className="w-5 h-5" />
+                          ) : (
+                            <XCircle className="w-5 h-5" />
+                          )}
+                        </div>
+
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-mono font-bold text-xs text-white tracking-wide">
+                              {dep.reference || dep.id}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                              dep.currency === 'NGN'
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : dep.currency === 'CNY'
+                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                                : 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
+                            }`}>
+                              {dep.currency}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${
+                              dep.status === 'pending'
+                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                                : (dep.status === 'approved' || dep.status === 'completed')
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                            }`}>
+                              {dep.status === 'approved' || dep.status === 'completed' ? 'Completed' : dep.status === 'rejected' || dep.status === 'failed' ? 'Failed' : 'Pending'}
+                            </span>
+                            <span className="text-[10px] text-slate-500">
+                              {new Date(dep.createdAt).toLocaleString()}
+                            </span>
+                          </div>
+
+                          <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-300">
+                            <span className="font-semibold text-white">
+                              {dep.customerName || 'Customer'}
+                            </span>
+                            <span className="text-slate-400 font-mono text-[11px]">
+                              ID: {dep.userId}
+                            </span>
+                            {dep.customerEmail && (
+                              <span className="text-slate-400 text-[11px]">
+                                {dep.customerEmail}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="mt-1 flex flex-wrap items-center gap-x-3 text-[11px] text-slate-400">
+                            <span>
+                              Sender: <strong className="text-slate-200">{dep.senderName || 'N/A'}</strong>
+                            </span>
+                            <span>•</span>
+                            <span>
+                              Bank: <strong className="text-slate-200">{dep.originatingBank || 'N/A'}</strong>
+                            </span>
+                            {dep.destinationBank && (
+                              <>
+                                <span>•</span>
+                                <span>
+                                  To: <span className="text-slate-400">{dep.destinationBank}</span>
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between md:justify-end gap-4 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800">
+                        <div className="text-left md:text-right">
+                          <div className="text-base font-black text-white font-mono">
+                            {dep.currency === 'NGN' ? '₦' : dep.currency === 'CNY' ? '¥' : '$'}{dep.amount.toLocaleString()}
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            {(dep.proofUrl || (dep as any).receiptUrl || dep.paymentProofUrl) ? (
+                              <button
+                                onClick={() => setProofPreviewModalUrl(dep.proofUrl || (dep as any).receiptUrl || dep.paymentProofUrl || null)}
+                                className="text-[10px] text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+                              >
+                                <Eye className="w-3 h-3" />
+                                Proof Attached
+                              </button>
+                            ) : (
+                              <span className="text-[10px] text-slate-500">No Receipt</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            setReviewDrawerDeposit(dep);
+                            setDepositInternalNotes(dep.adminNotes || '');
+                          }}
+                          className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            dep.status === 'pending'
+                              ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20'
+                              : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                          }`}
+                        >
+                          {dep.status === 'pending' ? 'Review & Credit' : 'View Details'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* 1. SUPPLIER RMB DISBURSAL QUEUE */}
         {activeTab === 'supplier' && (
           <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
@@ -494,9 +850,10 @@ export const AdminPaymentsScreen: React.FC = () => {
                 <thead>
                   <tr className="border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     <th className="py-3 px-3">Transaction</th>
+                    <th className="py-3 px-3">Customer (User)</th>
                     <th className="py-3 px-3">Supplier / Beneficiary</th>
                     <th className="py-3 px-3">Channel & QR</th>
-                    <th className="py-3 px-3">Amount (CNY)</th>
+                    <th className="py-3 px-3">Amount & Funding</th>
                     <th className="py-3 px-3">Status</th>
                     <th className="py-3 px-3 text-right">Actions</th>
                   </tr>
@@ -505,6 +862,11 @@ export const AdminPaymentsScreen: React.FC = () => {
                   {paymentsList.map((p) => {
                     const isLongWaiting = (p.status === 'pending' || p.status === 'processing') &&
                       (Date.now() - new Date(p.createdAt).getTime() > 6 * 3600 * 1000);
+                    const customer = dbState.users[p.userId];
+                    const customerName = p.customerName || customer?.fullName || p.userId;
+                    const customerEmail = p.customerEmail || customer?.email || '';
+                    const fCurrency = p.fundingCurrency || 'CNY';
+                    const fAmount = p.fundingAmount ?? (fCurrency === 'NGN' ? (p.equivalentNGN ?? p.amountRMB * 214.5) : p.amountRMB);
 
                     return (
                       <tr key={p.id} className="hover:bg-slate-800/40 transition-colors">
@@ -519,9 +881,14 @@ export const AdminPaymentsScreen: React.FC = () => {
                           )}
                         </td>
                         <td className="py-3.5 px-3">
-                          <h4 className="font-bold text-white text-xs">{p.receiverName}</h4>
+                          <h4 className="font-bold text-white text-xs">{customerName}</h4>
+                          <p className="font-mono text-[10px] text-slate-400">{p.userId}</p>
+                          {customerEmail && <p className="text-[10px] text-slate-500 truncate max-w-[140px]">{customerEmail}</p>}
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <h4 className="font-bold text-slate-200 text-xs">{p.receiverName}</h4>
                           <p className="font-mono text-[11px] text-slate-400">{p.receiverAccount}</p>
-                          {p.bankName && <p className="text-[10px] text-slate-500 truncate max-w-[200px]">{p.bankName}</p>}
+                          {p.bankName && <p className="text-[10px] text-slate-500 truncate max-w-[180px]">{p.bankName}</p>}
                           {p.purpose && <p className="text-[10px] text-slate-400 mt-0.5">Purpose: <span className="text-slate-300">{p.purpose}</span></p>}
                         </td>
                         <td className="py-3.5 px-3">
@@ -532,7 +899,7 @@ export const AdminPaymentsScreen: React.FC = () => {
                             {p.qrCodeUrl && (
                               <button
                                 onClick={() => setPreviewQrUrl(p.qrCodeUrl!)}
-                                className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"
+                                className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white cursor-pointer"
                                 title="View Beneficiary QR"
                               >
                                 <QrCode className="w-3.5 h-3.5" />
@@ -541,8 +908,10 @@ export const AdminPaymentsScreen: React.FC = () => {
                           </div>
                         </td>
                         <td className="py-3.5 px-3 font-mono">
-                          <span className="font-extrabold text-white text-sm">¥{(p.amountRMB ?? 0).toLocaleString()}</span>
-                          <p className="text-[10px] text-slate-500">≈ ₦{(p.equivalentNGN ?? (p.amountRMB * 214.5)).toLocaleString()} NGN</p>
+                          <span className="font-extrabold text-white text-sm">¥{(p.amountRMB ?? 0).toLocaleString()} CNY</span>
+                          <p className="text-[10px] text-emerald-400 font-semibold">
+                            Funded: {fCurrency === 'NGN' ? '₦' : fCurrency === 'USD' ? '$' : '¥'}{fAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} {fCurrency}
+                          </p>
                         </td>
                         <td className="py-3.5 px-3">
                           <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${
@@ -661,7 +1030,8 @@ export const AdminPaymentsScreen: React.FC = () => {
                       </td>
                       <td className="py-3.5 px-3">
                         <h4 className="font-bold text-white text-xs">{w.accountName}</h4>
-                        <p className="text-[11px] text-slate-400 font-mono">{w.bankName} • {w.accountNumber}</p>
+                        <p className="text-[11px] text-teal-400 font-mono tracking-wider">{w.bankName} • {w.accountNumber}</p>
+                        <p className="text-[10px] text-slate-400">User: {w.customerName || w.userId} ({w.customerEmail || 'Verified Client'})</p>
                         {w.customerNote && <p className="text-[10px] text-slate-500">Note: {w.customerNote}</p>}
                       </td>
                       <td className="py-3.5 px-3 font-mono">
@@ -680,6 +1050,11 @@ export const AdminPaymentsScreen: React.FC = () => {
                         }`}>
                           {w.status}
                         </span>
+                        {w.payoutMode && (
+                          <p className="text-[9px] text-slate-400 mt-1 font-mono">
+                            {w.payoutMode === 'gateway' ? (w.gatewayProvider || 'NIP Gateway') : 'Manual Wire'}
+                          </p>
+                        )}
                       </td>
                       <td className="py-3.5 px-3 text-right">
                         {w.status === 'pending' ? (
@@ -1221,35 +1596,163 @@ export const AdminPaymentsScreen: React.FC = () => {
 
       {/* Confirm Bank Payout Modal */}
       {selectedWithdrawal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
-            <div>
-              <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">
-                NUBAN Transfer Reference Confirmation
-              </span>
-              <h3 className="text-base font-bold text-white mt-1">
-                Disburse ₦{selectedWithdrawal.amountNGN.toLocaleString()} NGN
-              </h3>
-              <p className="text-xs text-slate-400">
-                Beneficiary: <strong className="text-white">{selectedWithdrawal.accountName}</strong> ({selectedWithdrawal.bankName})
-              </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">
+                  NUBAN Payout Clearance Engine
+                </span>
+                <h3 className="text-base font-bold text-white mt-0.5">
+                  Disburse ₦{selectedWithdrawal.amountNGN.toLocaleString()} NGN
+                </h3>
+              </div>
+              <button 
+                onClick={() => setSelectedWithdrawal(null)} 
+                className="text-slate-400 hover:text-white cursor-pointer text-sm"
+              >
+                ✕
+              </button>
             </div>
 
-            <div>
-              <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
-                Official NIBSS / Bank Session ID:
-              </label>
-              <input
-                type="text"
-                value={transferRefInput}
-                onChange={(e) => setTransferRefInput(e.target.value)}
-                placeholder="e.g. NIP-DISB-982142"
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-emerald-400 outline-none focus:border-emerald-500"
-                required
-              />
+            {/* Beneficiary & Customer Snapshot */}
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-400">Beneficiary:</span>
+                <span className="font-bold text-white text-right">{selectedWithdrawal.accountName}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-400">Account / Bank:</span>
+                <span className="font-mono text-slate-200 text-right">{selectedWithdrawal.accountNumber} ({selectedWithdrawal.bankName})</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-400">Customer Account:</span>
+                <span className="text-slate-300 text-right">{selectedWithdrawal.customerName || selectedWithdrawal.userId}</span>
+              </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            {/* Mode Switcher Tabs */}
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-950 rounded-2xl border border-slate-800 text-xs">
+              <button
+                type="button"
+                onClick={() => setWthPayoutMode('gateway')}
+                className={`py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  wthPayoutMode === 'gateway'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>NUBAN Gateway (NIP)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setWthPayoutMode('manual')}
+                className={`py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  wthPayoutMode === 'manual'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                <span>Manual Settlement</span>
+              </button>
+            </div>
+
+            {/* Mode-specific Controls */}
+            {wthPayoutMode === 'gateway' ? (
+              <div className="space-y-3.5">
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    Integrated Payout Gateway Provider
+                  </label>
+                  <select
+                    value={wthGatewayProvider}
+                    onChange={(e) => {
+                      setWthGatewayProvider(e.target.value);
+                      const prefix = e.target.value.includes('Monnify') ? 'MNFY-NIP' : e.target.value.includes('Korapay') ? 'KORA-NIP' : 'PROV-NIP';
+                      setWthGatewaySessionRef(`${prefix}-${Math.floor(100000 + Math.random() * 900000)}`);
+                    }}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                  >
+                    <option value="Providus NIP Instant Switch">Providus Bank (NIP Instant Switch)</option>
+                    <option value="Monnify Payouts Engine">Monnify Transfer API</option>
+                    <option value="Korapay Direct Settlement">Korapay Commercial Payouts</option>
+                  </select>
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-bold uppercase text-slate-400">
+                      NIP Gateway Session Reference
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleRegenerateWthGatewayRef}
+                      className="text-[10px] text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      <span>Regenerate</span>
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={wthGatewaySessionRef}
+                    onChange={(e) => setWthGatewaySessionRef(e.target.value)}
+                    placeholder="e.g. PROV-NIP-982142"
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-400 outline-none focus:border-emerald-500 font-bold"
+                  />
+                </div>
+
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px] flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-400" />
+                  <span>Gateway Switch Active • Automated NIP transfer clearing beneficiary institution.</span>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    Bank Clearing / Settlement Session ID
+                  </label>
+                  <input
+                    type="text"
+                    value={wthManualTransferRef}
+                    onChange={(e) => setWthManualTransferRef(e.target.value)}
+                    placeholder="e.g. MAN-NIP-492019 or Corporate Portal Ref"
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-400 outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    Payment Proof Document / Receipt URL (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={wthPaymentProofUrl}
+                    onChange={(e) => setWthPaymentProofUrl(e.target.value)}
+                    placeholder="https://vault.flyemass.internal/proofs/rec-982.pdf"
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    Treasury Settlement Notes
+                  </label>
+                  <input
+                    type="text"
+                    value={wthAdminNotes}
+                    onChange={(e) => setWthAdminNotes(e.target.value)}
+                    placeholder="e.g. Cleared via Corporate Banking Desk"
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-2 border-t border-slate-800">
               <button
                 type="button"
                 onClick={() => {
@@ -1257,23 +1760,24 @@ export const AdminPaymentsScreen: React.FC = () => {
                   setSelectedWithdrawal(null);
                   handleOpenRejectWithdrawal(w);
                 }}
-                className="py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs"
+                className="py-2.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-xs cursor-pointer transition-all"
               >
-                Reject
+                Reject & Refund
               </button>
               <button
                 type="button"
                 onClick={() => setSelectedWithdrawal(null)}
-                className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs"
+                className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs cursor-pointer transition-all hover:bg-slate-700"
               >
                 Cancel
               </button>
               <button
                 type="button"
+                disabled={isSubmittingWthPayout}
                 onClick={handleConfirmDisbursement}
-                className="flex-1 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20"
+                className="flex-1 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 cursor-pointer transition-all hover:bg-emerald-400 disabled:opacity-50"
               >
-                Mark Paid
+                {isSubmittingWthPayout ? 'Disbursing...' : 'Confirm Payout'}
               </button>
             </div>
           </div>
@@ -1595,6 +2099,330 @@ export const AdminPaymentsScreen: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MANUAL DEPOSIT REVIEW DRAWER */}
+      {reviewDrawerDeposit && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm">
+          <div className="w-full max-w-xl h-full bg-slate-900 border-l border-slate-800 p-6 overflow-y-auto flex flex-col justify-between shadow-2xl">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-white">Manual Deposit Review</h3>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                      reviewDrawerDeposit.status === 'pending'
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        : reviewDrawerDeposit.status === 'approved'
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                    }`}>
+                      {reviewDrawerDeposit.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5 font-mono">
+                    Ref: {reviewDrawerDeposit.reference || reviewDrawerDeposit.id}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setReviewDrawerDeposit(null)}
+                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Amount Highlight */}
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-center">
+                <span className="text-xs text-slate-400 font-medium">Claimed Deposit Amount</span>
+                <div className="text-3xl font-black text-white font-mono mt-1">
+                  {reviewDrawerDeposit.currency === 'NGN' ? '₦' : '$'}
+                  {reviewDrawerDeposit.amount.toLocaleString()} {reviewDrawerDeposit.currency}
+                </div>
+                <span className="text-[11px] text-slate-500 mt-1 block">
+                  Channel: {reviewDrawerDeposit.channel}
+                </span>
+              </div>
+
+              {/* Customer Profile */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Customer Profile</h4>
+                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Full Name:</span>
+                    <span className="font-semibold text-white">{reviewDrawerDeposit.customerName || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">User ID:</span>
+                    <span className="font-mono text-emerald-400">{reviewDrawerDeposit.userId}</span>
+                  </div>
+                  {reviewDrawerDeposit.customerEmail && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Email:</span>
+                      <span className="text-slate-200">{reviewDrawerDeposit.customerEmail}</span>
+                    </div>
+                  )}
+                  {reviewDrawerDeposit.customerPhone && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Phone:</span>
+                      <span className="text-slate-200">{reviewDrawerDeposit.customerPhone}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Banking & Remittance Details */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Remittance Details</h4>
+                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Originating Sender Name:</span>
+                    <span className="font-semibold text-white">{reviewDrawerDeposit.senderName || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Originating Bank:</span>
+                    <span className="text-slate-200">{reviewDrawerDeposit.originatingBank || 'N/A'}</span>
+                  </div>
+                  {reviewDrawerDeposit.destinationBank && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Destination Account:</span>
+                      <span className="text-slate-200">
+                        {reviewDrawerDeposit.destinationBank} ({reviewDrawerDeposit.destinationAccount})
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Submission Timestamp:</span>
+                    <span className="text-slate-300 font-mono text-[11px]">
+                      {new Date(reviewDrawerDeposit.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Proof Receipt Viewer */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Proof of Payment</h4>
+                  {(reviewDrawerDeposit.proofUrl || (reviewDrawerDeposit as any).receiptUrl || reviewDrawerDeposit.paymentProofUrl) && (
+                    <button
+                      onClick={() => setProofPreviewModalUrl(reviewDrawerDeposit.proofUrl || (reviewDrawerDeposit as any).receiptUrl || reviewDrawerDeposit.paymentProofUrl || null)}
+                      className="text-[11px] text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      Enlarge Proof
+                    </button>
+                  )}
+                </div>
+
+                {(reviewDrawerDeposit.proofUrl || (reviewDrawerDeposit as any).receiptUrl || reviewDrawerDeposit.paymentProofUrl) ? (
+                  <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800">
+                    <div
+                      onClick={() => setProofPreviewModalUrl(reviewDrawerDeposit.proofUrl || (reviewDrawerDeposit as any).receiptUrl || reviewDrawerDeposit.paymentProofUrl || null)}
+                      className="relative rounded-xl overflow-hidden border border-slate-800 max-h-56 cursor-pointer group bg-black/40 flex items-center justify-center"
+                    >
+                      <img
+                        src={reviewDrawerDeposit.proofUrl || (reviewDrawerDeposit as any).receiptUrl || reviewDrawerDeposit.paymentProofUrl}
+                        alt="Payment Proof"
+                        className="w-full object-contain max-h-56 group-hover:opacity-90 transition-opacity"
+                        onError={(e: any) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://placehold.co/600x400/0f172a/38bdf8?text=Bank+Transfer+Receipt';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-bold gap-2">
+                        <Eye className="w-4 h-4" />
+                        Click to enlarge
+                      </div>
+                    </div>
+                    {(reviewDrawerDeposit.proofFileName || (reviewDrawerDeposit as any).receiptFileName) && (
+                      <p className="text-[11px] text-slate-500 mt-2 truncate font-mono">
+                        File: {reviewDrawerDeposit.proofFileName || (reviewDrawerDeposit as any).receiptFileName}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-center text-xs text-slate-500">
+                    No physical receipt or transfer slip was attached by customer.
+                  </div>
+                )}
+              </div>
+
+              {/* Internal Notes */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
+                  Internal Verification Notes
+                </label>
+                <textarea
+                  value={depositInternalNotes}
+                  onChange={(e) => setDepositInternalNotes(e.target.value)}
+                  placeholder="Record statement reconciliation details, Providus/Chase journal reference, or verification remarks..."
+                  rows={2}
+                  disabled={reviewDrawerDeposit.status !== 'pending'}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500 disabled:opacity-60"
+                />
+              </div>
+
+              {/* Status info if already finalized */}
+              {reviewDrawerDeposit.status === 'approved' && (
+                <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400">
+                  <div className="font-bold flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Approved and Credited
+                  </div>
+                  <div className="mt-1 text-slate-400 text-[11px]">
+                    Approved by <strong className="text-slate-200">{reviewDrawerDeposit.approvedBy}</strong> on{' '}
+                    {reviewDrawerDeposit.approvedAt ? new Date(reviewDrawerDeposit.approvedAt).toLocaleString() : 'N/A'}. Double-entry ledger posted to customer liabilities.
+                  </div>
+                </div>
+              )}
+
+              {reviewDrawerDeposit.status === 'rejected' && (
+                <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-400">
+                  <div className="font-bold flex items-center gap-1.5">
+                    <XCircle className="w-4 h-4" />
+                    Rejected by Compliance
+                  </div>
+                  <div className="mt-1 text-slate-400 text-[11px]">
+                    Reason: <strong className="text-slate-200">{reviewDrawerDeposit.rejectionReason}</strong>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Actions */}
+            <div className="pt-6 border-t border-slate-800 flex gap-3">
+              {reviewDrawerDeposit.status === 'pending' ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={isProcessingDeposit}
+                    onClick={() => setRejectDepositModal(reviewDrawerDeposit)}
+                    className="flex-1 py-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 font-bold text-xs cursor-pointer transition-all disabled:opacity-50"
+                  >
+                    Reject Deposit...
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isProcessingDeposit}
+                    onClick={() => handleApproveDeposit(reviewDrawerDeposit.id)}
+                    className="flex-2 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/25 cursor-pointer transition-all disabled:opacity-50"
+                  >
+                    {isProcessingDeposit ? 'Crediting Wallet...' : 'Approve & Credit Wallet'}
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setReviewDrawerDeposit(null)}
+                  className="w-full py-3 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700"
+                >
+                  Close Drawer
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REJECTION REASON MODAL */}
+      {rejectDepositModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+          <div className="w-full max-w-md p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2 text-rose-400">
+                <AlertTriangle className="w-5 h-5" />
+                <h3 className="font-bold text-white text-sm">Reject Deposit Submission</h3>
+              </div>
+              <button
+                onClick={() => setRejectDepositModal(null)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-300">
+              You are rejecting deposit submission <strong className="font-mono text-white">#{rejectDepositModal.reference || rejectDepositModal.id}</strong> of{' '}
+              <strong className="text-emerald-400">
+                {rejectDepositModal.currency === 'NGN' ? '₦' : '$'}{rejectDepositModal.amount.toLocaleString()}
+              </strong>.
+            </p>
+
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400">
+              No wallet deduction or credit will occur. The customer will receive an immediate notification with this mandatory rejection reason.
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
+                Mandatory Rejection Reason
+              </label>
+              <textarea
+                value={depositRejectReason}
+                onChange={(e) => setDepositRejectReason(e.target.value)}
+                placeholder="Explain why deposit could not be verified (e.g. sender name mismatch, transaction missing on bank statement, illegible slip)..."
+                rows={3}
+                className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 outline-none focus:border-rose-500"
+                required
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setRejectDepositModal(null)}
+                className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isProcessingDeposit || !depositRejectReason || depositRejectReason.trim().length < 5}
+                onClick={handleRejectDeposit}
+                className="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-rose-500/20 cursor-pointer"
+              >
+                {isProcessingDeposit ? 'Processing...' : 'Confirm Rejection'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PROOF PREVIEW MODAL */}
+      {proofPreviewModalUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+          onClick={() => setProofPreviewModalUrl(null)}
+        >
+          <div
+            className="relative max-w-3xl w-full max-h-[85vh] p-2 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-3 border-b border-slate-800">
+              <span className="text-xs font-bold text-white flex items-center gap-2">
+                <FileText className="w-4 h-4 text-emerald-400" />
+                Proof of Payment Receipt
+              </span>
+              <button
+                onClick={() => setProofPreviewModalUrl(null)}
+                className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 overflow-auto flex items-center justify-center">
+              <img
+                src={proofPreviewModalUrl}
+                alt="Payment Receipt"
+                className="max-h-[70vh] object-contain rounded-lg border border-slate-800"
+                onError={(e: any) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://placehold.co/800x600/0f172a/38bdf8?text=Bank+Transfer+Receipt';
+                }}
+              />
+            </div>
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
+import { db } from '../../services/db';
 import { 
   ShieldCheck, 
   FileText, 
@@ -77,7 +78,7 @@ export const PrivacyScreen: React.FC = () => {
           <section className="space-y-1.5">
             <h4 className="text-xs font-bold text-white">1. Information We Collect</h4>
             <p className="text-[11px] text-slate-400">
-              We collect corporate CAC incorporation documents, identity proof (NIN, BVN, International Passport), and supplier beneficiary payment coordinates required by the Central Bank of Nigeria (CBN) and the People's Bank of China (PBOC).
+              We collect standard trade contact details, order references, and supplier beneficiary payment coordinates required for trade settlement and logistics execution. User accounts operate with zero mandatory KYC identity requirements.
             </p>
           </section>
 
@@ -101,15 +102,16 @@ export const PrivacyScreen: React.FC = () => {
 };
 
 export const DeleteAccountScreen: React.FC = () => {
-  const { userProfile, wallets, logout, showToast, goBack } = useApp();
+  const { userProfile, wallets, logout, showToast, goBack, activeUserId } = useApp();
   const [confirmText, setConfirmText] = useState('');
   const [reason, setReason] = useState('Closing trading entity');
   const [isProcessing, setIsProcessing] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [deletionRef, setDeletionRef] = useState('REF-DEL-9014');
 
   const totalUSD = wallets.reduce((s, w) => s + w.equivalentUSD, 0);
 
-  const handleDelete = (e: React.FormEvent) => {
+  const handleDelete = async (e: React.FormEvent) => {
     e.preventDefault();
     if (confirmText !== 'DELETE') {
       showToast('Please type DELETE in capital letters to confirm', 'error');
@@ -117,11 +119,18 @@ export const DeleteAccountScreen: React.FC = () => {
     }
 
     setIsProcessing(true);
-    setTimeout(() => {
+    try {
+      const res = await db.requestAccountDeletion(activeUserId, reason);
+      if (res && res.reference) {
+        setDeletionRef(res.reference);
+      }
+    } catch (err) {
+      // offline fallback
+    } finally {
       setIsProcessing(false);
       setSubmitted(true);
       showToast('Account scheduled for de-identification in 14 days', 'info');
-    }, 1500);
+    }
   };
 
   return (
@@ -210,7 +219,7 @@ export const DeleteAccountScreen: React.FC = () => {
             </div>
             <h3 className="text-base font-bold text-white">14-Day Grace Period Initiated</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Your deletion request (REF-DEL-9014) is in the compliance queue. You may log in at any time during the next 14 days to cancel this request.
+              Your deletion request ({deletionRef}) is in the compliance queue. You may log in at any time during the next 14 days to cancel this request.
             </p>
             <div className="pt-2">
               <button

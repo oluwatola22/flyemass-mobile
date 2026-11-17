@@ -49,22 +49,31 @@ export type ScreenRoute =
   // Web Admin Dashboard Routes
   | 'admin-login'
   | 'admin-dashboard'
+  | 'admin-warehouses'
+  | 'admin-lagos-hubs'
   | 'admin-users'
   | 'admin-user-detail'
+  | 'admin-wallet-credit'
   | 'admin-logistics'
   | 'admin-logistics-detail'
   | 'admin-payments'
   | 'admin-rmb-transfers'
   | 'admin-naira-payouts'
   | 'admin-fx-management'
+  | 'admin-fx-rates'
   | 'admin-funding'
+  | 'admin-gateway'
   | 'admin-shop'
   | 'admin-hotels'
   | 'admin-rentals-apartments'
   | 'admin-rentals-offices'
   | 'admin-suppliers'
   | 'admin-agents'
+  | 'admin-agent-requests'
+  | 'admin-agent-settings'
   | 'admin-support'
+  | 'admin-support-tickets'
+  | 'admin-shipping-rates'
   | 'admin-team'
   | 'admin-communications'
   | 'admin-registrations';
@@ -88,6 +97,14 @@ export interface UserDocument {
   email: string;
   phone: string;
   businessName: string;
+  flyeTag?: string;
+  shippingMark?: string;
+  firstName?: string;
+  surname?: string;
+  otherName?: string;
+  dateOfBirth?: string;
+  country?: string;
+  accountType?: 'personal' | 'business';
   verifiedBadge: boolean;
   role: 'client' | 'agent' | 'admin';
   createdAt: number;
@@ -135,6 +152,7 @@ export interface ShipmentTimelineEvent {
 
 export interface ShipmentDocument {
   id: string;
+  platformCode?: string;
   shipmentCode?: string;
   trackingNumber: string;
   trackingCode?: string;
@@ -143,12 +161,17 @@ export interface ShipmentDocument {
   customerPhone?: string;
   customerAddress?: string;
   originWarehouse: 'Guangzhou' | 'Yiwu' | 'Foshan' | string;
+  warehouseId?: string;
+  warehouseSnapshot?: any;
   destination: string;
   destinationHub?: string;
+  location?: string;
   weightKg: number;
   actualWeightKg?: number;
   billableWeightKg?: number;
   mode: 'Air Freight' | 'Sea Freight' | string;
+  method?: string;
+  shippingMethod?: string;
   shippingMode?: 'Air Express' | 'Air Regular' | 'Sea Freight' | string;
   courierCompany?: string;
   chineseCourierTracking?: string;
@@ -158,12 +181,23 @@ export interface ShipmentDocument {
   supplierInvoiceUrl?: string;
   consolidationPreference?: string;
   deliveryType?: 'pickup' | 'doorstep';
+  fulfillmentMethod?: 'pickup' | 'delivery';
   pickupHub?: string;
+  lagosHubId?: string;
+  lagosHubLabel?: string;
   doorstepAddress?: {
     street: string;
     city: string;
     state: string;
     phone: string;
+    notes?: string;
+  };
+  deliveryAddress?: {
+    street: string;
+    city: string;
+    state?: string;
+    phone: string;
+    notes?: string;
   };
   dimensions?: {
     lengthCm: number;
@@ -198,6 +232,10 @@ export interface ShipmentDocument {
   costCurrency?: Currency;
   title?: string;
   sender?: string;
+  storeName?: string;
+  expectedWarehouseArrival?: string;
+  expectedArrivalDate?: string;
+  shippingMark?: string;
   freightFee?: number;
   freightFeeUSD?: number;
   freightFeeNGN?: number;
@@ -210,17 +248,24 @@ export interface ShipmentDocument {
   paidCurrency?: Currency;
   paidAmount?: number;
   pickupOtp?: string;
+  pickupOtpVerifiedAt?: number | string;
+  assignedRiderName?: string;
+  assignedRiderPhone?: string;
   otpVerified?: boolean;
   handedOverTo?: string;
   handoverTimestamp?: number;
   inspectionPhotos?: string[];
+  warehousePhotos?: string[];
   inspectionNotes?: string;
   packagingCondition?: string;
   billingNotes?: string;
+  customerNotes?: string;
+  isBilled?: boolean;
   status?: string;
   isConsolidatedParent?: boolean;
   consolidatedShipmentIds?: string[];
   containerNumber?: string;
+  originCountry?: 'China' | 'USA' | string;
   originCity?: string;
   destinationCity?: string;
   type?: string;
@@ -246,6 +291,9 @@ export interface SupplierPaymentDocument {
   purpose?: string;
   purposeExplanation?: string;
   amountRMB: number;
+  fundingCurrency?: 'CNY' | 'NGN' | 'USD';
+  fundingAmount?: number;
+  exchangeRate?: number;
   feeCNY?: number;
   totalDeductionCNY?: number;
   equivalentNGN: number;
@@ -264,6 +312,8 @@ export interface SupplierPaymentDocument {
   completedAt?: number;
   refundReason?: string;
   refundedAt?: number;
+  rejected?: boolean;
+  completed?: boolean;
 }
 
 export interface WithdrawalDocument {
@@ -277,14 +327,24 @@ export interface WithdrawalDocument {
   accountNumber: string;
   accountName: string;
   amountNGN: number;
+  amountRMB?: number;
+  currency?: string;
+  channel?: 'naira_bank' | 'alipay' | 'wechat' | 'china_bank' | string;
+  qrCodeUrl?: string;
+  qrCodeFileName?: string;
   feeNGN: number;
   totalDebit?: number;
-  status: 'pending' | 'processing' | 'approved' | 'completed' | 'rejected' | 'failed' | 'refunded';
+  status: 'pending' | 'processing' | 'approved' | 'completed' | 'successful' | 'rejected' | 'failed' | 'refunded';
   transferReference?: string;
+  payoutMode?: 'gateway' | 'manual';
+  gatewayProvider?: string;
+  gatewaySessionId?: string;
+  processingStartedAt?: number;
   createdAt: number;
   note?: string;
   customerNote?: string;
   paymentProofUrl?: string;
+  receiptUrl?: string;
   adminNotes?: string;
   reviewer?: string;
   reviewDate?: number;
@@ -292,6 +352,67 @@ export interface WithdrawalDocument {
   failureReason?: string;
   refundReason?: string;
   refundedAt?: number;
+}
+
+export interface ManualPaymentDocument {
+  id: string;
+  reference: string;
+  userId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  userCode?: string;
+  currency: 'NGN' | 'USD' | 'CNY' | string;
+  amount: number;
+  paymentMethod: 'manual_bank_transfer' | 'domiciliary_wire' | string;
+  channel?: string;
+  senderName: string;
+  originatingBank: string;
+  destinationBank: string;
+  destinationAccount: string;
+  paymentProofUrl?: string;
+  paymentProofName?: string;
+  proofUrl?: string;
+  proofFileName?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'completed' | 'failed' | string;
+  rejectionReason?: string;
+  adminNotes?: string;
+  reviewedBy?: string;
+  reviewedAt?: number;
+  approvedBy?: string;
+  approvedAt?: number;
+  createdAt: number;
+  updatedAt?: number;
+}
+
+export interface ReceivingAccountsConfig {
+  ngn: {
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+    instructions: string;
+  };
+  usd: {
+    bankName: string;
+    accountName: string;
+    accountNumber: string;
+    swiftBic: string;
+    routingNumber?: string;
+    intermediaryBankInstructions?: string;
+  };
+}
+
+export interface GatewayChannelConfig {
+  id: string;
+  name: string;
+  enabled: boolean;
+  currencies: ('NGN' | 'USD')[];
+  feePercent: number;
+  feeFlat: number;
+  minAmount: number;
+  maxAmount?: number;
+  status: 'live' | 'sandbox' | 'inactive';
+  description: string;
 }
 
 export interface SupplierSubscriptionDocument {
@@ -319,7 +440,7 @@ export interface SupplierDirectoryPrices {
   updatedBy?: string;
 }
 
-export type AgentServiceKind = 'sourcing' | 'supplier_verification' | 'factory_audit' | 'quality_control';
+export type AgentServiceKind = 'sourcing' | 'supplier_verification' | 'factory_audit' | 'quality_control' | 'canton_fair_escort';
 
 export interface AgentRequestTimelineEvent {
   status: string;
@@ -347,6 +468,8 @@ export interface AgentRequestDocument {
   productUrl?: string;
   specifications?: string;
   referencePhotos?: string[];
+  sampleImages?: string[];
+  clientEmail?: string;
 
   // Inspection & Supplier specifics
   supplierName?: string;
@@ -368,6 +491,8 @@ export interface AgentRequestDocument {
   quoteAmountUSD?: number;
   quoteAmountNGN?: number;
   quoteAmountCNY?: number;
+  fxOverrideUSD_CNY?: number;
+  fxOverrideUSD_NGN?: number;
   serviceFeeUSD?: number;
   leadTimeDays?: number;
   supplierFindings?: string;
@@ -376,7 +501,12 @@ export interface AgentRequestDocument {
   quotedAt?: number;
 
   // Payment & Escrow
-  status: 'submitted' | 'pending_review' | 'pending_quote' | 'awaiting_payment' | 'quote_ready' | 'quote_accepted' | 'po_issued' | 'in_progress' | 'completed' | 'cancelled' | 'refunded';
+  status: 'submitted' | 'pending_review' | 'pending_quote' | 'awaiting_payment' | 'quote_ready' | 'quotation_sent' | 'quote_accepted' | 'po_issued' | 'in_progress' | 'paid_active' | 'approved' | 'completed' | 'cancelled' | 'refunded' | string;
+  displayStatus?: string;
+  quoteCurrency?: 'USD' | 'NGN' | 'CNY' | 'RMB';
+  quoteFeeUSD?: number;
+  quoteFeeNGN?: number;
+  quoteFeeRMB?: number;
   paymentStatus?: 'unpaid' | 'awaiting_payment' | 'paid' | 'refunded';
   paidAt?: number;
   paidWith?: 'USD' | 'NGN' | 'CNY';
@@ -390,6 +520,7 @@ export interface AgentRequestDocument {
   linkedShipmentId?: string;
   linkedShipmentCode?: string;
   linkedTrackingCode?: string;
+  linkedShipmentStatus?: string;
 
   // China Fulfilment & Inspection Evidence
   purchaseDetails?: string;
@@ -429,6 +560,88 @@ export interface BannerDocument {
   displayOrder: number;
 }
 
+export interface DestinationHubSurcharge {
+  hubId: string;
+  name: string;
+  state: string;
+  airSurchargeUSD: number;
+  seaSurchargeUSD: number;
+}
+
+export interface ShippingCorridor {
+  id: string;
+  name: string;
+  originCountry: string;
+  originCode: string;
+  originHub: string;
+  destinationCountry: string;
+  destinationHub: string;
+  flag: string;
+  
+  // Air Express
+  airExpressRateUSD: number;
+  airExpressBaseFeeUSD: number;
+  airExpressDeliveryDays: string;
+  airExpressMinKg: number;
+
+  // Air Regular
+  airRegularRateUSD: number;
+  airRegularBaseFeeUSD: number;
+  airRegularDeliveryDays: string;
+  airRegularMinKg: number;
+
+  // Sea Freight
+  seaFreightRateCbmUSD: number;
+  seaFreightBaseFeeUSD: number;
+  seaFreightDeliveryDays: string;
+  seaFreightMinCbm: number;
+
+  // Destination hub surcharges
+  destinationHubSurcharges?: DestinationHubSurcharge[];
+
+  customsClearanceIncluded: boolean;
+  isActive: boolean;
+  updatedAt?: number;
+  updatedBy?: string;
+}
+
+export interface FreightCalculationResult {
+  corridor: ShippingCorridor;
+  mode: 'air_express' | 'air_regular' | 'sea';
+  weightKg: number;
+  cbm: number;
+  destinationHub: string;
+  baseFeeUSD: number;
+  unitRateUSD: number;
+  hubSurchargeUSD: number;
+  totalCostUSD: number;
+  totalCostNGN: number;
+  totalCostCNY: number;
+  deliveryDays: string;
+  formulaDescription: string;
+  comparisons: {
+    airExpress: { totalUSD: number; totalNGN: number; totalCNY: number; days: string; ratePerKg: number };
+    airRegular: { totalUSD: number; totalNGN: number; totalCNY: number; days: string; ratePerKg: number };
+    seaFreight: { totalUSD: number; totalNGN: number; totalCNY: number; days: string; ratePerCbm: number };
+  };
+}
+
+export interface AirShippingRatesConfig {
+  expressRatePerKgUSD: number;
+  expressHandlingFeeUSD: number;
+  normalRatePerKgUSD: number;
+  normalHandlingFeeUSD: number;
+  updatedAt?: number;
+  updatedBy?: string;
+}
+
+export interface LogisticsFxRatesConfig {
+  usdToNgn: number;
+  usdToCny: number;
+  updatedAt?: number;
+  updatedBy?: string;
+}
+
 export interface SystemSettingsDocument {
   rates: {
     NGN_CNY: number;
@@ -437,6 +650,14 @@ export interface SystemSettingsDocument {
     spreadPercent: number;
     lastUpdated: number;
     updatedBy: string;
+    CNY_NGN?: number;
+    NGN_USD?: number;
+    CNY_USD?: number;
+    NGN_to_CNY?: number;
+    CNY_to_NGN?: number;
+    NGN_to_USD?: number;
+    USD_to_NGN?: number;
+    [key: string]: any;
   };
   fees: {
     withdrawalFlatNGN: number;
@@ -450,6 +671,18 @@ export interface SystemSettingsDocument {
     supplierVerificationUSD?: number;
     factoryAuditUSD?: number;
     qualityControlUSD?: number;
+  };
+  shipping_corridors?: ShippingCorridor[];
+  air_shipping_rates?: AirShippingRatesConfig;
+  logistics_fx_rates?: LogisticsFxRatesConfig;
+  live_fx_display?: {
+    announcementText?: string;
+    displayNgnRmb?: number;
+    displayUsdNgn?: number;
+    displayUsdCny?: number;
+    showConciergeBadge?: boolean;
+    conciergeImageUrl?: string;
+    lastUpdated?: number;
   };
 }
 
@@ -507,18 +740,63 @@ export interface SupportTicketMessage {
   timestamp: number | string;
   isAdmin: boolean;
   senderName?: string;
+  isAi?: boolean;
+  attachmentUrl?: string;
+  attachmentName?: string;
+  attachmentType?: string;
 }
+
+export type SupportTicketStatus = 
+  | 'open' 
+  | 'in_progress' 
+  | 'waiting_on_customer' 
+  | 'pending_human' 
+  | 'escalated' 
+  | 'resolved' 
+  | 'closed'
+  | 'Open' 
+  | 'In Progress' 
+  | 'Waiting on Customer' 
+  | 'Escalated (Pending Human Review)' 
+  | 'Pending Human Review' 
+  | 'Human In-Progress' 
+  | 'Open - AI Handled' 
+  | 'Resolved' 
+  | 'Closed';
+
+export type SupportTicketPriority = 'Low' | 'Normal' | 'High Priority' | 'High' | 'Urgent';
 
 export interface SupportTicketDocument {
   id: string;
   userId: string;
+  userName?: string;
   subject: string;
-  status: 'open' | 'in_progress' | 'resolved';
+  status: SupportTicketStatus;
   messages: SupportTicketMessage[];
   updatedAt: number;
+  createdAt?: number;
   ticketNumber?: string;
   category?: string;
-  priority?: 'Urgent' | 'High' | 'Normal';
+  priority?: SupportTicketPriority;
+  slaDueAt?: number;
+  slaStatus?: 'on_track' | 'due_soon' | 'breached';
+  aiHandled?: boolean;
+  assignedAgent?: string;
+  assignedAgentId?: string;
+  resolutionNotes?: string;
+  resolvedAt?: number;
+  extractedDetails?: {
+    waybillNumber?: string;
+    transactionRef?: string;
+    amount?: string;
+    supplierName?: string;
+    issueType?: string;
+    extractedIdentifiers?: {
+      type: 'waybill' | 'transaction' | 'amount';
+      label: string;
+      value: string;
+    }[];
+  };
 }
 
 // ==========================================
@@ -565,10 +843,18 @@ export interface Transaction {
   convertedCurrency?: Currency;
   date: string;
   timestamp: number;
-  status: 'completed' | 'processing' | 'failed';
+  status: 'completed' | 'processing' | 'failed' | 'pending' | 'successful' | 'rejected' | string;
   reference: string;
   recipient?: string;
   paymentMethod?: string;
+  channel?: string;
+  accountNumber?: string;
+  bankName?: string;
+  notes?: string;
+  qrCodeUrl?: string;
+  receiptUrl?: string;
+  proofUrl?: string;
+  paymentProofUrl?: string;
   type: TransactionType;
 }
 
@@ -585,6 +871,7 @@ export interface Waypoint {
 
 export interface Shipment {
   trackingNumber: string;
+  platformCode?: string;
   shipmentCode?: string;
   trackingCode?: string;
   id?: string;
@@ -592,9 +879,14 @@ export interface Shipment {
   sender: string;
   origin: string;
   originWarehouse?: string;
+  warehouseId?: string;
+  warehouseSnapshot?: any;
   destination: string;
   destinationHub?: string;
+  location?: string;
   type: 'air' | 'sea';
+  method?: string;
+  shippingMethod?: string;
   status: 'Origin Received' | 'Packed & Weighed' | 'In Transit' | 'Customs Cleared' | 'Ready for Pickup' | string;
   currentStatus?: string;
   currentStep: number; // 0 to 3 or 0 to 5
@@ -606,7 +898,12 @@ export interface Shipment {
   costEstimate: number;
   costCurrency: Currency;
   waypoints: Waypoint[];
+  timeline?: ShipmentTimelineEvent[];
   // Extended fields for Phase 9 Logistics Workflow
+  storeName?: string;
+  expectedWarehouseArrival?: string;
+  expectedArrivalDate?: string;
+  shippingMark?: string;
   courierCompany?: string;
   chineseCourierTracking?: string;
   packageDescription?: string;
@@ -616,18 +913,30 @@ export interface Shipment {
   consolidationPreference?: string;
   repackagingPreference?: string;
   deliveryType?: 'pickup' | 'doorstep';
+  fulfillmentMethod?: 'pickup' | 'delivery';
   pickupHub?: string;
+  lagosHubId?: string;
+  lagosHubLabel?: string;
   doorstepAddress?: {
     street: string;
     city: string;
     state: string;
     phone: string;
+    notes?: string;
+  };
+  deliveryAddress?: {
+    street: string;
+    city: string;
+    state?: string;
+    phone: string;
+    notes?: string;
   };
   dimensions?: {
     lengthCm: number;
     widthCm: number;
     heightCm: number;
   };
+  freightFee?: number;
   freightFeeUSD?: number;
   freightFeeNGN?: number;
   freightFeeCNY?: number;
@@ -638,27 +947,75 @@ export interface Shipment {
   paidCurrency?: Currency;
   paidAmount?: number;
   pickupOtp?: string;
+  pickupOtpVerifiedAt?: number | string;
+  assignedRiderName?: string;
+  assignedRiderPhone?: string;
   otpVerified?: boolean;
   handedOverTo?: string;
   handoverTimestamp?: number;
   inspectionPhotos?: string[];
+  warehousePhotos?: string[];
   inspectionNotes?: string;
   packagingCondition?: string;
   billingNotes?: string;
+  customerNotes?: string;
+  isBilled?: boolean;
   createdAt?: number;
+}
+
+export interface Warehouse {
+  id: string;
+  name: string;
+  country: string;
+  province?: string;
+  city: string;
+  fullAddress: string;
+  postalCode?: string;
+  phone: string;
+  contactPerson?: string;
+  isActive: boolean;
+  createdAt: number;
+  updatedAt: number;
+  createdBy?: string;
+  updatedBy?: string;
+  // Compatibility fields with legacy mock format
+  hubName?: string;
+  addressEn?: string;
+  addressZh?: string;
+  recipientEn?: string;
+  recipientZh?: string;
+  type?: string;
 }
 
 export interface WarehouseAddress {
   id: string;
   city: string;
+  country?: 'China' | 'USA' | string;
+  state?: string;
   hubName: string;
   addressEn: string;
-  addressZh: string;
+  addressZh?: string;
   recipientEn: string;
-  recipientZh: string;
+  recipientZh?: string;
   phone: string;
   postalCode: string;
   type: 'Air Freight Cargo' | 'Sea Freight Cargo' | 'Express Center';
+}
+
+export interface LagosHub {
+  id: string;
+  name: string;
+  code: string;
+  district: string;
+  address: string;
+  phone: string;
+  contactPerson?: string;
+  operatingHours?: string;
+  doorstepDispatchAvailable: boolean;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt?: number | string;
+  updatedAt?: number | string;
 }
 
 export type ProductCondition = 'Brand New' | 'Refurbished' | 'Fair / Pre-owned';
@@ -690,11 +1047,15 @@ export interface TechProduct {
   id: string;
   title: string;
   subtitle: string;
-  category: 'iPhone' | 'iPad' | 'Mac' | 'MacBook' | 'Watch' | 'Apple Watch' | 'Audio' | 'AirPods' | 'Accessories' | string;
+  brand?: 'Apple' | 'Google Pixel' | 'Samsung' | string;
+  model?: string;
+  storage?: string;
+  category: 'iPhone' | 'iPad' | 'Mac' | 'MacBook' | 'Watch' | 'Apple Watch' | 'Audio' | 'AirPods' | 'Accessories' | 'Google Pixel' | 'Samsung' | string;
   condition?: ProductCondition;
   priceUSD: number;
   priceNGN: number;
   priceCNY: number;
+  priceRMB?: number;
   image: string;
   images?: string[];
   rating: number;
@@ -793,6 +1154,7 @@ export interface HotelRoomType {
 export interface Hotel {
   id: string;
   name: string;
+  title?: string;
   chineseName: string;
   city: 'Guangzhou' | 'Shenzhen' | 'Yiwu' | 'Shanghai' | 'Beijing' | 'Foshan' | 'Hangzhou' | 'Dongguan' | 'Hong Kong' | string;
   district: string;
@@ -802,6 +1164,9 @@ export interface Hotel {
   pricePerNightUSD: number;
   pricePerNightCNY: number;
   pricePerNightNGN?: number;
+  priceUSD?: number;
+  priceCNY?: number;
+  priceNGN?: number;
   rating: number;
   reviewsCount: number;
   image: string;
@@ -878,6 +1243,8 @@ export interface RentalProperty {
   leaseTerms?: RentalLeaseTerm[];
   images: string[];
   status: 'live' | 'hidden' | 'rented';
+  isAvailable?: boolean;
+  isPublished?: boolean;
   description?: string;
   metroAccess?: string;
   createdAt: number;
@@ -904,7 +1271,7 @@ export interface PropertyInquiry {
   upfrontCostEstimateCNY?: number;
   ticketId: string; // linked support_tickets ID
   ticketNumber?: string;
-  status: 'new' | 'contacted' | 'viewing_scheduled' | 'closed';
+  status: 'new' | 'contacted' | 'viewing_scheduled' | 'agreement_in_progress' | 'closed';
   adminNotes?: string;
   assignedStaff?: string;
   createdAt: number;
@@ -919,22 +1286,44 @@ export interface ChatMessage {
   timestamp: string;
   avatar?: string;
   status?: 'sent' | 'delivered' | 'read';
+  attachmentUrl?: string;
+  attachmentName?: string;
+  attachmentType?: string;
 }
 
 export interface SupportTicket {
   id: string;
   ticketNumber: string;
   subject: string;
-  category: 'Supplier Escrow' | 'Customs & Port' | 'Air Freight Waybill' | 'FX Swap Slippage' | 'General';
-  priority: 'Urgent' | 'High' | 'Normal';
-  status: 'Open' | 'In Progress' | 'Resolved';
+  category: 'Supplier Escrow' | 'Customs & Port' | 'Air Freight Waybill' | 'FX Swap Slippage' | 'General' | string;
+  priority: SupportTicketPriority;
+  status: SupportTicketStatus;
   lastUpdated: string;
   createdAt: string;
+  slaDueAt?: number;
+  slaStatus?: 'on_track' | 'due_soon' | 'breached';
+  aiHandled?: boolean;
+  assignedAgent?: string;
+  extractedDetails?: {
+    waybillNumber?: string;
+    transactionRef?: string;
+    amount?: string;
+    supplierName?: string;
+    issueType?: string;
+    extractedIdentifiers?: {
+      type: 'waybill' | 'transaction' | 'amount';
+      label: string;
+      value: string;
+    }[];
+  };
   messages: {
     sender: 'user' | 'agent';
     senderName: string;
     text: string;
     timestamp: string;
+    attachmentUrl?: string;
+    attachmentName?: string;
+    attachmentType?: string;
   }[];
 }
 

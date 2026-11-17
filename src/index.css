@@ -6,11 +6,57 @@
     --font-mono: 'JetBrains Mono', monospace;
   }
 
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+  }
+
   body {
     font-family: var(--font-sans);
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    -webkit-touch-callout: none;
   }
+
+  /* Zero-delay tap handlers and elimination of mobile 300ms double-tap delay */
+  button, a, [role="button"], input, select, textarea {
+    touch-action: manipulation;
+  }
+}
+
+/* Native tactile active state press response */
+button:active:not(:disabled),
+a:active,
+[role="button"]:active:not(:disabled),
+.touch-press:active {
+  transform: scale(0.975);
+  transition: transform 60ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Momentum scrolling container for native mobile feel */
+.momentum-scroll,
+main,
+.overflow-y-auto,
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  scroll-behavior: auto; /* Zero-delay instant transitions without smooth hitch */
+}
+
+/* Hardware accelerated rendering for 60fps / 120fps fluid transitions */
+.gpu-layer {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.will-change-scroll {
+  contain: paint layout;
 }
 
 /* Tabular figures for numbers */
@@ -97,3 +143,186 @@
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+/* Safe area padding utilities for mobile headers and bottom navs */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
+}
+
+/* ==========================================================================
+   GLOBAL ENTERPRISE ADMIN DESIGN SYSTEM (ADMIN ONLY)
+   Strictly scoped to .admin-enterprise-theme — Mobile App remains untouched
+   Palette:
+   Primary background: Deep midnight navy #0B1220, Deep obsidian/charcoal #0B0F19, #111827
+   Secondary background: #111C2E, Elevated slate surfaces: #131C31, #1F2937
+   Sidebar background: #101A2B
+   Main content surface: #152238
+   Elevated cards: #1B2A40
+   Borders: #293A52, Crisp structural slate borders: #22304A, #374151
+   Primary accent: Premium electric blue #4778F5, Professional logistic blue #2563EB
+   Active navigation blue: #3867E8
+   Subtle blue highlights: #263F78
+   Financial status: #10B981 (Emerald), Luminous banking emerald #00F5D4, #F59E0B (Amber), #EF4444 (Red), #22B8CF (Cyan), #8B7CF6 (Violet)
+   High-contrast typography: #FFFFFF (Headers), #F1F5F9 (Platinum data rows), #F8FAFC (Primary), #CBD5E1 (Secondary), #94A3B8 (Muted steel)
+   Vibrant CTA triggers: #D96B16
+   ========================================================================== */
+.admin-enterprise-theme {
+  --admin-bg-master: #0B1220;
+  --admin-bg-charcoal: #0B0F19;
+  --admin-bg-secondary: #111C2E;
+  --admin-bg-slate: #131C31;
+  --admin-bg-sidebar: #101A2B;
+  --admin-bg-content: #152238;
+  --admin-bg-card: #1B2A40;
+  --admin-border: #293A52;
+  --admin-border-slate: #22304A;
+  --admin-primary: #4778F5;
+  --admin-primary-logistic: #2563EB;
+  --admin-primary-active: #3867E8;
+  --admin-primary-subtle: #263F78;
+  --admin-emerald: #10B981;
+  --admin-emerald-luminous: #00F5D4;
+  --admin-amber: #F59E0B;
+  --admin-red: #EF4444;
+  --admin-cyan: #22B8CF;
+  --admin-violet: #8B7CF6;
+  --admin-text-white: #FFFFFF;
+  --admin-text-platinum: #F1F5F9;
+  --admin-text-primary: #F8FAFC;
+  --admin-text-secondary: #CBD5E1;
+  --admin-text-muted: #94A3B8;
+
+  background-color: #0B1220;
+  color: #F8FAFC;
+  color-scheme: dark;
+}
+
+.admin-enterprise-theme h1,
+.admin-enterprise-theme h2,
+.admin-enterprise-theme h3,
+.admin-enterprise-theme h4 {
+  color: #F8FAFC;
+  letter-spacing: -0.015em;
+  font-weight: 700;
+}
+
+/* Master canvas mapping across all admin pages */
+.admin-enterprise-theme .bg-slate-950 {
+  background-color: #0B1220 !important;
+}
+
+/* Secondary surface & sidebar */
+.admin-enterprise-theme .bg-slate-900 {
+  background-color: #111C2E !important;
+}
+.admin-enterprise-theme aside {
+  background-color: #101A2B !important;
+}
+
+/* Main content surface & elevated cards */
+.admin-enterprise-theme .bg-slate-850,
+.admin-enterprise-theme .bg-slate-800 {
+  background-color: #152238 !important;
+}
+.admin-enterprise-card,
+.admin-enterprise-theme .admin-card-elevated {
+  background-color: #1B2A40 !important;
+  border: 1px solid #293A52 !important;
+  border-radius: 0.875rem;
+  box-shadow: 0 4px 20px -2px rgba(11, 18, 32, 0.6);
+}
+
+/* Universal crisp structural borders */
+.admin-enterprise-theme .border-slate-800,
+.admin-enterprise-theme .border-slate-700,
+.admin-enterprise-theme .border-slate-850 {
+  border-color: #293A52 !important;
+}
+.admin-enterprise-theme .divide-slate-800 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #293A52 !important;
+}
+
+/* Universal high-contrast typography hierarchy */
+.admin-enterprise-theme .text-white,
+.admin-enterprise-theme .text-slate-100 {
+  color: #F8FAFC !important;
+}
+.admin-enterprise-theme .text-slate-200,
+.admin-enterprise-theme .text-slate-300 {
+  color: #CBD5E1 !important;
+}
+.admin-enterprise-theme .text-slate-400,
+.admin-enterprise-theme .text-slate-500 {
+  color: #94A3B8 !important;
+}
+
+/* Electric Blue accents & active navigation */
+.admin-enterprise-theme .bg-indigo-600 {
+  background-color: #3867E8 !important;
+}
+.admin-enterprise-theme .bg-indigo-600:hover,
+.admin-enterprise-theme .hover\:bg-indigo-500:hover {
+  background-color: #4778F5 !important;
+}
+.admin-enterprise-theme .text-indigo-400,
+.admin-enterprise-theme .text-indigo-300 {
+  color: #4778F5 !important;
+}
+.admin-enterprise-theme .border-indigo-500,
+.admin-enterprise-theme .border-indigo-500\/30,
+.admin-enterprise-theme .border-indigo-500\/40 {
+  border-color: #4778F5 !important;
+}
+.admin-enterprise-theme .bg-indigo-500\/10,
+.admin-enterprise-theme .bg-indigo-500\/15,
+.admin-enterprise-theme .bg-indigo-500\/20 {
+  background-color: rgba(71, 120, 245, 0.12) !important;
+}
+
+/* Status colors */
+.admin-enterprise-theme .text-emerald-400 {
+  color: #10B981 !important;
+}
+.admin-enterprise-theme .bg-emerald-500 {
+  background-color: #10B981 !important;
+}
+.admin-enterprise-theme .text-amber-400 {
+  color: #F59E0B !important;
+}
+.admin-enterprise-theme .bg-amber-500 {
+  background-color: #F59E0B !important;
+}
+.admin-enterprise-theme .text-rose-400,
+.admin-enterprise-theme .text-red-400 {
+  color: #EF4444 !important;
+}
+.admin-enterprise-theme .bg-rose-500,
+.admin-enterprise-theme .bg-red-500 {
+  background-color: #EF4444 !important;
+}
+.admin-enterprise-theme .text-cyan-400 {
+  color: #22B8CF !important;
+}
+.admin-enterprise-theme .text-violet-400 {
+  color: #8B7CF6 !important;
+}
+
+/* Custom scrollbars for admin navigation and tables */
+.admin-enterprise-theme ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.admin-enterprise-theme ::-webkit-scrollbar-track {
+  background: #0B1220;
+}
+.admin-enterprise-theme ::-webkit-scrollbar-thumb {
+  background: #293A52;
+  border-radius: 3px;
+}
+.admin-enterprise-theme ::-webkit-scrollbar-thumb:hover {
+  background: #384F6E;
+}
+

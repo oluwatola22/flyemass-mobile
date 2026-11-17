@@ -20,6 +20,10 @@ export const ApartmentsScreen: React.FC = () => {
   const { navigate, userProfile, activeUserId, showToast } = useApp();
 
   const [rentalProps, setRentalProps] = useState<RentalProperty[]>(() => db.getRentalProperties());
+  const [userInquiries, setUserInquiries] = useState<any[]>(() => 
+    db.getPropertyInquiries(activeUserId).filter((i: any) => i.propertyType === 'apartment' || i.propertyType === 'house')
+  );
+  const [showInquiriesModal, setShowInquiriesModal] = useState(false);
   const [selectedDistrict, setSelectedDistrict] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -37,14 +41,29 @@ export const ApartmentsScreen: React.FC = () => {
   useEffect(() => {
     const updateData = () => {
       const rList = db.getRentalProperties();
-      if (rList && rList.length > 0) setRentalProps(rList);
+      if (rList && rList.length > 0) {
+        setRentalProps((prev) => {
+          if (prev && prev.length === rList.length && prev.every((p, i) => p.id === rList[i]?.id && p.isAvailable === rList[i]?.isAvailable)) {
+            return prev;
+          }
+          return rList;
+        });
+      }
+      const inqs = db.getPropertyInquiries(activeUserId).filter((i: any) => i.propertyType === 'apartment' || i.propertyType === 'house');
+      setUserInquiries((prev) => {
+        if (prev && prev.length === inqs.length && prev.every((q, i) => q.id === inqs[i]?.id && q.status === inqs[i]?.status)) {
+          return prev;
+        }
+        return inqs;
+      });
     };
     updateData();
     return db.subscribe(updateData);
-  }, []);
+  }, [activeUserId]);
 
   const filteredApartments = (rentalProps || []).filter((p) => {
     if (!p) return false;
+    if (p.isAvailable === false || (p as any).status === 'hidden' || (p as any).isPublished === false) return false;
     const isResidential = p.propertyType === 'apartment' || p.propertyType === 'house';
     const districtStr = p.district || '';
     const matchesDistrict = selectedDistrict === 'All' || districtStr.toLowerCase().includes(selectedDistrict.toLowerCase());
@@ -132,6 +151,45 @@ export const ApartmentsScreen: React.FC = () => {
             </p>
           </div>
         </div>
+
+        {/* Active Inquiries Tracker Card */}
+        {userInquiries.length > 0 && (
+          <div className="p-4 rounded-3xl bg-slate-900 border border-emerald-500/30 space-y-3 shadow-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Send className="w-4 h-4 text-emerald-400" />
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">My Apartment Inquiries ({userInquiries.length})</h4>
+              </div>
+              <span className="text-[10px] text-emerald-400 font-bold">China Desk Managed</span>
+            </div>
+
+            <div className="space-y-2">
+              {userInquiries.slice(0, 2).map((inq: any) => (
+                <div key={inq.id} className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-emerald-400 text-[11px]">{inq.reference}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                      inq.status === 'viewing_scheduled' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                      : inq.status === 'agreement_in_progress' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      : inq.status === 'contacted' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      : 'bg-slate-800 text-slate-300'
+                    }`}>
+                      {(inq.status || 'new').replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                  <p className="text-white font-semibold text-xs truncate">{inq.propertyName || inq.propertyTitle}</p>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-900">
+                    <span>Staff: {inq.assignedStaff || 'China Desk Concierge'}</span>
+                    <span>Move-in: {inq.preferredMoveInDate || 'Flexible'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-slate-400 italic">
+              Notice: Zero wallet debit. Lease agreements & security deposits are coordinated directly with your assigned China Desk agent.
+            </p>
+          </div>
+        )}
 
         {/* Search Bar */}
         <div className="relative flex items-center">

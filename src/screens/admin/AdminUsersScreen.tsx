@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { getMobileAppUrl } from '../../utils/environment';
 import { AdminLayout } from '../../components/admin/AdminLayout';
+import { AdminManualWalletAdjustmentModal } from '../../components/admin/AdminManualWalletAdjustmentModal';
 import { db, DatabaseState } from '../../services/db';
 import { firebaseSync } from '../../services/firebase';
 import { UserDocument, Currency } from '../../types';
@@ -28,26 +29,68 @@ import {
   Ban,
   Bell,
   Truck,
-  Package
+  Package,
+  Lock,
+  KeyRound,
+  RotateCcw
 } from 'lucide-react';
 
 export const AdminUsersScreen: React.FC = () => {
   const { showToast, viewAsClient } = useApp();
-  const [dbState, setDbState] = useState<DatabaseState>(db.getState());
+  const [, setDbRev] = useState(() => db.getStateRevision());
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'client' | 'agent' | 'admin'>('all');
   
   // Selected user for deep ledger inspection and balance adjustment
   const [selectedUser, setSelectedUser] = useState<UserDocument | null>(null);
+  const [walletModalUser, setWalletModalUser] = useState<UserDocument | null>(null);
   const [adjustmentCurrency, setAdjustmentCurrency] = useState<Currency>('NGN');
   const [adjustmentType, setAdjustmentType] = useState<'credit' | 'debit'>('credit');
   const [adjustmentAmount, setAdjustmentAmount] = useState('1000000');
   const [adjustmentReason, setAdjustmentReason] = useState('Providus NIP offline settlement verification');
+  const [adminPinInput, setAdminPinInput] = useState('2468');
   const [adminNotesInput, setAdminNotesInput] = useState('');
 
   useEffect(() => {
-    return db.subscribe(() => setDbState({ ...db.getState() }));
+    return db.subscribe(() => setDbRev(db.getStateRevision()));
   }, []);
+
+  const dbState = db.getState();
+
+  // URL Deep Link Listener for /admin/users/[id]/wallet-credit
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const path = window.location.pathname;
+    const hash = window.location.hash;
+
+    // Matches /admin/users/[id]/wallet-credit or ?userId=...&action=wallet-credit
+    const walletCreditMatch = path.match(/\/admin\/users\/([^\/]+)\/wallet-credit/) || hash.match(/#\/admin\/users\/([^\/]+)\/wallet-credit/);
+    const targetUid = walletCreditMatch?.[1] || (urlParams.get('action') === 'wallet-credit' ? urlParams.get('userId') : null) || urlParams.get('creditUserId');
+
+    if (targetUid && dbState.users[targetUid]) {
+      setWalletModalUser(dbState.users[targetUid]);
+    }
+  }, [dbState.users]);
+
+  const handleOpenWalletModal = (user: UserDocument) => {
+    setWalletModalUser(user);
+    if (typeof window !== 'undefined' && window.history) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('userId', user.uid);
+      url.searchParams.set('action', 'wallet-credit');
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
+
+  const handleCloseWalletModal = () => {
+    setWalletModalUser(null);
+    if (typeof window !== 'undefined' && window.history) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('action');
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
 
   useEffect(() => {
     if (selectedUser) {
@@ -64,27 +107,13 @@ export const AdminUsersScreen: React.FC = () => {
     return matchesRole && matchesSearch;
   });
 
-  const handleToggleVerification = async (user: UserDocument) => {
-    const newBadge = !user.verifiedBadge;
-    try {
-      await db.toggleKycVerified(user.uid, newBadge, 'adm-001');
-      showToast(`${user.fullName} KYC verification set to: ${newBadge ? 'VERIFIED' : 'UNVERIFIED'}`, 'info');
-      if (selectedUser?.uid === user.uid) {
-        setSelectedUser({ ...selectedUser, verifiedBadge: newBadge, kycLevel: newBadge ? 'Tier 3 (BVN & CAC Verified)' : 'Tier 1 (Basic)' });
-      }
-      setDbState({ ...db.getState() });
-    } catch (e: any) {
-      showToast(e.message || 'Failed to update KYC badge', 'error');
-    }
-  };
-
   const handleSaveAdminNotes = async () => {
     if (!selectedUser) return;
     try {
       await db.updateUserAdminNotes(selectedUser.uid, adminNotesInput, 'adm-001');
       showToast(`Compliance audit notes saved for ${selectedUser.fullName}!`, 'success');
       setSelectedUser({ ...selectedUser, adminNotes: adminNotesInput });
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (err: any) {
       showToast(err.message || 'Failed to save notes', 'error');
     }
@@ -104,7 +133,7 @@ export const AdminUsersScreen: React.FC = () => {
       if (selectedUser?.uid === user.uid) {
         setSelectedUser({ ...selectedUser, isSuspended: nextState });
       }
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (err: any) {
       showToast(err.message || 'Failed to toggle suspension', 'error');
     }
@@ -128,6 +157,19 @@ export const AdminUsersScreen: React.FC = () => {
     }
   };
 
+  const handleUnlockPin = async (user: UserDocument) => {
+    try {
+      await db.unlockUserPin(user.uid, 'adm-001');
+      showToast(`PIN lockout cleared & attempt counters reset for ${user.fullName}!`, 'success');
+      if (selectedUser?.uid === user.uid) {
+        setSelectedUser({ ...selectedUser, pinFailedAttempts: 0, pinLockedUntil: 0 });
+      }
+      setDbRev(db.getStateRevision());
+    } catch (e: any) {
+      showToast(e.message || 'Failed to clear PIN lockout', 'error');
+    }
+  };
+
   const handleApplyAdjustment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedUser) return;
@@ -137,20 +179,31 @@ export const AdminUsersScreen: React.FC = () => {
       return;
     }
 
+    if (!adjustmentReason || adjustmentReason.trim().length < 5) {
+      showToast('Mandatory admin note/reason is required (minimum 5 characters)', 'error');
+      return;
+    }
+
+    if (!adminPinInput || adminPinInput.trim().length < 4) {
+      showToast('Security Guardrail: Mandatory Admin PIN required', 'error');
+      return;
+    }
+
     try {
       const res = await db.manualAdjustBalance(
         selectedUser.uid,
         adjustmentCurrency,
         amt,
         adjustmentType,
-        adjustmentReason,
-        'adm-001'
+        adjustmentReason.trim(),
+        'Central Treasury Officer',
+        adminPinInput.trim()
       );
       showToast(`Successfully executed authoritative ${adjustmentType.toUpperCase()} of ${adjustmentCurrency} ${amt.toLocaleString()}!`, 'success');
       setSelectedUser({ ...selectedUser, balances: res.balances });
       setAdjustmentAmount('');
       setAdjustmentReason('');
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (err: any) {
       showToast(err.message || 'Failed to execute adjustment', 'error');
     }
@@ -168,7 +221,7 @@ export const AdminUsersScreen: React.FC = () => {
           <div>
             <h1 className="text-xl font-extrabold text-white tracking-tight">Enterprise User Directory</h1>
             <p className="text-xs text-slate-400">
-              Manage client KYC badges, inspect multi-currency accounts, and execute manual ledger reconciliations.
+              Manage client accounts, inspect multi-currency vaults, and execute manual ledger reconciliations.
             </p>
           </div>
 
@@ -218,8 +271,8 @@ export const AdminUsersScreen: React.FC = () => {
                   <th className="py-3 px-4">User / Enterprise</th>
                   <th className="py-3 px-4">Contact Info</th>
                   <th className="py-3 px-4">Role</th>
-                  <th className="py-3 px-4">Vault Balances (NGN / CNY / USD)</th>
-                  <th className="py-3 px-4">Verification</th>
+                  <th className="py-3 px-4">Vault Balances (NGN / CNY)</th>
+                  <th className="py-3 px-4">Account Status</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -230,9 +283,7 @@ export const AdminUsersScreen: React.FC = () => {
                       <div>
                         <p className="font-bold text-white text-xs flex items-center gap-1.5">
                           <span>{user.fullName}</span>
-                          {user.verifiedBadge && (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                          )}
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                         </p>
                         <p className="text-[11px] text-slate-400 font-medium">{user.businessName}</p>
                         <span className="text-[9px] font-mono text-slate-500">ID: {user.uid}</span>
@@ -258,51 +309,55 @@ export const AdminUsersScreen: React.FC = () => {
                       <div className="font-mono text-[11px] space-y-0.5">
                         <p className="text-emerald-400 font-bold">₦{(user?.balances?.NGN ?? 0).toLocaleString()}</p>
                         <p className="text-indigo-300 font-semibold">¥{(user?.balances?.CNY ?? 0).toLocaleString()}</p>
-                        <p className="text-slate-400">${(user?.balances?.USD ?? 0).toLocaleString()}</p>
                       </div>
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <button
-                        onClick={() => handleToggleVerification(user)}
-                        className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all border flex items-center gap-1 ${
-                          user.verifiedBadge
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-rose-500/10 hover:border-rose-500/30 hover:text-rose-400'
-                            : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400'
-                        }`}
-                        title="Click to toggle verification status"
-                      >
-                        {user.verifiedBadge ? (
+                      <span className={`px-2.5 py-1 rounded-xl text-[10px] font-bold border inline-flex items-center gap-1.5 ${
+                        user.isSuspended
+                          ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                          : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                      }`}>
+                        {user.isSuspended ? (
                           <>
-                            <ShieldCheck className="w-3.5 h-3.5" />
-                            <span>Verified (Click to Revoke)</span>
+                            <ShieldAlert className="w-3.5 h-3.5" />
+                            <span>Suspended</span>
                           </>
                         ) : (
                           <>
-                            <ShieldAlert className="w-3.5 h-3.5" />
-                            <span>Unverified (Click to Approve)</span>
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Active</span>
                           </>
                         )}
-                      </button>
+                      </span>
                     </td>
 
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
+                          onClick={() => handleOpenWalletModal(user)}
+                          data-testid={`wallet-adjust-btn-${user.uid}`}
+                          className="px-2.5 py-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                          title={`Manual Credit or Debit for ${user.fullName}`}
+                        >
+                          <DollarSign className="w-3.5 h-3.5 text-indigo-400" />
+                          <span>Credit / Debit</span>
+                        </button>
+                        <button
                           onClick={() => window.open(getMobileAppUrl(`?userId=${user.uid}`), '_blank')}
-                          className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold transition-all inline-flex items-center gap-1.5"
+                          className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold transition-all inline-flex items-center gap-1.5 cursor-pointer"
                           title={`Open Client View for ${user.fullName} (${getMobileAppUrl()})`}
                         >
                           <Smartphone className="w-3.5 h-3.5" />
-                          <span>Open Client View</span>
+                          <span>Client View</span>
                           <ExternalLink className="w-3 h-3 ml-0.5" />
                         </button>
                         <button
                           onClick={() => setSelectedUser(user)}
-                          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all inline-flex items-center gap-1.5"
+                          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all inline-flex items-center gap-1.5 cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>Inspect & Adjust</span>
+                          <span>Inspect & Manage</span>
                         </button>
                       </div>
                     </td>
@@ -347,7 +402,7 @@ export const AdminUsersScreen: React.FC = () => {
             </div>
 
             {/* Current Balances Breakdown Cards */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
                 <span className="text-[10px] text-slate-400 uppercase font-semibold">Nigerian Naira (₦)</span>
                 <p className="text-sm font-extrabold text-emerald-400 num-tabular mt-1">
@@ -359,13 +414,6 @@ export const AdminUsersScreen: React.FC = () => {
                 <span className="text-[10px] text-slate-400 uppercase font-semibold">Chinese Yuan (¥)</span>
                 <p className="text-sm font-extrabold text-indigo-400 num-tabular mt-1">
                   ¥{(selectedUser?.balances?.CNY ?? 0).toLocaleString()}
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
-                <span className="text-[10px] text-slate-400 uppercase font-semibold">US Dollar ($)</span>
-                <p className="text-sm font-extrabold text-white num-tabular mt-1">
-                  ${(selectedUser?.balances?.USD ?? 0).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -387,15 +435,6 @@ export const AdminUsersScreen: React.FC = () => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleToggleVerification(selectedUser)}
-                    className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs text-white font-semibold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
-                  >
-                    <ShieldCheck className={`w-3.5 h-3.5 ${selectedUser.verifiedBadge ? 'text-emerald-400' : 'text-slate-500'}`} />
-                    <span>{selectedUser.verifiedBadge ? 'KYC Verified' : 'Verify KYC'}</span>
-                  </button>
-
                   <button
                     type="button"
                     onClick={() => handleSendNotification(selectedUser.uid)}
@@ -475,18 +514,76 @@ export const AdminUsersScreen: React.FC = () => {
                 <textarea
                   value={adminNotesInput}
                   onChange={(e) => setAdminNotesInput(e.target.value)}
-                  placeholder="Record customer due diligence, BVN/CAC verification logs, or risk assessments..."
+                  placeholder="Record customer account notes, communication logs, or trade assessments..."
                   rows={2}
                   className="w-full p-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 placeholder-slate-600 outline-none focus:border-indigo-500 font-sans resize-none"
                 />
               </div>
+
+              {/* 6-Digit PIN & Cryptographic Enclave Panel */}
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <KeyRound className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>6-Digit Security PIN & Cryptographic Enclave</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-bold">
+                    HMAC-SHA256 ENCRYPTED
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                    <span className="text-slate-400 text-[10px]">Lockout State</span>
+                    <span className={`font-bold ${
+                      (selectedUser.pinLockedUntil && selectedUser.pinLockedUntil > Date.now())
+                        ? 'text-rose-400'
+                        : 'text-emerald-400'
+                    }`}>
+                      {(selectedUser.pinLockedUntil && selectedUser.pinLockedUntil > Date.now()) ? 'LOCKED (15m)' : 'UNLOCKED / ACTIVE'}
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                    <span className="text-slate-400 text-[10px]">Failed Attempts</span>
+                    <span className="font-mono font-bold text-white">
+                      {selectedUser.pinFailedAttempts || 0} / 5
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <p className="text-[10px] text-slate-500">
+                    Mandatory authorization key for supplier disbursements, FX swaps, and tech shop checkouts.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => handleUnlockPin(selectedUser)}
+                    className="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-emerald-400 hover:text-emerald-300 text-[10px] font-bold flex items-center gap-1 shrink-0 transition-all cursor-pointer"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Clear Lockout / Reset Tries</span>
+                  </button>
+                </div>
+              </div>
             </div>
+
+            {/* Open Dedicated Enterprise Adjustment Modal Button */}
+            <button
+              type="button"
+              onClick={() => handleOpenWalletModal(selectedUser)}
+              data-testid="open-wallet-adjustment-modal-btn"
+              className="w-full py-3 px-4 rounded-2xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/10 active:scale-98"
+            >
+              <DollarSign className="w-4 h-4 text-indigo-400" />
+              <span>Launch Enterprise Manual Wallet Credit & Debit Engine</span>
+            </button>
 
             {/* Manual Balance Credit / Debit Form */}
             <form onSubmit={handleApplyAdjustment} className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
               <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
                 <DollarSign className="w-4 h-4 text-emerald-400" />
-                <span>Manual Vault Adjustment & Ledger Posting</span>
+                <span>Quick Vault Adjustment & Ledger Posting</span>
               </h4>
 
               <div className="grid grid-cols-3 gap-2">
@@ -511,7 +608,6 @@ export const AdminUsersScreen: React.FC = () => {
                   >
                     <option value="NGN">🇳🇬 NGN (Naira)</option>
                     <option value="CNY">🇨🇳 CNY (RMB)</option>
-                    <option value="USD">🇺🇸 USD (Dollar)</option>
                   </select>
                 </div>
 
@@ -527,21 +623,35 @@ export const AdminUsersScreen: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="text-[10px] font-semibold text-slate-400 block mb-1">Audit Reason / Bank Reference</label>
-                <input
-                  type="text"
-                  value={adjustmentReason}
-                  onChange={(e) => setAdjustmentReason(e.target.value)}
-                  placeholder="e.g. Providus NIP receipt verification, customs settlement"
-                  className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none"
-                  required
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Audit Reason / Bank Reference</label>
+                  <input
+                    type="text"
+                    value={adjustmentReason}
+                    onChange={(e) => setAdjustmentReason(e.target.value)}
+                    placeholder="e.g. Providus NIP receipt verification, customs settlement"
+                    className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold text-amber-400 block mb-1">Security PIN Guardrail</label>
+                  <input
+                    type="password"
+                    maxLength={6}
+                    value={adminPinInput}
+                    onChange={(e) => setAdminPinInput(e.target.value)}
+                    placeholder="Admin PIN (e.g. 2468)"
+                    className="w-full p-2.5 rounded-xl bg-slate-900 border border-amber-500/40 text-xs text-white outline-none font-mono"
+                    required
+                  />
+                </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-98 transition-all"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-98 transition-all cursor-pointer"
               >
                 Execute {adjustmentType.toUpperCase()} & Post to Immutable Ledger
               </button>
@@ -571,6 +681,23 @@ export const AdminUsersScreen: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Enterprise Manual Wallet Adjustment Dedicated Modal */}
+      {walletModalUser && (
+        <AdminManualWalletAdjustmentModal
+          isOpen={!!walletModalUser}
+          onClose={handleCloseWalletModal}
+          user={walletModalUser}
+          adminIdentifier="Central Treasury Officer"
+          onSuccess={(newBalances, ref) => {
+            if (selectedUser && selectedUser.uid === walletModalUser.uid) {
+              setSelectedUser({ ...selectedUser, balances: newBalances as any });
+            }
+            setDbRev(db.getStateRevision());
+          }}
+          showToast={showToast}
+        />
       )}
     </AdminLayout>
   );

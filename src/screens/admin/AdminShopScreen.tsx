@@ -17,21 +17,29 @@ import {
   Edit, 
   Trash2, 
   DollarSign, 
-  X,
-  ExternalLink,
-  ShieldCheck,
-  Settings,
-  Plane,
-  AlertTriangle,
-  RotateCcw,
-  Layers,
-  Sparkles,
-  FileText
+  X, 
+  ExternalLink, 
+  ShieldCheck, 
+  Settings, 
+  Plane, 
+  AlertTriangle, 
+  RotateCcw, 
+  Layers, 
+  Sparkles, 
+  FileText,
+  UploadCloud,
+  Image,
+  Images,
+  Check,
+  MoveUp,
+  MoveDown,
+  Star
 } from 'lucide-react';
 
 export const AdminShopScreen: React.FC = () => {
   const { showToast } = useApp();
-  const [dbState, setDbState] = useState<DatabaseState>(db.getState());
+  const [, setDbRev] = useState(() => db.getStateRevision());
+  const dbState = db.getState();
   const [products, setProducts] = useState<TechProduct[]>(() => {
     const list = db.getProducts();
     return list.length > 0 ? list : TECH_PRODUCTS;
@@ -55,12 +63,17 @@ export const AdminShopScreen: React.FC = () => {
 
   // Add Product Modal state
   const [showAddModal, setShowAddModal] = useState(false);
+  const [newBrand, setNewBrand] = useState<'Apple' | 'Google Pixel' | 'Samsung'>('Apple');
+  const [newModel, setNewModel] = useState('iPhone 16 Pro Max');
+  const [newStorage, setNewStorage] = useState('256GB');
+  const [newImage, setNewImage] = useState('https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80');
   const [newTitle, setNewTitle] = useState('Apple iPhone 16 Pro Max');
   const [newSubtitle, setNewSubtitle] = useState('Desert Titanium • Hong Kong Dual SIM Spec');
   const [newCategory, setNewCategory] = useState<string>('iPhone');
   const [newCondition, setNewCondition] = useState<'Brand New' | 'Refurbished' | 'Fair / Pre-owned'>('Brand New');
   const [newPriceUSD, setNewPriceUSD] = useState('1420');
   const [newPriceNGN, setNewPriceNGN] = useState('2108700');
+  const [newPriceRMB, setNewPriceRMB] = useState('10280');
   const [newStock, setNewStock] = useState('12');
   const [newTag, setNewTag] = useState('New Release');
   const [newChip, setNewChip] = useState('Apple A18 Pro (3nm)');
@@ -71,6 +84,40 @@ export const AdminShopScreen: React.FC = () => {
   const [newBiometrics, setNewBiometrics] = useState('Face ID');
   const [newWarranty, setNewWarranty] = useState('1-Year Apple Global Warranty');
 
+  // Edit Product Modal State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [editBrand, setEditBrand] = useState('Apple');
+  const [editModel, setEditModel] = useState('');
+  const [editStorage, setEditStorage] = useState('');
+  const [editImage, setEditImage] = useState('');
+  const [editTitle, setEditTitle] = useState('');
+  const [editSubtitle, setEditSubtitle] = useState('');
+  const [editCategory, setEditCategory] = useState('iPhone');
+  const [editCondition, setEditCondition] = useState<'Brand New' | 'Refurbished' | 'Fair / Pre-owned'>('Brand New');
+  const [editPriceUSD, setEditPriceUSD] = useState('');
+  const [editPriceNGN, setEditPriceNGN] = useState('');
+  const [editPriceCNY, setEditPriceCNY] = useState('');
+  const [editStockCount, setEditStockCount] = useState('');
+  const [isUpdatingProduct, setIsUpdatingProduct] = useState(false);
+  const [catalogBrandFilter, setCatalogBrandFilter] = useState<'All Brands' | 'Apple' | 'Google Pixel' | 'Samsung'>('All Brands');
+
+  // Multi-Image Gallery State (Add Product)
+  const [newImages, setNewImages] = useState<string[]>([
+    'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
+    'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80',
+    'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?auto=format&fit=crop&w=600&q=80'
+  ]);
+  const [manualNewImageUrl, setManualNewImageUrl] = useState('');
+  const [isDraggingNew, setIsDraggingNew] = useState(false);
+  const [isUploadingNew, setIsUploadingNew] = useState(false);
+
+  // Multi-Image Gallery State (Edit Product)
+  const [editImages, setEditImages] = useState<string[]>([]);
+  const [manualEditImageUrl, setManualEditImageUrl] = useState('');
+  const [isDraggingEdit, setIsDraggingEdit] = useState(false);
+  const [isUploadingEdit, setIsUploadingEdit] = useState(false);
+
   // Variants in Add Product modal
   const [newVariants, setNewVariants] = useState<ProductVariant[]>([
     { id: `v-${Date.now()}-1`, color: 'Desert Titanium', colorHex: '#C2AD97', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 6, isActive: true },
@@ -79,8 +126,8 @@ export const AdminShopScreen: React.FC = () => {
 
   useEffect(() => {
     return db.subscribe(() => {
+      setDbRev(db.getStateRevision());
       const nextState = db.getState();
-      setDbState({ ...nextState });
       const current = db.getProducts();
       if (current.length > 0) setProducts(current);
       if (nextState.device_shop_settings?.deliveryFeeNGN) {
@@ -114,7 +161,7 @@ export const AdminShopScreen: React.FC = () => {
       await db.fulfillShopOrder(orderId, undefined, status, undefined, 'adm-001');
       firebaseSync.recordAudit('Fulfillment Officer', 'ORDER_STATUS_UPDATE', 'shop_orders', orderId, `Marked order as ${status}`);
       showToast(`Order status updated to "${status.toUpperCase()}"!`, 'success');
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (e: any) {
       showToast(e.message || 'Failed to update order', 'error');
     }
@@ -152,7 +199,7 @@ export const AdminShopScreen: React.FC = () => {
 
       showToast(`Order #${selectedOrderToShip.orderNumber || selectedOrderToShip.id} dispatched! Waybill: ${trackingNumber}`, 'success');
       setSelectedOrderToShip(null);
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (err: any) {
       showToast(err.message || 'Failed to dispatch order', 'error');
     }
@@ -164,7 +211,7 @@ export const AdminShopScreen: React.FC = () => {
     try {
       await db.cancelShopOrder(order.id, 'Refunded by Admin Shop Operations', 'adm-001');
       showToast(`Order refunded and ${order.currency} ${order.totalAmount.toLocaleString()} credited back!`, 'success');
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
       setProducts(db.getProducts());
     } catch (e: any) {
       showToast(e.message || 'Failed to refund order', 'error');
@@ -176,10 +223,248 @@ export const AdminShopScreen: React.FC = () => {
     try {
       await db.updateShopSettings(deliveryFeeNGN, 'adm-001');
       showToast(`Global delivery fee updated to ₦${deliveryFeeNGN.toLocaleString()}`, 'success');
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (err: any) {
       showToast(err.message || 'Failed to save settings', 'error');
     }
+  };
+
+  const handleUploadFiles = async (files: FileList | File[], target: 'new' | 'edit') => {
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files);
+    const validFiles = fileArray.filter(f => f.type.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(f.name));
+    if (validFiles.length === 0) {
+      showToast('Please select valid image files (PNG, JPG, WebP)', 'error');
+      return;
+    }
+
+    if (target === 'new') setIsUploadingNew(true);
+    else setIsUploadingEdit(true);
+
+    try {
+      const uploadPromises = validFiles.map(file => db.uploadProductImage(file));
+      const results = await Promise.all(uploadPromises);
+      const successfulUrls = results.map(r => r.url).filter(Boolean);
+
+      if (successfulUrls.length > 0) {
+        if (target === 'new') {
+          setNewImages(prev => {
+            const next = [...prev, ...successfulUrls];
+            setNewImage(next[0] || '');
+            return next;
+          });
+        } else {
+          setEditImages(prev => {
+            const next = [...prev, ...successfulUrls];
+            setEditImage(next[0] || '');
+            return next;
+          });
+        }
+        showToast(`Uploaded ${successfulUrls.length} image(s) to Supabase Storage!`, 'success');
+      }
+    } catch {
+      showToast('Failed to upload image files', 'error');
+    } finally {
+      if (target === 'new') setIsUploadingNew(false);
+      else setIsUploadingEdit(false);
+    }
+  };
+
+  const handleAddManualImage = (target: 'new' | 'edit') => {
+    const url = target === 'new' ? manualNewImageUrl.trim() : manualEditImageUrl.trim();
+    if (!url) {
+      showToast('Please enter an image URL', 'error');
+      return;
+    }
+    if (target === 'new') {
+      setNewImages(prev => {
+        const next = [...prev, url];
+        setNewImage(next[0] || '');
+        return next;
+      });
+      setManualNewImageUrl('');
+    } else {
+      setEditImages(prev => {
+        const next = [...prev, url];
+        setEditImage(next[0] || '');
+        return next;
+      });
+      setManualEditImageUrl('');
+    }
+    showToast('Image URL added to gallery!', 'success');
+  };
+
+  const handleRemoveImage = (index: number, target: 'new' | 'edit') => {
+    if (target === 'new') {
+      setNewImages(prev => {
+        const next = prev.filter((_, i) => i !== index);
+        setNewImage(next[0] || '');
+        return next;
+      });
+    } else {
+      setEditImages(prev => {
+        const next = prev.filter((_, i) => i !== index);
+        setEditImage(next[0] || '');
+        return next;
+      });
+    }
+  };
+
+  const handleSetPrimaryImage = (index: number, target: 'new' | 'edit') => {
+    if (index === 0) return;
+    if (target === 'new') {
+      setNewImages(prev => {
+        const item = prev[index];
+        const next = [item, ...prev.filter((_, i) => i !== index)];
+        setNewImage(next[0] || '');
+        return next;
+      });
+    } else {
+      setEditImages(prev => {
+        const item = prev[index];
+        const next = [item, ...prev.filter((_, i) => i !== index)];
+        setEditImage(next[0] || '');
+        return next;
+      });
+    }
+    showToast('Primary cover image updated', 'success');
+  };
+
+  const handleBrandChange = (brand: 'Apple' | 'Google Pixel' | 'Samsung') => {
+    setNewBrand(brand);
+    if (brand === 'Google Pixel') {
+      const pixelGallery = [
+        'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80',
+        'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=600&q=80',
+        'https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=600&q=80'
+      ];
+      setNewImages(pixelGallery);
+      setNewModel('Pixel 9 Pro XL');
+      setNewCategory('Google Pixel');
+      setNewTitle('Google Pixel 9 Pro XL');
+      setNewSubtitle('Obsidian Black • Google Tensor G4 • Super Actua OLED');
+      setNewChip('Google Tensor G4 (Titan M2)');
+      setNewRAM('16GB LPDDR5X');
+      setNewDisplay('6.8" Super Actua LTPO OLED (1-120Hz)');
+      setNewCamera('50MP Main + 48MP Ultra-Wide + 48MP Telephoto');
+      setNewWarranty('1-Year Official Google Limited Warranty');
+      setNewBiometrics('In-display Fingerprint & Face Unlock');
+      setNewImage(pixelGallery[0]);
+      setNewPriceUSD('1099');
+      setNewPriceNGN('1632000');
+      setNewPriceRMB('7950');
+    } else if (brand === 'Samsung') {
+      const samsungGallery = [
+        'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=600&q=80',
+        'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=600&q=80',
+        'https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=600&q=80'
+      ];
+      setNewImages(samsungGallery);
+      setNewModel('Galaxy S24 Ultra');
+      setNewCategory('Samsung');
+      setNewTitle('Samsung Galaxy S24 Ultra');
+      setNewSubtitle('Titanium Gray • 12GB RAM • Galaxy AI & S-Pen');
+      setNewChip('Qualcomm Snapdragon 8 Gen 3 for Galaxy');
+      setNewRAM('12GB LPDDR5X');
+      setNewDisplay('6.8" Flat QHD+ Dynamic AMOLED 2X');
+      setNewCamera('200MP Quad Camera System');
+      setNewWarranty('1-Year Samsung Global Warranty');
+      setNewBiometrics('Ultrasonic Fingerprint');
+      setNewImage(samsungGallery[0]);
+      setNewPriceUSD('1299');
+      setNewPriceNGN('1929000');
+      setNewPriceRMB('9400');
+    } else {
+      const appleGallery = [
+        'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
+        'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80',
+        'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?auto=format&fit=crop&w=600&q=80'
+      ];
+      setNewImages(appleGallery);
+      setNewModel('iPhone 16 Pro Max');
+      setNewCategory('iPhone');
+      setNewTitle('Apple iPhone 16 Pro Max');
+      setNewSubtitle('Desert Titanium • Hong Kong Dual SIM Spec');
+      setNewChip('Apple A18 Pro (3nm)');
+      setNewRAM('8GB Unified LPDDR5X');
+      setNewDisplay('6.9" Super Retina XDR OLED');
+      setNewCamera('48MP Fusion + 48MP Ultra-Wide');
+      setNewWarranty('1-Year Apple Global Warranty');
+      setNewBiometrics('Face ID');
+      setNewImage(appleGallery[0]);
+      setNewPriceUSD('1420');
+      setNewPriceNGN('2108700');
+      setNewPriceRMB('10280');
+    }
+  };
+
+  const handleOpenEditProduct = (prod: TechProduct) => {
+    setEditingProductId(prod.id);
+    const prodGallery = Array.isArray(prod.images) && prod.images.length > 0 
+      ? prod.images.filter(Boolean) 
+      : (prod.image ? [prod.image] : []);
+    setEditImages(prodGallery);
+    setEditImage(prodGallery[0] || prod.image || '');
+    setEditBrand(prod.brand || (prod.title.includes('Pixel') ? 'Google Pixel' : prod.title.includes('Samsung') ? 'Samsung' : 'Apple'));
+    setEditModel(prod.model || prod.title.replace('Apple ', '').replace('Google ', '').replace('Samsung ', ''));
+    setEditStorage(prod.storage || prod.storageOptions?.[0] || '256GB');
+    setEditTitle(prod.title);
+    setEditSubtitle(prod.subtitle || '');
+    setEditCategory(prod.category);
+    setEditCondition(prod.condition || 'Brand New');
+    setEditPriceUSD(String(prod.priceUSD));
+    setEditPriceNGN(String(prod.priceNGN));
+    setEditPriceCNY(String(prod.priceRMB || prod.priceCNY || Math.round(prod.priceUSD * (rates.USD_CNY || 7.24))));
+    setEditStockCount(String(prod.stockCount));
+    setShowEditModal(true);
+  };
+
+  const handleSaveEditProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProductId) return;
+    setIsUpdatingProduct(true);
+    try {
+      const usd = parseFloat(editPriceUSD) || 1000;
+      const ngn = parseFloat(editPriceNGN) || Math.round(usd * (rates.USD_NGN || 1485));
+      const cny = parseFloat(editPriceCNY) || Math.round(usd * (rates.USD_CNY || 7.24));
+      const stock = parseInt(editStockCount) || 0;
+      const finalEditGallery = editImages.length > 0 ? editImages.filter(Boolean) : (editImage ? [editImage] : []);
+
+      db.updateProduct(editingProductId, {
+        brand: editBrand,
+        model: editModel,
+        storage: editStorage,
+        image: finalEditGallery[0] || editImage,
+        images: finalEditGallery,
+        title: editTitle.trim(),
+        subtitle: editSubtitle.trim(),
+        category: editCategory,
+        condition: editCondition,
+        priceUSD: usd,
+        priceNGN: ngn,
+        priceCNY: cny,
+        priceRMB: cny,
+        stockCount: stock,
+        inStock: stock > 0
+      });
+
+      firebaseSync.recordAudit('Shop Manager', 'UPDATE_PRODUCT', 'products', editingProductId, `Updated product & prices for ${editTitle}`);
+      showToast(`Product "${editTitle}" updated successfully!`, 'success');
+      setShowEditModal(false);
+      setProducts(db.getProducts());
+    } catch (err: any) {
+      showToast(err.message || 'Failed to update product', 'error');
+    } finally {
+      setIsUpdatingProduct(false);
+    }
+  };
+
+  const handleDeleteProduct = (productId: string, title: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${title}" from the Apple tech catalog?`)) return;
+    db.deleteProduct(productId);
+    firebaseSync.recordAudit('Shop Manager', 'DELETE_PRODUCT', 'products', productId, `Deleted product ${title}`);
+    showToast(`Product "${title}" removed from catalog`, 'success');
+    setProducts(db.getProducts());
   };
 
   const handleAddVariant = () => {
@@ -205,22 +490,27 @@ export const AdminShopScreen: React.FC = () => {
     e.preventDefault();
     const usd = parseFloat(newPriceUSD) || 1000;
     const ngn = parseFloat(newPriceNGN) || Math.round(usd * (rates.USD_NGN || 1485));
+    const rmb = parseFloat(newPriceRMB) || Math.round(usd * (rates.USD_CNY || 7.24));
     const totalVariantStock = newVariants.reduce((sum, v) => sum + (v.stockCount || 0), 0);
     const initialStock = totalVariantStock > 0 ? totalVariantStock : (parseInt(newStock) || 5);
+    const finalAddGallery = newImages.length > 0 ? newImages.filter(Boolean) : (newImage ? [newImage] : []);
+    const primaryImage = finalAddGallery[0] || newImage || 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80';
 
     const newProd: TechProduct = {
-      id: `prod-apple-${Date.now()}`,
+      id: `prod-${newBrand.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
+      brand: newBrand,
+      model: newModel,
+      storage: newStorage,
       title: newTitle,
       subtitle: newSubtitle,
       category: newCategory,
       condition: newCondition,
       priceUSD: usd,
       priceNGN: ngn,
-      priceCNY: Math.round(usd * (rates.USD_CNY || 7.24)),
-      image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
-      images: [
-        'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80'
-      ],
+      priceCNY: rmb,
+      priceRMB: rmb,
+      image: primaryImage,
+      images: finalAddGallery,
       rating: 5.0,
       reviewsCount: 1,
       specs: [newChip, newDisplay, newCamera],
@@ -473,60 +763,102 @@ export const AdminShopScreen: React.FC = () => {
 
         {/* TAB 2: PRODUCT CATALOG & VARIANT MANAGEMENT */}
         {activeTab === 'catalog' && (
-          <div className="rounded-3xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/80 border-b border-slate-800 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                  <tr>
-                    <th className="py-3 px-4">Apple Hardware & Specs</th>
-                    <th className="py-3 px-4">Category & Condition</th>
-                    <th className="py-3 px-4">Catalog Pricing (USD / NGN / CNY)</th>
-                    <th className="py-3 px-4">Variants & Stock</th>
-                    <th className="py-3 px-4 text-right">Inventory Adjuster</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {products.map((prod) => {
-                    const variantsCount = prod.variants?.length || 0;
-                    const condition = prod.condition || 'Brand New';
+          <div className="space-y-4">
+            {/* Brand Filter Pills for Admin */}
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex gap-2">
+                {(['All Brands', 'Apple', 'Google Pixel', 'Samsung'] as const).map((b) => (
+                  <button
+                    key={b}
+                    type="button"
+                    onClick={() => setCatalogBrandFilter(b)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                      catalogBrandFilter === b
+                        ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold shadow-sm'
+                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {b}
+                  </button>
+                ))}
+              </div>
+              <span className="text-xs text-slate-400 font-mono">
+                Showing {products.filter((p) => catalogBrandFilter === 'All Brands' || p.brand === catalogBrandFilter || (catalogBrandFilter === 'Apple' && !p.brand)).length} devices
+              </span>
+            </div>
 
-                    return (
-                      <tr key={prod.id} className="hover:bg-slate-950/50 transition-colors">
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 p-1 flex items-center justify-center shrink-0 overflow-hidden">
-                              <img
-                                src={prod.image}
-                                alt={prod.title}
-                                className="w-full h-full object-contain"
-                              />
-                            </div>
-                            <div>
-                              <p className="font-bold text-white text-xs">{prod.title}</p>
-                              <p className="text-[10px] text-slate-400">{prod.subtitle}</p>
-                              {prod.technicalSpecs?.chip && (
-                                <p className="text-[9px] text-cyan-400 font-mono mt-0.5">{prod.technicalSpecs.chip}</p>
-                              )}
-                            </div>
-                          </div>
-                        </td>
+            <div className="rounded-3xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950/80 border-b border-slate-800 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                    <tr>
+                      <th className="py-3 px-4">Brand, Device & Specs</th>
+                      <th className="py-3 px-4">Category & Condition</th>
+                      <th className="py-3 px-4">Catalog Pricing (USD / NGN / RMB)</th>
+                      <th className="py-3 px-4">Variants & Stock</th>
+                      <th className="py-3 px-4 text-right">Inventory Adjuster</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {products
+                      .filter((prod) => {
+                        if (catalogBrandFilter === 'All Brands') return true;
+                        if (catalogBrandFilter === 'Apple') return prod.brand === 'Apple' || (!prod.brand && !prod.title.includes('Pixel') && !prod.title.includes('Samsung'));
+                        if (catalogBrandFilter === 'Google Pixel') return prod.brand === 'Google Pixel' || prod.category === 'Google Pixel' || prod.title.includes('Pixel');
+                        if (catalogBrandFilter === 'Samsung') return prod.brand === 'Samsung' || prod.category === 'Samsung' || prod.title.includes('Samsung') || prod.title.includes('Galaxy');
+                        return true;
+                      })
+                      .map((prod) => {
+                        const variantsCount = prod.variants?.length || 0;
+                        const condition = prod.condition || 'Brand New';
 
-                        <td className="py-3.5 px-4">
-                          <div className="space-y-1">
-                            <span className="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] font-bold text-slate-300 block w-fit">
-                              {prod.category}
-                            </span>
-                            <span className="px-2 py-0.5 rounded-full bg-indigo-950 text-[9px] font-semibold text-indigo-300 border border-indigo-800/40 block w-fit">
-                              {condition}
-                            </span>
-                          </div>
-                        </td>
+                        return (
+                          <tr key={prod.id} className="hover:bg-slate-950/50 transition-colors">
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 p-1 flex items-center justify-center shrink-0 overflow-hidden">
+                                  <img
+                                    src={prod.image}
+                                    alt={prod.title}
+                                    className="w-full h-full object-contain"
+                                  />
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-1.5 mb-0.5">
+                                    <span className="text-[9px] font-extrabold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                                      {prod.brand || 'Apple'}
+                                    </span>
+                                    {prod.storage && (
+                                      <span className="text-[9px] font-bold text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
+                                        {prod.storage}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="font-bold text-white text-xs">{prod.title}</p>
+                                  <p className="text-[10px] text-slate-400">{prod.subtitle}</p>
+                                  {prod.technicalSpecs?.chip && (
+                                    <p className="text-[9px] text-cyan-400 font-mono mt-0.5">{prod.technicalSpecs.chip}</p>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
 
-                        <td className="py-3.5 px-4 font-mono">
-                          <p className="font-bold text-emerald-400">${prod.priceUSD.toLocaleString()} USD</p>
-                          <p className="text-[10px] text-slate-300">₦{prod.priceNGN.toLocaleString()} NGN</p>
-                          <p className="text-[9px] text-indigo-300">¥{prod.priceCNY.toLocaleString()} CNY</p>
-                        </td>
+                            <td className="py-3.5 px-4">
+                              <div className="space-y-1">
+                                <span className="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] font-bold text-slate-300 block w-fit">
+                                  {prod.category}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full bg-indigo-950 text-[9px] font-semibold text-indigo-300 border border-indigo-800/40 block w-fit">
+                                  {condition}
+                                </span>
+                              </div>
+                            </td>
+
+                            <td className="py-3.5 px-4 font-mono">
+                              <p className="font-bold text-emerald-400">${prod.priceUSD.toLocaleString()} USD</p>
+                              <p className="text-[10px] text-slate-300">₦{prod.priceNGN.toLocaleString()} NGN</p>
+                              <p className="text-[9px] text-indigo-300">¥{(prod.priceRMB || prod.priceCNY || Math.round(prod.priceUSD * 7.24)).toLocaleString()} RMB</p>
+                            </td>
 
                         <td className="py-3.5 px-4">
                           <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold block w-fit ${
@@ -540,23 +872,46 @@ export const AdminShopScreen: React.FC = () => {
                         </td>
 
                         <td className="py-3.5 px-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
+                          <div className="flex items-center justify-end gap-2">
+                            <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateStock(prod.id, -1)}
+                                className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold cursor-pointer"
+                                title="Decrease stock"
+                              >
+                                <Minus className="w-3 h-3" />
+                              </button>
+                              <span className="w-8 text-center font-mono font-bold text-white text-xs">
+                                {prod.stockCount}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateStock(prod.id, 1)}
+                                className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold cursor-pointer"
+                                title="Increase stock"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
+
                             <button
                               type="button"
-                              onClick={() => handleUpdateStock(prod.id, -1)}
-                              className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold"
+                              onClick={() => handleOpenEditProduct(prod)}
+                              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-xs flex items-center gap-1 transition-all cursor-pointer"
+                              title="Edit product and prices"
                             >
-                              <Minus className="w-3.5 h-3.5" />
+                              <Edit className="w-3.5 h-3.5" />
+                              <span>Edit</span>
                             </button>
-                            <span className="w-8 text-center font-mono font-bold text-white text-xs">
-                              {prod.stockCount}
-                            </span>
+
                             <button
                               type="button"
-                              onClick={() => handleUpdateStock(prod.id, 1)}
-                              className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold"
+                              onClick={() => handleDeleteProduct(prod.id, prod.title)}
+                              className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition-all cursor-pointer"
+                              title="Delete product"
                             >
-                              <Plus className="w-3.5 h-3.5" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>
@@ -565,6 +920,7 @@ export const AdminShopScreen: React.FC = () => {
                   })}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         )}
@@ -706,6 +1062,177 @@ export const AdminShopScreen: React.FC = () => {
             </div>
 
             <form onSubmit={handleAddProduct} className="space-y-3.5 text-xs">
+              {/* Brand, Model & Storage Selector */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Brand</label>
+                  <select
+                    value={newBrand}
+                    onChange={(e) => handleBrandChange(e.target.value as any)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-emerald-400 font-bold outline-none focus:border-emerald-500"
+                  >
+                    <option value="Apple">Apple</option>
+                    <option value="Google Pixel">Google Pixel</option>
+                    <option value="Samsung">Samsung</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Model Name</label>
+                  <input
+                    type="text"
+                    value={newModel}
+                    onChange={(e) => setNewModel(e.target.value)}
+                    placeholder="e.g. Pixel 9 Pro XL"
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Storage Capacity</label>
+                  <input
+                    type="text"
+                    value={newStorage}
+                    onChange={(e) => setNewStorage(e.target.value)}
+                    placeholder="e.g. 256GB / 512GB"
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Product Image Gallery & Multi-Upload Component */}
+              <div className="space-y-2 p-3 rounded-2xl bg-slate-950/70 border border-slate-800">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Images className="w-3.5 h-3.5 text-emerald-400" />
+                    <label className="text-[10px] font-bold text-white uppercase tracking-wider">
+                      Product Image Gallery & Angles
+                    </label>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
+                    {newImages.length} Image{newImages.length !== 1 ? 's' : ''} (Multi-Upload)
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  Upload multiple hardware photos (front, back, sides, variant colors) directly to Supabase Storage or add direct URLs.
+                </p>
+
+                {/* Dropzone / File Picker */}
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setIsDraggingNew(true); }}
+                  onDragLeave={() => setIsDraggingNew(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDraggingNew(false);
+                    if (e.dataTransfer.files) handleUploadFiles(e.dataTransfer.files, 'new');
+                  }}
+                  className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all ${
+                    isDraggingNew 
+                      ? 'border-emerald-400 bg-emerald-500/10' 
+                      : 'border-slate-800 hover:border-emerald-500/50 bg-slate-900/60'
+                  }`}
+                  onClick={() => {
+                    const el = document.getElementById('new-file-input');
+                    if (el) el.click();
+                  }}
+                >
+                  <input
+                    id="new-file-input"
+                    type="file"
+                    multiple
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={(e) => e.target.files && handleUploadFiles(e.target.files, 'new')}
+                  />
+                  <div className="flex flex-col items-center justify-center gap-1.5">
+                    <UploadCloud className={`w-6 h-6 ${isUploadingNew ? 'text-emerald-400 animate-bounce' : 'text-slate-400'}`} />
+                    <span className="text-xs font-semibold text-slate-200">
+                      {isUploadingNew ? 'Uploading to Supabase Storage...' : 'Drop phone photos here or click to browse'}
+                    </span>
+                    <span className="text-[10px] text-slate-500">
+                      Supports PNG, JPG, WebP • Auto-synced to Supabase Storage bucket
+                    </span>
+                  </div>
+                </div>
+
+                {/* Dynamic "+ Add Image URL / Upload" Repeater */}
+                <div className="flex gap-2 items-center pt-1">
+                  <input
+                    type="text"
+                    value={manualNewImageUrl}
+                    onChange={(e) => setManualNewImageUrl(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManualImage('new'); } }}
+                    placeholder="Or paste external image URL (e.g. https://...)"
+                    className="flex-1 p-2 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-white outline-none focus:border-emerald-500 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddManualImage('new')}
+                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-[11px] flex items-center gap-1 shrink-0 active:scale-95 transition-all border border-slate-700"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add Image URL / Upload</span>
+                  </button>
+                </div>
+
+                {/* Hidden / Synced input for test compatibility */}
+                <input
+                  type="hidden"
+                  value={newImage}
+                  onChange={(e) => setNewImage(e.target.value)}
+                />
+
+                {/* Image Gallery Cards */}
+                {newImages.length > 0 && (
+                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 pt-2">
+                    {newImages.map((imgUrl, idx) => (
+                      <div 
+                        key={idx} 
+                        className={`relative group rounded-xl overflow-hidden border bg-slate-900 aspect-square ${
+                          idx === 0 ? 'border-emerald-500 ring-1 ring-emerald-500/50' : 'border-slate-800'
+                        }`}
+                      >
+                        <img src={imgUrl} alt={`Angle ${idx + 1}`} className="w-full h-full object-cover" />
+                        
+                        {/* Cover Badge */}
+                        {idx === 0 ? (
+                          <span className="absolute top-1 left-1 bg-emerald-500 text-slate-950 font-black text-[9px] px-1 py-0.2 rounded shadow flex items-center gap-0.5">
+                            <Star className="w-2.5 h-2.5 fill-current" />
+                            Main
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSetPrimaryImage(idx, 'new')}
+                            title="Set as Main Cover"
+                            className="absolute top-1 left-1 bg-black/70 hover:bg-emerald-500 text-white hover:text-slate-950 text-[9px] font-semibold px-1 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            Set Main
+                          </button>
+                        )}
+
+                        {/* Angle index label */}
+                        <span className="absolute bottom-1 left-1 bg-black/60 text-slate-300 text-[8px] px-1 rounded">
+                          #{idx + 1}
+                        </span>
+
+                        {/* Delete button */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx, 'new')}
+                          title="Remove image"
+                          className="absolute top-1 right-1 bg-red-500/90 text-white p-1 rounded-full opacity-80 hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-semibold text-slate-400 block mb-1">Product Title</label>
@@ -730,7 +1257,7 @@ export const AdminShopScreen: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-4 gap-2.5">
                 <div>
                   <label className="text-[10px] font-semibold text-slate-400 block mb-1">Category</label>
                   <select
@@ -743,6 +1270,8 @@ export const AdminShopScreen: React.FC = () => {
                     <option value="iPad">iPad</option>
                     <option value="AirPods">AirPods</option>
                     <option value="Apple Watch">Apple Watch</option>
+                    <option value="Google Pixel">Google Pixel</option>
+                    <option value="Samsung">Samsung</option>
                     <option value="Accessories">Accessories</option>
                   </select>
                 </div>
@@ -761,6 +1290,17 @@ export const AdminShopScreen: React.FC = () => {
                 </div>
 
                 <div>
+                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Stock Qty</label>
+                  <input
+                    type="number"
+                    value={newStock}
+                    onChange={(e) => setNewStock(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono font-bold text-white outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
                   <label className="text-[10px] font-semibold text-slate-400 block mb-1">Tag</label>
                   <input
                     type="text"
@@ -771,8 +1311,8 @@ export const AdminShopScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* Pricing */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Pricing (USD, NGN, RMB) */}
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="text-[10px] font-semibold text-slate-400 block mb-1">Base Price ($ USD)</label>
                   <input
@@ -782,6 +1322,7 @@ export const AdminShopScreen: React.FC = () => {
                       setNewPriceUSD(e.target.value);
                       const usd = parseFloat(e.target.value) || 0;
                       setNewPriceNGN(String(Math.round(usd * (rates.USD_NGN || 1485))));
+                      setNewPriceRMB(String(Math.round(usd * (rates.USD_CNY || 7.24))));
                     }}
                     className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono font-bold text-emerald-400 outline-none"
                     required
@@ -795,6 +1336,17 @@ export const AdminShopScreen: React.FC = () => {
                     value={newPriceNGN}
                     onChange={(e) => setNewPriceNGN(e.target.value)}
                     className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono font-bold text-white outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Base Price (¥ RMB)</label>
+                  <input
+                    type="number"
+                    value={newPriceRMB}
+                    onChange={(e) => setNewPriceRMB(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono font-bold text-indigo-300 outline-none"
                     required
                   />
                 </div>
@@ -932,6 +1484,329 @@ export const AdminShopScreen: React.FC = () => {
               >
                 Publish Apple Hardware to Mobile Hub
               </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT APPLE PRODUCT & PRICES MODAL */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 my-8">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <div>
+                <h3 className="text-sm font-extrabold text-white">Edit Apple Product & Pricing</h3>
+                <p className="text-[10px] text-slate-400">Update hardware details, multi-currency prices, and inventory stock</p>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setShowEditModal(false)} 
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditProduct} className="space-y-3.5 text-xs">
+              {/* Brand, Model & Storage */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Brand</label>
+                  <select
+                    value={editBrand}
+                    onChange={(e) => setEditBrand(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-emerald-400 font-bold outline-none focus:border-emerald-500"
+                  >
+                    <option value="Apple">Apple</option>
+                    <option value="Google Pixel">Google Pixel</option>
+                    <option value="Samsung">Samsung</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Model Name</label>
+                  <input
+                    type="text"
+                    value={editModel}
+                    onChange={(e) => setEditModel(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Storage Capacity</label>
+                  <input
+                    type="text"
+                    value={editStorage}
+                    onChange={(e) => setEditStorage(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Product Image Gallery & Multi-Upload Component (Edit) */}
+              <div className="space-y-2 p-3 rounded-2xl bg-slate-950/70 border border-slate-800">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Images className="w-3.5 h-3.5 text-emerald-400" />
+                    <label className="text-[10px] font-bold text-white uppercase tracking-wider">
+                      Product Image Gallery & Angles
+                    </label>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
+                    {editImages.length} Image{editImages.length !== 1 ? 's' : ''} (Multi-Upload)
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  Update hardware photos (front, back, sides, variant colors) directly to Supabase Storage or add direct URLs.
+                </p>
+
+                {/* Dropzone / File Picker */}
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setIsDraggingEdit(true); }}
+                  onDragLeave={() => setIsDraggingEdit(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDraggingEdit(false);
+                    if (e.dataTransfer.files) handleUploadFiles(e.dataTransfer.files, 'edit');
+                  }}
+                  className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all ${
+                    isDraggingEdit 
+                      ? 'border-emerald-400 bg-emerald-500/10' 
+                      : 'border-slate-800 hover:border-emerald-500/50 bg-slate-900/60'
+                  }`}
+                  onClick={() => {
+                    const el = document.getElementById('edit-file-input');
+                    if (el) el.click();
+                  }}
+                >
+                  <input
+                    id="edit-file-input"
+                    type="file"
+                    multiple
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={(e) => e.target.files && handleUploadFiles(e.target.files, 'edit')}
+                  />
+                  <div className="flex flex-col items-center justify-center gap-1.5">
+                    <UploadCloud className={`w-6 h-6 ${isUploadingEdit ? 'text-emerald-400 animate-bounce' : 'text-slate-400'}`} />
+                    <span className="text-xs font-semibold text-slate-200">
+                      {isUploadingEdit ? 'Uploading to Supabase Storage...' : 'Drop phone photos here or click to browse'}
+                    </span>
+                    <span className="text-[10px] text-slate-500">
+                      Supports PNG, JPG, WebP • Auto-synced to Supabase Storage bucket
+                    </span>
+                  </div>
+                </div>
+
+                {/* Dynamic "+ Add Image URL / Upload" Repeater */}
+                <div className="flex gap-2 items-center pt-1">
+                  <input
+                    type="text"
+                    value={manualEditImageUrl}
+                    onChange={(e) => setManualEditImageUrl(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManualImage('edit'); } }}
+                    placeholder="Or paste external image URL (e.g. https://...)"
+                    className="flex-1 p-2 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-white outline-none focus:border-emerald-500 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddManualImage('edit')}
+                    className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-[11px] flex items-center gap-1 shrink-0 active:scale-95 transition-all border border-slate-700"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add Image URL / Upload</span>
+                  </button>
+                </div>
+
+                {/* Hidden / Synced input for test compatibility */}
+                <input
+                  type="hidden"
+                  value={editImage}
+                  onChange={(e) => setEditImage(e.target.value)}
+                />
+
+                {/* Image Gallery Cards */}
+                {editImages.length > 0 && (
+                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 pt-2">
+                    {editImages.map((imgUrl, idx) => (
+                      <div 
+                        key={idx} 
+                        className={`relative group rounded-xl overflow-hidden border bg-slate-900 aspect-square ${
+                          idx === 0 ? 'border-emerald-500 ring-1 ring-emerald-500/50' : 'border-slate-800'
+                        }`}
+                      >
+                        <img src={imgUrl} alt={`Angle ${idx + 1}`} className="w-full h-full object-cover" />
+                        
+                        {/* Cover Badge */}
+                        {idx === 0 ? (
+                          <span className="absolute top-1 left-1 bg-emerald-500 text-slate-950 font-black text-[9px] px-1 py-0.2 rounded shadow flex items-center gap-0.5">
+                            <Star className="w-2.5 h-2.5 fill-current" />
+                            Main
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSetPrimaryImage(idx, 'edit')}
+                            title="Set as Main Cover"
+                            className="absolute top-1 left-1 bg-black/70 hover:bg-emerald-500 text-white hover:text-slate-950 text-[9px] font-semibold px-1 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            Set Main
+                          </button>
+                        )}
+
+                        {/* Angle index label */}
+                        <span className="absolute bottom-1 left-1 bg-black/60 text-slate-300 text-[8px] px-1 rounded">
+                          #{idx + 1}
+                        </span>
+
+                        {/* Delete button */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(idx, 'edit')}
+                          title="Remove image"
+                          className="absolute top-1 right-1 bg-red-500/90 text-white p-1 rounded-full opacity-80 hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Product Title</label>
+                  <input
+                    type="text"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Subtitle</label>
+                  <input
+                    type="text"
+                    value={editSubtitle}
+                    onChange={(e) => setEditSubtitle(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Category</label>
+                  <select
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                  >
+                    <option value="iPhone">iPhone</option>
+                    <option value="MacBook">MacBook</option>
+                    <option value="iPad">iPad</option>
+                    <option value="AirPods">AirPods</option>
+                    <option value="Apple Watch">Apple Watch</option>
+                    <option value="Google Pixel">Google Pixel</option>
+                    <option value="Samsung">Samsung</option>
+                    <option value="Accessories">Accessories</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Condition</label>
+                  <select
+                    value={editCondition}
+                    onChange={(e) => setEditCondition(e.target.value as any)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-emerald-500"
+                  >
+                    <option value="Brand New">Brand New</option>
+                    <option value="Refurbished">Refurbished</option>
+                    <option value="Fair / Pre-owned">Fair / Pre-owned</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 block mb-1">Stock Count</label>
+                  <input
+                    type="number"
+                    value={editStockCount}
+                    onChange={(e) => setEditStockCount(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono font-bold text-white outline-none focus:border-emerald-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Multi-Currency Pricing Inputs */}
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                  Multi-Currency Pricing Matrix
+                </span>
+
+                <div className="grid grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="text-[10px] text-slate-400 block mb-1">US Dollar ($ USD)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editPriceUSD}
+                      onChange={(e) => {
+                        setEditPriceUSD(e.target.value);
+                        const usd = parseFloat(e.target.value) || 0;
+                        setEditPriceNGN(String(Math.round(usd * (rates.USD_NGN || 1485))));
+                        setEditPriceCNY(String(Math.round(usd * (rates.USD_CNY || 7.24))));
+                      }}
+                      className="w-full p-2 rounded-xl bg-slate-900 border border-slate-800 font-mono font-bold text-emerald-400 text-xs outline-none focus:border-emerald-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-slate-400 block mb-1">Naira (₦ NGN)</label>
+                    <input
+                      type="number"
+                      value={editPriceNGN}
+                      onChange={(e) => setEditPriceNGN(e.target.value)}
+                      className="w-full p-2 rounded-xl bg-slate-900 border border-slate-800 font-mono font-bold text-white text-xs outline-none focus:border-emerald-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-slate-400 block mb-1">Yuan (¥ CNY)</label>
+                    <input
+                      type="number"
+                      value={editPriceCNY}
+                      onChange={(e) => setEditPriceCNY(e.target.value)}
+                      className="w-full p-2 rounded-xl bg-slate-900 border border-slate-800 font-mono font-bold text-indigo-300 text-xs outline-none focus:border-emerald-500"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingProduct}
+                  className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-98 transition-all disabled:opacity-50"
+                >
+                  {isUpdatingProduct ? 'Saving Updates...' : 'Save Product & Prices'}
+                </button>
+              </div>
             </form>
           </div>
         </div>

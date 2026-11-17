@@ -13,11 +13,27 @@ export const isProduction = typeof import.meta !== 'undefined' && !!import.meta.
 
 export const isDevelopment = typeof import.meta !== 'undefined' && !!import.meta.env?.DEV;
 
+function isLocalHostname(hostname: string): boolean {
+  return (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '0.0.0.0' ||
+    hostname.endsWith('.local') ||
+    /^192\.168\.\d+\.\d+$/.test(hostname) ||
+    /^10\.\d+\.\d+\.\d+$/.test(hostname) ||
+    /^172\.(1[6-9]|2\d|3[01])\.\d+\.\d+$/.test(hostname)
+  );
+}
+
 export function getBackendBaseUrl(): string {
   if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) {
     return import.meta.env.VITE_BACKEND_URL;
   }
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (isLocalHostname(host)) {
+      return `http://${host}:5050`;
+    }
     return 'https://api.flyemass.com';
   }
   return 'http://localhost:5050';
@@ -27,10 +43,15 @@ export function getMobileAppUrl(path: string = ''): string {
   let base: string;
   if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_MOBILE_URL) {
     base = import.meta.env.VITE_MOBILE_URL;
-  } else if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    base = window.location.origin.includes('admin.')
-      ? window.location.origin.replace('admin.', 'app.')
-      : 'https://app.flyemass.com';
+  } else if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (isLocalHostname(host)) {
+      base = `http://${host}:3030`;
+    } else {
+      base = window.location.origin.includes('admin.')
+        ? window.location.origin.replace('admin.', 'app.')
+        : 'https://app.flyemass.com';
+    }
   } else {
     base = 'http://localhost:3030';
   }
@@ -41,10 +62,15 @@ export function getAdminAppUrl(path: string = ''): string {
   let base: string;
   if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ADMIN_URL) {
     base = import.meta.env.VITE_ADMIN_URL;
-  } else if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    base = window.location.origin.includes('app.') 
-      ? window.location.origin.replace('app.', 'admin.')
-      : 'https://admin.flyemass.com';
+  } else if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (isLocalHostname(host)) {
+      base = `http://${host}:5173`;
+    } else {
+      base = window.location.origin.includes('app.') 
+        ? window.location.origin.replace('app.', 'admin.')
+        : 'https://admin.flyemass.com';
+    }
   } else {
     base = 'http://localhost:5173';
   }

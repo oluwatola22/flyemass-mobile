@@ -287,6 +287,9 @@ export const TECH_PRODUCTS: TechProduct[] = [
     id: 'prod-iphone-16-pro',
     title: 'Apple iPhone 16 Pro Max',
     subtitle: 'Desert Titanium • Hong Kong / China Dual Physical SIM',
+    brand: 'Apple',
+    model: 'iPhone 16 Pro Max',
+    storage: '256GB',
     category: 'iPhone',
     condition: 'Brand New',
     priceUSD: 1420,
@@ -677,6 +680,252 @@ export const TECH_PRODUCTS: TechProduct[] = [
     ],
     warrantyInfo: '1-Year Apple Global Warranty',
     deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
+    isPublished: true
+  },
+  {
+    id: 'prod-pixel-9-pro-xl',
+    title: 'Google Pixel 9 Pro XL',
+    subtitle: 'Obsidian Black • Google Tensor G4 • Super Actua OLED',
+    brand: 'Google Pixel',
+    model: 'Pixel 9 Pro XL',
+    category: 'Google Pixel',
+    condition: 'Brand New',
+    storage: '256GB',
+    priceUSD: 1099,
+    priceNGN: 1632000,
+    priceCNY: 7950,
+    priceRMB: 7950,
+    image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=600&q=80'
+    ],
+    rating: 4.9,
+    reviewsCount: 184,
+    specs: ['Google Tensor G4 Chip', '16GB LPDDR5X RAM', '50MP Triple Pro Camera System', '6.8" Super Actua 120Hz OLED'],
+    technicalSpecs: {
+      chip: 'Google Tensor G4 (Titan M2 Security Coprocessor)',
+      ram: '16GB LPDDR5X',
+      camera: '50MP Main + 48MP Ultra-Wide + 48MP 5x Telephoto',
+      display: '6.8" Super Actua LTPO OLED (1-120Hz, up to 3000 nits)',
+      batteryHealth: '100% (Brand New Sealed)',
+      biometrics: 'Ultrasonic In-display Fingerprint & Face Unlock',
+      waterResistance: 'IP68 Dust/Water Resistant',
+      warranty: '1-Year Official Google Limited Warranty',
+      deliveryEstimate: '2-4 Days Express Air Cargo (HK -> Lagos Hub)'
+    },
+    inStock: true,
+    stockCount: 15,
+    tag: 'Flagship Google Camera',
+    colors: [
+      { name: 'Obsidian', hex: '#232528' },
+      { name: 'Porcelain', hex: '#EBE7DF' },
+      { name: 'Hazel', hex: '#63675E' },
+      { name: 'Rose Quartz', hex: '#D7B4B9' }
+    ],
+    storageOptions: ['128GB', '256GB', '512GB', '1TB'],
+    variants: [
+      { id: 'v-p9pxl-256-obs', color: 'Obsidian', colorHex: '#232528', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 6, isActive: true },
+      { id: 'v-p9pxl-512-obs', color: 'Obsidian', colorHex: '#232528', storage: '512GB', priceAdjustmentNGN: 220000, stockCount: 5, isActive: true },
+      { id: 'v-p9pxl-256-por', color: 'Porcelain', colorHex: '#EBE7DF', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 4, isActive: true }
+    ],
+    warrantyInfo: 'Official 1-Year Google Warranty + FlyeMass Escrow Guarantee',
+    deliveryInfo: 'Express Air Cargo to Lagos Hub or Doorstep Delivery',
+    isPublished: true
+  },
+  {
+    id: 'prod-pixel-9-pro-fold',
+    title: 'Google Pixel 9 Pro Fold',
+    subtitle: 'Porcelain • 16GB RAM • Foldable Actua Display',
+    brand: 'Google Pixel',
+    model: 'Pixel 9 Pro Fold',
+    category: 'Google Pixel',
+    condition: 'Brand New',
+    storage: '512GB',
+    priceUSD: 1799,
+    priceNGN: 2671500,
+    priceCNY: 13020,
+    priceRMB: 13020,
+    image: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=600&q=80'
+    ],
+    rating: 4.8,
+    reviewsCount: 96,
+    specs: ['Google Tensor G4', '16GB RAM', '8" Super Actua Flex Inner OLED', 'Ultra-Slim Foldable Design'],
+    technicalSpecs: {
+      chip: 'Google Tensor G4 (Titan M2)',
+      ram: '16GB LPDDR5X',
+      camera: '48MP Quad PD Main + 10.5MP Ultra-Wide + 10.8MP Telephoto',
+      display: '8.0" Foldable LTPO OLED (120Hz) + 6.3" Cover OLED',
+      batteryHealth: '100% (Brand New Sealed)',
+      biometrics: 'Side-mounted Fingerprint & Face Unlock',
+      waterResistance: 'IPX8 Water Resistant',
+      warranty: '1-Year Official Google Limited Warranty',
+      deliveryEstimate: '2-4 Days Express Air Cargo'
+    },
+    inStock: true,
+    stockCount: 8,
+    tag: 'Next-Gen Foldable',
+    colors: [
+      { name: 'Porcelain', hex: '#EBE7DF' },
+      { name: 'Obsidian', hex: '#232528' }
+    ],
+    storageOptions: ['256GB', '512GB'],
+    variants: [
+      { id: 'v-p9fold-512-por', color: 'Porcelain', colorHex: '#EBE7DF', storage: '512GB', priceAdjustmentNGN: 0, stockCount: 5, isActive: true },
+      { id: 'v-p9fold-512-obs', color: 'Obsidian', colorHex: '#232528', storage: '512GB', priceAdjustmentNGN: 0, stockCount: 3, isActive: true }
+    ],
+    warrantyInfo: 'Official 1-Year Google Warranty',
+    deliveryInfo: 'Express Air Cargo to Lagos Hub or Doorstep Delivery',
+    isPublished: true
+  },
+  {
+    id: 'prod-samsung-s24-ultra',
+    title: 'Samsung Galaxy S24 Ultra',
+    subtitle: 'Titanium Gray • 12GB RAM • Galaxy AI & S-Pen',
+    brand: 'Samsung',
+    model: 'Galaxy S24 Ultra',
+    category: 'Samsung',
+    condition: 'Brand New',
+    storage: '256GB',
+    priceUSD: 1299,
+    priceNGN: 1929000,
+    priceCNY: 9400,
+    priceRMB: 9400,
+    image: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=600&q=80'
+    ],
+    rating: 4.9,
+    reviewsCount: 420,
+    specs: ['Snapdragon 8 Gen 3 for Galaxy', '200MP Quad Camera System', '6.8" QHD+ Dynamic AMOLED 2X', 'Integrated S-Pen'],
+    technicalSpecs: {
+      chip: 'Qualcomm Snapdragon 8 Gen 3 for Galaxy (4nm)',
+      ram: '12GB LPDDR5X',
+      camera: '200MP Main + 50MP 5x Telephoto + 12MP Ultra-Wide + 10MP 3x Telephoto',
+      display: '6.8" Flat QHD+ Dynamic AMOLED 2X (1-120Hz, 2600 nits, Gorilla Armor)',
+      batteryHealth: '100% (Brand New Sealed)',
+      biometrics: 'Ultrasonic In-display Fingerprint',
+      waterResistance: 'IP68 Dust/Water Resistant',
+      warranty: '1-Year Samsung Global Warranty',
+      deliveryEstimate: '2-4 Days Express Air Cargo (HK -> Lagos)'
+    },
+    inStock: true,
+    stockCount: 22,
+    tag: 'Galaxy AI Flagship',
+    colors: [
+      { name: 'Titanium Gray', hex: '#636468' },
+      { name: 'Titanium Black', hex: '#2A2B2D' },
+      { name: 'Titanium Violet', hex: '#585368' },
+      { name: 'Titanium Yellow', hex: '#F2E8C4' }
+    ],
+    storageOptions: ['256GB', '512GB', '1TB'],
+    variants: [
+      { id: 'v-s24u-256-tg', color: 'Titanium Gray', colorHex: '#636468', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 10, isActive: true },
+      { id: 'v-s24u-512-tg', color: 'Titanium Gray', colorHex: '#636468', storage: '512GB', priceAdjustmentNGN: 240000, stockCount: 8, isActive: true },
+      { id: 'v-s24u-256-tb', color: 'Titanium Black', colorHex: '#2A2B2D', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 4, isActive: true }
+    ],
+    warrantyInfo: 'Official 1-Year Samsung Warranty + FlyeMass Escrow Guarantee',
+    deliveryInfo: 'Express Air Cargo to Lagos Hub or Doorstep Delivery',
+    isPublished: true
+  },
+  {
+    id: 'prod-samsung-z-fold6',
+    title: 'Samsung Galaxy Z Fold6',
+    subtitle: 'Silver Shadow • 12GB RAM • Dual Screen Multi-tasker',
+    brand: 'Samsung',
+    model: 'Galaxy Z Fold6',
+    category: 'Samsung',
+    condition: 'Brand New',
+    storage: '512GB',
+    priceUSD: 1899,
+    priceNGN: 2820000,
+    priceCNY: 13750,
+    priceRMB: 13750,
+    image: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1580910051074-3eb694886505?auto=format&fit=crop&w=600&q=80'
+    ],
+    rating: 4.8,
+    reviewsCount: 145,
+    specs: ['Snapdragon 8 Gen 3 for Galaxy', '7.6" Dynamic AMOLED 2X Inner', 'Enhanced Armor Aluminum', 'S-Pen Fold Edition Compatible'],
+    technicalSpecs: {
+      chip: 'Qualcomm Snapdragon 8 Gen 3 for Galaxy',
+      ram: '12GB LPDDR5X',
+      camera: '50MP Main + 12MP Ultra-Wide + 10MP 3x Telephoto',
+      display: '7.6" QXGA+ Dynamic AMOLED 2X (120Hz) + 6.3" Cover AMOLED',
+      batteryHealth: '100% (Brand New Sealed)',
+      biometrics: 'Side-mounted Capacitive Fingerprint',
+      waterResistance: 'IP48 Water Resistant',
+      warranty: '1-Year Samsung Global Warranty',
+      deliveryEstimate: '2-4 Days Express Air Cargo'
+    },
+    inStock: true,
+    stockCount: 12,
+    tag: 'Galaxy Z Fold Series',
+    colors: [
+      { name: 'Silver Shadow', hex: '#CACCCE' },
+      { name: 'Navy', hex: '#202738' },
+      { name: 'Pink', hex: '#EED9DB' }
+    ],
+    storageOptions: ['256GB', '512GB', '1TB'],
+    variants: [
+      { id: 'v-zfold6-512-ss', color: 'Silver Shadow', colorHex: '#CACCCE', storage: '512GB', priceAdjustmentNGN: 0, stockCount: 7, isActive: true },
+      { id: 'v-zfold6-512-nv', color: 'Navy', colorHex: '#202738', storage: '512GB', priceAdjustmentNGN: 0, stockCount: 5, isActive: true }
+    ],
+    warrantyInfo: 'Official 1-Year Samsung Warranty',
+    deliveryInfo: 'Express Air Cargo to Lagos Hub or Doorstep Delivery',
+    isPublished: true
+  },
+  {
+    id: 'prod-samsung-z-flip6',
+    title: 'Samsung Galaxy Z Flip6',
+    subtitle: 'Mint • 12GB RAM • 3.4" Super AMOLED FlexWindow',
+    brand: 'Samsung',
+    model: 'Galaxy Z Flip6',
+    category: 'Samsung',
+    condition: 'Brand New',
+    storage: '256GB',
+    priceUSD: 999,
+    priceNGN: 1483500,
+    priceCNY: 7230,
+    priceRMB: 7230,
+    image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80'
+    ],
+    rating: 4.8,
+    reviewsCount: 210,
+    specs: ['Snapdragon 8 Gen 3 for Galaxy', '50MP Dual Camera', 'Vapor Chamber Cooling', '3.4" FlexWindow'],
+    technicalSpecs: {
+      chip: 'Qualcomm Snapdragon 8 Gen 3 for Galaxy',
+      ram: '12GB LPDDR5X',
+      camera: '50MP Main + 12MP Ultra-Wide',
+      display: '6.7" FHD+ Dynamic AMOLED 2X (120Hz) + 3.4" Cover AMOLED',
+      batteryHealth: '100% (Brand New Sealed)',
+      biometrics: 'Side-mounted Fingerprint',
+      waterResistance: 'IP48 Water Resistant',
+      warranty: '1-Year Samsung Global Warranty',
+      deliveryEstimate: '2-4 Days Express Air Cargo'
+    },
+    inStock: true,
+    stockCount: 14,
+    tag: 'Galaxy Z Flip Series',
+    colors: [
+      { name: 'Mint', hex: '#CEE8D8' },
+      { name: 'Silver Shadow', hex: '#CACCCE' },
+      { name: 'Yellow', hex: '#F9E4A9' },
+      { name: 'Blue', hex: '#ADC8E0' }
+    ],
+    storageOptions: ['256GB', '512GB'],
+    variants: [
+      { id: 'v-zflip6-256-mnt', color: 'Mint', colorHex: '#CEE8D8', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 8, isActive: true },
+      { id: 'v-zflip6-256-ss', color: 'Silver Shadow', colorHex: '#CACCCE', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 6, isActive: true }
+    ],
+    warrantyInfo: 'Official 1-Year Samsung Warranty',
+    deliveryInfo: 'Express Air Cargo to Lagos Hub or Doorstep Delivery',
     isPublished: true
   }
 ];

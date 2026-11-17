@@ -67,18 +67,18 @@ export const ShopCompareScreen: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Currency toggle */}
+            {/* Currency toggle (Dual Currency: NGN ₦ and RMB ¥) */}
             <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-0.5 gap-0.5">
-              {(['NGN', 'USD', 'CNY'] as const).map((c) => (
+              {(['NGN', 'CNY'] as const).map((c) => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => setShopCurrency(c)}
                   className={`px-2 py-0.5 rounded-lg text-[9px] font-bold ${
-                    shopCurrency === c ? 'bg-emerald-500 text-slate-950' : 'text-slate-400'
+                    shopCurrency === c ? 'bg-emerald-500 text-slate-950 font-extrabold' : 'text-slate-400'
                   }`}
                 >
-                  {c}
+                  {c === 'NGN' ? '₦ NGN' : '¥ RMB'}
                 </button>
               ))}
             </div>
@@ -149,7 +149,11 @@ export const ShopCompareScreen: React.FC = () => {
                       <button
                         type="button"
                         disabled={stock <= 0}
-                        onClick={() => addToCart(product)}
+                        onClick={() => {
+                          const col = (product.colors && product.colors[0]) ? (typeof product.colors[0] === 'string' ? product.colors[0] : product.colors[0].name) : 'Standard';
+                          const stor = product.storage || (product.storageOptions && product.storageOptions[0]) || '256GB';
+                          addToCart(product, col, stor);
+                        }}
                         className={`w-full mt-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-all shadow-md ${
                           stock > 0
                             ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'

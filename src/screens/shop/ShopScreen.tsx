@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { db } from '../../services/db';
@@ -15,7 +15,20 @@ import {
   Filter,
   Package,
   Sparkles,
-  Check
+  Check,
+  LayoutGrid,
+  List,
+  SlidersHorizontal,
+  Flame,
+  Truck,
+  Smartphone,
+  Laptop,
+  Tablet,
+  Watch,
+  Headphones,
+  Zap,
+  Tag,
+  X
 } from 'lucide-react';
 import { TechProduct } from '../../types';
 
@@ -30,12 +43,18 @@ export const ShopScreen: React.FC = () => {
     toggleCompareProduct, 
     shopOrders,
     shopCurrency,
-    setShopCurrency
+    setShopCurrency,
+    showToast
   } = useApp();
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('All Products');
+  const [selectedBrand, setSelectedBrand] = useState<'All Brands' | 'Apple' | 'Google Pixel' | 'Samsung'>('All Brands');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedCondition, setSelectedCondition] = useState<string>('All');
+  const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'rating' | 'stock'>('featured');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid'); // Default standard 2-column market grid
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+
   const [productsList, setProductsList] = useState<TechProduct[]>(() => {
     const list = db.getProducts();
     return list.length > 0 ? list : TECH_PRODUCTS;
@@ -47,43 +66,134 @@ export const ShopScreen: React.FC = () => {
   useEffect(() => {
     return db.subscribe(() => {
       const current = db.getProducts();
-      if (current.length > 0) setProductsList(current);
+      if (current.length > 0) {
+        setProductsList((prev) => {
+          if (
+            prev.length === current.length &&
+            prev.every((p, i) => p.id === current[i]?.id && p.priceUSD === current[i]?.priceUSD && p.inStock === current[i]?.inStock)
+          ) {
+            return prev;
+          }
+          return current;
+        });
+      }
     });
   }, []);
 
-  const categories = [
-    'All Products',
-    'iPhone',
-    'iPad',
-    'MacBook',
-    'AirPods',
-    'Apple Watch',
-    'Accessories'
-  ] as const;
+  // Marketplace Promotional Banners
+  const marketBanners = [
+    {
+      id: 'banner-hk-direct',
+      badge: 'Hong Kong Direct Hub',
+      title: 'Factory Sealed HK Spec Devices',
+      subtitle: 'Dual physical SIM models with 2-4 days express air freight to Lagos MM2 Hub.',
+      color: 'from-emerald-950/80 via-slate-900 to-slate-900',
+      border: 'border-emerald-500/30',
+      badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
+      icon: Zap
+    },
+    {
+      id: 'banner-wholesale',
+      badge: 'Wholesale & Retail',
+      title: 'Direct Ikeja Retailer Pricing',
+      subtitle: 'Multi-currency checkout with escrow clearance in Naira, USD, or Chinese Yuan.',
+      color: 'from-indigo-950/80 via-slate-900 to-slate-900',
+      border: 'border-indigo-500/30',
+      badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
+      icon: Flame
+    },
+    {
+      id: 'banner-m4-arrival',
+      badge: 'New Arrival',
+      title: 'Apple M4 Max & Pro Hardware',
+      subtitle: 'Global Apple Limited Warranty with cryptographic serial number tracking.',
+      color: 'from-amber-950/80 via-slate-900 to-slate-900',
+      border: 'border-amber-500/30',
+      badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+      icon: Sparkles
+    }
+  ];
 
+  // Auto-rotate promotional carousel every 6s
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveBannerIndex((prev) => (prev + 1) % marketBanners.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [marketBanners.length]);
+
+  // Standard marketplace categories with icons
+  const categories = [
+    { id: 'All', label: 'All Items', icon: Sparkles },
+    { id: 'iPhone', label: 'iPhones', icon: Smartphone },
+    { id: 'MacBook', label: 'MacBooks', icon: Laptop },
+    { id: 'iPad', label: 'iPads', icon: Tablet },
+    { id: 'Apple Watch', label: 'Watches', icon: Watch },
+    { id: 'AirPods', label: 'Audio', icon: Headphones },
+    { id: 'Google Pixel', label: 'Google Pixel', icon: Smartphone },
+    { id: 'Samsung', label: 'Samsung Galaxy', icon: Smartphone },
+    { id: 'Accessories', label: 'Accessories', icon: Tag }
+  ];
+
+  const brands = ['All Brands', 'Apple', 'Google Pixel', 'Samsung'] as const;
   const conditions = ['All', 'Brand New', 'Refurbished', 'Fair / Pre-owned'] as const;
 
   const matchesCategory = (prod: TechProduct, cat: string) => {
-    if (cat === 'All Products') return true;
+    if (cat === 'All') return true;
+    if (cat === 'iPhone') return prod.category === 'iPhone' || (prod.brand === 'Apple' && prod.title.toLowerCase().includes('iphone'));
     if (cat === 'MacBook') return prod.category === 'MacBook' || prod.category === 'Mac';
     if (cat === 'Apple Watch') return prod.category === 'Apple Watch' || prod.category === 'Watch';
     if (cat === 'AirPods') return prod.category === 'AirPods' || prod.category === 'Audio';
+    if (cat === 'Google Pixel') return prod.brand === 'Google Pixel' || prod.category === 'Google Pixel' || prod.title.toLowerCase().includes('pixel');
+    if (cat === 'Samsung') return prod.brand === 'Samsung' || prod.category === 'Samsung' || prod.title.toLowerCase().includes('samsung') || prod.title.toLowerCase().includes('galaxy');
     return prod.category === cat;
   };
 
-  const filteredProducts = productsList.filter((prod) => {
-    const matchCat = matchesCategory(prod, selectedCategory);
-    const prodCond = prod.condition || 'Brand New';
-    const matchCond = selectedCondition === 'All' || prodCond === selectedCondition;
-    const q = searchQuery.toLowerCase().trim();
-    const matchQuery = !q || 
-      prod.title.toLowerCase().includes(q) || 
-      prod.subtitle.toLowerCase().includes(q) ||
-      (prod.specs && prod.specs.some(s => s.toLowerCase().includes(q))) ||
-      (prod.technicalSpecs?.chip && prod.technicalSpecs.chip.toLowerCase().includes(q));
-    return matchCat && matchCond && matchQuery;
-  });
+  // Filter and sort products
+  const filteredProducts = useMemo(() => {
+    const list = productsList.filter((prod) => {
+      // 1. Brand match
+      let matchBrand = true;
+      if (selectedBrand === 'Apple') {
+        matchBrand = prod.brand === 'Apple' || (!prod.brand && !prod.title.includes('Pixel') && !prod.title.includes('Samsung'));
+      } else if (selectedBrand === 'Google Pixel') {
+        matchBrand = prod.brand === 'Google Pixel' || prod.category === 'Google Pixel' || prod.title.includes('Pixel');
+      } else if (selectedBrand === 'Samsung') {
+        matchBrand = prod.brand === 'Samsung' || prod.category === 'Samsung' || prod.title.includes('Samsung') || prod.title.includes('Galaxy');
+      }
 
+      // 2. Category match
+      const matchCat = matchesCategory(prod, selectedCategory);
+
+      // 3. Condition match
+      const prodCond = prod.condition || 'Brand New';
+      const matchCond = selectedCondition === 'All' || prodCond === selectedCondition;
+
+      // 4. Search query
+      const q = searchQuery.toLowerCase().trim();
+      const matchQuery = !q || 
+        prod.title.toLowerCase().includes(q) || 
+        prod.subtitle.toLowerCase().includes(q) ||
+        (prod.brand && prod.brand.toLowerCase().includes(q)) ||
+        (prod.model && prod.model.toLowerCase().includes(q)) ||
+        (prod.specs && prod.specs.some((s) => s.toLowerCase().includes(q))) ||
+        (prod.technicalSpecs?.chip && prod.technicalSpecs.chip.toLowerCase().includes(q));
+
+      return matchBrand && matchCat && matchCond && matchQuery;
+    });
+
+    return list.sort((a, b) => {
+      const priceA = a.priceNGN || Math.round((a.priceUSD || 0) * (rates.USD_NGN || 1485));
+      const priceB = b.priceNGN || Math.round((b.priceUSD || 0) * (rates.USD_NGN || 1485));
+      if (sortBy === 'price-asc') return priceA - priceB;
+      if (sortBy === 'price-desc') return priceB - priceA;
+      if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+      if (sortBy === 'stock') return (b.stockCount || 0) - (a.stockCount || 0);
+      return 0; // featured default
+    });
+  }, [productsList, selectedBrand, selectedCategory, selectedCondition, searchQuery, sortBy, rates.USD_NGN]);
+
+  // Cart summary
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const cartSubtotalNGN = cart.reduce((sum, item) => {
     const base = item.product.priceNGN || Math.round((item.product.priceUSD || 0) * (rates.USD_NGN || 1485));
@@ -93,189 +203,347 @@ export const ShopScreen: React.FC = () => {
 
   const formatPrice = (prod: TechProduct, curr: 'NGN' | 'CNY' | 'USD') => {
     const baseNGN = prod.priceNGN || Math.round((prod.priceUSD || 0) * (rates.USD_NGN || 1485));
-    if (curr === 'NGN') return `₦${baseNGN.toLocaleString()}`;
-    if (curr === 'USD') {
-      const usd = prod.priceUSD || Math.round(baseNGN / (rates.USD_NGN || 1485));
-      return `$${usd.toLocaleString()}`;
+    if (curr === 'CNY') {
+      const cny = prod.priceRMB || prod.priceCNY || Math.round((baseNGN / (rates.USD_NGN || 1485)) * (rates.USD_CNY || 7.24));
+      return `¥${cny.toLocaleString()}`;
     }
-    const cny = prod.priceCNY || Math.round((baseNGN / (rates.USD_NGN || 1485)) * (rates.USD_CNY || 7.24));
-    return `¥${cny.toLocaleString()}`;
+    return `₦${baseNGN.toLocaleString()}`;
   };
 
   const getSecondaryPrice = (prod: TechProduct, curr: 'NGN' | 'CNY' | 'USD') => {
     const baseNGN = prod.priceNGN || Math.round((prod.priceUSD || 0) * (rates.USD_NGN || 1485));
+    const cny = prod.priceRMB || prod.priceCNY || Math.round((baseNGN / (rates.USD_NGN || 1485)) * (rates.USD_CNY || 7.24));
     if (curr === 'NGN') {
-      const usd = prod.priceUSD || Math.round(baseNGN / (rates.USD_NGN || 1485));
-      return `$${usd.toLocaleString()} USD`;
+      return `¥${cny.toLocaleString()} RMB`;
     }
     return `₦${baseNGN.toLocaleString()} NGN`;
   };
 
+  const formatCartTotal = (curr: 'NGN' | 'CNY' | 'USD') => {
+    if (curr === 'CNY') {
+      const cny = Math.round((cartSubtotalNGN / (rates.USD_NGN || 1485)) * (rates.USD_CNY || 7.24));
+      return `¥${cny.toLocaleString()}`;
+    }
+    return `₦${cartSubtotalNGN.toLocaleString()}`;
+  };
+
+  const handleAddToCartQuick = (e: React.MouseEvent, product: TechProduct) => {
+    e.stopPropagation();
+    const defaultColor = (product.colors && product.colors[0]) 
+      ? (typeof product.colors[0] === 'string' ? product.colors[0] : product.colors[0].name)
+      : 'Standard';
+    const defaultStorage = product.storage || (product.storageOptions && product.storageOptions[0]) || '256GB';
+    const defaultVariant = (product.variants && product.variants.length > 0)
+      ? (product.variants.find(v => (v.stockCount ?? 0) > 0 && v.isActive !== false) || product.variants[0])
+      : undefined;
+
+    addToCart(product, defaultColor, defaultStorage, defaultVariant, 1);
+  };
+
   return (
-    <div className="min-h-full pb-24 bg-slate-950 text-white">
-      <Header title="Apple Store • Hong Kong Hub" />
+    <div className="min-h-full pb-28 bg-slate-950 text-white">
+      {/* Top Header Placeholder (Hoisted at shell level) */}
+      <Header title="Apple & Tech Store • Hong Kong Hub" />
 
       <div className="p-4 space-y-4">
-        {/* Navigation Quick Shortcuts Bar */}
-        <div className="grid grid-cols-3 gap-2">
-          <button
-            onClick={() => navigate('shop-saved')}
-            className="p-2.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 flex flex-col items-center justify-center gap-1 active:scale-95 transition-all text-center"
-          >
-            <div className="flex items-center gap-1">
+        {/* ======================================================== */}
+        {/* 1. TOP MARKETPLACE SEARCH & CURRENCY TOOLBAR */}
+        {/* ======================================================== */}
+        <div className="space-y-2.5">
+          <div className="flex gap-2 items-center">
+            {/* Search Input */}
+            <div className="relative flex-1 flex items-center">
+              <Search className="absolute left-3.5 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search Apple, Google Pixel, Samsung Galaxy..."
+                className="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500 transition-all shadow-inner"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 text-slate-400 hover:text-white"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Currency Selector Pill (Dual Currency: NGN ₦ and RMB ¥) */}
+            <div className="flex items-center bg-slate-900 border border-slate-800 rounded-2xl p-1 gap-1 shrink-0">
+              {(['NGN', 'CNY'] as const).map((curr) => (
+                <button
+                  key={curr}
+                  type="button"
+                  onClick={() => setShopCurrency(curr)}
+                  className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all ${
+                    shopCurrency === curr
+                      ? 'bg-emerald-500 text-slate-950 shadow-md font-extrabold'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {curr === 'NGN' ? '🇳🇬 ₦ NGN' : '🇨🇳 ¥ RMB'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Action Navigation Strip (Wishlist, Compare, Orders, Cart) */}
+          <div className="grid grid-cols-4 gap-2">
+            <button
+              onClick={() => navigate('shop-saved')}
+              className="px-2 py-2 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 flex items-center justify-center gap-1 active:scale-95 transition-all text-xs"
+            >
               <Heart className={`w-3.5 h-3.5 ${savedProductIds.length > 0 ? 'text-rose-400 fill-rose-400' : 'text-slate-400'}`} />
-              <span className="text-[11px] font-bold text-slate-300">Wishlist</span>
+              <span className="font-bold text-slate-300 text-[11px]">Wishlist</span>
               {savedProductIds.length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-rose-500/20 text-rose-400 font-bold text-[9px] flex items-center justify-center">
+                <span className="w-4 h-4 rounded-full bg-rose-500/20 text-rose-400 font-extrabold text-[9px] flex items-center justify-center">
                   {savedProductIds.length}
                 </span>
               )}
-            </div>
-            <span className="text-[9px] text-slate-500">Saved Devices</span>
-          </button>
+            </button>
 
-          <button
-            onClick={() => navigate('shop-compare')}
-            className="p-2.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 flex flex-col items-center justify-center gap-1 active:scale-95 transition-all text-center"
-          >
-            <div className="flex items-center gap-1">
+            <button
+              onClick={() => navigate('shop-compare')}
+              className="px-2 py-2 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 flex items-center justify-center gap-1 active:scale-95 transition-all text-xs"
+            >
               <ArrowLeftRight className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-[11px] font-bold text-slate-300">Compare</span>
+              <span className="font-bold text-slate-300 text-[11px]">Compare</span>
               {compareProductIds.length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[9px] flex items-center justify-center">
+                <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 font-extrabold text-[9px] flex items-center justify-center">
                   {compareProductIds.length}
                 </span>
               )}
-            </div>
-            <span className="text-[9px] text-slate-500">Specs Matrix</span>
-          </button>
+            </button>
 
-          <button
-            onClick={() => navigate('shop-orders')}
-            className="p-2.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 flex flex-col items-center justify-center gap-1 active:scale-95 transition-all text-center"
-          >
-            <div className="flex items-center gap-1">
+            <button
+              onClick={() => navigate('shop-orders')}
+              className="px-2 py-2 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 flex items-center justify-center gap-1 active:scale-95 transition-all text-xs"
+            >
               <Package className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="text-[11px] font-bold text-slate-300">Orders</span>
-              <span className="w-4 h-4 rounded-full bg-cyan-500/20 text-cyan-400 font-bold text-[9px] flex items-center justify-center">
+              <span className="font-bold text-slate-300 text-[11px]">Orders</span>
+              <span className="w-4 h-4 rounded-full bg-cyan-500/20 text-cyan-400 font-extrabold text-[9px] flex items-center justify-center">
                 {shopOrders.length}
               </span>
-            </div>
-            <span className="text-[9px] text-slate-500">Tracking</span>
-          </button>
+            </button>
+
+            <button
+              onClick={() => navigate('cart')}
+              className="px-2 py-2 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 flex items-center justify-center gap-1 active:scale-95 transition-all text-xs"
+            >
+              <ShoppingBag className={`w-3.5 h-3.5 ${cartCount > 0 ? 'text-emerald-400' : 'text-slate-400'}`} />
+              <span className="font-bold text-slate-300 text-[11px]">Cart</span>
+              {cartCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-emerald-500 text-slate-950 font-extrabold text-[9px] flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
-        {/* Cart Quick Banner */}
-        {cartCount > 0 && (
-          <div 
-            onClick={() => navigate('cart')}
-            className="p-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 text-slate-950 font-bold text-xs flex items-center justify-between shadow-lg shadow-emerald-500/20 cursor-pointer active:scale-98 transition-all"
-          >
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="w-4 h-4" />
-              <span>{cartCount} {cartCount === 1 ? 'device' : 'devices'} in your cart</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span>View Cart</span>
-              <ChevronRight className="w-4 h-4" />
-            </div>
-          </div>
-        )}
+        {/* ======================================================== */}
+        {/* 2. PROMOTIONAL MARKETPLACE HERO BANNER CAROUSEL */}
+        {/* ======================================================== */}
+        <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 shadow-xl">
+          {marketBanners.map((banner, index) => {
+            const Icon = banner.icon;
+            const isActive = activeBannerIndex === index;
+            if (!isActive) return null;
 
-        {/* Search & Currency Toggle Bar */}
-        <div className="flex gap-2 items-center">
-          <div className="relative flex-1 flex items-center">
-            <Search className="absolute left-3.5 w-4 h-4 text-slate-500" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search iPhone, MacBook, M4, iPad, Watch..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500 transition-all"
-            />
+            return (
+              <div 
+                key={banner.id}
+                className={`p-4 bg-gradient-to-br ${banner.color} transition-all duration-500 flex flex-col justify-between min-h-[110px]`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${banner.badgeColor}`}>
+                    <Icon className="w-3 h-3" />
+                    <span>{banner.badge}</span>
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Truck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-[10px] text-slate-300 font-semibold">Lagos MMIA Cargo</span>
+                  </div>
+                </div>
+
+                <div className="my-1.5">
+                  <h3 className="text-sm font-extrabold text-white tracking-tight">{banner.title}</h3>
+                  <p className="text-[11px] text-slate-300 line-clamp-1">{banner.subtitle}</p>
+                </div>
+
+                <div className="flex items-center justify-between pt-1 border-t border-white/5">
+                  <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                    <ShieldCheck className="w-3 h-3" />
+                    <span>Escrow Guaranteed Protection</span>
+                  </span>
+                  {/* Carousel indicator dots */}
+                  <div className="flex gap-1">
+                    {marketBanners.map((_, dotIdx) => (
+                      <button
+                        key={dotIdx}
+                        type="button"
+                        onClick={() => setActiveBannerIndex(dotIdx)}
+                        className={`h-1.5 rounded-full transition-all ${
+                          dotIdx === activeBannerIndex ? 'w-4 bg-emerald-400' : 'w-1.5 bg-slate-700'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ======================================================== */}
+        {/* 2.5 BRAND SELECTOR TABS (Apple, Google Pixel, Samsung) */}
+        {/* ======================================================== */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Shop by Brand
+            </span>
+            <span className="text-[10px] text-emerald-400 font-bold">
+              Hong Kong Direct Hub
+            </span>
           </div>
 
-          {/* Currency Switcher */}
-          <div className="flex items-center bg-slate-900 border border-slate-800 rounded-2xl p-1 gap-1 shrink-0">
-            {(['NGN', 'USD', 'CNY'] as const).map((curr) => (
+          <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5">
+            {brands.map((brand) => {
+              const isSelected = selectedBrand === brand;
+              return (
+                <button
+                  key={brand}
+                  type="button"
+                  onClick={() => setSelectedBrand(brand)}
+                  className={`px-3 py-1.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all border ${
+                    isSelected
+                      ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md font-extrabold shadow-emerald-500/20'
+                      : 'bg-slate-900/90 text-slate-300 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  {brand}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ======================================================== */}
+        {/* 3. MARKETPLACE CATEGORY NAVIGATION */}
+        {/* ======================================================== */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Product Categories
+            </span>
+            <span className="text-[11px] text-slate-500 font-mono">
+              {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
+            </span>
+          </div>
+
+          <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+            {categories.map((cat) => {
+              const Icon = cat.icon;
+              const isSelected = selectedCategory === cat.id;
+
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all border ${
+                    isSelected
+                      ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md shadow-emerald-500/20'
+                      : 'bg-slate-900/90 text-slate-300 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <span>{cat.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ======================================================== */}
+        {/* 4. MARKETPLACE FILTER & VIEW MODE STRIP */}
+        {/* ======================================================== */}
+        <div className="flex items-center justify-between gap-2 p-2 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs">
+          {/* Condition Pills */}
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+            {conditions.map((cond) => (
               <button
-                key={curr}
-                type="button"
-                onClick={() => setShopCurrency(curr)}
-                className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-all ${
-                  shopCurrency === curr
-                    ? 'bg-emerald-500 text-slate-950 shadow-md font-extrabold'
+                key={cond}
+                onClick={() => setSelectedCondition(cond)}
+                className={`px-2 py-1 rounded-xl text-[10px] font-semibold whitespace-nowrap transition-all ${
+                  selectedCondition === cond
+                    ? 'bg-slate-800 text-emerald-400 font-bold border border-emerald-500/30'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                {curr}
+                {cond}
               </button>
             ))}
           </div>
-        </div>
 
-        {/* Category Pills (7 Categories) */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
-                selectedCategory === cat
-                  ? 'bg-slate-900 border-emerald-500 text-emerald-400 shadow-md'
-                  : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white'
-              }`}
+          {/* Right: Sort & Grid/List View Toggle */}
+          <div className="flex items-center gap-1.5 shrink-0 border-l border-slate-800 pl-2">
+            {/* Sort Dropdown */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="bg-slate-950 border border-slate-800 text-slate-300 rounded-xl px-2 py-1 text-[10px] font-semibold outline-none cursor-pointer"
             >
-              {cat}
-            </button>
-          ))}
-        </div>
+              <option value="featured">Featured</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="rating">Top Rated</option>
+              <option value="stock">In Stock First</option>
+            </select>
 
-        {/* Condition Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1 pl-1">
-            <Filter className="w-3 h-3 text-slate-500" />
-            <span>Condition:</span>
-          </span>
-          {conditions.map((cond) => (
-            <button
-              key={cond}
-              onClick={() => setSelectedCondition(cond)}
-              className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold whitespace-nowrap transition-all border ${
-                selectedCondition === cond
-                  ? 'bg-indigo-950/80 border-indigo-500/60 text-indigo-300'
-                  : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {cond}
-            </button>
-          ))}
-        </div>
-
-        {/* Wholesale Apple Guarantee Banner */}
-        <div className="p-3.5 rounded-2xl bg-gradient-to-r from-indigo-950/60 via-slate-900 to-slate-900 border border-indigo-900/40 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <ShieldCheck className="w-5 h-5 text-indigo-400 shrink-0" />
-            <div>
-              <p className="font-bold text-white text-[11px]">Factory Sealed HK Specification</p>
-              <p className="text-[10px] text-slate-400">Direct wholesale stock for Computer Village & Ikeja retailers</p>
+            {/* Layout Toggle (Grid vs List) */}
+            <div className="flex items-center bg-slate-950 border border-slate-800 rounded-xl p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode('grid')}
+                className={`p-1 rounded-lg transition-colors ${
+                  viewMode === 'grid' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
+                }`}
+                title="2-Column Grid View"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                className={`p-1 rounded-lg transition-colors ${
+                  viewMode === 'list' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
+                }`}
+                title="Single Column List View"
+              >
+                <List className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
-          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full shrink-0">
-            Escrow Guard
-          </span>
         </div>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 gap-4">
-          {filteredProducts.length === 0 ? (
-            <div className="p-8 rounded-3xl bg-slate-900/60 border border-slate-800 text-center space-y-2">
-              <Package className="w-8 h-8 text-slate-600 mx-auto" />
-              <p className="text-sm font-bold text-slate-300">No Apple devices found</p>
-              <p className="text-xs text-slate-500">Try adjusting your category or condition filter.</p>
-            </div>
-          ) : (
-            filteredProducts.map((product) => {
+        {/* ======================================================== */}
+        {/* 5. STANDARD 2-COLUMN MARKETPLACE PRODUCT GRID */}
+        {/* ======================================================== */}
+        {filteredProducts.length === 0 ? (
+          <div className="p-8 rounded-3xl bg-slate-900/60 border border-slate-800 text-center space-y-2">
+            <Package className="w-8 h-8 text-slate-600 mx-auto" />
+            <p className="text-sm font-bold text-slate-300">No products found</p>
+            <p className="text-xs text-slate-500">Try adjusting your category, condition, or search query.</p>
+          </div>
+        ) : viewMode === 'grid' ? (
+          /* STANDARD 2-COLUMN E-COMMERCE GRID */
+          <div className="grid grid-cols-2 gap-3">
+            {filteredProducts.map((product) => {
               const isSaved = savedProductIds.includes(product.id);
               const isComparing = compareProductIds.includes(product.id);
               const variantsTotalStock = (product.variants && product.variants.length > 0)
@@ -284,197 +552,352 @@ export const ShopScreen: React.FC = () => {
               const stock = variantsTotalStock > 0 ? variantsTotalStock : (product.stockCount ?? 10);
               const condition = product.condition || 'Brand New';
               const inCartCount = cart
-                .filter(item => item.product.id === product.id)
+                .filter((item) => item.product.id === product.id)
                 .reduce((sum, item) => sum + item.quantity, 0);
 
               return (
                 <div
                   key={product.id}
                   onClick={() => navigate('product-detail', product.id)}
-                  className="p-4 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer shadow-xl relative overflow-hidden group"
+                  className="rounded-3xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer shadow-xl relative overflow-hidden flex flex-col justify-between group hover:shadow-emerald-500/5"
                 >
-                  <div className="flex gap-4">
-                    {/* Product Thumbnail */}
-                    <div className="relative w-28 h-28 rounded-2xl overflow-hidden bg-slate-950 shrink-0 border border-slate-800 flex items-center justify-center p-1">
+                  {/* Top Image Section */}
+                  <div className="relative w-full aspect-square bg-slate-950 overflow-hidden flex items-center justify-center p-2 border-b border-slate-800/80">
+                    <img
+                      src={product.image}
+                      alt={product.title}
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                    />
+
+                    {/* Condition Pill (Top Left) */}
+                    <span className={`absolute top-2 left-2 text-[8px] font-extrabold px-1.5 py-0.5 rounded-md border backdrop-blur-md ${
+                      condition === 'Brand New'
+                        ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/40'
+                        : 'bg-indigo-950/90 text-indigo-300 border-indigo-500/40'
+                    }`}>
+                      {condition}
+                    </span>
+
+                    {/* Stock Pill (Bottom Left) */}
+                    <span className={`absolute bottom-2 left-2 text-[8px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-md ${
+                      stock > 5 
+                        ? 'bg-slate-900/90 text-slate-300 border border-slate-700' 
+                        : stock > 0 
+                        ? 'bg-amber-950/90 text-amber-300 border border-amber-500/40' 
+                        : 'bg-rose-950/90 text-rose-300 border border-rose-500/40'
+                    }`}>
+                      {stock > 5 ? `${stock} left in stock` : stock > 0 ? `Only ${stock} left` : 'Out of Stock'}
+                    </span>
+
+                    {/* Action Buttons (Top Right): Wishlist & Compare */}
+                    <div className="absolute top-2 right-2 flex flex-col gap-1 z-10">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSaveProduct(product.id);
+                        }}
+                        className={`p-1.5 rounded-xl border backdrop-blur-md transition-all ${
+                          isSaved 
+                            ? 'bg-rose-500/20 border-rose-500/40 text-rose-400' 
+                            : 'bg-slate-950/80 border-slate-800 text-slate-400 hover:text-white'
+                        }`}
+                        title="Save to Wishlist"
+                      >
+                        <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-rose-400' : ''}`} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleCompareProduct(product.id);
+                        }}
+                        className={`p-1.5 rounded-xl border backdrop-blur-md transition-all ${
+                          isComparing 
+                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' 
+                            : 'bg-slate-950/80 border-slate-800 text-slate-400 hover:text-white'
+                        }`}
+                        title="Compare Specs"
+                      >
+                        <ArrowLeftRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Bottom Content Section */}
+                  <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
+                    <div>
+                      {/* Rating */}
+                      <div className="flex items-center gap-1 text-[10px] text-amber-400 font-semibold mb-1">
+                        <Star className="w-3 h-3 fill-amber-400" />
+                        <span>{product.rating}</span>
+                        <span className="text-slate-500">({product.reviewsCount})</span>
+                      </div>
+
+                      {/* Title */}
+                      <h3 className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors line-clamp-2 leading-tight">
+                        {product.title}
+                      </h3>
+
+                      {/* Brand & Storage Specifications Badge */}
+                      <div className="flex items-center gap-1 flex-wrap mt-1">
+                        <span className="text-[9px] font-extrabold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                          {product.brand || 'Apple'}
+                        </span>
+                        {(product.storage || product.storageOptions?.[0]) && (
+                          <span className="text-[9px] font-bold text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
+                            {product.storage || product.storageOptions?.[0]}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Chip / Storage spec subtitle */}
+                      <p className="text-[10px] text-slate-400 line-clamp-1 mt-1">
+                        {product.technicalSpecs?.chip ? product.technicalSpecs.chip.split('(')[0] : product.subtitle}
+                      </p>
+                    </div>
+
+                    {/* Price & Add to Cart Action */}
+                    <div className="pt-2 border-t border-slate-800/80 space-y-2">
+                      <div>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-sm font-extrabold text-white num-tabular">
+                            {formatPrice(product, shopCurrency)}
+                          </span>
+                          <span className="text-[10px] text-emerald-400 font-bold">{shopCurrency}</span>
+                        </div>
+                        <p className="text-[9px] text-slate-500 font-mono num-tabular">
+                          ≈ {getSecondaryPrice(product, shopCurrency)}
+                        </p>
+                      </div>
+
+                      {inCartCount > 0 ? (
+                        <div className="flex items-center gap-1 w-full">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate('cart');
+                            }}
+                            className="flex-1 py-1.5 px-2 rounded-xl text-[10px] font-bold bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center gap-1"
+                          >
+                            <Check className="w-3 h-3" />
+                            <span>{inCartCount} in Cart</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={stock <= inCartCount}
+                            onClick={(e) => handleAddToCartQuick(e, product)}
+                            className="w-7 h-7 rounded-xl bg-emerald-500 text-slate-950 font-bold flex items-center justify-center active:scale-95 transition-all shadow-md disabled:bg-slate-800 disabled:text-slate-500 shrink-0"
+                            title="Add Another"
+                          >
+                            <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={stock <= 0}
+                          onClick={(e) => handleAddToCartQuick(e, product)}
+                          className={`w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all active:scale-95 shadow-md ${
+                            stock > 0
+                              ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
+                              : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                          }`}
+                        >
+                          <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                          <span>{stock > 0 ? 'Add to Cart' : 'Sold Out'}</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* SINGLE-COLUMN LIST VIEW ALTERNATIVE */
+          <div className="grid grid-cols-1 gap-3">
+            {filteredProducts.map((product) => {
+              const isSaved = savedProductIds.includes(product.id);
+              const isComparing = compareProductIds.includes(product.id);
+              const variantsTotalStock = (product.variants && product.variants.length > 0)
+                ? product.variants.reduce((sum, v) => sum + (v.stockCount ?? 0), 0)
+                : 0;
+              const stock = variantsTotalStock > 0 ? variantsTotalStock : (product.stockCount ?? 10);
+              const condition = product.condition || 'Brand New';
+              const inCartCount = cart
+                .filter((item) => item.product.id === product.id)
+                .reduce((sum, item) => sum + item.quantity, 0);
+
+              return (
+                <div
+                  key={product.id}
+                  onClick={() => navigate('product-detail', product.id)}
+                  className="p-3.5 rounded-3xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer shadow-xl relative overflow-hidden group"
+                >
+                  <div className="flex gap-3">
+                    {/* Thumbnail */}
+                    <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-slate-950 shrink-0 border border-slate-800 flex items-center justify-center p-1">
                       <img
                         src={product.image}
                         alt={product.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                       />
-                      {/* Stock Indicator */}
-                      <span className={`absolute top-1.5 left-1.5 text-[8px] font-bold px-1.5 py-0.5 rounded-md border backdrop-blur-md ${
-                        stock > 5 
-                          ? 'bg-slate-900/90 text-emerald-400 border-emerald-500/30'
-                          : stock > 0
-                          ? 'bg-amber-950/90 text-amber-300 border-amber-500/30'
-                          : 'bg-rose-950/90 text-rose-300 border-rose-500/30'
-                      }`}>
-                        {stock > 5 ? `${stock} in stock` : stock > 0 ? `Only ${stock} left` : 'Out of Stock'}
-                      </span>
-
-                      {/* Condition Pill */}
-                      <span className="absolute bottom-1.5 left-1.5 bg-slate-950/90 text-[8px] font-medium text-slate-300 px-1.5 py-0.5 rounded-md border border-slate-800">
+                      <span className="absolute bottom-1 left-1 bg-slate-950/90 text-[8px] font-bold text-slate-300 px-1 rounded border border-slate-800">
                         {condition}
                       </span>
                     </div>
 
                     {/* Details */}
-                    <div className="flex-1 flex flex-col justify-between">
+                    <div className="flex-1 flex flex-col justify-between min-w-0">
                       <div>
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1 text-[10px] text-amber-400 font-semibold mb-0.5">
+                          <div className="flex items-center gap-1 text-[10px] text-amber-400 font-semibold">
                             <Star className="w-3 h-3 fill-amber-400" />
                             <span>{product.rating}</span>
                             <span className="text-slate-500">({product.reviewsCount})</span>
                           </div>
 
-                          {/* Quick Wishlist & Compare Icons */}
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1">
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 toggleSaveProduct(product.id);
                               }}
-                              className={`p-1.5 rounded-lg border transition-all ${
-                                isSaved 
-                                  ? 'bg-rose-500/20 border-rose-500/40 text-rose-400' 
-                                  : 'bg-slate-950 border-slate-800 text-slate-500 hover:text-white'
+                              className={`p-1 rounded-lg border ${
+                                isSaved ? 'bg-rose-500/20 text-rose-400 border-rose-500/40' : 'bg-slate-950 text-slate-500 border-slate-800'
                               }`}
-                              title="Save to Wishlist"
                             >
-                              <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-rose-400' : ''}`} />
+                              <Heart className={`w-3 h-3 ${isSaved ? 'fill-rose-400' : ''}`} />
                             </button>
-
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 toggleCompareProduct(product.id);
                               }}
-                              className={`p-1.5 rounded-lg border transition-all ${
-                                isComparing 
-                                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' 
-                                  : 'bg-slate-950 border-slate-800 text-slate-500 hover:text-white'
+                              className={`p-1 rounded-lg border ${
+                                isComparing ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-slate-950 text-slate-500 border-slate-800'
                               }`}
-                              title="Compare Specs"
                             >
-                              <ArrowLeftRight className="w-3.5 h-3.5" />
+                              <ArrowLeftRight className="w-3 h-3" />
                             </button>
                           </div>
                         </div>
 
-                        <h3 className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors line-clamp-1 mt-0.5">
-                          {product.title}
-                        </h3>
-                        <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                          {product.subtitle}
-                        </p>
+                        <h3 className="text-xs font-bold text-white truncate mt-1">{product.title}</h3>
+                        <div className="flex items-center gap-1.5 flex-wrap my-1">
+                          <span className="text-[9px] font-extrabold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                            {product.brand || 'Apple'}
+                          </span>
+                          {product.model && (
+                            <span className="text-[9px] font-medium text-slate-400">
+                              {product.model}
+                            </span>
+                          )}
+                          {(product.storage || product.storageOptions?.[0]) && (
+                            <span className="text-[9px] font-bold text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
+                              {product.storage || product.storageOptions?.[0]}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-slate-400 truncate">{product.subtitle}</p>
                       </div>
 
-                      {/* Dynamic Multi-Currency Price Display */}
-                      <div className="mt-2 space-y-0.5">
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-sm font-extrabold text-white num-tabular">
-                            {formatPrice(product, shopCurrency)}
-                          </span>
-                          <span className="text-[10px] text-emerald-400 font-medium">{shopCurrency}</span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] text-slate-400 font-mono num-tabular">
+                      <div className="flex items-end justify-between pt-1">
+                        <div>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-sm font-extrabold text-white num-tabular">
+                              {formatPrice(product, shopCurrency)}
+                            </span>
+                            <span className="text-[10px] text-emerald-400 font-bold">{shopCurrency}</span>
+                          </div>
+                          <span className="text-[9px] text-slate-500 font-mono">
                             ≈ {getSecondaryPrice(product, shopCurrency)}
                           </span>
                         </div>
+
+                        {inCartCount > 0 ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate('cart');
+                            }}
+                            className="px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center gap-1"
+                          >
+                            <Check className="w-3 h-3" />
+                            <span>{inCartCount} in Cart</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={stock <= 0}
+                            onClick={(e) => handleAddToCartQuick(e, product)}
+                            className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-emerald-500 text-slate-950 hover:bg-emerald-400 active:scale-95 transition-all shadow-md flex items-center gap-1"
+                          >
+                            <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                            <span>Add</span>
+                          </button>
+                        )}
                       </div>
                     </div>
-                  </div>
-
-                  {/* Bottom Specs & Action */}
-                  <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-[10px] text-slate-400 truncate max-w-[180px]">
-                      {product.technicalSpecs?.chip ? (
-                        <span>{product.technicalSpecs.chip.split('(')[0]} • {product.storageOptions?.[0] || product.variants?.[0]?.storage || 'Standard'}</span>
-                      ) : (
-                        <span>{(product.specs || []).slice(0, 2).join(' • ')}</span>
-                      )}
-                    </div>
-
-                    {inCartCount > 0 ? (
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate('cart');
-                          }}
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 active:scale-95 transition-all shadow-sm"
-                          title="View In Cart"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                          <span>{inCartCount} in Cart</span>
-                        </button>
-                        <button
-                          type="button"
-                          disabled={stock <= inCartCount}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            addToCart(product);
-                          }}
-                          className="w-7 h-7 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center active:scale-95 transition-all shadow-md disabled:bg-slate-800 disabled:text-slate-500"
-                          title="Add Another Unit"
-                        >
-                          <Plus className="w-4 h-4 stroke-[3]" />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        disabled={stock <= 0}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          addToCart(product);
-                        }}
-                        className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md ${
-                          stock > 0
-                            ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
-                            : 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none'
-                        }`}
-                      >
-                        <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                        <span>{stock > 0 ? 'Add to Cart' : 'Sold Out'}</span>
-                      </button>
-                    )}
                   </div>
                 </div>
               );
-            })
-          )}
+            })}
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* 6. MARKETPLACE TRUST & AIR CARGO ASSURANCE */}
+        {/* ======================================================== */}
+        <div className="p-4 rounded-3xl bg-slate-900/60 border border-slate-800 space-y-3">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+              FlyeMass Market Guarantees
+            </h4>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-[10px]">
+            <div className="p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800/80">
+              <span className="font-bold text-slate-200 block">✈️ Express Air Freight</span>
+              <span className="text-slate-400">Guangzhou / HK Hub to Lagos MM2 Hub in 2-4 Days.</span>
+            </div>
+            <div className="p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800/80">
+              <span className="font-bold text-slate-200 block">🔒 Escrow Protection</span>
+              <span className="text-slate-400">Funds released only after arrival verification.</span>
+            </div>
+          </div>
         </div>
 
-        {/* Floating Quick Checkout Drawer / Bar */}
+        {/* ======================================================== */}
+        {/* 7. FLOATING ROUND VIEW CART BUTTON (NON-INTRUSIVE) */}
+        {/* ======================================================== */}
         {cartCount > 0 && (
-          <div className="fixed bottom-16 left-0 right-0 px-4 z-40 max-w-md mx-auto pointer-events-none">
+          <div className="fixed bottom-20 left-0 right-0 max-w-md mx-auto px-4 z-40 pointer-events-none flex justify-end">
             <button
               type="button"
               onClick={() => navigate('cart')}
-              className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-extrabold text-xs flex items-center justify-between shadow-2xl shadow-emerald-500/40 pointer-events-auto active:scale-98 transition-all border border-emerald-300/40"
+              data-testid="floating-view-cart-round-btn"
+              title={`View Cart (${cartCount} ${cartCount === 1 ? 'item' : 'items'} • ${formatCartTotal(shopCurrency)})`}
+              aria-label={`View Cart with ${cartCount} items`}
+              className="pointer-events-auto group relative w-14 h-14 rounded-full bg-gradient-to-tr from-emerald-500 via-teal-400 to-emerald-400 text-slate-950 flex items-center justify-center shadow-2xl shadow-emerald-500/40 border-2 border-slate-950 active:scale-90 transition-all cursor-pointer hover:shadow-emerald-500/60"
             >
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-slate-950/20 flex items-center justify-center">
-                  <ShoppingBag className="w-4 h-4 text-slate-950 stroke-[2.5]" />
-                </div>
-                <div className="text-left">
-                  <p className="font-extrabold text-xs text-slate-950 leading-tight">
-                    {cartCount} {cartCount === 1 ? 'Device' : 'Devices'} in Cart
-                  </p>
-                  <p className="text-[10px] text-slate-800 font-medium">Ready for Priority Air Cargo</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5 bg-slate-950 text-white px-3 py-1.5 rounded-xl font-bold text-xs shadow-md">
-                <span>View Cart</span>
-                <ChevronRight className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
-              </div>
+              {/* Outer soft pulse ring */}
+              <span className="absolute -inset-1 rounded-full bg-emerald-400/30 animate-ping pointer-events-none opacity-75" />
+
+              {/* Shopping Bag Icon */}
+              <ShoppingBag className="w-6 h-6 text-slate-950 stroke-[2.3] group-hover:scale-110 transition-transform relative z-10" />
+
+              {/* Cart Count Badge (Top-Right of Circle) */}
+              <span className="absolute -top-1 -right-1 min-w-[22px] h-[22px] px-1 rounded-full bg-slate-950 text-emerald-400 font-black text-[11px] border-2 border-emerald-400 flex items-center justify-center shadow-lg num-tabular z-20">
+                {cartCount}
+              </span>
             </button>
           </div>
         )}

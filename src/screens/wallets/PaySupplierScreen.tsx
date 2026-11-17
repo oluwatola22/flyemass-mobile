@@ -21,6 +21,32 @@ import {
   Clock
 } from 'lucide-react';
 
+// Official Alipay Brand Logo SVG
+const AlipayLogo: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
+  <svg viewBox="0 0 1024 1024" className={className} fill="currentColor">
+    <path d="M860 612.3c-44.5-17.8-163.2-62.2-248.8-94.8 41.5-68.2 71.1-151.1 82.9-240.2h120.7v-58.8H558.6V120h-88.2v98.5H235.4v58.8h176.4v58.8H147.2v58.8h352.8c-11.9 77.1-35.6 142.2-71.1 201.6-77.1-59.3-148.2-130.4-201.6-207.5l-65.2 41.5c59.3 83 136.4 160.1 225.4 225.4-88.9 59.3-196.9 100.9-285.2 124.6l29.7 59.3c112.7-29.7 231.2-77.1 337.8-148.2 94.8 53.4 207.5 106.7 326.1 154.1l35.6-59.3c-106.7-41.5-207.5-88.9-296.4-136.4 29.7-47.4 53.4-100.8 71.1-160.1 77.1 29.7 177.8 71.1 225.4 88.9l65.2-130.6z"/>
+  </svg>
+);
+
+// Official WeChat Pay Brand Logo SVG
+const WeChatLogo: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
+  <svg viewBox="0 0 1024 1024" className={className} fill="currentColor">
+    <path d="M384 192c-159 0-288 107.5-288 240 0 76.6 42.9 144.9 110.1 189.6L160 704l95.5-47.8C290.9 666.9 336 672 384 672c7.8 0 15.5-0.3 23.1-0.9-10.4-31.5-16.1-65.2-16.1-100.1 0-145.8 128.9-264 288.8-264 12.8 0 25.3 0.8 37.6 2.4C680.8 238.4 542.4 192 384 192zM288 320c26.5 0 48 21.5 48 48s-21.5 48-48 48-48-21.5-48-48 21.5-48 48-48zm192 0c26.5 0 48 21.5 48 48s-21.5 48-48 48-48-21.5-48-48 21.5-48 48-48z"/>
+    <path d="M679.8 368c-132.5 0-240 89.5-240 200s107.5 200 240 200c39.9 0 77.4-8.1 110.4-22.6L864 784l-25.9-64.8C888.6 684.8 919.8 629.5 919.8 568c0-110.5-107.5-200-240-200zm-79.8 112c22.1 0 40 17.9 40 40s-17.9 40-40 40-40-17.9-40-40 17.9-40 40-40zm160 0c22.1 0 40 17.9 40 40s-17.9 40-40 40-40-17.9-40-40 17.9-40 40-40z"/>
+  </svg>
+);
+
+// Official China Flag / UnionPay / CNAPS Bank Logo SVG
+const UnionPayLogo: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
+  <svg viewBox="0 0 1024 1024" className={className} fill="none">
+    <rect width="1024" height="1024" rx="200" fill="#0B132B"/>
+    <path d="M240 280h180l-80 464H160l80-464z" fill="#E60012"/>
+    <path d="M420 280h180l-80 464H340l80-464z" fill="#002D72"/>
+    <path d="M600 280h180l-80 464H520l80-464z" fill="#00835D"/>
+    <text x="512" y="880" textAnchor="middle" fill="#FFFFFF" fontSize="130" fontWeight="900" fontFamily="sans-serif">CNAPS</text>
+  </svg>
+);
+
 type PayMethod = 'alipay' | 'wechat' | 'bank';
 
 const PAYMENT_PURPOSES = [
@@ -37,11 +63,13 @@ const PAYMENT_PURPOSES = [
 export const PaySupplierScreen: React.FC = () => {
   const { wallets, goBack, showToast, activeUserId } = useApp();
   const [activeTab, setActiveTab] = useState<PayMethod>('alipay');
+  const [fundingCurrency, setFundingCurrency] = useState<'CNY' | 'NGN'>('CNY');
   
   // Beneficiary fields
   const [recipientName, setRecipientName] = useState('Shenzhen Foxconn Micro Tech Ltd');
   const [accountNumber, setAccountNumber] = useState('13800138000');
   const [bankName, setBankName] = useState('Industrial and Commercial Bank of China (ICBC)');
+  const [cnapsCode, setCnapsCode] = useState('104581000018');
   const [swiftBic, setSwiftBic] = useState('');
   
   // QR Code upload
@@ -53,7 +81,7 @@ export const PaySupplierScreen: React.FC = () => {
   const [purposeExplanation, setPurposeExplanation] = useState('');
   const [notes, setNotes] = useState('PO #9824 - Batch order electronics components');
 
-  // Amount
+  // Amount in CNY (Payout to China)
   const [amountCNY, setAmountCNY] = useState('25000');
   
   // Receiver verification status
@@ -67,8 +95,56 @@ export const PaySupplierScreen: React.FC = () => {
   const [submissionReceipt, setSubmissionReceipt] = useState<any | null>(null);
 
   const cnyWallet = wallets.find((w) => w.currency === 'CNY');
+  const ngnWallet = wallets.find((w) => w.currency === 'NGN');
+  const usdWallet = wallets.find((w) => w.currency === 'USD');
+
   const cnyBalance = cnyWallet?.balance || 0;
-  const ngnRate = db.getSystemSettings()?.rates?.NGN_CNY || 214.50;
+  const ngnBalance = ngnWallet?.balance || 0;
+  const usdBalance = usdWallet?.balance || 0;
+
+  const rates = db.getSystemSettings()?.rates || { NGN_CNY: 214.50, USD_CNY: 7.24 };
+  const ngnRate = Number(rates.NGN_CNY || 214.50);
+  const usdRate = Number(rates.USD_CNY || 7.24);
+
+  const parsedAmount = parseFloat(amountCNY || '0');
+  const validAmount = isNaN(parsedAmount) ? 0 : parsedAmount;
+
+  const calculateFundingDeduction = (cny: number, currency: 'CNY' | 'NGN' | 'USD') => {
+    if (currency === 'NGN') return Math.round(cny * ngnRate * 100) / 100;
+    if (currency === 'USD') return Math.round((cny / usdRate) * 100) / 100;
+    return cny;
+  };
+
+  const requiredFundingAmount = calculateFundingDeduction(validAmount, fundingCurrency);
+  const activeBalance = fundingCurrency === 'NGN' ? ngnBalance : cnyBalance;
+  const currencySymbol = fundingCurrency === 'NGN' ? '₦' : '¥';
+
+  const handleTabChange = (tab: PayMethod) => {
+    setActiveTab(tab);
+    if (tab === 'alipay') {
+      if (!accountNumber || accountNumber.startsWith('622') || accountNumber.startsWith('wx_')) {
+        setAccountNumber('13800138000');
+      }
+      if (!recipientName || recipientName.includes('Bank') || recipientName.includes('Yiwu')) {
+        setRecipientName('Shenzhen Foxconn Micro Tech Ltd');
+      }
+    } else if (tab === 'wechat') {
+      if (!accountNumber || accountNumber.startsWith('622') || accountNumber.startsWith('138')) {
+        setAccountNumber('wx_supplier_890');
+      }
+      if (!recipientName || recipientName.includes('Foxconn')) {
+        setRecipientName('Guangzhou Trade Co., Ltd');
+      }
+    } else if (tab === 'bank') {
+      if (!accountNumber || accountNumber.startsWith('138') || accountNumber.startsWith('wx_')) {
+        setAccountNumber('6222021001123456789');
+      }
+      if (!recipientName || recipientName.includes('Foxconn')) {
+        setRecipientName('Yiwu Futian Global Sourcing Ltd');
+      }
+    }
+    handleVerifyReceiver();
+  };
 
   const handleVerifyReceiver = () => {
     setIsVerifying(true);
@@ -114,7 +190,8 @@ export const PaySupplierScreen: React.FC = () => {
       return false;
     }
     if (!accountNumber.trim()) {
-      showToast('Please enter recipient account number or ID', 'error');
+      const field = activeTab === 'alipay' ? 'Alipay ID / Mobile' : activeTab === 'wechat' ? 'WeChat Pay ID' : 'Bank Account / Settlement IBAN';
+      showToast(`Please enter a valid ${field}`, 'error');
       return false;
     }
     if (activeTab === 'bank' && !bankName.trim()) {
@@ -140,8 +217,11 @@ export const PaySupplierScreen: React.FC = () => {
       showToast('Payment amount cannot have more than 2 decimal places', 'error');
       return false;
     }
-    if (num > cnyBalance) {
-      showToast(`Insufficient CNY balance (Available: ¥${(cnyBalance ?? 0).toLocaleString()})`, 'error');
+    if (requiredFundingAmount > activeBalance) {
+      showToast(
+        `Insufficient ${fundingCurrency} balance (Required: ${currencySymbol}${requiredFundingAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}, Available: ${currencySymbol}${activeBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })})`,
+        'error'
+      );
       return false;
     }
 
@@ -160,7 +240,7 @@ export const PaySupplierScreen: React.FC = () => {
 
   const handlePinSuccess = async (enteredPin: string) => {
     const num = parseFloat(amountCNY);
-    const methodLabel = activeTab === 'alipay' ? 'Alipay' : activeTab === 'wechat' ? 'WeChat Pay' : 'China Bank Transfer';
+    const methodLabel = activeTab === 'alipay' ? 'Alipay (支付宝)' : activeTab === 'wechat' ? 'WeChat (微信支付)' : 'Bank Transfer (银联 / CNAPS)';
     
     setIsSubmitting(true);
     try {
@@ -178,6 +258,9 @@ export const PaySupplierScreen: React.FC = () => {
           purposeExplanation: purpose === 'Other' ? purposeExplanation.trim() : undefined,
           bankName: activeTab === 'bank' ? bankName.trim() : undefined,
           swiftBic: activeTab === 'bank' && swiftBic.trim() ? swiftBic.trim() : undefined,
+          cnapsCode: activeTab === 'bank' && cnapsCode.trim() ? cnapsCode.trim() : undefined,
+          fundingCurrency,
+          fundingAmount: requiredFundingAmount,
           idempotencyKey: `rmb_pay_${activeUserId}_${Date.now()}`
         }
       );
@@ -195,13 +278,17 @@ export const PaySupplierScreen: React.FC = () => {
         receiverAccount: accountNumber.trim(),
         method: methodLabel,
         bankName: activeTab === 'bank' ? bankName.trim() : undefined,
+        cnapsCode: activeTab === 'bank' ? cnapsCode.trim() : undefined,
         purpose,
         notes: notes.trim(),
+        fundingCurrency,
+        fundingAmount: requiredFundingAmount,
+        currencySymbol,
         status: 'Pending',
         timestamp: new Date().toLocaleString(),
         equivalentNGN: num * ngnRate
       });
-      showToast(`Payment request submitted for clearance! Ref: ${res?.payment?.reference}`, 'success');
+      showToast(`Payment request submitted for clearance! Ref: ${res?.payment?.reference || 'RMB-REQ'}`, 'success');
     } catch (e: any) {
       showToast(e.message || 'Supplier payment communication error', 'error');
     } finally {
@@ -209,8 +296,6 @@ export const PaySupplierScreen: React.FC = () => {
     }
   };
 
-  const parsedAmount = parseFloat(amountCNY || '0');
-  const validAmount = isNaN(parsedAmount) ? 0 : parsedAmount;
   const estimatedNGN = validAmount * ngnRate;
 
   return (
@@ -225,100 +310,157 @@ export const PaySupplierScreen: React.FC = () => {
           </label>
           <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-slate-900 border border-slate-800">
             <button
-              onClick={() => { setActiveTab('alipay'); handleVerifyReceiver(); }}
-              className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 ${
-                activeTab === 'alipay' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white'
+              type="button"
+              onClick={() => handleTabChange('alipay')}
+              className={`py-2.5 px-1.5 rounded-2xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-1 border cursor-pointer ${
+                activeTab === 'alipay'
+                  ? 'bg-blue-600 text-white border-blue-400/40 shadow-lg shadow-blue-600/30'
+                  : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
               }`}
             >
-              <div className="flex items-center gap-1">
-                <Smartphone className="w-3.5 h-3.5" />
-                <span>Alipay</span>
+              <div className="flex items-center gap-1.5">
+                <AlipayLogo className="w-4 h-4 text-current shrink-0" />
+                <span className="font-extrabold text-[11px]">Alipay</span>
               </div>
-              <span className="text-[10px] opacity-80 font-normal">支付宝</span>
+              <span className="text-[10px] font-medium opacity-90">(支付宝)</span>
             </button>
 
             <button
-              onClick={() => { setActiveTab('wechat'); handleVerifyReceiver(); }}
-              className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 ${
-                activeTab === 'wechat' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'text-slate-400 hover:text-white'
+              type="button"
+              onClick={() => handleTabChange('wechat')}
+              className={`py-2.5 px-1.5 rounded-2xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-1 border cursor-pointer ${
+                activeTab === 'wechat'
+                  ? 'bg-emerald-600 text-white border-emerald-400/40 shadow-lg shadow-emerald-600/30'
+                  : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
               }`}
             >
-              <div className="flex items-center gap-1">
-                <Smartphone className="w-3.5 h-3.5" />
-                <span>WeChat</span>
+              <div className="flex items-center gap-1.5">
+                <WeChatLogo className="w-4 h-4 text-current shrink-0" />
+                <span className="font-extrabold text-[11px]">WeChat</span>
               </div>
-              <span className="text-[10px] opacity-80 font-normal">微信支付</span>
+              <span className="text-[10px] font-medium opacity-90">(微信支付)</span>
             </button>
 
             <button
-              onClick={() => { setActiveTab('bank'); handleVerifyReceiver(); }}
-              className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 ${
-                activeTab === 'bank' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'text-slate-400 hover:text-white'
+              type="button"
+              onClick={() => handleTabChange('bank')}
+              className={`py-2.5 px-1.5 rounded-2xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-1 border cursor-pointer ${
+                activeTab === 'bank'
+                  ? 'bg-indigo-600 text-white border-indigo-400/40 shadow-lg shadow-indigo-600/30'
+                  : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
               }`}
             >
-              <div className="flex items-center gap-1">
-                <Building2 className="w-3.5 h-3.5" />
-                <span>Bank Transfer</span>
+              <div className="flex items-center gap-1.5">
+                <UnionPayLogo className="w-4 h-4 rounded shrink-0" />
+                <span className="font-extrabold text-[11px] truncate">Bank Transfer</span>
               </div>
-              <span className="text-[10px] opacity-80 font-normal">银联 / CNAPS</span>
+              <span className="text-[10px] font-medium opacity-90">(银联 / CNAPS)</span>
             </button>
           </div>
         </div>
 
-        {/* CNY Balance Card */}
-        <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2.5">
-            <span className="text-2xl">🇨🇳</span>
+        {/* Funding Currency / Vault Selector Card */}
+        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              Funding Wallet Source
+            </label>
+            <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+              <ShieldCheck className="w-3 h-3" /> Auto-Converts to RMB
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            {(['CNY', 'NGN'] as const).map((curr) => {
+              const isSelected = fundingCurrency === curr;
+              const bal = curr === 'CNY' ? cnyBalance : ngnBalance;
+              const sym = curr === 'CNY' ? '¥' : '₦';
+              const flag = curr === 'CNY' ? '🇨🇳' : '🇳🇬';
+              const label = curr === 'CNY' ? 'Chinese RMB' : 'Nigerian Naira';
+              return (
+                <button
+                  key={curr}
+                  type="button"
+                  onClick={() => setFundingCurrency(curr)}
+                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-slate-800/90 border-emerald-500 shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-500/30'
+                      : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-base">{flag}</span>
+                    <span className={`text-[10px] font-black uppercase ${isSelected ? 'text-emerald-400' : 'text-slate-400'}`}>
+                      {curr}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-slate-400">{label}</div>
+                  <p className="text-xs font-extrabold text-white num-tabular truncate mt-0.5">
+                    {sym}{bal.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800/80 flex items-center justify-between text-xs">
             <div>
-              <span className="text-slate-400 text-[11px] block">Available RMB Balance:</span>
-              <p className="font-extrabold text-emerald-400 num-tabular text-sm">¥{(cnyBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CNY</p>
+              <span className="text-slate-400 text-[10px] block">Active Balance:</span>
+              <p className="font-extrabold text-emerald-400 num-tabular text-sm">
+                {currencySymbol}{activeBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {fundingCurrency}
+              </p>
+            </div>
+            <div className="text-right">
+              <span className="text-slate-500 text-[10px] block">Settlement Model</span>
+              <p className="text-[11px] font-mono font-bold text-indigo-400">
+                {fundingCurrency === 'CNY' ? 'Direct 1:1 RMB' : `1 CNY = ₦${ngnRate}`}
+              </p>
             </div>
           </div>
-          <button
-            onClick={goBack}
-            className="text-[11px] font-bold text-emerald-400 hover:underline px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20"
-          >
-            + Swap NGN
-          </button>
         </div>
 
         {/* Recipient Details Form */}
         <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3.5">
-          <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider pb-2 border-b border-slate-800">
-            Beneficiary Details
-          </h3>
+          <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+              Beneficiary Details
+            </h3>
+            <span className="text-[10px] text-slate-400 font-medium">
+              {activeTab === 'alipay' ? 'Alipay Payout' : activeTab === 'wechat' ? 'WeChat Pay Payout' : 'CNAPS Bank Transfer'}
+            </span>
+          </div>
 
           <div>
             <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
-              Recipient / Business Name
+              {activeTab === 'bank' ? 'Beneficiary Corporate / Individual Name' : 'Recipient / Business Name'}
             </label>
             <input
               type="text"
               value={recipientName}
               onChange={(e) => setRecipientName(e.target.value)}
-              placeholder="e.g. Shenzhen Foxconn Micro Tech Ltd"
+              placeholder={activeTab === 'bank' ? 'e.g. Yiwu International Logistics Ltd' : activeTab === 'wechat' ? 'e.g. Guangzhou Trade Co., Ltd' : 'e.g. Shenzhen Foxconn Micro Tech Ltd'}
               className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-950 border border-slate-800 focus:border-emerald-500 outline-none text-xs text-white"
             />
           </div>
 
           <div>
             <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
-              {activeTab === 'alipay' ? 'Alipay Account (Mobile / Email / Alipay ID)' :
-               activeTab === 'wechat' ? 'WeChat Pay ID / Mobile' :
-               'Bank Account Number (UnionPay / CNAPS)'}
+              {activeTab === 'alipay' ? 'Alipay ID / Mobile Number (or Email)' :
+               activeTab === 'wechat' ? 'WeChat Pay Handle / Mobile Number' :
+               'Bank Account Number / Settlement IBAN (UnionPay / CNAPS)'}
             </label>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value)}
-                placeholder={activeTab === 'alipay' ? 'e.g. 13800138000 or pay@supplier.cn' : activeTab === 'wechat' ? 'e.g. wx_supplier_890' : 'e.g. 6222021001123456789'}
+                placeholder={activeTab === 'alipay' ? 'e.g. 13800138000 or pay@supplier.cn' : activeTab === 'wechat' ? 'e.g. wx_supplier_890 or +86 138 0000 0000' : 'e.g. 6222021001123456789 or CN6227003320094892'}
                 className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-950 border border-slate-800 focus:border-emerald-500 outline-none text-xs text-white font-mono"
               />
               <button
                 type="button"
                 onClick={handleVerifyReceiver}
-                className="px-3 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-200 shrink-0"
+                className="px-3 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-200 shrink-0 cursor-pointer"
               >
                 Verify
               </button>
@@ -330,14 +472,49 @@ export const PaySupplierScreen: React.FC = () => {
             <>
               <div>
                 <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
-                  Bank Name
+                  Receiving Commercial Bank
                 </label>
                 <input
                   type="text"
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
                   placeholder="e.g. Industrial and Commercial Bank of China (ICBC)"
-                  className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-950 border border-slate-800 focus:border-emerald-500 outline-none text-xs text-white"
+                  className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-950 border border-slate-800 focus:border-emerald-500 outline-none text-xs text-white mb-2"
+                />
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    'ICBC (工商银行)',
+                    'Bank of China (中国银行)',
+                    'CCB (建设银行)',
+                    'ABC (农业银行)'
+                  ].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setBankName(preset)}
+                      className={`px-2 py-1 rounded-lg text-[10px] font-medium border transition-all cursor-pointer ${
+                        bankName === preset
+                          ? 'bg-indigo-600/30 border-indigo-500 text-indigo-300'
+                          : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+                  12-Digit CNAPS Bank Clearing Code
+                </label>
+                <input
+                  type="text"
+                  value={cnapsCode}
+                  onChange={(e) => setCnapsCode(e.target.value)}
+                  placeholder="e.g. 104581000018"
+                  maxLength={16}
+                  className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-950 border border-slate-800 focus:border-emerald-500 outline-none text-xs text-white font-mono"
                 />
               </div>
 
@@ -498,16 +675,30 @@ export const PaySupplierScreen: React.FC = () => {
         {/* Deduction Summary Card */}
         <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-2 text-xs">
           <div className="flex justify-between text-slate-400">
-            <span>Payment Amount:</span>
+            <span>China Beneficiary Receives:</span>
             <span className="font-extrabold text-white num-tabular">¥{validAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CNY</span>
           </div>
+          <div className="flex justify-between text-slate-400">
+            <span>Funding Source:</span>
+            <span className="font-semibold text-slate-300">{fundingCurrency} Wallet</span>
+          </div>
+          {fundingCurrency !== 'CNY' && (
+            <div className="flex justify-between text-slate-400">
+              <span>Conversion Rate:</span>
+              <span className="font-mono text-slate-300">
+                {fundingCurrency === 'NGN' ? `1 CNY = ₦${ngnRate}` : `1 USD = ¥${usdRate}`}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between text-slate-400">
             <span>Transfer Fee:</span>
             <span className="font-bold text-emerald-400">¥0.00 (Free)</span>
           </div>
           <div className="pt-2 border-t border-slate-800 flex justify-between text-sm">
             <span className="font-bold text-slate-200">Total Wallet Deduction:</span>
-            <span className="font-black text-emerald-400 num-tabular">¥{validAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CNY</span>
+            <span className="font-black text-emerald-400 num-tabular">
+              {currencySymbol}{requiredFundingAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {fundingCurrency}
+            </span>
           </div>
         </div>
 
@@ -521,7 +712,7 @@ export const PaySupplierScreen: React.FC = () => {
 
         <button
           onClick={handleInitiateReview}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-sm shadow-xl shadow-emerald-500/20 active:scale-98 transition-all flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-sm shadow-xl shadow-emerald-500/20 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <Send className="w-4 h-4" />
           <span>Review Payment (¥{validAmount.toLocaleString()})</span>
@@ -544,17 +735,27 @@ export const PaySupplierScreen: React.FC = () => {
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>Channel:</span>
-                <span className="font-semibold text-slate-200 capitalize">{activeTab === 'alipay' ? 'Alipay' : activeTab === 'wechat' ? 'WeChat Pay' : 'China Bank'}</span>
+                <span className="font-semibold text-slate-200">
+                  {activeTab === 'alipay' ? 'Alipay (支付宝)' : activeTab === 'wechat' ? 'WeChat (微信支付)' : 'Bank Transfer (银联 / CNAPS)'}
+                </span>
               </div>
               <div className="flex justify-between text-slate-400">
-                <span>Account / ID:</span>
+                <span>{activeTab === 'bank' ? 'Account / IBAN:' : 'Account / ID:'}</span>
                 <span className="font-mono text-slate-200 text-right max-w-[180px] truncate">{accountNumber}</span>
               </div>
               {activeTab === 'bank' && (
-                <div className="flex justify-between text-slate-400">
-                  <span>Bank:</span>
-                  <span className="font-semibold text-slate-200 text-right max-w-[180px] truncate">{bankName}</span>
-                </div>
+                <>
+                  <div className="flex justify-between text-slate-400">
+                    <span>Receiving Bank:</span>
+                    <span className="font-semibold text-slate-200 text-right max-w-[180px] truncate">{bankName}</span>
+                  </div>
+                  {cnapsCode && (
+                    <div className="flex justify-between text-slate-400">
+                      <span>CNAPS Code:</span>
+                      <span className="font-mono text-slate-200 text-right">{cnapsCode}</span>
+                    </div>
+                  )}
+                </>
               )}
               {qrCodeDataUrl && (
                 <div className="flex justify-between text-slate-400 items-center">
@@ -573,36 +774,42 @@ export const PaySupplierScreen: React.FC = () => {
                 <span className="text-slate-300 text-right max-w-[180px] truncate">{notes}</span>
               </div>
               <div className="pt-2 border-t border-slate-800 flex justify-between text-slate-400">
-                <span>Debit Amount:</span>
+                <span>China Payout:</span>
                 <span className="font-extrabold text-white num-tabular text-sm">¥{validAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} CNY</span>
               </div>
               <div className="flex justify-between text-slate-400">
-                <span>Equivalent:</span>
-                <span className="font-semibold text-slate-300">≈ ₦{estimatedNGN.toLocaleString()} NGN</span>
+                <span>Funding Source:</span>
+                <span className="font-semibold text-slate-200">{fundingCurrency} Vault</span>
               </div>
               <div className="flex justify-between text-slate-400">
-                <span>Fee:</span>
-                <span className="font-bold text-emerald-400">¥0.00</span>
+                <span>Wallet Deduction:</span>
+                <span className="font-black text-emerald-400 num-tabular text-sm">
+                  {currencySymbol}{requiredFundingAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} {fundingCurrency}
+                </span>
+              </div>
+              <div className="flex justify-between text-slate-400">
+                <span>Transfer Fee:</span>
+                <span className="font-bold text-emerald-400">¥0.00 (Free)</span>
               </div>
             </div>
 
             <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] flex items-start gap-2">
               <Info className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
               <p>
-                Submitting this request debits your CNY wallet immediately. The transaction will be submitted to the FlyeMass China clearance queue for verification and payout.
+                Submitting this request debits your {fundingCurrency} wallet immediately. The transfer will be routed to the FlyeMass China clearance queue for verification and payout.
               </p>
             </div>
 
             <div className="flex gap-2.5 pt-2">
               <button
                 onClick={() => setShowReviewModal(false)}
-                className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
+                className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
               >
                 Back to Edit
               </button>
               <button
                 onClick={handleProceedToPin}
-                className="flex-1 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20"
+                className="flex-1 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 cursor-pointer"
               >
                 Authorize with PIN
               </button>
@@ -617,7 +824,7 @@ export const PaySupplierScreen: React.FC = () => {
           <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
             <PinPad
               title="Authorize RMB Transfer"
-              subtitle={`Transfer ¥${validAmount.toLocaleString()} CNY to ${recipientName}`}
+              subtitle={`Transfer ¥${validAmount.toLocaleString()} CNY to ${recipientName} (Debit: ${currencySymbol}${requiredFundingAmount.toLocaleString()} ${fundingCurrency})`}
               onComplete={handlePinSuccess}
               onCancel={() => setShowPinModal(false)}
             />
@@ -643,8 +850,14 @@ export const PaySupplierScreen: React.FC = () => {
                 <span className="font-mono text-emerald-400 font-bold">{submissionReceipt.reference}</span>
               </div>
               <div className="flex justify-between text-slate-400">
-                <span>Amount:</span>
+                <span>China Payout:</span>
                 <span className="font-extrabold text-white num-tabular">¥{submissionReceipt.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} CNY</span>
+              </div>
+              <div className="flex justify-between text-slate-400">
+                <span>Wallet Debited:</span>
+                <span className="font-extrabold text-emerald-400 num-tabular">
+                  {submissionReceipt.currencySymbol || '¥'}{(submissionReceipt.fundingAmount || submissionReceipt.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })} {submissionReceipt.fundingCurrency || 'CNY'}
+                </span>
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>Beneficiary:</span>
@@ -654,6 +867,18 @@ export const PaySupplierScreen: React.FC = () => {
                 <span>Account / ID:</span>
                 <span className="font-mono text-slate-300">{submissionReceipt.receiverAccount}</span>
               </div>
+              {submissionReceipt.bankName && (
+                <div className="flex justify-between text-slate-400">
+                  <span>Receiving Bank:</span>
+                  <span className="font-semibold text-slate-300 text-right max-w-[180px] truncate">{submissionReceipt.bankName}</span>
+                </div>
+              )}
+              {submissionReceipt.cnapsCode && (
+                <div className="flex justify-between text-slate-400">
+                  <span>CNAPS Code:</span>
+                  <span className="font-mono text-slate-300">{submissionReceipt.cnapsCode}</span>
+                </div>
+              )}
               <div className="flex justify-between text-slate-400">
                 <span>Channel:</span>
                 <span className="text-slate-200">{submissionReceipt.method}</span>
@@ -683,7 +908,7 @@ export const PaySupplierScreen: React.FC = () => {
                 setSubmissionReceipt(null);
                 goBack();
               }}
-              className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all"
+              className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
             >
               Done & Return to Wallets
             </button>

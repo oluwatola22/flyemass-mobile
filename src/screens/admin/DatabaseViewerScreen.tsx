@@ -23,16 +23,21 @@ import {
   Scale,
   DownloadCloud,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  Lock,
+  Unlock,
+  Terminal
 } from 'lucide-react';
+import { AdminAccessDeniedScreen } from './AdminAccessDeniedScreen';
 
 export const DatabaseViewerScreen: React.FC = () => {
-  const { showToast } = useApp();
-  const [dbState, setDbState] = useState<DatabaseState>(db.getState());
+  const { showToast, adminUser } = useApp();
+  const [, setDbRev] = useState(() => db.getStateRevision());
   const [activeCollection, setActiveCollection] = useState<keyof DatabaseState>('users');
   const [selectedDocId, setSelectedDocId] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [developerModeUnlocked, setDeveloperModeUnlocked] = useState(false);
   
   // Phase 3 Sub-nav view mode
   const [viewMode, setViewMode] = useState<'collections' | 'reconciliation' | 'backups' | 'audit_chain'>('collections');
@@ -44,10 +49,12 @@ export const DatabaseViewerScreen: React.FC = () => {
 
   useEffect(() => {
     const unsubscribe = db.subscribe(() => {
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     });
     return unsubscribe;
   }, []);
+
+  const dbState = db.getState();
 
   const loadPhase3Diagnostics = async () => {
     setIsLoading(true);
@@ -170,6 +177,20 @@ export const DatabaseViewerScreen: React.FC = () => {
 
   const currentMeta = collectionInfo.find((c) => c.key === activeCollection);
 
+  // Defense-in-depth: Strictly restrict entire NoSQL Explorer to Super Admin role
+  if (adminUser && adminUser.role !== 'super_admin') {
+    return (
+      <AdminLayout activeTab="dashboard">
+        <AdminAccessDeniedScreen
+          reason="permission"
+          staffName={adminUser.name}
+          missingPermission="super_admin"
+          requestedRoute="/admin/db"
+        />
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout activeTab="db">
       <div className="space-y-6 pb-12">
@@ -248,117 +269,170 @@ export const DatabaseViewerScreen: React.FC = () => {
               </p>
             </div>
 
-            {/* Collection Selector Pills */}
-            <div className="space-y-1.5">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-1">
-                Database Collections
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                {collectionInfo.map((col) => {
-                  const Icon = col.icon;
-                  const count = Object.keys(dbState[col.key] || {}).length;
-                  const isSelected = activeCollection === col.key;
-                  return (
-                    <button
-                      key={col.key}
-                      onClick={() => {
-                        setActiveCollection(col.key);
-                        setSelectedDocId('');
-                      }}
-                      className={`p-2.5 rounded-2xl border text-left transition-all flex items-center gap-2.5 ${
-                        isSelected
-                          ? 'bg-slate-900 border-emerald-500 text-white shadow-md shadow-emerald-500/10'
-                          : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <div className={`p-2 rounded-xl border ${col.color} shrink-0`}>
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold truncate text-slate-100">{col.label}</p>
-                        <p className="text-[9px] text-slate-500 num-tabular font-mono">
-                          {count} {count === 1 ? 'doc' : 'docs'}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Collection Path & Action Bar */}
-            <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2 font-mono text-[11px] text-emerald-400">
-                <Code2 className="w-4 h-4 text-emerald-400" />
-                <span className="truncate max-w-[210px]">{currentMeta?.path}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={handleAddSampleRecord}
-                  className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 transition-all text-[11px] font-semibold flex items-center gap-1"
-                  title="Add Sample Record"
-                >
-                  <PlusCircle className="w-3.5 h-3.5" />
-                  <span>Add</span>
-                </button>
-                <button
-                  onClick={() => handleCopyDoc(currentDocs)}
-                  className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all text-[11px] font-semibold flex items-center gap-1"
-                  title="Copy Entire Collection"
-                >
-                  <FileJson className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Document Selector Pills */}
-            <div className="space-y-1.5">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-1">
-                Document IDs ({docIds.length})
-              </span>
-              <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-1">
-                {docIds.map((id) => (
-                  <button
-                    key={id}
-                    onClick={() => setSelectedDocId(id)}
-                    className={`px-3 py-1.5 rounded-xl font-mono text-[11px] font-bold whitespace-nowrap transition-all border ${
-                      effectiveDocId === id
-                        ? 'bg-emerald-500 text-slate-950 border-emerald-500 shadow-md'
-                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    {id}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Document Detail Tree / JSON Viewer */}
-            {currentDoc ? (
-              <div className="rounded-3xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden space-y-0">
-                <div className="p-3.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span className="font-mono text-[11px] text-white font-bold truncate max-w-[200px]">
-                      {effectiveDocId}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => handleCopyDoc(currentDoc)}
-                    className="flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold px-2 py-1 rounded-lg bg-emerald-500/10 transition-colors"
-                  >
-                    {copied ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copied ? 'Copied' : 'Copy JSON'}</span>
-                  </button>
+            {/* Developer Diagnostics Lock Accordion / Gate */}
+            {!developerModeUnlocked ? (
+              <div
+                data-testid="dev-mode-locked-card"
+                className="p-8 rounded-3xl bg-slate-900 border border-slate-800 text-center space-y-5 shadow-2xl"
+              >
+                <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center bg-amber-500/10 border border-amber-500/25 text-amber-400 shadow-lg shadow-amber-500/10">
+                  <Lock className="w-7 h-7" />
+                </div>
+                <div className="space-y-2 max-w-md mx-auto">
+                  <h4 className="text-sm font-extrabold text-white">Advanced Diagnostics & Developer Mode</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Entities & Schema is protected behind the Developer Mode toggle to prevent inadvertent inspection of raw database JSON structures during routine administrative work.
+                  </p>
                 </div>
 
-                <div className="p-4 bg-slate-950 font-mono text-[11px] leading-relaxed text-slate-300 overflow-x-auto max-h-96 no-scrollbar selection:bg-emerald-500/30">
-                  <pre className="whitespace-pre-wrap">{JSON.stringify(currentDoc, null, 2)}</pre>
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeveloperModeUnlocked(true);
+                      showToast('Developer Mode unlocked: Raw schema explorer active', 'info');
+                    }}
+                    data-testid="unlock-dev-mode-btn"
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:opacity-95 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <Terminal className="w-4 h-4" />
+                    <span>Unlock Developer Mode / Inspect Raw Schema</span>
+                  </button>
                 </div>
               </div>
             ) : (
-              <div className="p-8 text-center text-xs text-slate-500 rounded-3xl bg-slate-900 border border-slate-800">
-                No documents found in this collection.
+              <div className="space-y-6 animate-in fade-in duration-200">
+                {/* Developer Mode Active Banner */}
+                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 text-emerald-400 font-bold">
+                    <Unlock className="w-4 h-4" />
+                    <span>Developer Mode Active — Raw Schema & Document Inspector</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setDeveloperModeUnlocked(false);
+                      showToast('Developer Mode locked', 'info');
+                    }}
+                    data-testid="lock-dev-mode-btn"
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[11px] transition-colors border border-slate-700 cursor-pointer"
+                  >
+                    Lock / Hide Developer Mode
+                  </button>
+                </div>
+
+                {/* Collection Selector Pills */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-1">
+                    Database Collections
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    {collectionInfo.map((col) => {
+                      const Icon = col.icon;
+                      const count = Object.keys(dbState[col.key] || {}).length;
+                      const isSelected = activeCollection === col.key;
+                      return (
+                        <button
+                          key={col.key}
+                          onClick={() => {
+                            setActiveCollection(col.key);
+                            setSelectedDocId('');
+                          }}
+                          className={`p-2.5 rounded-2xl border text-left transition-all flex items-center gap-2.5 ${
+                            isSelected
+                              ? 'bg-slate-900 border-emerald-500 text-white shadow-md shadow-emerald-500/10'
+                              : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          <div className={`p-2 rounded-xl border ${col.color} shrink-0`}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-bold truncate text-slate-100">{col.label}</p>
+                            <p className="text-[9px] text-slate-500 num-tabular font-mono">
+                              {count} {count === 1 ? 'doc' : 'docs'}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Collection Path & Action Bar */}
+                <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 font-mono text-[11px] text-emerald-400">
+                    <Code2 className="w-4 h-4 text-emerald-400" />
+                    <span className="truncate max-w-[210px]">{currentMeta?.path}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={handleAddSampleRecord}
+                      className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 transition-all text-[11px] font-semibold flex items-center gap-1"
+                      title="Add Sample Record"
+                    >
+                      <PlusCircle className="w-3.5 h-3.5" />
+                      <span>Add</span>
+                    </button>
+                    <button
+                      onClick={() => handleCopyDoc(currentDocs)}
+                      className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all text-[11px] font-semibold flex items-center gap-1"
+                      title="Copy Entire Collection"
+                    >
+                      <FileJson className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Document Selector Pills */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-1">
+                    Document IDs ({docIds.length})
+                  </span>
+                  <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-1">
+                    {docIds.map((id) => (
+                      <button
+                        key={id}
+                        onClick={() => setSelectedDocId(id)}
+                        className={`px-3 py-1.5 rounded-xl font-mono text-[11px] font-bold whitespace-nowrap transition-all border ${
+                          effectiveDocId === id
+                            ? 'bg-emerald-500 text-slate-950 border-emerald-500 shadow-md'
+                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {id}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Document Detail Tree / JSON Viewer */}
+                {currentDoc ? (
+                  <div className="rounded-3xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden space-y-0">
+                    <div className="p-3.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                        <span className="font-mono text-[11px] text-white font-bold truncate max-w-[200px]">
+                          {effectiveDocId}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleCopyDoc(currentDoc)}
+                        className="flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold px-2 py-1 rounded-lg bg-emerald-500/10 transition-colors"
+                      >
+                        {copied ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copied ? 'Copied' : 'Copy JSON'}</span>
+                      </button>
+                    </div>
+
+                    <div className="p-4 bg-slate-950 font-mono text-[11px] leading-relaxed text-slate-300 overflow-x-auto max-h-96 no-scrollbar selection:bg-emerald-500/30">
+                      <pre className="whitespace-pre-wrap">{JSON.stringify(currentDoc, null, 2)}</pre>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-xs text-slate-500 rounded-3xl bg-slate-900 border border-slate-800">
+                    No documents found in this collection.
+                  </div>
+                )}
               </div>
             )}
           </div>

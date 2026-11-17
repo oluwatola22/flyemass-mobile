@@ -16,12 +16,15 @@ import {
   QrCode, 
   ExternalLink,
   Eye,
-  FileText
+  FileText,
+  Download,
+  Upload,
+  ZoomIn
 } from 'lucide-react';
 
 export const AdminRmbTransfersScreen: React.FC = () => {
   const { showToast } = useApp();
-  const [dbState, setDbState] = useState<DatabaseState>(db.getState());
+  const [, setDbRev] = useState(() => db.getStateRevision());
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'processing' | 'disbursed' | 'rejected'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -31,6 +34,7 @@ export const AdminRmbTransfersScreen: React.FC = () => {
 
   // QR Preview modal
   const [previewQrUrl, setPreviewQrUrl] = useState<string | null>(null);
+  const [isQrZoomed, setIsQrZoomed] = useState(false);
 
   // Supplier Disbursement Evidence Modal state
   const [disburseModalPayment, setDisburseModalPayment] = useState<SupplierPaymentDocument | null>(null);
@@ -38,10 +42,13 @@ export const AdminRmbTransfersScreen: React.FC = () => {
   const [paymentProofUrl, setPaymentProofUrl] = useState('');
   const [safeDeclarationRef, setSafeDeclarationRef] = useState('');
   const [disburseNotes, setDisburseNotes] = useState('');
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
 
   useEffect(() => {
-    return db.subscribe(() => setDbState({ ...db.getState() }));
+    return db.subscribe(() => setDbRev(db.getStateRevision()));
   }, []);
+
+  const dbState = db.getState();
 
   const paymentsList = Object.values(dbState.supplier_payments || {}).filter((p) => {
     const matchesStatus = statusFilter === 'all' 
@@ -69,7 +76,7 @@ export const AdminRmbTransfersScreen: React.FC = () => {
         return;
       }
       showToast(`Payment ${p.reference || p.id} marked as Processing! Customer notified.`, 'success');
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (e: any) {
       showToast(e.message || 'Failed to update payment status', 'error');
     }
@@ -78,17 +85,36 @@ export const AdminRmbTransfersScreen: React.FC = () => {
   const handleOpenDisburseModal = (payment: SupplierPaymentDocument) => {
     setDisburseModalPayment(payment);
     setClearingSessionId(`ALIPAY-CN-${Date.now().toString().slice(-8)}`);
-    setPaymentProofUrl(`https://storage.flyemass.com/receipts/${payment.id}.pdf`);
+    setPaymentProofUrl('');
+    setReceiptPreview(null);
     setSafeDeclarationRef(`SAFE-CAN-2026-${Math.floor(100000 + Math.random() * 900000)}`);
     setDisburseNotes('');
+  };
+
+  const handleReceiptFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setPaymentProofUrl(dataUrl);
+      setReceiptPreview(dataUrl);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmitSupplierDisbursement = async () => {
     if (!disburseModalPayment) return;
     try {
+      const proofToSave = paymentProofUrl || `https://storage.flyemass.com/receipts/${disburseModalPayment.id}.pdf`;
       const res = await db.disburseSupplierPayment(
         disburseModalPayment.id,
-        { clearingSessionId, paymentProofUrl, safeDeclarationRef, adminNotes: disburseNotes },
+        { 
+          clearingSessionId, 
+          paymentProofUrl: proofToSave, 
+          safeDeclarationRef, 
+          adminNotes: disburseNotes 
+        },
         'adm-001'
       );
       if (res && res.error) {
@@ -97,7 +123,7 @@ export const AdminRmbTransfersScreen: React.FC = () => {
       }
       showToast(`Disbursed ¥${disburseModalPayment.amountRMB.toLocaleString()} to ${disburseModalPayment.receiverName}! Proof logged.`, 'success');
       setDisburseModalPayment(null);
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (e) {
       showToast('Disbursement failed', 'error');
     }
@@ -126,7 +152,7 @@ export const AdminRmbTransfersScreen: React.FC = () => {
       }
       showToast(`Payment rejected and ¥${rejectSupplierModalPayment.amountRMB.toLocaleString()} refunded to customer CNY wallet!`, 'info');
       setRejectSupplierModalPayment(null);
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (e: any) {
       showToast(e.message || 'Refund failed', 'error');
     }
@@ -218,8 +244,18 @@ export const AdminRmbTransfersScreen: React.FC = () => {
                       <div className="text-[10px] text-slate-500">{new Date(payment.createdAt).toLocaleString()}</div>
                     </td>
                     <td className="py-3 px-4">
-                      <div className="font-semibold text-white">{payment.userId}</div>
-                      <div className="text-[10px] text-slate-400 truncate max-w-[120px]">{payment.purpose || 'Supplier Invoice'}</div>
+                      {(() => {
+                        const customer = dbState.users[payment.userId];
+                        const custName = payment.customerName || customer?.fullName || payment.userId;
+                        const custEmail = payment.customerEmail || customer?.email || '';
+                        return (
+                          <>
+                            <div className="font-semibold text-white">{custName}</div>
+                            <div className="font-mono text-[10px] text-slate-400">{payment.userId}</div>
+                            {custEmail && <div className="text-[10px] text-slate-500 truncate max-w-[140px]">{custEmail}</div>}
+                          </>
+                        );
+                      })()}
                     </td>
                     <td className="py-3 px-4">
                       <div className="font-bold text-slate-200">{payment.receiverName}</div>
@@ -246,10 +282,15 @@ export const AdminRmbTransfersScreen: React.FC = () => {
                     </td>
                     <td className="py-3 px-4">
                       <div className="font-mono font-black text-white num-tabular text-sm">
-                        ¥{payment.amountRMB.toLocaleString()}
+                        ¥{payment.amountRMB.toLocaleString()} CNY
                       </div>
-                      <div className="text-[10px] text-slate-500">
-                        Paid: ₦{(payment.amountRMB * 214.5).toLocaleString()}
+                      <div className="text-[10px] text-emerald-400 font-semibold">
+                        {(() => {
+                          const fCurr = payment.fundingCurrency || 'CNY';
+                          const fAmt = payment.fundingAmount ?? (fCurr === 'NGN' ? (payment.equivalentNGN ?? payment.amountRMB * 214.5) : payment.amountRMB);
+                          const sym = fCurr === 'NGN' ? '₦' : fCurr === 'USD' ? '$' : '¥';
+                          return `Funded: ${sym}${fAmt.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${fCurr}`;
+                        })()}
                       </div>
                     </td>
                     <td className="py-3 px-4">
@@ -365,11 +406,35 @@ export const AdminRmbTransfersScreen: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Bank Proof URL</label>
+                <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Attach Transfer Receipt / Screenshot</label>
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    data-testid="input-payout-receipt-file"
+                    onChange={handleReceiptFileUpload}
+                    className="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/10 file:text-indigo-300 hover:file:bg-indigo-500/20 cursor-pointer"
+                  />
+                  {receiptPreview && (
+                    <div className="p-2 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-3">
+                      <img src={receiptPreview} alt="Receipt Preview" className="w-12 h-12 object-cover rounded-lg border border-slate-700" />
+                      <div className="flex-1 min-w-0 text-[11px] text-slate-300">
+                        <span className="text-emerald-400 font-bold block">✓ Receipt Attached</span>
+                        <span className="text-slate-500 truncate block">Will be permanently synced to customer mobile receipt</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">Bank Proof URL (or Cloud URL)</label>
                 <input
                   type="text"
+                  data-testid="input-payout-proof-url"
                   value={paymentProofUrl}
                   onChange={(e) => setPaymentProofUrl(e.target.value)}
+                  placeholder="https://storage.flyemass.com/receipts/proof.pdf"
                   className="w-full p-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono outline-none focus:border-indigo-500"
                 />
               </div>
@@ -390,16 +455,17 @@ export const AdminRmbTransfersScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setDisburseModalPayment(null)}
-                className="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
+                data-testid="complete-rmb-payout-btn"
                 onClick={handleSubmitSupplierDisbursement}
-                className="flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 cursor-pointer"
               >
-                Confirm Settlement
+                Mark as Successful / Complete Payout
               </button>
             </div>
           </div>
@@ -455,18 +521,42 @@ export const AdminRmbTransfersScreen: React.FC = () => {
 
       {/* QR Preview Modal */}
       {previewQrUrl && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 max-w-xs w-full text-center shadow-2xl">
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Beneficiary Payment QR</h4>
-            <div className="w-56 h-56 mx-auto bg-white p-2 rounded-xl overflow-hidden flex items-center justify-center">
-              <img src={previewQrUrl} alt="Alipay / WeChat QR" className="w-full h-full object-contain" />
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className={`bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 ${isQrZoomed ? 'max-w-md' : 'max-w-xs'} w-full text-center shadow-2xl transition-all`}>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <QrCode className="w-5 h-5 text-indigo-400" />
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">Beneficiary Payment QR</h4>
+              </div>
+              <button
+                onClick={() => { setPreviewQrUrl(null); setIsQrZoomed(false); }}
+                className="text-slate-400 hover:text-white cursor-pointer"
+              >
+                ✕
+              </button>
             </div>
-            <button
-              onClick={() => setPreviewQrUrl(null)}
-              className="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs cursor-pointer"
-            >
-              Close
-            </button>
+            <div className={`mx-auto bg-white p-3 rounded-2xl overflow-hidden flex items-center justify-center transition-all ${isQrZoomed ? 'w-80 h-80' : 'w-56 h-56'}`}>
+              <img src={previewQrUrl} alt="Beneficiary Payment QR" className="w-full h-full object-contain" />
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setIsQrZoomed(!isQrZoomed)}
+                className="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <ZoomIn className="w-3.5 h-3.5" />
+                <span>{isQrZoomed ? 'Normal' : 'Zoom'}</span>
+              </button>
+              <a
+                href={previewQrUrl}
+                download="beneficiary-qr.png"
+                data-testid="download-qr-btn"
+                className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-indigo-600/20"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download</span>
+              </a>
+            </div>
           </div>
         </div>
       )}

@@ -11,7 +11,7 @@ import {
 import { ScreenRoute } from '../../types';
 
 export const BottomNav: React.FC = () => {
-  const { currentRoute, navigate, setIsQuickActionOpen, cart } = useApp();
+  const { currentRoute, navigate, prefetchRoute, setIsQuickActionOpen, cart, t } = useApp();
 
   const isTabActive = (tab: ScreenRoute) => {
     if (tab === 'home' && ['home', 'notifications'].includes(currentRoute)) return true;
@@ -30,12 +30,15 @@ export const BottomNav: React.FC = () => {
   }
 
   return (
-    <div className="sticky bottom-0 z-40 w-full bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/80 px-2 py-2 safe-bottom">
+    <div className="sticky bottom-0 z-40 w-full bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/80 px-2 py-2 safe-bottom select-none">
       <div className="flex items-center justify-around max-w-md mx-auto">
         {/* Home */}
         <button
           onClick={() => navigate('home')}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all relative ${
+          onPointerDown={() => prefetchRoute('home')}
+          onTouchStart={() => prefetchRoute('home')}
+          onMouseEnter={() => prefetchRoute('home')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all active:scale-95 duration-75 relative touch-manipulation ${
             isTabActive('home') ? 'text-emerald-400 font-semibold' : 'text-slate-400 hover:text-slate-300'
           }`}
         >
@@ -45,13 +48,16 @@ export const BottomNav: React.FC = () => {
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80" />
             )}
           </div>
-          <span className="text-[10px] mt-1">Home</span>
+          <span className="text-[10px] mt-1">{t('nav.home', 'Home')}</span>
         </button>
 
         {/* Wallets */}
         <button
           onClick={() => navigate('wallets')}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all relative ${
+          onPointerDown={() => prefetchRoute('wallets')}
+          onTouchStart={() => prefetchRoute('wallets')}
+          onMouseEnter={() => prefetchRoute('wallets')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all active:scale-95 duration-75 relative touch-manipulation ${
             isTabActive('wallets') ? 'text-emerald-400 font-semibold' : 'text-slate-400 hover:text-slate-300'
           }`}
         >
@@ -61,13 +67,13 @@ export const BottomNav: React.FC = () => {
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80" />
             )}
           </div>
-          <span className="text-[10px] mt-1">Wallets</span>
+          <span className="text-[10px] mt-1">{t('nav.wallets', 'Wallets')}</span>
         </button>
 
         {/* Center Quick Action Button */}
         <button
           onClick={() => setIsQuickActionOpen(true)}
-          className="relative -top-4 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 text-slate-950 shadow-lg shadow-emerald-500/30 hover:scale-105 active:scale-95 transition-all"
+          className="relative -top-4 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 text-slate-950 shadow-lg shadow-emerald-500/30 hover:scale-105 active:scale-95 transition-all touch-manipulation"
           title="Quick Trade Actions"
         >
           <Plus className="w-6 h-6 stroke-[2.5]" />
@@ -76,7 +82,10 @@ export const BottomNav: React.FC = () => {
         {/* Logistics */}
         <button
           onClick={() => navigate('logistics')}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all relative ${
+          onPointerDown={() => prefetchRoute('logistics')}
+          onTouchStart={() => prefetchRoute('logistics')}
+          onMouseEnter={() => prefetchRoute('logistics')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all active:scale-95 duration-75 relative touch-manipulation ${
             isTabActive('logistics') ? 'text-emerald-400 font-semibold' : 'text-slate-400 hover:text-slate-300'
           }`}
         >
@@ -86,13 +95,16 @@ export const BottomNav: React.FC = () => {
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80" />
             )}
           </div>
-          <span className="text-[10px] mt-1">Cargo</span>
+          <span className="text-[10px] mt-1">{t('nav.cargo', 'Cargo')}</span>
         </button>
 
         {/* Shop */}
         <button
           onClick={() => navigate('shop')}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all relative ${
+          onPointerDown={() => prefetchRoute('shop')}
+          onTouchStart={() => prefetchRoute('shop')}
+          onMouseEnter={() => prefetchRoute('shop')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all active:scale-95 duration-75 relative touch-manipulation ${
             isTabActive('shop') ? 'text-emerald-400 font-semibold' : 'text-slate-400 hover:text-slate-300'
           }`}
         >
@@ -107,13 +119,16 @@ export const BottomNav: React.FC = () => {
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80" />
             )}
           </div>
-          <span className="text-[10px] mt-1">Shop</span>
+          <span className="text-[10px] mt-1">{t('nav.shop', 'Shop')}</span>
         </button>
 
         {/* Profile */}
         <button
           onClick={() => navigate('profile')}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all relative ${
+          onPointerDown={() => prefetchRoute('profile')}
+          onTouchStart={() => prefetchRoute('profile')}
+          onMouseEnter={() => prefetchRoute('profile')}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all active:scale-95 duration-75 relative touch-manipulation ${
             isTabActive('profile') ? 'text-emerald-400 font-semibold' : 'text-slate-400 hover:text-slate-300'
           }`}
         >
@@ -123,7 +138,7 @@ export const BottomNav: React.FC = () => {
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80" />
             )}
           </div>
-          <span className="text-[10px] mt-1">Profile</span>
+          <span className="text-[10px] mt-1">{t('nav.profile', 'Profile')}</span>
         </button>
       </div>
     </div>

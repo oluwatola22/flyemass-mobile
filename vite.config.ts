@@ -8,7 +8,20 @@ export default defineConfig({
   server: {
     port: 3030,
     host: true,
-    strictPort: true
+    strictPort: true,
+    watch: {
+      ignored: [
+        '**/dist/**',
+        '**/backups/**',
+        '**/db-state.json*',
+        '**/db-transactions.wal.jsonl*',
+        '**/tests/**',
+        '**/*.test.*',
+        '**/*.log',
+        '**/.git/**',
+        '**/node_modules/**'
+      ]
+    }
   },
   build: {
     rollupOptions: {

@@ -12,6 +12,7 @@ import {
   CheckCircle2, 
   Sparkles,
   ChevronRight,
+  ChevronLeft,
   Heart,
   ArrowLeftRight,
   Cpu,
@@ -24,9 +25,14 @@ import {
   Award,
   AlertTriangle,
   Plus,
-  Minus
+  Minus,
+  CreditCard,
+  X,
+  Wallet,
+  PackageCheck
 } from 'lucide-react';
-import { TechProduct, ProductVariant } from '../../types';
+import { TechProduct, ProductVariant, Currency } from '../../types';
+import { PinPad } from '../../components/ui/PinPad';
 
 export const ProductDetailScreen: React.FC = () => {
   const { 
@@ -40,7 +46,10 @@ export const ProductDetailScreen: React.FC = () => {
     toggleCompareProduct,
     shopCurrency,
     setShopCurrency,
-    showToast
+    showToast,
+    wallets,
+    placeShopOrder,
+    userProfile
   } = useApp();
 
   const allProducts = db.getProducts();
@@ -55,6 +64,41 @@ export const ProductDetailScreen: React.FC = () => {
   // Image Gallery
   const images = (product.images && product.images.length > 0) ? product.images : [product.image];
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX === null || touchEndX === null) return;
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > 35;
+    const isRightSwipe = distance < -35;
+
+    if (isLeftSwipe && selectedImageIndex < images.length - 1) {
+      setSelectedImageIndex((prev) => prev + 1);
+    } else if (isRightSwipe && selectedImageIndex > 0) {
+      setSelectedImageIndex((prev) => prev - 1);
+    }
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+  };
 
   // Variant & Option selection
   const variantsList = Array.isArray(product.variants) ? product.variants : [];
@@ -105,6 +149,20 @@ export const ProductDetailScreen: React.FC = () => {
   const variantStock = activeVariant?.stockCount ?? product.stockCount ?? 10;
   const isAvailable = (activeVariant ? activeVariant.isActive !== false : product.inStock !== false) && variantStock > 0;
 
+  // Instant Wallet Checkout State
+  const [showInstantBuyModal, setShowInstantBuyModal] = useState(false);
+  const [buyWallet, setBuyWallet] = useState<Currency>(shopCurrency);
+  const [instantOrderData, setInstantOrderData] = useState<{
+    orderNumber: string;
+    trackingNumber: string;
+    totalAmount: number;
+    currency: Currency;
+  } | null>(null);
+
+  const selectedWalletObj = wallets.find((w) => w.currency === buyWallet);
+  const requiredAmount = buyWallet === 'CNY' ? totalCNY : totalNGN;
+  const hasSufficientFunds = (selectedWalletObj?.balance ?? 0) >= requiredAmount;
+
   const handleAddToCart = () => {
     if (!isAvailable) {
       showToast('Selected configuration is currently out of stock. Please select another variant.', 'info');
@@ -112,6 +170,32 @@ export const ProductDetailScreen: React.FC = () => {
     }
     addToCart(product, selectedColor, selectedStorage, activeVariant, quantity);
     navigate('cart');
+  };
+
+  const handleBuyNow = () => {
+    if (!isAvailable) {
+      showToast('Selected configuration is currently out of stock. Please select another variant.', 'info');
+      return;
+    }
+    setShowInstantBuyModal(true);
+  };
+
+  const handleAuthorizeInstantBuy = (pin?: string) => {
+    addToCart(product, selectedColor, selectedStorage, activeVariant, quantity);
+    const dest = (userProfile as any)?.address || 'Plot 14, Commercial Avenue, Ikeja Computer Village, Lagos, Nigeria';
+    const success = placeShopOrder(buyWallet, `${dest} (${userProfile?.name || 'Chief Babatunde Alade'}, ${userProfile?.phone || '+234 803 555 9201'})`, pin);
+    if (success) {
+      const orderNumber = `ORD-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+      const trackingNumber = `FM-HK-LOS-${Math.floor(10000 + Math.random() * 90000)}`;
+      setInstantOrderData({
+        orderNumber,
+        trackingNumber,
+        totalAmount: requiredAmount,
+        currency: buyWallet
+      });
+      setShowInstantBuyModal(false);
+      showToast('Order confirmed! Funds debited from your wallet.', 'success');
+    }
   };
 
   const condition = product.condition || 'Brand New';
@@ -122,17 +206,52 @@ export const ProductDetailScreen: React.FC = () => {
       <Header title="Device Specifications" />
 
       <div className="p-4 space-y-4">
-        {/* Product Image Gallery Viewer */}
+        {/* Product Image Gallery Viewer & Swipeable Slider */}
         <div className="space-y-2">
-          <div className="relative w-full h-64 rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl flex items-center justify-center p-4">
+          <div 
+            className="relative w-full h-72 rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl flex items-center justify-center p-4 select-none touch-pan-y"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <img
               src={images[selectedImageIndex] || product.image}
-              alt={product.title}
-              className="w-full h-full object-contain drop-shadow-2xl transition-all duration-300"
+              alt={`${product.title} - Angle ${selectedImageIndex + 1}`}
+              className="w-full h-full object-contain drop-shadow-2xl transition-all duration-300 pointer-events-none"
             />
+
+            {/* Left & Right Chevron Slider Controls */}
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={handlePrevImage}
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/80 hover:bg-slate-900 border border-slate-800 text-slate-300 hover:text-white flex items-center justify-center active:scale-95 transition-all backdrop-blur-md z-10 shadow-lg"
+                  title="Previous Angle"
+                >
+                  <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextImage}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/80 hover:bg-slate-900 border border-slate-800 text-slate-300 hover:text-white flex items-center justify-center active:scale-95 transition-all backdrop-blur-md z-10 shadow-lg"
+                  title="Next Angle"
+                >
+                  <ChevronRight className="w-4 h-4 stroke-[2.5]" />
+                </button>
+              </>
+            )}
+
+            {/* Top Center Image Counter Pill */}
+            {images.length > 1 && (
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-slate-950/80 backdrop-blur-md border border-slate-800 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold text-slate-300 shadow-md">
+                {selectedImageIndex + 1} / {images.length}
+              </div>
+            )}
+
             {/* Tag badge */}
             <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md border border-slate-800 px-2.5 py-1 rounded-xl text-[10px] font-bold text-emerald-400">
-              {product.tag || 'Official Apple'}
+              {product.brand || product.tag || 'Official Hardware'}
             </div>
 
             {/* Condition badge */}
@@ -140,8 +259,24 @@ export const ProductDetailScreen: React.FC = () => {
               {condition}
             </div>
 
+            {/* Bottom Slider Indicator Dots */}
+            {images.length > 1 && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-slate-950/60 backdrop-blur-sm px-2 py-1 rounded-full border border-slate-800/60">
+                {images.map((_, dotIdx) => (
+                  <button
+                    key={dotIdx}
+                    type="button"
+                    onClick={() => setSelectedImageIndex(dotIdx)}
+                    className={`h-1.5 rounded-full transition-all ${
+                      dotIdx === selectedImageIndex ? 'w-4 bg-emerald-400' : 'w-1.5 bg-slate-600'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+
             {/* Top Right Quick Actions */}
-            <div className="absolute top-3 right-3 flex items-center gap-2">
+            <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
               <button
                 type="button"
                 onClick={() => toggleSaveProduct(product.id)}
@@ -170,7 +305,7 @@ export const ProductDetailScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* Gallery Thumbnails */}
+          {/* Swipeable Gallery Thumbnails */}
           {images.length > 1 && (
             <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
               {images.map((img, idx) => (
@@ -178,11 +313,16 @@ export const ProductDetailScreen: React.FC = () => {
                   key={idx}
                   type="button"
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`w-14 h-14 rounded-xl overflow-hidden border p-1 bg-slate-900 transition-all ${
-                    selectedImageIndex === idx ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-slate-800 opacity-60 hover:opacity-100'
+                  className={`relative w-14 h-14 rounded-2xl overflow-hidden border p-1 bg-slate-900 transition-all shrink-0 ${
+                    selectedImageIndex === idx 
+                      ? 'border-emerald-500 ring-2 ring-emerald-500/30 scale-105 shadow-md' 
+                      : 'border-slate-800 opacity-60 hover:opacity-100 hover:border-slate-700'
                   }`}
                 >
-                  <img src={img} alt="thumb" className="w-full h-full object-contain" />
+                  <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-contain" />
+                  <span className="absolute bottom-0.5 right-1 text-[8px] font-mono font-bold text-slate-400 bg-slate-950/80 px-1 rounded">
+                    {idx + 1}
+                  </span>
                 </button>
               ))}
             </div>
@@ -208,25 +348,23 @@ export const ProductDetailScreen: React.FC = () => {
             <div className="flex items-baseline justify-between">
               <div>
                 <span className="text-2xl font-extrabold text-white num-tabular">
-                  {shopCurrency === 'NGN' && `₦${finalUnitNGN.toLocaleString()}`}
-                  {shopCurrency === 'USD' && `$${finalUnitUSD.toLocaleString()}`}
-                  {shopCurrency === 'CNY' && `¥${finalUnitCNY.toLocaleString()}`}
+                  {shopCurrency === 'CNY' ? `¥${finalUnitCNY.toLocaleString()}` : `₦${finalUnitNGN.toLocaleString()}`}
                 </span>
                 <span className="text-xs text-slate-400 ml-1.5">{shopCurrency} Unit Price</span>
               </div>
 
-              {/* Currency Toggle */}
+              {/* Currency Toggle (Dual Currency: NGN ₦ and RMB ¥) */}
               <div className="flex items-center bg-slate-950 border border-slate-800 rounded-xl p-0.5 gap-0.5">
-                {(['NGN', 'USD', 'CNY'] as const).map((c) => (
+                {(['NGN', 'CNY'] as const).map((c) => (
                   <button
                     key={c}
                     type="button"
                     onClick={() => setShopCurrency(c)}
-                    className={`px-2 py-1 rounded-lg text-[9px] font-bold ${
-                      shopCurrency === c ? 'bg-emerald-500 text-slate-950' : 'text-slate-400'
+                    className={`px-2.5 py-1 rounded-lg text-[9px] font-bold ${
+                      shopCurrency === c ? 'bg-emerald-500 text-slate-950 font-extrabold' : 'text-slate-400'
                     }`}
                   >
-                    {c}
+                    {c === 'NGN' ? '₦ NGN' : '¥ RMB'}
                   </button>
                 ))}
               </div>
@@ -235,9 +373,7 @@ export const ProductDetailScreen: React.FC = () => {
             <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
               <span>₦{finalUnitNGN.toLocaleString()} NGN</span>
               <span>•</span>
-              <span>${finalUnitUSD.toLocaleString()} USD</span>
-              <span>•</span>
-              <span>¥{finalUnitCNY.toLocaleString()} CNY</span>
+              <span>¥{finalUnitCNY.toLocaleString()} RMB</span>
             </div>
           </div>
         </div>
@@ -455,26 +591,225 @@ export const ProductDetailScreen: React.FC = () => {
         </div>
 
         {/* Sticky Action Footer */}
-        <div className="pt-2">
+        <div className="pt-2 flex gap-2">
           <button
             type="button"
             disabled={!isAvailable}
             onClick={handleAddToCart}
-            className={`w-full py-4 rounded-2xl font-bold text-sm shadow-xl transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-4 rounded-2xl font-bold text-xs shadow-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               isAvailable
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 shadow-emerald-500/20 active:scale-98'
+                ? 'bg-slate-900 border border-slate-700 hover:bg-slate-800 text-white active:scale-98'
                 : 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none'
             }`}
           >
             <ShoppingBag className="w-4 h-4" />
+            <span>Add to Cart</span>
+          </button>
+
+          <button
+            type="button"
+            disabled={!isAvailable}
+            onClick={handleBuyNow}
+            className={`flex-1 py-4 rounded-2xl font-black text-xs shadow-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              isAvailable
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 shadow-emerald-500/20 active:scale-98'
+                : 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none'
+            }`}
+          >
+            <CreditCard className="w-4 h-4" />
             <span>
-              {isAvailable 
-                ? `Add ${quantity} to Cart (${shopCurrency === 'NGN' ? `₦${totalNGN.toLocaleString()}` : shopCurrency === 'USD' ? `$${totalUSD.toLocaleString()}` : `¥${totalCNY.toLocaleString()}`})`
-                : 'Selected Configuration Out of Stock'}
+              {isAvailable
+                ? `Buy Now via Wallet (${shopCurrency === 'NGN' ? `₦${totalNGN.toLocaleString()}` : shopCurrency === 'USD' ? `$${totalUSD.toLocaleString()}` : `¥${totalCNY.toLocaleString()}`})`
+                : 'Out of Stock'}
             </span>
           </button>
         </div>
       </div>
+
+      {/* Instant Wallet Checkout Modal */}
+      {showInstantBuyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
+            <button
+              onClick={() => setShowInstantBuyModal(false)}
+              className="absolute right-4 top-4 text-slate-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block font-mono">
+                Direct Apple Store Checkout
+              </span>
+              <h3 className="text-base font-extrabold text-white">Buy Now via Wallet</h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Instant debit with zero gateway fees and automatic order generation.
+              </p>
+            </div>
+
+            {/* Product Summary */}
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+              <div className="flex gap-3 items-center">
+                <img
+                  src={images[0] || product.image}
+                  alt={product.title}
+                  className="w-12 h-12 object-contain rounded-xl bg-slate-900 border border-slate-800 p-1"
+                />
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-xs font-bold text-white truncate">{product.title}</h4>
+                  <p className="text-[10px] text-slate-400 truncate">
+                    {selectedColor} • {selectedStorage} • Qty: {quantity}
+                  </p>
+                  <span className="text-[9px] font-bold text-emerald-400">
+                    ✓ {variantStock} units available in stock
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Wallet Selection (Dual Currency: NGN ₦ and RMB ¥) */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase text-slate-400 block">
+                Select Wallet Currency:
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {(['NGN', 'CNY'] as const).map((curr) => {
+                  const wal = wallets.find(w => w.currency === curr);
+                  const bal = wal?.balance ?? 0;
+                  const req = curr === 'CNY' ? totalCNY : totalNGN;
+                  const isSufficient = bal >= req;
+
+                  return (
+                    <button
+                      key={curr}
+                      type="button"
+                      onClick={() => setBuyWallet(curr)}
+                      className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer ${
+                        buyWallet === curr
+                          ? 'bg-slate-800 border-emerald-500 text-emerald-400 shadow-md ring-1 ring-emerald-500/30'
+                          : 'bg-slate-950 border-slate-800 text-slate-400'
+                      }`}
+                    >
+                      <span className="text-[10px] font-bold block">{curr === 'NGN' ? '🇳🇬 Naira Wallet' : '🇨🇳 RMB Wallet'}</span>
+                      <span className="text-xs font-mono font-bold block text-white mt-0.5">
+                        {curr === 'CNY' ? `¥${req.toLocaleString()}` : `₦${req.toLocaleString()}`}
+                      </span>
+                      <span className={`text-[9px] block font-mono mt-0.5 ${isSufficient ? 'text-slate-400' : 'text-rose-400'}`}>
+                        Bal: {curr === 'CNY' ? '¥' : '₦'}{bal.toLocaleString()}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Insufficient balance warning */}
+            {!hasSufficientFunds && (
+              <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between">
+                <div>
+                  <span className="font-bold block">Insufficient {buyWallet} Balance</span>
+                  <span className="text-[10px] text-rose-400">
+                    Need {buyWallet === 'NGN' ? `₦${requiredAmount.toLocaleString()}` : buyWallet === 'USD' ? `$${requiredAmount.toLocaleString()}` : `¥${requiredAmount.toLocaleString()}`}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowInstantBuyModal(false);
+                    navigate('fund');
+                  }}
+                  className="px-2.5 py-1 rounded-xl bg-rose-500 text-white font-bold text-[10px]"
+                >
+                  Fund Wallet
+                </button>
+              </div>
+            )}
+
+            {/* PIN Pad Authorization */}
+            {hasSufficientFunds && (
+              <PinPad
+                title="Authorize Wallet Debit"
+                subtitle={`Authorize ${buyWallet === 'NGN' ? `₦${requiredAmount.toLocaleString()}` : buyWallet === 'USD' ? `$${requiredAmount.toLocaleString()}` : `¥${requiredAmount.toLocaleString()}`} from your ${buyWallet} wallet`}
+                onComplete={handleAuthorizeInstantBuy}
+                onCancel={() => setShowInstantBuyModal(false)}
+              />
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                addToCart(product, selectedColor, selectedStorage, activeVariant, quantity);
+                setShowInstantBuyModal(false);
+                navigate('checkout');
+              }}
+              className="w-full text-center text-[11px] text-slate-500 hover:text-slate-300 transition-colors pt-1"
+            >
+              Or proceed via standard checkout flow
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmed Order Receipt Modal */}
+      {instantOrderData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 text-center">
+            <div className="w-14 h-14 mx-auto rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+
+            <div>
+              <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">
+                Payment Authorized
+              </span>
+              <h3 className="text-base font-extrabold text-white mt-0.5">Order Successfully Placed!</h3>
+              <p className="text-xs text-slate-400 mt-1">
+                Your device has been allocated from Hong Kong sealed stock.
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-left text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Order Number:</span>
+                <span className="font-mono font-bold text-white">{instantOrderData.orderNumber}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Air Waybill Tracking:</span>
+                <span className="font-mono font-bold text-emerald-400">{instantOrderData.trackingNumber}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Total Paid:</span>
+                <span className="font-mono font-bold text-white">
+                  {instantOrderData.currency === 'NGN' ? `₦${instantOrderData.totalAmount.toLocaleString()}` : instantOrderData.currency === 'USD' ? `$${instantOrderData.totalAmount.toLocaleString()}` : `¥${instantOrderData.totalAmount.toLocaleString()}`} {instantOrderData.currency}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setInstantOrderData(null);
+                  navigate('shop-orders');
+                }}
+                className="flex-1 py-3 rounded-2xl bg-emerald-500 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all"
+              >
+                Track Order
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setInstantOrderData(null);
+                  navigate('shop');
+                }}
+                className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs active:scale-95 transition-all"
+              >
+                Continue Shopping
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

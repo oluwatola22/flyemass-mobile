@@ -45,8 +45,27 @@ export const AdminRentalsApartmentsScreen: React.FC = () => {
 
   useEffect(() => {
     const updateData = () => {
-      setInquiriesList(db.getPropertyInquiries());
-      setRentalProps(db.getRentalProperties());
+      const nextInq = db.getPropertyInquiries();
+      setInquiriesList((prev) => {
+        if (
+          prev.length === nextInq.length &&
+          prev.every((inq, i) => inq.id === nextInq[i]?.id && inq.status === nextInq[i]?.status)
+        ) {
+          return prev;
+        }
+        return nextInq;
+      });
+
+      const nextProps = db.getRentalProperties();
+      setRentalProps((prev) => {
+        if (
+          prev.length === nextProps.length &&
+          prev.every((p, i) => p.id === nextProps[i]?.id && p.isPublished === nextProps[i]?.isPublished)
+        ) {
+          return prev;
+        }
+        return nextProps;
+      });
     };
     return db.subscribe(updateData);
   }, []);

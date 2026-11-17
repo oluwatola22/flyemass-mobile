@@ -38,12 +38,16 @@ export const CheckoutScreen: React.FC = () => {
   const shippingMark = userProfile ? `FM / ${userProfile.flyeTag?.replace('@', '').toUpperCase() || 'USR-8924'} / ${(userProfile.name || 'Chief Babatunde Alade').toUpperCase()}` : 'FM / USR-8924 / BABATUNDE ALADE';
   const [recipientName, setRecipientName] = useState(userProfile?.name || 'Chief Babatunde Alade');
   const [recipientPhone, setRecipientPhone] = useState(userProfile?.phone || '+234 803 555 9201');
-  const [deliveryAddress, setDeliveryAddress] = useState('Plot 14, Commercial Avenue, Ikeja Computer Village, Lagos, Nigeria');
+  const [deliveryAddress, setDeliveryAddress] = useState('Plot 14, Commercial Avenue, Ikeja Computer Village');
+  const [deliveryCity, setDeliveryCity] = useState('Ikeja, Lagos');
+  const [deliveryStateCountry, setDeliveryStateCountry] = useState('Lagos State, Nigeria');
   
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [tempAddress, setTempAddress] = useState(deliveryAddress);
   const [tempName, setTempName] = useState(recipientName);
   const [tempPhone, setTempPhone] = useState(recipientPhone);
+  const [tempCity, setTempCity] = useState(deliveryCity);
+  const [tempStateCountry, setTempStateCountry] = useState(deliveryStateCountry);
 
   const [showPinModal, setShowPinModal] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
@@ -67,13 +71,16 @@ export const CheckoutScreen: React.FC = () => {
   }, 0);
 
   const totalNGN = subtotalNGN + deliveryFeeNGN;
-  const totalUSD = Math.round(totalNGN / (rates.USD_NGN || 1485));
   const totalCNY = Math.round((totalNGN / (rates.USD_NGN || 1485)) * (rates.USD_CNY || 7.24));
 
   const selectedWalletObj = wallets.find((w) => w.currency === paymentWallet);
-  const requiredAmount = paymentWallet === 'NGN' ? totalNGN : paymentWallet === 'USD' ? totalUSD : totalCNY;
+  const requiredAmount = paymentWallet === 'CNY' ? totalCNY : totalNGN;
 
   const handlePay = () => {
+    if (!recipientName.trim() || !recipientPhone.trim() || !deliveryAddress.trim() || !deliveryCity.trim() || !deliveryStateCountry.trim()) {
+      showToast('Please complete all delivery details (Name, Phone, Address, City, State/Country)', 'error');
+      return;
+    }
     if (!selectedWalletObj || selectedWalletObj.balance < requiredAmount) {
       showToast(`Insufficient balance in ${paymentWallet} wallet`, 'error');
       return;
@@ -85,8 +92,9 @@ export const CheckoutScreen: React.FC = () => {
     setShowPinModal(false);
     const orderNumber = `ORD-2026-${Math.floor(10000 + Math.random() * 90000)}`;
     const trackingNumber = `FM-HK-LOS-${Math.floor(10000 + Math.random() * 90000)}`;
+    const fullDestination = `${deliveryAddress}, ${deliveryCity}, ${deliveryStateCountry} (${recipientName}, ${recipientPhone})`;
 
-    const success = placeShopOrder(paymentWallet, `${deliveryAddress} (${recipientName}, ${recipientPhone})`, enteredPin);
+    const success = placeShopOrder(paymentWallet, fullDestination, enteredPin);
     if (success) {
       setConfirmedOrderData({
         orderNumber,
@@ -103,35 +111,25 @@ export const CheckoutScreen: React.FC = () => {
     setDeliveryAddress(tempAddress);
     setRecipientName(tempName);
     setRecipientPhone(tempPhone);
+    setDeliveryCity(tempCity);
+    setDeliveryStateCountry(tempStateCountry);
     setShowAddressModal(false);
     showToast('Delivery address updated', 'success');
   };
 
   return (
     <div className="min-h-full pb-24 bg-slate-950 text-white">
-      <Header title="Secure Apple Checkout" />
+      <Header title="Secure Tech Checkout" />
 
       <div className="p-4 space-y-4">
-        {/* Step 1: Destination Delivery Address */}
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-2.5 shadow-xl">
+        {/* Step 1: Destination Delivery Details Form */}
+        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Step 1: Destination Delivery Address</span>
+              <span>Step 1: Destination Delivery Details</span>
             </span>
-            <button 
-              type="button"
-              onClick={() => {
-                setTempAddress(deliveryAddress);
-                setTempName(recipientName);
-                setTempPhone(recipientPhone);
-                setShowAddressModal(true);
-              }}
-              className="text-[11px] text-emerald-400 font-bold hover:underline flex items-center gap-1"
-            >
-              <Edit2 className="w-3 h-3" />
-              <span>Change</span>
-            </button>
+            <span className="text-[10px] text-emerald-400 font-bold">Doorstep Delivery</span>
           </div>
 
           {/* Customer Shipping Mark Badge */}
@@ -145,9 +143,69 @@ export const CheckoutScreen: React.FC = () => {
             </span>
           </div>
 
-          <div>
-            <p className="text-xs font-semibold text-white">{deliveryAddress}</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">{recipientName} • {recipientPhone}</p>
+          {/* Direct Input Delivery Form */}
+          <div className="space-y-2.5 text-xs">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1">Full Name</label>
+                <input
+                  type="text"
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                  placeholder="e.g. Chief Babatunde Alade"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs outline-none focus:border-emerald-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1">Phone Number</label>
+                <input
+                  type="text"
+                  value={recipientPhone}
+                  onChange={(e) => setRecipientPhone(e.target.value)}
+                  placeholder="e.g. +234 803 555 9201"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs outline-none focus:border-emerald-500 font-mono"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold text-slate-400 block mb-1">Shipping Address</label>
+              <input
+                type="text"
+                value={deliveryAddress}
+                onChange={(e) => setDeliveryAddress(e.target.value)}
+                placeholder="Plot / Street / Suite"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs outline-none focus:border-emerald-500"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1">City</label>
+                <input
+                  type="text"
+                  value={deliveryCity}
+                  onChange={(e) => setDeliveryCity(e.target.value)}
+                  placeholder="e.g. Ikeja, Lagos"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs outline-none focus:border-emerald-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1">State / Country</label>
+                <input
+                  type="text"
+                  value={deliveryStateCountry}
+                  onChange={(e) => setDeliveryStateCountry(e.target.value)}
+                  placeholder="e.g. Lagos State, Nigeria"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs outline-none focus:border-emerald-500"
+                  required
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -205,10 +263,10 @@ export const CheckoutScreen: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            {(['NGN', 'CNY', 'USD'] as Currency[]).map((c) => {
+            {(['NGN', 'CNY'] as Currency[]).map((c) => {
               const w = wallets.find((item) => item.currency === c);
               const isSelected = paymentWallet === c;
-              const charge = c === 'NGN' ? totalNGN : c === 'USD' ? totalUSD : totalCNY;
+              const charge = c === 'CNY' ? totalCNY : totalNGN;
               const hasEnough = (w?.balance || 0) >= charge;
 
               return (

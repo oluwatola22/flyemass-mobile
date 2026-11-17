@@ -36,14 +36,16 @@ export const CartScreen: React.FC = () => {
     const liveProduct = db.getProduct(item.product.id) || item.product;
     if (item.variantId && liveProduct.variants && liveProduct.variants.length > 0) {
       const v = liveProduct.variants.find(x => x.id === item.variantId);
-      if (!v || !v.isActive) return { isAvailable: false, stock: 0, reason: 'Variant Unavailable' };
-      if (v.stockCount < item.quantity) return { isAvailable: false, stock: v.stockCount, reason: `Only ${v.stockCount} left` };
-      return { isAvailable: true, stock: v.stockCount };
+      if (!v || v.isActive === false) return { isAvailable: false, stock: 0, reason: 'Variant Unavailable' };
+      const vStock = v.stockCount !== undefined ? v.stockCount : 10;
+      if (vStock < item.quantity) return { isAvailable: false, stock: vStock, reason: `Only ${vStock} left` };
+      return { isAvailable: true, stock: vStock };
     }
-    if ((liveProduct.stockCount ?? 0) < item.quantity) {
-      return { isAvailable: false, stock: liveProduct.stockCount ?? 0, reason: `Only ${liveProduct.stockCount ?? 0} left` };
+    const pStock = liveProduct.stockCount !== undefined ? liveProduct.stockCount : (liveProduct.inStock !== false ? 15 : 0);
+    if (pStock < item.quantity) {
+      return { isAvailable: false, stock: pStock, reason: `Only ${pStock} left` };
     }
-    return { isAvailable: true, stock: liveProduct.stockCount ?? 0 };
+    return { isAvailable: true, stock: pStock };
   };
 
   const inventoryIssues = cart.map(item => ({
@@ -108,20 +110,20 @@ export const CartScreen: React.FC = () => {
           </div>
         )}
 
-        {/* Currency Switcher */}
+        {/* Currency Switcher (Dual Currency: NGN ₦ and RMB ¥) */}
         <div className="flex items-center justify-between pb-1">
           <span className="text-xs font-bold text-slate-400">Cart Currency:</span>
           <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-0.5 gap-0.5">
-            {(['NGN', 'USD', 'CNY'] as const).map((curr) => (
+            {(['NGN', 'CNY'] as const).map((curr) => (
               <button
                 key={curr}
                 type="button"
                 onClick={() => setShopCurrency(curr)}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold ${
-                  shopCurrency === curr ? 'bg-emerald-500 text-slate-950' : 'text-slate-400'
+                className={`px-3 py-1 rounded-lg text-[10px] font-bold ${
+                  shopCurrency === curr ? 'bg-emerald-500 text-slate-950 font-extrabold' : 'text-slate-400'
                 }`}
               >
-                {curr}
+                {curr === 'NGN' ? '₦ NGN' : '¥ RMB'}
               </button>
             ))}
           </div>
@@ -243,7 +245,7 @@ export const CartScreen: React.FC = () => {
             <span>Standard Air Cargo Delivery:</span>
             <span className="text-white num-tabular font-bold">
               ₦{deliveryFeeNGN.toLocaleString()}
-              <span className="text-slate-500 font-normal ml-1">(${deliveryFeeUSD} USD)</span>
+              <span className="text-slate-500 font-normal ml-1">(¥{deliveryFeeCNY} RMB)</span>
             </span>
           </div>
 
@@ -256,12 +258,10 @@ export const CartScreen: React.FC = () => {
             <span className="text-sm">Total Payable:</span>
             <div className="text-right">
               <span className="text-xl font-extrabold text-emerald-400 num-tabular block">
-                {shopCurrency === 'NGN' && `₦${totalNGN.toLocaleString()}`}
-                {shopCurrency === 'USD' && `$${totalUSD.toLocaleString()}`}
-                {shopCurrency === 'CNY' && `¥${totalCNY.toLocaleString()}`}
+                {shopCurrency === 'CNY' ? `¥${totalCNY.toLocaleString()}` : `₦${totalNGN.toLocaleString()}`}
               </span>
               <span className="text-[10px] text-slate-400 font-mono">
-                {shopCurrency === 'NGN' ? `≈ $${totalUSD.toLocaleString()} USD / ¥${totalCNY.toLocaleString()} CNY` : `≈ ₦${totalNGN.toLocaleString()} NGN`}
+                {shopCurrency === 'CNY' ? `≈ ₦${totalNGN.toLocaleString()} NGN` : `≈ ¥${totalCNY.toLocaleString()} RMB`}
               </span>
             </div>
           </div>

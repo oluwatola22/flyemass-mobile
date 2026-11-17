@@ -13,12 +13,17 @@ import {
   Check, 
   Download,
   ShieldCheck,
-  Clock
+  Clock,
+  Zap,
+  RefreshCw,
+  FileText,
+  User,
+  Globe
 } from 'lucide-react';
 
 export const AdminNairaPayoutsScreen: React.FC = () => {
   const { showToast } = useApp();
-  const [dbState, setDbState] = useState<DatabaseState>(db.getState());
+  const [, setDbRev] = useState(() => db.getStateRevision());
   const [withdrawalStatusFilter, setWithdrawalStatusFilter] = useState<'all' | 'pending' | 'processing' | 'approved' | 'rejected'>('all');
   const [withdrawalSearchQuery, setWithdrawalSearchQuery] = useState('');
 
@@ -28,11 +33,20 @@ export const AdminNairaPayoutsScreen: React.FC = () => {
 
   // Payout confirmation modal state
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalDocument | null>(null);
-  const [transferRefInput, setTransferRefInput] = useState('');
+  const [payoutMode, setPayoutMode] = useState<'gateway' | 'manual'>('gateway');
+  const [gatewayProvider, setGatewayProvider] = useState<string>('Providus NIP Instant Switch');
+  const [gatewaySessionRef, setGatewaySessionRef] = useState('');
+  const [manualTransferRef, setManualTransferRef] = useState('');
+  const [paymentProofUrl, setPaymentProofUrl] = useState('');
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [adminNotes, setAdminNotes] = useState('');
+  const [isSubmittingPayout, setIsSubmittingPayout] = useState(false);
 
   useEffect(() => {
-    return db.subscribe(() => setDbState({ ...db.getState() }));
+    return db.subscribe(() => setDbRev(db.getStateRevision()));
   }, []);
+
+  const dbState = db.getState();
 
   const withdrawalsList = Object.values(dbState.withdrawals || {}).filter((w) => {
     const matchesStatus = withdrawalStatusFilter === 'all'
@@ -48,6 +62,8 @@ export const AdminNairaPayoutsScreen: React.FC = () => {
       (w.accountNumber && w.accountNumber.toLowerCase().includes(q)) ||
       (w.bankName && w.bankName.toLowerCase().includes(q)) ||
       (w.reference && w.reference.toLowerCase().includes(q)) ||
+      (w.customerName && w.customerName.toLowerCase().includes(q)) ||
+      (w.customerEmail && w.customerEmail.toLowerCase().includes(q)) ||
       (w.userId && w.userId.toLowerCase().includes(q));
     return matchesStatus && matchesSearch;
   }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -60,7 +76,7 @@ export const AdminNairaPayoutsScreen: React.FC = () => {
         return;
       }
       showToast(`Withdrawal ${w.reference || w.id} marked as Processing! Customer notified.`, 'success');
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (e: any) {
       showToast(e.message || 'Failed to update withdrawal status', 'error');
     }
@@ -68,22 +84,67 @@ export const AdminNairaPayoutsScreen: React.FC = () => {
 
   const handleApproveWithdrawal = (w: WithdrawalDocument) => {
     setSelectedWithdrawal(w);
-    setTransferRefInput(`NIP-DISB-${Date.now().toString().slice(-6)}`);
+    setPayoutMode('gateway');
+    setGatewayProvider('Providus NIP Instant Switch');
+    const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+    setGatewaySessionRef(`PROV-NIP-${randomSuffix}`);
+    setManualTransferRef(`MAN-NIP-${randomSuffix}`);
+    setPaymentProofUrl('');
+    setReceiptPreview(null);
+    setAdminNotes(`Disbursed to ${w.accountName} (${w.bankName} - ${w.accountNumber})`);
+  };
+
+  const handleNairaReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      setPaymentProofUrl(dataUrl);
+      setReceiptPreview(dataUrl);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRegenerateGatewayRef = () => {
+    const prefix = gatewayProvider.includes('Monnify') ? 'MNFY-NIP' : gatewayProvider.includes('Korapay') ? 'KORA-NIP' : 'PROV-NIP';
+    const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+    setGatewaySessionRef(`${prefix}-${randomSuffix}`);
   };
 
   const handleConfirmDisbursement = async () => {
     if (!selectedWithdrawal) return;
+    const refToUse = payoutMode === 'gateway' ? gatewaySessionRef : manualTransferRef;
+    if (!refToUse || !refToUse.trim()) {
+      showToast('Please provide a valid transfer / gateway reference', 'error');
+      return;
+    }
+
+    setIsSubmittingPayout(true);
     try {
-      const res = await db.disburseWithdrawal(selectedWithdrawal.id, transferRefInput, 'adm-001');
+      const res = await db.disburseWithdrawal(
+        selectedWithdrawal.id, 
+        refToUse.trim(), 
+        'adm-001',
+        {
+          payoutMode,
+          gatewayProvider: payoutMode === 'gateway' ? gatewayProvider : 'Manual Settlement',
+          gatewaySessionId: payoutMode === 'gateway' ? refToUse.trim() : undefined,
+          paymentProofUrl: paymentProofUrl.trim(),
+          adminNotes: adminNotes.trim()
+        }
+      );
       if (res && res.error) {
         showToast(res.error, 'error');
         return;
       }
-      showToast(`Payout of ₦${selectedWithdrawal.amountNGN.toLocaleString()} confirmed paid to ${selectedWithdrawal.accountName}!`, 'success');
+      showToast(`Payout of ₦${selectedWithdrawal.amountNGN.toLocaleString()} confirmed via ${payoutMode === 'gateway' ? gatewayProvider : 'Manual Bank Settlement'}!`, 'success');
       setSelectedWithdrawal(null);
-      setDbState({ ...db.getState() });
-    } catch (e) {
-      showToast('Disbursement failed', 'error');
+      setDbRev(db.getStateRevision());
+    } catch (e: any) {
+      showToast(e.message || 'Disbursement failed', 'error');
+    } finally {
+      setIsSubmittingPayout(false);
     }
   };
 
@@ -111,7 +172,7 @@ export const AdminNairaPayoutsScreen: React.FC = () => {
       const refundTotal = rejectWithdrawalModal.amountNGN + (rejectWithdrawalModal.feeNGN || 50);
       showToast(`Withdrawal rejected and ₦${refundTotal.toLocaleString()} refunded to customer NGN wallet!`, 'info');
       setRejectWithdrawalModal(null);
-      setDbState({ ...db.getState() });
+      setDbRev(db.getStateRevision());
     } catch (e: any) {
       showToast(e.message || 'Refund failed', 'error');
     }
@@ -203,12 +264,17 @@ export const AdminNairaPayoutsScreen: React.FC = () => {
                       <div className="text-[10px] text-slate-500">{new Date(w.createdAt).toLocaleString()}</div>
                     </td>
                     <td className="py-3 px-4">
-                      <div className="font-semibold text-white">{w.userId}</div>
-                      <div className="text-[10px] text-slate-400">Fee: ₦{(w.feeNGN || 50).toLocaleString()}</div>
+                      <div className="font-semibold text-white flex items-center gap-1.5">
+                        <User className="w-3 h-3 text-slate-400" />
+                        <span>{w.customerName || w.userId}</span>
+                      </div>
+                      <div className="text-[10px] text-slate-400">{w.customerEmail || 'Verified User'}</div>
+                      <div className="text-[9px] text-slate-500 font-mono mt-0.5">UID: {w.userId} • Fee: ₦{(w.feeNGN || 50).toLocaleString()}</div>
                     </td>
                     <td className="py-3 px-4">
                       <div className="font-bold text-slate-200">{w.accountName}</div>
-                      <div className="font-mono text-[11px] text-slate-400 mt-0.5">{w.accountNumber}</div>
+                      <div className="font-mono text-[11px] text-teal-400 mt-0.5 tracking-wider">{w.accountNumber}</div>
+                      {w.customerNote && <div className="text-[10px] text-slate-500 truncate max-w-[150px]">Note: {w.customerNote}</div>}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-1.5">
@@ -234,12 +300,17 @@ export const AdminNairaPayoutsScreen: React.FC = () => {
                           ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                           : w.status === 'processing'
                           ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                          : w.status === 'rejected' || w.status === 'refunded'
+                          : w.status === 'rejected' || w.status === 'refunded' || w.status === 'failed'
                           ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                           : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
                       }`}>
                         {w.status}
                       </span>
+                      {w.payoutMode && (
+                        <div className="text-[9px] text-slate-400 mt-1 font-mono">
+                          {w.payoutMode === 'gateway' ? (w.gatewayProvider || 'NIP Gateway') : 'Manual Wire'}
+                        </div>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
@@ -294,56 +365,211 @@ export const AdminNairaPayoutsScreen: React.FC = () => {
 
       {/* Disburse Modal */}
       {selectedWithdrawal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                <h3 className="text-sm font-bold text-white">Approve Naira Bank Payout</h3>
+                <h3 className="text-base font-bold text-white">Approve Naira Bank Payout</h3>
               </div>
-              <button onClick={() => setSelectedWithdrawal(null)} className="text-slate-400 hover:text-white cursor-pointer">✕</button>
+              <button 
+                onClick={() => setSelectedWithdrawal(null)} 
+                className="text-slate-400 hover:text-white cursor-pointer text-sm"
+              >
+                ✕
+              </button>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1 text-xs">
-              <div className="flex justify-between">
+            {/* Beneficiary & Customer Snapshot */}
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+              <div className="flex justify-between items-center">
                 <span className="text-slate-400">Beneficiary:</span>
-                <span className="font-bold text-white">{selectedWithdrawal.accountName}</span>
+                <span className="font-bold text-white text-right">{selectedWithdrawal.accountName}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-slate-400">Account / Bank:</span>
-                <span className="font-mono text-slate-300">{selectedWithdrawal.accountNumber} ({selectedWithdrawal.bankName})</span>
+                <span className="font-mono text-slate-200 text-right">{selectedWithdrawal.accountNumber} ({selectedWithdrawal.bankName})</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Disbursement Amount:</span>
-                <span className="font-mono font-bold text-emerald-400">₦{selectedWithdrawal.amountNGN.toLocaleString()}</span>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-400">Customer Account:</span>
+                <span className="text-slate-300 text-right">{selectedWithdrawal.customerName || selectedWithdrawal.userId}</span>
+              </div>
+              <div className="flex justify-between items-center pt-1.5 border-t border-slate-800/80">
+                <span className="text-slate-400 font-semibold">Disbursement Amount:</span>
+                <span className="font-mono font-black text-emerald-400 text-sm">₦{selectedWithdrawal.amountNGN.toLocaleString()} NGN</span>
               </div>
             </div>
 
-            <div>
-              <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">NIP Transfer Reference</label>
-              <input
-                type="text"
-                value={transferRefInput}
-                onChange={(e) => setTransferRefInput(e.target.value)}
-                placeholder="e.g. NIP-DISB-492019"
-                className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-white outline-none focus:border-teal-500"
-              />
+            {/* Mode Switcher Tabs */}
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-950 rounded-2xl border border-slate-800 text-xs">
+              <button
+                type="button"
+                onClick={() => setPayoutMode('gateway')}
+                className={`py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  payoutMode === 'gateway'
+                    ? 'bg-teal-500 text-slate-950 shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>NUBAN Gateway (NIP)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPayoutMode('manual')}
+                className={`py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  payoutMode === 'manual'
+                    ? 'bg-teal-500 text-slate-950 shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                <span>Manual Settlement</span>
+              </button>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            {/* Mode-specific Controls */}
+            {payoutMode === 'gateway' ? (
+              <div className="space-y-3.5">
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    Integrated Payout Gateway Provider
+                  </label>
+                  <select
+                    value={gatewayProvider}
+                    onChange={(e) => {
+                      setGatewayProvider(e.target.value);
+                      const prefix = e.target.value.includes('Monnify') ? 'MNFY-NIP' : e.target.value.includes('Korapay') ? 'KORA-NIP' : 'PROV-NIP';
+                      setGatewaySessionRef(`${prefix}-${Math.floor(100000 + Math.random() * 900000)}`);
+                    }}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-teal-500"
+                  >
+                    <option value="Providus NIP Instant Switch">Providus Bank (NIP Instant Switch)</option>
+                    <option value="Monnify Payouts Engine">Monnify Transfer API</option>
+                    <option value="Korapay Direct Settlement">Korapay Commercial Payouts</option>
+                  </select>
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-bold uppercase text-slate-400">
+                      NIP Gateway Session Reference
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleRegenerateGatewayRef}
+                      className="text-[10px] text-teal-400 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      <span>Regenerate</span>
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={gatewaySessionRef}
+                    onChange={(e) => setGatewaySessionRef(e.target.value)}
+                    placeholder="e.g. PROV-NIP-982142"
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-teal-400 outline-none focus:border-teal-500 font-bold"
+                  />
+                </div>
+
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px] flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-400" />
+                  <span>Integrated Gateway Online • Live NIP switch connection ready for instant dispatch.</span>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    Bank Clearing / Settlement Session ID
+                  </label>
+                  <input
+                    type="text"
+                    value={manualTransferRef}
+                    onChange={(e) => setManualTransferRef(e.target.value)}
+                    placeholder="e.g. MAN-NIP-492019 or Corporate Portal Ref"
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-teal-400 outline-none focus:border-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    Payment Proof Document / Receipt URL (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={paymentProofUrl}
+                    onChange={(e) => setPaymentProofUrl(e.target.value)}
+                    placeholder="https://vault.flyemass.internal/proofs/rec-982.pdf"
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
+                    Treasury Settlement Notes
+                  </label>
+                  <input
+                    type="text"
+                    value={adminNotes}
+                    onChange={(e) => setAdminNotes(e.target.value)}
+                    placeholder="e.g. Cleared via Corporate Banking Desk"
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-teal-500"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Payment Proof / Receipt Attachment */}
+            <div className="space-y-2 pt-2 border-t border-slate-800/80">
+              <label className="text-[10px] font-bold uppercase text-slate-400 block">
+                Attach Transfer Receipt / Screenshot
+              </label>
+              <div className="flex flex-col gap-2">
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  data-testid="input-naira-receipt-file"
+                  onChange={handleNairaReceiptUpload}
+                  className="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-500/10 file:text-teal-300 hover:file:bg-teal-500/20 cursor-pointer"
+                />
+                {receiptPreview && (
+                  <div className="p-2 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-3">
+                    <img src={receiptPreview} alt="Receipt Preview" className="w-12 h-12 object-cover rounded-lg border border-slate-700" />
+                    <div className="flex-1 min-w-0 text-[11px] text-slate-300">
+                      <span className="text-emerald-400 font-bold block">✓ Transfer Receipt Attached</span>
+                      <span className="text-slate-500 truncate block">Will be permanently synced to customer mobile receipt</span>
+                    </div>
+                  </div>
+                )}
+                <input
+                  type="text"
+                  data-testid="input-naira-proof-url"
+                  value={paymentProofUrl}
+                  onChange={(e) => setPaymentProofUrl(e.target.value)}
+                  placeholder="Or paste receipt URL (https://vault.flyemass...)"
+                  className="w-full p-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white outline-none focus:border-teal-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-slate-800">
               <button
                 type="button"
                 onClick={() => setSelectedWithdrawal(null)}
-                className="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer transition-all"
               >
                 Cancel
               </button>
               <button
                 type="button"
+                disabled={isSubmittingPayout}
+                data-testid="complete-naira-payout-btn"
                 onClick={handleConfirmDisbursement}
-                className="flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 cursor-pointer transition-all disabled:opacity-50"
               >
-                Confirm Payout
+                {isSubmittingPayout ? 'Disbursing...' : 'Mark as Successful / Complete Payout'}
               </button>
             </div>
           </div>

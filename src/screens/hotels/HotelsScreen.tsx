@@ -47,7 +47,14 @@ export const HotelsScreen: React.FC = () => {
   useEffect(() => {
     const updateData = () => {
       const hList = db.getHotels();
-      if (hList && hList.length > 0) setHotelsList(hList);
+      if (hList && hList.length > 0) {
+        setHotelsList((prev) => {
+          if (prev && prev.length === hList.length && prev.every((h, i) => h.id === hList[i]?.id && h.priceUSD === hList[i]?.priceUSD)) {
+            return prev;
+          }
+          return hList;
+        });
+      }
     };
     updateData();
     return db.subscribe(updateData);
@@ -56,6 +63,7 @@ export const HotelsScreen: React.FC = () => {
   // Filter Hotels
   const filteredHotels = (hotelsList || []).filter((hotel) => {
     if (!hotel) return false;
+    if (hotel.isPublished === false) return false;
     const hotelCity = hotel.city || '';
     const matchesCity = selectedCity === 'All' || hotelCity.toLowerCase() === selectedCity.toLowerCase();
     const query = searchQuery ? searchQuery.toLowerCase().trim() : '';
@@ -252,15 +260,37 @@ export const HotelsScreen: React.FC = () => {
                   {/* Price and CTA */}
                   <div className="pt-2 border-t border-slate-800/80 flex items-baseline justify-between">
                     <div>
-                      <span className="text-base font-extrabold text-white num-tabular">
-                        ${hotel.pricePerNightUSD || 120}
-                      </span>
-                      <span className="text-xs text-slate-400 font-medium"> / night</span>
-                      {hotel.pricePerNightCNY && (
-                        <span className="text-[10px] text-emerald-400 ml-2 num-tabular">
-                          (¥{hotel.pricePerNightCNY} CNY)
-                        </span>
+                      {hotel.pricePerNightUSD && hotel.pricePerNightUSD > 0 ? (
+                        <>
+                          <span className="text-base font-extrabold text-white num-tabular">
+                            ${hotel.pricePerNightUSD}
+                          </span>
+                          <span className="text-xs text-slate-400 font-medium"> / night</span>
+                        </>
+                      ) : hotel.pricePerNightCNY && hotel.pricePerNightCNY > 0 ? (
+                        <>
+                          <span className="text-base font-extrabold text-white num-tabular">
+                            ¥{hotel.pricePerNightCNY}
+                          </span>
+                          <span className="text-xs text-slate-400 font-medium"> CNY / night</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-base font-extrabold text-white num-tabular">
+                            ₦{(hotel.pricePerNightNGN || 0).toLocaleString()}
+                          </span>
+                          <span className="text-xs text-slate-400 font-medium"> NGN / night</span>
+                        </>
                       )}
+
+                      <div className="flex gap-2 text-[10px] text-slate-400 mt-0.5">
+                        {hotel.pricePerNightCNY && hotel.pricePerNightCNY > 0 && hotel.pricePerNightUSD && hotel.pricePerNightUSD > 0 && (
+                          <span className="text-emerald-400 font-mono">¥{hotel.pricePerNightCNY.toLocaleString()} CNY</span>
+                        )}
+                        {hotel.pricePerNightNGN && hotel.pricePerNightNGN > 0 && (
+                          <span className="text-slate-400 font-mono">₦{hotel.pricePerNightNGN.toLocaleString()} NGN</span>
+                        )}
+                      </div>
                     </div>
 
                     <button

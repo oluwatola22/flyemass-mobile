@@ -5,9 +5,5 @@ import './index.css';
 
 const rootElement = document.getElementById('root');
 if (rootElement) {
-  ReactDOM.createRoot(rootElement).render(
-    <React.StrictMode>
-      <MobileApp />
-    </React.StrictMode>
-  );
+  ReactDOM.createRoot(rootElement).render(<MobileApp />);
 }

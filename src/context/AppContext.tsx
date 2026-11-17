@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { Language, t as i18nT, getRouteTitle as i18nGetRouteTitle } from '../utils/i18n';
+import { supabaseAuth } from '../services/supabaseAuth';
 import { 
   Currency, 
   ScreenRoute, 
@@ -13,7 +15,8 @@ import {
   SupportTicket,
   AppNotification,
   RFQQuotation,
-  ShopOrder
+  ShopOrder,
+  Warehouse
 } from '../types';
 import { 
   INITIAL_WALLETS, 
@@ -39,6 +42,7 @@ interface ToastState {
 interface AppContextType {
   currentRoute: ScreenRoute;
   navigate: (route: ScreenRoute, param?: string) => void;
+  prefetchRoute: (route: ScreenRoute) => void;
   goBack: () => void;
   routeHistory: ScreenRoute[];
   routeParam: string | null;
@@ -70,7 +74,7 @@ interface AppContextType {
   markAllNotificationsRead: () => void;
   supportTickets: SupportTicket[];
   addSupportTicket: (ticket: { subject: string; category: SupportTicket['category']; priority: SupportTicket['priority']; message: string }) => void;
-  addTicketMessage: (ticketId: string, text: string) => void;
+  addTicketMessage: (ticketId: string, text: string, attachment?: { url: string; fileName: string; fileType: string }) => void;
   selectedTicketId: string | null;
   setSelectedTicketId: (id: string | null) => void;
   rfqQuotations: RFQQuotation[];
@@ -81,6 +85,8 @@ interface AppContextType {
   paySupplier: (supplierName: string, method: string, amountCNY: number, note: string) => boolean;
   withdrawToBank: (bankName: string, accountNumber: string, accountName: string, amountNGN: number) => boolean;
   registerPackage: (data: any) => Promise<any>;
+  warehouses: Warehouse[];
+  refreshWarehouses: () => Promise<Warehouse[]>;
   hotelBookings: HotelBooking[];
   bookHotel: (hotel: Hotel, nights: number, currency?: Currency, pin?: string) => boolean;
   chatMessages: ChatMessage[];
@@ -111,12 +117,22 @@ interface AppContextType {
     rcNumber: string;
     tier: string;
     flyeTag: string;
+    shippingMark?: string;
     avatar: string;
   };
   setUserProfile: React.Dispatch<React.SetStateAction<any>>;
   adminUser: AdminUser | null;
   loginAdmin: (admin: AdminUser) => void;
   logoutAdmin: () => void;
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string, fallback?: string) => string;
+  getRouteTitle: (route: string) => string;
+  isSwapModalOpen: boolean;
+  setIsSwapModalOpen: (open: boolean) => void;
+  swapModalInitialPair: { from?: Currency; to?: Currency } | null;
+  openSwapModal: (from?: Currency, to?: Currency) => void;
+  closeSwapModal: () => void;
 }
 
 const ROUTE_TO_PATH: Record<ScreenRoute, string> = {
@@ -188,23 +204,32 @@ const ROUTE_TO_PATH: Record<ScreenRoute, string> = {
   'admin-login': '/admin/login',
   'admin-users': '/admin/users',
   'admin-user-detail': '/admin/users/detail',
-  'admin-logistics': '/admin/logistics',
+  'admin-wallet-credit': '/admin/users/wallet-credit',
+  'admin-logistics': '/admin/shipments',
   'admin-logistics-detail': '/admin/logistics/detail',
+  'admin-warehouses': '/admin/warehouses',
   'admin-payments': '/admin/payments',
-  'admin-rmb-transfers': '/admin/rmb-transfers',
-  'admin-naira-payouts': '/admin/naira-payouts',
+  'admin-rmb-transfers': '/admin/treasury/rmb',
+  'admin-naira-payouts': '/admin/treasury/naira',
   'admin-fx-management': '/admin/fx-management',
+  'admin-fx-rates': '/admin/rates',
   'admin-funding': '/admin/funding',
+  'admin-gateway': '/admin/gateway',
   'admin-shop': '/admin/shop',
   'admin-hotels': '/admin/hotels',
   'admin-rentals-apartments': '/admin/rentals-apartments',
   'admin-rentals-offices': '/admin/rentals-offices',
   'admin-suppliers': '/admin/suppliers',
-  'admin-agents': '/admin/agents',
-  'admin-support': '/admin/support',
-  'admin-team': '/admin/team',
+  'admin-agents': '/admin/agent-requests',
+  'admin-agent-requests': '/admin/agent-requests',
+  'admin-agent-settings': '/admin/agent-settings',
+  'admin-support': '/admin/support/tickets',
+  'admin-support-tickets': '/admin/support/tickets',
+  'admin-shipping-rates': '/admin/settings/shipping',
+  'admin-team': '/admin/governance/rbac',
   'admin-communications': '/admin/communications',
-  'admin-registrations': '/admin/registrations'
+  'admin-registrations': '/admin/registrations',
+  'admin-lagos-hubs': '/admin/lagos-hubs'
 };
 
 const getInitialRoute = (): ScreenRoute => {
@@ -225,6 +250,11 @@ const getInitialRoute = (): ScreenRoute => {
     }
 
     if (path === '' || path === '/' || path === '/app' || path === '/home') return 'home';
+    if (path === '/cargo' || path === '/_authenticated/cargo' || path === '/estimator' || path === '/_authenticated/estimator') return 'logistics';
+    if (path === '/_authenticated/track' || path.startsWith('/_authenticated/track')) return 'track';
+    if (path === '/cart' || path === '/shop/cart') return 'cart';
+    if (path === '/checkout' || path === '/shop/checkout') return 'checkout';
+    if (path === '/shop/product' || path.startsWith('/shop/product') || path === '/product' || path.startsWith('/product')) return 'product-detail';
     if (path.startsWith('/rentals/apartments')) return 'rentals-apartments';
     if (path.startsWith('/rentals/offices')) return 'rentals-offices';
 
@@ -251,32 +281,37 @@ const getInitialRoute = (): ScreenRoute => {
   if (path === '/admin/login' || path === '/login') return 'admin-login';
   if (path === '/admin/db') return 'schema-inspector';
   if (path.startsWith('/admin/users')) return 'admin-users';
-  if (path.startsWith('/admin/logistics')) return 'admin-logistics';
-  if (path.startsWith('/admin/payments')) return 'admin-payments';
-  if (path.startsWith('/admin/rmb-transfers')) return 'admin-rmb-transfers';
-  if (path.startsWith('/admin/naira-payouts')) return 'admin-naira-payouts';
-  if (path.startsWith('/admin/fx-management')) return 'admin-fx-management';
+  if (path.startsWith('/admin/settings/shipping') || path.startsWith('/admin/logistics-rates')) return 'admin-shipping-rates';
+  if (path.startsWith('/admin/logistics') || path.startsWith('/admin/shipments')) return 'admin-logistics';
+  if (path.startsWith('/admin/lagos-hubs')) return 'admin-lagos-hubs';
+  if (path.startsWith('/admin/treasury/rmb') || path.startsWith('/admin/rmb-transfers')) return 'admin-rmb-transfers';
+  if (path.startsWith('/admin/treasury/naira') || path.startsWith('/admin/naira-payouts')) return 'admin-naira-payouts';
+  if (path.startsWith('/admin/rates')) return 'admin-fx-rates';
+  if (path.startsWith('/admin/treasury/fx') || path.startsWith('/admin/fx-management')) return 'admin-fx-management';
+  if (path.startsWith('/admin/payments') || path.startsWith('/admin/treasury')) return 'admin-payments';
   if (path.startsWith('/admin/funding')) return 'admin-funding';
+  if (path.startsWith('/admin/gateway')) return 'admin-gateway';
   if (path.startsWith('/admin/shop')) return 'admin-shop';
   if (path.startsWith('/admin/hotels')) return 'admin-hotels';
   if (path.startsWith('/admin/rentals-apartments')) return 'admin-rentals-apartments';
   if (path.startsWith('/admin/rentals-offices')) return 'admin-rentals-offices';
   if (path.startsWith('/admin/suppliers')) return 'admin-suppliers';
+  if (path.startsWith('/admin/agent-requests')) return 'admin-agent-requests';
+  if (path.startsWith('/admin/agent-settings')) return 'admin-agent-settings';
   if (path.startsWith('/admin/agents')) return 'admin-agents';
   if (path.startsWith('/admin/support')) return 'admin-support';
   if (path.startsWith('/admin/communications')) return 'admin-communications';
   if (path.startsWith('/admin/registrations')) return 'admin-registrations';
-  if (path.startsWith('/admin/team')) return 'admin-team';
+  if (path.startsWith('/admin/governance/rbac') || path.startsWith('/admin/team')) return 'admin-team';
 
   return 'admin-dashboard';
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const buildUserWallets = (balances?: { NGN?: number; CNY?: number; USD?: number }): WalletBalance[] => {
+const buildUserWallets = (balances?: { NGN?: number; CNY?: number }): WalletBalance[] => {
   const ngn = balances?.NGN ?? 0;
   const cny = balances?.CNY ?? 0;
-  const usd = balances?.USD ?? 0;
   return [
     {
       currency: 'NGN',
@@ -307,24 +342,207 @@ const buildUserWallets = (balances?: { NGN?: number; CNY?: number; USD?: number 
       clearingRoute: 'CIPS / Mainland China Direct Settlement',
       bankAddress: 'No. 197 Dongfeng West Road, Yuexiu District, Guangzhou, China',
       equivalentUSD: Number((cny / 7.24).toFixed(2))
-    },
-    {
-      currency: 'USD',
-      balance: usd,
-      symbol: '$',
-      name: 'US Dollar Global Account',
-      flag: '🇺🇸',
-      accountNumber: '02100002148902',
-      bankName: 'JPMorgan Chase Bank, N.A.',
-      accountName: 'FlyeMass Treasury LLC (FM-7702)',
-      iban: 'US89JPMC02100002148902',
-      swiftBic: 'CHASUS33',
-      routingAba: '021000021',
-      clearingRoute: 'Fedwire / Direct International SWIFT Wire',
-      bankAddress: '270 Park Avenue, New York, NY 10017, USA',
-      equivalentUSD: usd
     }
   ];
+};
+
+const buildInitialShipments = (): Shipment[] => {
+  try {
+    const dbShipments = db.getShipments();
+    if (dbShipments && dbShipments.length > 0) {
+      const stepMap: Record<string, number> = {
+        'registered': 0,
+        'Package Registered': 0,
+        'Created': 0,
+        'received_warehouse': 1,
+        'Package Received': 1,
+        'inspection': 1,
+        'Inspection': 1,
+        'packed': 1,
+        'Packing': 1,
+        'awaiting_payment': 1,
+        'Awaiting Payment': 1,
+        'ready_for_dispatch': 2,
+        'Paid — Preparing for Shipment': 2,
+        'dispatched': 2,
+        'Dispatched': 2,
+        'in_transit': 2,
+        'In Transit': 2,
+        'customs_clearance': 3,
+        'Customs Clearance': 3,
+        'arrived': 4,
+        'Arrived Destination': 4,
+        'ready_for_pickup': 4,
+        'Ready for Pickup': 4,
+        'out_for_delivery': 4,
+        'Out for Delivery': 4,
+        'delivered': 5,
+        'Delivered': 5,
+        'completed': 5,
+        'Completed': 5,
+        'On Hold': 2,
+        'Returned': 0
+      };
+
+      const statusLabelMap: Record<string, string> = {
+        'registered': 'Package Registered (Pre-Alert)',
+        'Package Registered': 'Package Registered',
+        'Created': 'Created',
+        'received_warehouse': 'Received at Origin Hub',
+        'Package Received': 'Package Received',
+        'inspection': 'Inspection & Weight Checked',
+        'Inspection': 'Inspection',
+        'packed': 'Export Packaged',
+        'Packing': 'Packing',
+        'awaiting_payment': 'Freight Invoiced (Awaiting Payment)',
+        'Awaiting Payment': 'Awaiting Payment',
+        'ready_for_dispatch': 'Ready for Air/Sea Dispatch',
+        'Paid — Preparing for Shipment': 'Paid — Preparing for Shipment',
+        'dispatched': 'Departed Origin Hub',
+        'Dispatched': 'Dispatched',
+        'in_transit': 'International Transit',
+        'In Transit': 'In Transit',
+        'customs_clearance': 'Nigeria Customs Clearance (Lagos)',
+        'Customs Clearance': 'Customs Clearance',
+        'arrived': 'Arrived at Lagos Hub',
+        'Arrived Destination': 'Arrived Destination',
+        'ready_for_pickup': 'Ready for Hub Collection',
+        'Ready for Pickup': 'Ready for Pickup',
+        'out_for_delivery': 'Out for Doorstep Delivery',
+        'Out for Delivery': 'Out for Delivery',
+        'delivered': 'Delivered & Handed Over',
+        'Delivered': 'Delivered',
+        'completed': 'Completed',
+        'Completed': 'Completed',
+        'On Hold': 'On Hold',
+        'Returned': 'Returned'
+      };
+
+      return dbShipments.map((s) => {
+        const curStep = stepMap[s.currentStatus] ?? 0;
+        return {
+          id: s.id,
+          platformCode: s.platformCode || s.shipmentCode || s.trackingNumber,
+          trackingNumber: s.trackingNumber,
+          shipmentCode: s.shipmentCode || s.platformCode || s.trackingNumber,
+          trackingCode: s.trackingCode || s.trackingNumber,
+          title: s.title || s.packageDescription || `${s.mode || s.shippingMode || 'Air'} Cargo to Lagos`,
+          sender: s.sender || s.originWarehouse || 'China Warehouse Hub',
+          origin: `${s.originWarehouse || 'Guangzhou'} Hub`,
+          originWarehouse: s.originWarehouse,
+          destination: s.destination || 'Lagos Hub (LOS)',
+          destinationHub: s.destinationHub || s.pickupHub || 'Ikeja MMIA Terminal',
+          location: s.location,
+          type: (s.mode || s.shippingMode || '').toLowerCase().includes('sea') ? 'sea' : 'air',
+          method: s.method,
+          shippingMethod: s.shippingMethod,
+          status: statusLabelMap[s.currentStatus] || s.currentStatus || 'In Transit',
+          currentStatus: s.currentStatus,
+          currentStep: curStep,
+          eta: s.eta || ((s.mode || s.shippingMode || '').toLowerCase().includes('sea') ? 'In 21 days' : 'In 3-5 days'),
+          weightKg: s.weightKg || s.actualWeightKg || 5,
+          actualWeightKg: s.actualWeightKg,
+          billableWeightKg: s.billableWeightKg,
+          cbm: s.cbm || Number(((s.weightKg || 5) * 0.005).toFixed(2)),
+          costEstimate: s.costEstimate || s.freightFeeUSD || ((s.mode || '').toLowerCase().includes('sea') ? (s.weightKg || 5) * 3.5 : (s.weightKg || 5) * 10),
+          costCurrency: 'USD',
+          courierCompany: s.courierCompany,
+          chineseCourierTracking: s.chineseCourierTracking,
+          packageDescription: s.packageDescription,
+          cartonsCount: s.cartonsCount,
+          declaredValueRMB: s.declaredValueRMB,
+          supplierInvoiceUrl: s.supplierInvoiceUrl,
+          consolidationPreference: s.consolidationPreference,
+          repackagingPreference: s.packagingCondition,
+          deliveryType: s.deliveryType,
+          pickupHub: s.pickupHub,
+          doorstepAddress: s.doorstepAddress,
+          fulfillmentMethod: s.fulfillmentMethod,
+          lagosHubId: s.lagosHubId,
+          lagosHubLabel: s.lagosHubLabel,
+          deliveryAddress: s.deliveryAddress,
+          pickupOtp: s.pickupOtp,
+          pickupOtpVerifiedAt: s.pickupOtpVerifiedAt,
+          assignedRiderName: s.assignedRiderName,
+          assignedRiderPhone: s.assignedRiderPhone,
+          dimensions: s.dimensions,
+          freightFeeUSD: s.freightFeeUSD,
+          freightFeeNGN: s.freightFeeNGN,
+          freightFeeCNY: s.freightFeeCNY,
+          ratePerKg: s.ratePerKg,
+          freightPaid: s.freightPaid,
+          paymentStatus: s.paymentStatus,
+          paymentTiming: s.paymentTiming,
+          paidCurrency: s.paidCurrency,
+          paidAmount: s.paidAmount,
+          otpVerified: s.otpVerified,
+          handedOverTo: s.handedOverTo,
+          handoverTimestamp: s.handoverTimestamp,
+          inspectionPhotos: s.inspectionPhotos || s.warehousePhotos,
+          warehousePhotos: s.warehousePhotos || s.inspectionPhotos,
+          inspectionNotes: s.inspectionNotes,
+          packagingCondition: s.packagingCondition,
+          billingNotes: s.billingNotes || s.customerNotes,
+          customerNotes: s.customerNotes || s.billingNotes,
+          isBilled: s.isBilled,
+          createdAt: s.createdAt,
+          waypoints: (s.timeline && s.timeline.length > 0)
+            ? s.timeline.map((tl, i) => ({
+                id: `wp-${s.trackingNumber}-${i}`,
+                title: tl.status,
+                location: tl.location,
+                timestamp: String(tl.timestamp || 'Just now'),
+                status: (i < curStep ? 'completed' : i === curStep ? 'current' : 'upcoming') as 'completed' | 'current' | 'upcoming',
+                description: tl.notes || ''
+              }))
+            : [
+                {
+                  id: `wp-${s.trackingNumber}-0`,
+                  title: 'Package Registered',
+                  location: `${s.originWarehouse || 'China'} Dock`,
+                  timestamp: 'Registered',
+                  status: 'completed',
+                  description: 'Pre-alert manifest registered.'
+                }
+              ]
+        };
+      });
+    }
+  } catch (e) {}
+  return INITIAL_SHIPMENTS;
+};
+
+const buildInitialTransactions = (currentUid: string): Transaction[] => {
+  try {
+    const dbLedger = db.getLedger().filter(l => !l.userId || l.userId === currentUid);
+    if (dbLedger && dbLedger.length > 0) {
+      const dynamicTxs: Transaction[] = dbLedger.map(l => ({
+        id: l.id,
+        title: l.type === 'FX_SWAP' 
+          ? `FX Swap: ${l.sourceCurrency} to ${l.targetCurrency}` 
+          : l.type === 'FUND'
+          ? `Wallet Top-up (${l.sourceCurrency})`
+          : l.type === 'PAY_SUPPLIER'
+          ? `Supplier Payout (${l.sourceCurrency})`
+          : `${l.type} Transaction`,
+        category: l.type === 'FX_SWAP' ? 'FX Swap' : l.type === 'FUND' ? 'Wallet Top-up' : 'Supplier',
+        amount: l.amount,
+        currency: (l.sourceCurrency as Currency) || 'NGN',
+        convertedAmount: l.convertedAmount,
+        convertedCurrency: (l.targetCurrency as Currency) || 'CNY',
+        date: new Date(l.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' }),
+        timestamp: l.timestamp,
+        status: l.status === 'completed' ? 'completed' : l.status === 'pending' ? 'processing' : 'failed',
+        reference: l.reference,
+        recipient: l.type === 'FX_SWAP' ? `${l.sourceCurrency} → ${l.targetCurrency} Vault` : 'Treasury',
+        type: l.type === 'FX_SWAP' ? 'swap' : l.type === 'FUND' ? 'fund' : 'pay_supplier'
+      }));
+      const existingRefs = new Set(dynamicTxs.map(t => t.reference));
+      const fallbackFiltered = INITIAL_TRANSACTIONS.filter(t => !existingRefs.has(t.reference));
+      return [...dynamicTxs, ...fallbackFiltered];
+    }
+  } catch (e) {}
+  return INITIAL_TRANSACTIONS;
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -353,9 +571,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeCurrency, setActiveCurrency] = useState<Currency>('NGN');
   const [shopCurrency, setShopCurrency] = useState<'NGN' | 'CNY' | 'USD'>('NGN');
   const [isBalanceHidden, setIsBalanceHidden] = useState<boolean>(false);
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
-  const [shipments, setShipments] = useState<Shipment[]>(INITIAL_SHIPMENTS);
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>(() => buildInitialTransactions(activeUserId || 'usr_alade_01'));
+  const [shipments, setShipments] = useState<Shipment[]>(buildInitialShipments);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('flyemass_cart');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {
+        console.warn('Failed to parse cart from localStorage', e);
+      }
+    }
+    const currentUid = activeUserId || 'usr_alade_01';
+    const cloudCart = db.getCloudCart(currentUid);
+    if (Array.isArray(cloudCart) && cloudCart.length > 0) return cloudCart;
+    return [];
+  });
   const [savedProductIds, setSavedProductIds] = useState<string[]>(['prod-iphone-16-pro', 'prod-watch-ultra-2']);
   const [compareProductIds, setCompareProductIds] = useState<string[]>(['prod-iphone-16-pro', 'prod-macbook-pro-16']);
   const [shopOrders, setShopOrders] = useState<ShopOrder[]>(INITIAL_SHOP_ORDERS);
@@ -368,11 +602,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [isQuickActionOpen, setIsQuickActionOpen] = useState<boolean>(false);
+  const [isSwapModalOpen, setIsSwapModalOpen] = useState<boolean>(false);
+  const [swapModalInitialPair, setSwapModalInitialPair] = useState<{ from?: Currency; to?: Currency } | null>(null);
+
+  const openSwapModal = useCallback((from?: Currency, to?: Currency) => {
+    if (from || to) {
+      setSwapModalInitialPair({ from, to });
+    }
+    setIsSwapModalOpen(true);
+  }, []);
+
+  const closeSwapModal = useCallback(() => {
+    setIsSwapModalOpen(false);
+  }, []);
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
-  const [isFrameMockup, setIsFrameMockup] = useState<boolean>(true);
+  const [language, setLanguageState] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('flyemass_language');
+      if (saved === 'FR') return 'FR';
+    }
+    return 'EN';
+  });
+
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('flyemass_language', lang);
+    }
+    const names: Record<Language, string> = {
+      EN: 'English',
+      FR: 'Français'
+    };
+    showToast(lang === 'FR' ? 'Langue commerciale définie sur Français' : `Trade language set to ${names[lang] || lang}`, 'success');
+  };
+
+  const t = (key: string, fallback?: string) => i18nT(key, language, fallback);
+  const getRouteTitle = (route: string) => i18nGetRouteTitle(route, language);
+  const [isFrameMockup, setIsFrameMockup] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('flyemass_frame_mockup');
+      if (saved !== null) return saved === 'true';
+    }
+    return false;
+  });
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [userPin, setUserPin] = useState<string>('2468');
   const [pendingSignup, setPendingSignup] = useState<any>(null);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>(() => db.getWarehouses(true));
 
   // Authoritative Staff Admin Session
   const [adminUser, setAdminUser] = useState<AdminUser | null>(() => {
@@ -409,14 +685,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [userProfile, setUserProfile] = useState(() => {
     const u = db.getUser(activeUserId) || db.getUser('usr_alade_01');
+    const flyeTag = u?.flyeTag || u?.shippingMark || (activeUserId === 'usr_alade_01' || u?.uid === 'usr_alade_01' ? 'FM-USR-8924' : `FM-USR-${(u?.uid || activeUserId || '8924').replace(/\D/g, '').slice(-4) || '8924'}`);
     return {
       name: u?.fullName || 'Chief Babatunde Alade',
       email: u?.email || 'babatunde@aladeholding.ng',
       phone: u?.phone || '+234 803 555 9201',
       company: u?.businessName || 'Alade Global Enterprises Ltd',
       rcNumber: u?.role === 'client' ? 'RC-1849204' : 'GZ-LIC-992144',
-      tier: u?.verifiedBadge ? 'Tier 3 Enterprise Verified' : 'Tier 1 Basic',
-      flyeTag: `@${(u?.fullName || 'alade').toLowerCase().replace(/\s+/g, '_')}`,
+      tier: 'Enterprise Member',
+      flyeTag,
+      shippingMark: flyeTag,
       avatar: u?.role === 'agent'
         ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'
         : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
@@ -427,6 +705,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setActiveUserId(userId);
     const u = db.getUser(userId);
     if (u) {
+      const flyeTag = u.flyeTag || u.shippingMark || (userId === 'usr_alade_01' ? 'FM-USR-8924' : `FM-USR-${userId.replace(/\D/g, '').slice(-4) || '8924'}`);
       setWallets(buildUserWallets(u.balances));
       setUserProfile({
         name: u.fullName,
@@ -434,12 +713,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         phone: u.phone,
         company: u.businessName,
         rcNumber: u.role === 'client' ? 'RC-1849204' : 'GZ-LIC-992144',
-        tier: u.verifiedBadge ? 'Tier 3 Enterprise Verified' : 'Tier 1 Basic',
-        flyeTag: `@${u.fullName.toLowerCase().replace(/\s+/g, '_')}`,
+        tier: 'Enterprise Member',
+        flyeTag,
+        shippingMark: flyeTag,
         avatar: u.role === 'agent'
           ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'
           : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
       });
+      const userCart = db.getCloudCart(userId);
+      setCart(userCart);
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('flyemass_cart', JSON.stringify(userCart));
+        } catch (e) {}
+      }
     }
   };
 
@@ -451,149 +738,279 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`Switched view to client: ${db.getUser(userId)?.fullName || userId}`, 'info');
   };
 
+  // Supabase session listener with local caching and token deduplication
+  useEffect(() => {
+    const { unsubscribe } = supabaseAuth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setIsAuthenticated(true);
+      } else if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   // Real-time synchronization with NoSQL DB and Firestore
   useEffect(() => {
+    let lastSyncedRev = -1;
     const syncFromDb = () => {
+      const curRev = db.getStateRevision();
+      if (curRev === lastSyncedRev) return;
+      lastSyncedRev = curRev;
+
       const user = db.getUser(activeUserId) || db.getUser('usr_alade_01');
       if (user && user.balances) {
-        setWallets(buildUserWallets(user.balances));
-        setUserProfile({
-          name: user.fullName,
-          email: user.email,
-          phone: user.phone,
-          company: user.businessName,
-          rcNumber: user.role === 'client' ? 'RC-1849204' : 'GZ-LIC-992144',
-          tier: user.verifiedBadge ? 'Tier 3 Enterprise Verified' : 'Tier 1 Basic',
-          flyeTag: `@${user.fullName.toLowerCase().replace(/\s+/g, '_')}`,
-          avatar: user.role === 'agent'
-            ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'
-            : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
+        const nextWallets = buildUserWallets(user.balances);
+        setWallets((prev) => {
+          if (
+            prev.length === nextWallets.length &&
+            prev.every((w, i) => w.currency === nextWallets[i]?.currency && w.balance === nextWallets[i]?.balance)
+          ) {
+            return prev;
+          }
+          return nextWallets;
+        });
+
+        const userTag = (user as any).flyeTag || (user as any).shippingMark || (activeUserId === 'usr_alade_01' ? 'FM-USR-8924' : `@${user.fullName.toLowerCase().replace(/\s+/g, '_')}`);
+        const userMark = (user as any).shippingMark || userTag;
+        const newTier = 'Enterprise Member';
+
+        setUserProfile((prev: any) => {
+          if (
+            prev.name === user.fullName &&
+            prev.email === user.email &&
+            prev.phone === user.phone &&
+            prev.company === user.businessName &&
+            prev.flyeTag === userTag &&
+            prev.shippingMark === userMark &&
+            prev.tier === newTier
+          ) {
+            return prev;
+          }
+          return {
+            name: user.fullName,
+            email: user.email,
+            phone: user.phone,
+            company: user.businessName,
+            rcNumber: user.role === 'client' ? 'RC-1849204' : 'GZ-LIC-992144',
+            tier: newTier,
+            flyeTag: userTag,
+            shippingMark: userMark,
+            avatar: user.role === 'agent'
+              ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'
+              : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
+          };
         });
       }
 
-      const dbShipments = db.getShipments();
+      const currentUid = activeUserId || 'usr_alade_01';
+      const dbShipments = db.getShipments().filter(s => !s.userId || s.userId === currentUid);
       if (dbShipments && dbShipments.length > 0) {
         const stepMap: Record<string, number> = {
           'registered': 0,
+          'Package Registered': 0,
+          'Created': 0,
           'received_warehouse': 1,
+          'Package Received': 1,
           'inspection': 1,
+          'Inspection': 1,
           'packed': 1,
+          'Packing': 1,
           'awaiting_payment': 1,
+          'Awaiting Payment': 1,
           'ready_for_dispatch': 2,
+          'Paid — Preparing for Shipment': 2,
           'dispatched': 2,
+          'Dispatched': 2,
           'in_transit': 2,
+          'In Transit': 2,
           'customs_clearance': 3,
+          'Customs Clearance': 3,
           'arrived': 4,
+          'Arrived Destination': 4,
           'ready_for_pickup': 4,
+          'Ready for Pickup': 4,
           'out_for_delivery': 4,
+          'Out for Delivery': 4,
           'delivered': 5,
+          'Delivered': 5,
           'completed': 5,
+          'Completed': 5,
+          'On Hold': 2,
+          'Returned': 0,
           'Origin Received': 0,
           'Packed': 1,
           'In Transit/Customs': 2,
-          'Lagos Hub Ready': 3,
-          'Delivered': 4
+          'Lagos Hub Ready': 3
         };
 
         const statusLabelMap: Record<string, string> = {
           'registered': 'Registered',
+          'Package Registered': 'Package Registered',
+          'Created': 'Created',
           'received_warehouse': 'Received at Hub',
+          'Package Received': 'Package Received',
           'inspection': 'Inspection & Weighing',
+          'Inspection': 'Inspection',
           'packed': 'Packed & Stored',
+          'Packing': 'Packing',
           'awaiting_payment': 'Awaiting Freight Payment',
+          'Awaiting Payment': 'Awaiting Payment',
           'ready_for_dispatch': 'Ready for Flight / Vessel',
+          'Paid — Preparing for Shipment': 'Paid — Preparing for Shipment',
           'dispatched': 'Departed Hub',
+          'Dispatched': 'Dispatched',
           'in_transit': 'In Transit to Lagos',
+          'In Transit': 'In Transit',
           'customs_clearance': 'Customs Clearance (Lagos)',
+          'Customs Clearance': 'Customs Clearance',
           'arrived': 'Arrived Lagos Hub',
+          'Arrived Destination': 'Arrived Destination',
           'ready_for_pickup': 'Ready for Pickup',
+          'Ready for Pickup': 'Ready for Pickup',
           'out_for_delivery': 'Out for Delivery',
+          'Out for Delivery': 'Out for Delivery',
           'delivered': 'Delivered & Handed Over',
-          'completed': 'Completed'
+          'Delivered': 'Delivered',
+          'completed': 'Completed',
+          'Completed': 'Completed',
+          'On Hold': 'On Hold',
+          'Returned': 'Returned'
         };
 
-        setShipments(
-          dbShipments.map((s) => {
-            const curStep = stepMap[s.currentStatus] ?? 0;
-            return {
-              id: s.id,
-              trackingNumber: s.trackingNumber,
-              shipmentCode: s.shipmentCode || s.trackingNumber,
-              trackingCode: s.trackingCode,
-              title: s.title || s.packageDescription || `${s.mode || s.shippingMode || 'Air'} Cargo to Lagos`,
-              sender: s.sender || s.originWarehouse || 'China Warehouse Hub',
-              origin: `${s.originWarehouse || 'Guangzhou'} Hub`,
-              originWarehouse: s.originWarehouse,
-              destination: s.destination || 'Lagos Hub (LOS)',
-              destinationHub: s.destinationHub || s.pickupHub || 'Ikeja MMIA Terminal',
-              type: (s.mode || s.shippingMode || '').toLowerCase().includes('sea') ? 'sea' : 'air',
-              status: statusLabelMap[s.currentStatus] || s.currentStatus || 'In Transit',
-              currentStatus: s.currentStatus,
-              currentStep: curStep,
-              eta: (s.mode || s.shippingMode || '').toLowerCase().includes('sea') ? 'In 21 days' : 'In 3-5 days',
-              weightKg: s.weightKg || s.actualWeightKg || 5,
-              actualWeightKg: s.actualWeightKg,
-              billableWeightKg: s.billableWeightKg,
-              cbm: s.cbm || Number(((s.weightKg || 5) * 0.005).toFixed(2)),
-              costEstimate: s.costEstimate || s.freightFeeUSD || ((s.mode || '').toLowerCase().includes('sea') ? (s.weightKg || 5) * 3.5 : (s.weightKg || 5) * 10),
-              costCurrency: 'USD',
-              courierCompany: s.courierCompany,
-              chineseCourierTracking: s.chineseCourierTracking,
-              packageDescription: s.packageDescription,
-              cartonsCount: s.cartonsCount,
-              declaredValueRMB: s.declaredValueRMB,
-              supplierInvoiceUrl: s.supplierInvoiceUrl,
-              consolidationPreference: s.consolidationPreference,
-              repackagingPreference: s.packagingCondition,
-              deliveryType: s.deliveryType,
-              pickupHub: s.pickupHub,
-              doorstepAddress: s.doorstepAddress,
-              dimensions: s.dimensions,
-              freightFeeUSD: s.freightFeeUSD,
-              freightFeeNGN: s.freightFeeNGN,
-              freightFeeCNY: s.freightFeeCNY,
-              ratePerKg: s.ratePerKg,
-              freightPaid: s.freightPaid,
-              paymentStatus: s.paymentStatus,
-              paymentTiming: s.paymentTiming,
-              paidCurrency: s.paidCurrency,
-              paidAmount: s.paidAmount,
-              pickupOtp: s.pickupOtp,
-              otpVerified: s.otpVerified,
-              handedOverTo: s.handedOverTo,
-              handoverTimestamp: s.handoverTimestamp,
-              inspectionPhotos: s.inspectionPhotos,
-              inspectionNotes: s.inspectionNotes,
-              packagingCondition: s.packagingCondition,
-              billingNotes: s.billingNotes,
-              createdAt: s.createdAt,
-              waypoints: (s.timeline && s.timeline.length > 0)
-                ? s.timeline.map((tl, i) => ({
-                    id: `wp-${s.trackingNumber}-${i}`,
-                    title: tl.status,
-                    location: tl.location,
-                    timestamp: String(tl.timestamp || 'Just now'),
-                    status: (i < curStep ? 'completed' : i === curStep ? 'current' : 'upcoming') as 'completed' | 'current' | 'upcoming',
-                    description: tl.notes || ''
-                  }))
-                : [
-                    {
-                      id: `wp-${s.trackingNumber}-0`,
-                      title: 'Package Registered',
-                      location: `${s.originWarehouse || 'China'} Dock`,
-                      timestamp: 'Registered',
-                      status: 'completed',
-                      description: 'Pre-alert manifest registered.'
-                    }
-                  ]
-            };
-          })
-        );
+        const nextShipments = dbShipments.map((s) => {
+          const curStep = stepMap[s.currentStatus] ?? 0;
+          return {
+            id: s.id,
+            platformCode: s.platformCode || s.shipmentCode || s.trackingNumber,
+            trackingNumber: s.trackingNumber,
+            shipmentCode: s.shipmentCode || s.platformCode || s.trackingNumber,
+            trackingCode: s.trackingCode || s.trackingNumber,
+            title: s.title || s.packageDescription || `${s.mode || s.shippingMode || 'Air'} Cargo to Lagos`,
+            sender: s.sender || s.originWarehouse || 'China Warehouse Hub',
+            origin: `${s.originWarehouse || 'Guangzhou'} Hub`,
+            originWarehouse: s.originWarehouse,
+            destination: s.destination || 'Lagos Hub (LOS)',
+            destinationHub: s.destinationHub || s.pickupHub || 'Ikeja MMIA Terminal',
+            location: s.location,
+            type: ((s.mode || s.shippingMode || '').toLowerCase().includes('sea') ? 'sea' : 'air') as 'air' | 'sea',
+            method: s.method,
+            shippingMethod: s.shippingMethod,
+            status: statusLabelMap[s.currentStatus] || s.currentStatus || 'In Transit',
+            currentStatus: s.currentStatus,
+            currentStep: curStep,
+            eta: s.eta || ((s.mode || s.shippingMode || '').toLowerCase().includes('sea') ? 'In 21 days' : 'In 3-5 days'),
+            weightKg: s.weightKg || s.actualWeightKg || 5,
+            actualWeightKg: s.actualWeightKg,
+            billableWeightKg: s.billableWeightKg,
+            cbm: s.cbm || Number(((s.weightKg || 5) * 0.005).toFixed(2)),
+            costEstimate: s.costEstimate || s.freightFeeUSD || ((s.mode || '').toLowerCase().includes('sea') ? (s.weightKg || 5) * 3.5 : (s.weightKg || 5) * 10),
+            costCurrency: 'USD' as Currency,
+            courierCompany: s.courierCompany,
+            chineseCourierTracking: s.chineseCourierTracking,
+            packageDescription: s.packageDescription,
+            cartonsCount: s.cartonsCount,
+            declaredValueRMB: s.declaredValueRMB,
+            supplierInvoiceUrl: s.supplierInvoiceUrl,
+            consolidationPreference: s.consolidationPreference,
+            repackagingPreference: s.packagingCondition,
+            deliveryType: s.deliveryType,
+            pickupHub: s.pickupHub,
+            doorstepAddress: s.doorstepAddress,
+            fulfillmentMethod: s.fulfillmentMethod,
+            lagosHubId: s.lagosHubId,
+            lagosHubLabel: s.lagosHubLabel,
+            deliveryAddress: s.deliveryAddress,
+            pickupOtpVerifiedAt: s.pickupOtpVerifiedAt,
+            assignedRiderName: s.assignedRiderName,
+            assignedRiderPhone: s.assignedRiderPhone,
+            dimensions: s.dimensions,
+            freightFeeUSD: s.freightFeeUSD,
+            freightFeeNGN: s.freightFeeNGN,
+            freightFeeCNY: s.freightFeeCNY,
+            ratePerKg: s.ratePerKg,
+            freightPaid: s.freightPaid,
+            paymentStatus: s.paymentStatus,
+            paymentTiming: s.paymentTiming,
+            paidCurrency: s.paidCurrency,
+            paidAmount: s.paidAmount,
+            pickupOtp: s.pickupOtp,
+            otpVerified: s.otpVerified,
+            handedOverTo: s.handedOverTo,
+            handoverTimestamp: s.handoverTimestamp,
+            inspectionPhotos: s.inspectionPhotos || s.warehousePhotos,
+            warehousePhotos: s.warehousePhotos || s.inspectionPhotos,
+            inspectionNotes: s.inspectionNotes,
+            packagingCondition: s.packagingCondition,
+            billingNotes: s.billingNotes || s.customerNotes,
+            customerNotes: s.customerNotes || s.billingNotes,
+            isBilled: s.isBilled,
+            createdAt: s.createdAt,
+            waypoints: (s.timeline && s.timeline.length > 0)
+              ? s.timeline.map((tl, i) => ({
+                  id: `wp-${s.trackingNumber}-${i}`,
+                  title: tl.status,
+                  location: tl.location,
+                  timestamp: String(tl.timestamp || 'Just now'),
+                  status: (i < curStep ? 'completed' : i === curStep ? 'current' : 'upcoming') as 'completed' | 'current' | 'upcoming',
+                  description: tl.notes || ''
+                }))
+              : [
+                  {
+                    id: `wp-${s.trackingNumber}-0`,
+                    title: 'Package Registered',
+                    location: `${s.originWarehouse || 'China'} Dock`,
+                    timestamp: 'Registered',
+                    status: 'completed' as const,
+                    description: 'Pre-alert manifest registered.'
+                  }
+                ]
+          };
+        });
+
+        setShipments((prev) => {
+          if (
+            prev.length === nextShipments.length &&
+            prev.every((s, i) => {
+              const next = nextShipments[i];
+              return (
+                s.id === next?.id &&
+                s.currentStatus === next?.currentStatus &&
+                s.paymentStatus === next?.paymentStatus &&
+                s.weightKg === next?.weightKg &&
+                s.billableWeightKg === next?.billableWeightKg &&
+                s.freightFeeUSD === next?.freightFeeUSD &&
+                s.freightFeeNGN === next?.freightFeeNGN &&
+                s.freightFeeCNY === next?.freightFeeCNY &&
+                s.costEstimate === next?.costEstimate &&
+                s.ratePerKg === next?.ratePerKg &&
+                s.billingNotes === next?.billingNotes &&
+                s.location === next?.location &&
+                s.eta === next?.eta &&
+                s.fulfillmentMethod === next?.fulfillmentMethod &&
+                (s.inspectionPhotos?.length || 0) === (next?.inspectionPhotos?.length || 0) &&
+                (s.waypoints?.length || 0) === (next?.waypoints?.length || 0) &&
+                s.pickupOtp === next?.pickupOtp
+              );
+            })
+          ) {
+            return prev;
+          }
+          return nextShipments;
+        });
       }
 
       const userFavs = db.getUserFavorites(activeUserId);
       if (userFavs && userFavs.length > 0) {
-        setSavedProductIds(userFavs);
+        setSavedProductIds((prev) => {
+          if (prev.length === userFavs.length && prev.every((id, i) => id === userFavs[i])) {
+            return prev;
+          }
+          return userFavs;
+        });
       }
 
       const dbOrders = db.getShopOrders();
@@ -604,45 +1021,252 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           'delivered': 'Delivered'
         };
 
-        setShopOrders(
-          dbOrders.map((o) => ({
-            id: o.id,
-            orderNumber: o.orderNumber || `ORD-${o.id.slice(-5)}`,
-            items: o.items,
-            totalUSD: o.currency === 'USD' ? o.totalAmount : o.totalAmount / 7.24,
-            totalNGN: o.currency === 'NGN' ? o.totalAmount : o.totalAmount * 1485,
-            paidWith: (o.paymentWalletUsed as Currency) || 'USD',
-            date: new Date(o.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
-            status: orderStatusMap[o.fulfillmentStatus] || 'Processing',
-            step: o.fulfillmentStatus === 'delivered' ? 3 : o.fulfillmentStatus === 'shipped' ? 2 : 1,
-            destinationAddress: o.deliveryAddress,
-            trackingNumber: o.trackingNumber || `FM-HK-LOS-${Math.floor(10000 + Math.random() * 90000)}`
-          }))
-        );
+        const nextShopOrders = dbOrders.map((o) => ({
+          id: o.id,
+          orderNumber: o.orderNumber || `ORD-${o.id.slice(-5)}`,
+          items: o.items,
+          totalUSD: o.currency === 'USD' ? o.totalAmount : o.totalAmount / 7.24,
+          totalNGN: o.currency === 'NGN' ? o.totalAmount : o.totalAmount * 1485,
+          paidWith: (o.paymentWalletUsed as Currency) || 'USD',
+          date: new Date(o.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
+          status: orderStatusMap[o.fulfillmentStatus] || 'Processing',
+          step: o.fulfillmentStatus === 'delivered' ? 3 : o.fulfillmentStatus === 'shipped' ? 2 : 1,
+          destinationAddress: o.deliveryAddress,
+          trackingNumber: o.trackingNumber || `FM-HK-LOS-${Math.floor(10000 + Math.random() * 90000)}`
+        }));
+
+        setShopOrders((prev) => {
+          if (
+            prev.length === nextShopOrders.length &&
+            prev.every((o, i) => o.id === nextShopOrders[i]?.id && o.status === nextShopOrders[i]?.status)
+          ) {
+            return prev;
+          }
+          return nextShopOrders;
+        });
       }
 
       const dbTickets = db.getSupportTickets();
       if (dbTickets && dbTickets.length > 0) {
-        setSupportTickets(
-          dbTickets.map((t) => ({
-            id: t.id,
-            ticketNumber: t.ticketNumber || `TKT-${t.id.slice(-4)}`,
-            subject: t.subject,
-            category: (t.category as SupportTicket['category']) || 'Supplier Escrow',
-            priority: (t.priority === 'Urgent' ? 'Urgent' : t.priority === 'High' ? 'High' : 'Normal') as SupportTicket['priority'],
-            status: t.status === 'resolved' ? 'Resolved' : t.status === 'in_progress' ? 'In Progress' : 'Open',
-            lastUpdated: 'Recently',
-            createdAt: new Date(t.updatedAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
-            messages: t.messages.map((m) => ({
-              sender: (m.isAdmin ? 'agent' : 'user') as 'agent' | 'user',
-              senderName: m.senderName || (m.isAdmin ? 'FlyeMass Concierge' : 'Chief Alade'),
-              text: m.text,
-              timestamp: String(m.timestamp || 'Just now')
-            }))
+        const nextTickets = dbTickets.map((t) => ({
+          id: t.id,
+          ticketNumber: t.ticketNumber || `TKT-${t.id.slice(-4)}`,
+          subject: t.subject,
+          category: (t.category as SupportTicket['category']) || 'Supplier Escrow',
+          priority: (t.priority === 'Urgent' ? 'Urgent' : t.priority === 'High' ? 'High' : 'Normal') as SupportTicket['priority'],
+          status: (t.status === 'resolved' ? 'Resolved' : t.status === 'in_progress' ? 'In Progress' : 'Open') as SupportTicket['status'],
+          lastUpdated: 'Recently',
+          createdAt: new Date(t.updatedAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
+          messages: t.messages.map((m) => ({
+            sender: (m.isAdmin ? 'agent' : 'user') as 'agent' | 'user',
+            senderName: m.senderName || (m.isAdmin ? 'FlyeMass Concierge' : 'Chief Alade'),
+            text: m.text,
+            timestamp: String(m.timestamp || 'Just now')
           }))
-        );
+        }));
+
+        setSupportTickets((prev) => {
+          if (
+            prev.length === nextTickets.length &&
+            prev.every((t, i) => t.id === nextTickets[i]?.id && t.status === nextTickets[i]?.status && t.messages.length === nextTickets[i]?.messages.length)
+          ) {
+            return prev;
+          }
+          return nextTickets;
+        });
+      }
+
+      const dbWhs = db.getWarehouses(true);
+      if (dbWhs && dbWhs.length > 0) {
+        setWarehouses((prev) => {
+          if (
+            prev.length === dbWhs.length &&
+            prev.every((w, i) => w.id === dbWhs[i]?.id && w.isActive === dbWhs[i]?.isActive)
+          ) {
+            return prev;
+          }
+          return dbWhs;
+        });
+      }
+
+      const cloudCart = db.getCloudCart(currentUid);
+      if (Array.isArray(cloudCart) && cloudCart.length > 0) {
+        setCart((prev) => (prev.length === 0 ? cloudCart : prev));
+      }
+
+      // Live Transaction History synchronization from Authoritative Ledger
+      const dbLedger = db.getLedger().filter(l => !l.userId || l.userId === currentUid);
+      if (dbLedger && dbLedger.length > 0) {
+        const withdrawalsMap = db.getState().withdrawals || {};
+        const paymentsMap = db.getState().supplier_payments || {};
+
+        const dynamicTxs: Transaction[] = dbLedger.map(l => {
+          const matchedWth = Object.values(withdrawalsMap).find(w => w.reference === l.reference || w.id === l.id);
+          const matchedPay = Object.values(paymentsMap).find(p => p.reference === l.reference || p.id === l.id);
+
+          const rawStatus = (matchedWth?.status || matchedPay?.status || l.status || '').toLowerCase();
+          const isComplete = rawStatus === 'completed' || rawStatus === 'approved' || rawStatus === 'successful' || rawStatus === 'disbursed';
+          const isFailed = rawStatus === 'rejected' || rawStatus === 'failed' || rawStatus === 'refunded';
+
+          const receipt = matchedWth?.paymentProofUrl || matchedWth?.receiptUrl || matchedPay?.paymentProofUrl || (l as any).paymentProofUrl || (l as any).receiptUrl;
+          const qr = matchedWth?.qrCodeUrl || matchedPay?.qrCodeUrl || (l as any).qrCodeUrl;
+          const chan = matchedWth?.channel || matchedPay?.paymentMethod || (matchedWth?.bankName ? 'Naira Bank Payout' : l.type === 'FX_SWAP' ? 'Vault Swap' : l.type === 'FUND' ? 'Bank Top-up' : 'Transfer');
+
+          let title = l.type === 'FX_SWAP' 
+            ? `FX Swap: ${l.sourceCurrency} to ${l.targetCurrency}` 
+            : l.type === 'FUND'
+            ? `Wallet Top-up (${l.sourceCurrency})`
+            : l.type === 'PAY_SUPPLIER'
+            ? `${matchedPay?.paymentMethod || 'Supplier'} Payout (${matchedPay?.receiverName || l.sourceCurrency})`
+            : matchedWth
+            ? `${matchedWth.bankName ? 'Naira Bank Withdrawal' : 'Wallet Withdrawal'} (${matchedWth.accountName || l.sourceCurrency})`
+            : `${l.type} Transaction`;
+
+          return {
+            id: l.id,
+            title,
+            category: l.type === 'FX_SWAP' ? 'FX Swap' : l.type === 'FUND' ? 'Wallet Top-up' : 'Supplier',
+            amount: l.amount,
+            currency: (l.sourceCurrency as Currency) || 'NGN',
+            convertedAmount: l.convertedAmount,
+            convertedCurrency: (l.targetCurrency as Currency) || 'CNY',
+            date: new Date(l.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' }),
+            timestamp: l.timestamp,
+            status: isComplete ? 'completed' : isFailed ? 'failed' : 'processing',
+            reference: l.reference,
+            recipient: matchedWth?.accountName || matchedPay?.receiverName || (l.type === 'FX_SWAP' ? `${l.sourceCurrency} → ${l.targetCurrency} Vault` : 'Treasury'),
+            paymentMethod: chan,
+            channel: chan,
+            accountNumber: matchedWth?.accountNumber || matchedPay?.receiverAccount,
+            bankName: matchedWth?.bankName || matchedPay?.bankName,
+            receiptUrl: receipt,
+            proofUrl: receipt,
+            paymentProofUrl: receipt,
+            qrCodeUrl: qr,
+            type: l.type === 'FX_SWAP' ? 'swap' : l.type === 'FUND' ? 'fund' : 'pay_supplier'
+          };
+        });
+
+        // Also include any user withdrawals or supplier payments that are direct documents
+        Object.values(withdrawalsMap)
+          .filter(w => !w.userId || w.userId === currentUid)
+          .forEach(w => {
+            if (!dynamicTxs.some(t => t.reference === w.reference || t.id === w.id)) {
+              const rawStatus = (w.status || '').toLowerCase();
+              const isComplete = rawStatus === 'completed' || rawStatus === 'approved' || rawStatus === 'successful' || rawStatus === 'disbursed';
+              const isFailed = rawStatus === 'rejected' || rawStatus === 'failed' || rawStatus === 'refunded';
+              const receipt = w.paymentProofUrl || w.receiptUrl;
+              dynamicTxs.unshift({
+                id: w.id,
+                title: w.channel === 'alipay' ? 'Alipay Payout' : w.channel === 'wechat' ? 'WeChat Pay Payout' : w.channel === 'china_bank' ? 'Chinese Bank Transfer' : 'Naira Bank Withdrawal',
+                category: 'Supplier',
+                amount: w.amountRMB || w.amountNGN,
+                currency: (w.currency as Currency) || (w.amountRMB ? 'CNY' : 'NGN'),
+                date: new Date(w.createdAt || Date.now()).toLocaleDateString([], { month: 'short', day: 'numeric' }),
+                timestamp: w.createdAt || Date.now(),
+                status: isComplete ? 'completed' : isFailed ? 'failed' : 'processing',
+                reference: w.reference || w.id,
+                recipient: w.accountName || w.customerName || 'Beneficiary',
+                paymentMethod: w.channel || 'Naira Bank Payout',
+                channel: w.channel || 'Naira Bank Payout',
+                accountNumber: w.accountNumber,
+                bankName: w.bankName,
+                receiptUrl: receipt,
+                proofUrl: receipt,
+                paymentProofUrl: receipt,
+                qrCodeUrl: w.qrCodeUrl,
+                type: 'withdraw'
+              });
+            }
+          });
+
+        Object.values(paymentsMap)
+          .filter(p => !p.userId || p.userId === currentUid)
+          .forEach(p => {
+            if (!dynamicTxs.some(t => t.reference === p.reference || t.id === p.id)) {
+              const rawStatus = (p.status || '').toLowerCase();
+              const isComplete = rawStatus === 'completed' || rawStatus === 'approved' || rawStatus === 'successful' || rawStatus === 'disbursed';
+              const isFailed = rawStatus === 'rejected' || rawStatus === 'failed' || rawStatus === 'refunded';
+              const receipt = p.paymentProofUrl;
+              dynamicTxs.unshift({
+                id: p.id,
+                title: `${p.paymentMethod || 'RMB'} Payout (${p.receiverName})`,
+                category: 'Supplier',
+                amount: p.amountRMB,
+                currency: 'CNY',
+                date: new Date(p.createdAt || Date.now()).toLocaleDateString([], { month: 'short', day: 'numeric' }),
+                timestamp: p.createdAt || Date.now(),
+                status: isComplete ? 'completed' : isFailed ? 'failed' : 'processing',
+                reference: p.reference || p.id,
+                recipient: p.receiverName,
+                paymentMethod: p.paymentMethod,
+                channel: p.paymentMethod,
+                accountNumber: p.receiverAccount,
+                bankName: p.bankName,
+                receiptUrl: receipt,
+                proofUrl: receipt,
+                paymentProofUrl: receipt,
+                qrCodeUrl: p.qrCodeUrl,
+                type: 'pay_supplier'
+              });
+            }
+          });
+
+        const existingRefs = new Set(dynamicTxs.map(t => t.reference));
+        const fallbackFiltered = INITIAL_TRANSACTIONS.filter(t => !existingRefs.has(t.reference));
+        const nextTxs = [...dynamicTxs, ...fallbackFiltered];
+        setTransactions((prev) => {
+          if (
+            prev.length === nextTxs.length &&
+            prev.every((t, i) => t.id === nextTxs[i]?.id && t.status === nextTxs[i]?.status && t.amount === nextTxs[i]?.amount && t.receiptUrl === nextTxs[i]?.receiptUrl)
+          ) {
+            return prev;
+          }
+          return nextTxs;
+        });
+      }
+
+      // Live In-App Notifications synchronization from State
+      const notifTargetUid = activeUserId || 'usr_alade_01';
+      const dbNotifs = (db.getState().notifications || []).filter((n: any) => !n.targetUserId && !n.userId || n.targetUserId === notifTargetUid || n.userId === notifTargetUid);
+      if (dbNotifs && dbNotifs.length > 0) {
+        const mappedNotifs: AppNotification[] = dbNotifs.map((n: any) => ({
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          time: n.time || 'Just now',
+          read: !!n.read,
+          type: (n.type as any) || 'system',
+          linkRoute: n.linkRoute
+        }));
+        setNotifications((prev) => {
+          const merged = [...mappedNotifs];
+          for (const p of prev) {
+            if (!merged.some(m => m.id === p.id)) {
+              merged.push(p);
+            }
+          }
+          if (prev.length === merged.length && prev.every((p, i) => p.id === merged[i]?.id && p.read === merged[i]?.read)) {
+            return prev;
+          }
+          return merged;
+        });
       }
     };
+
+    db.fetchWarehouses(true).then((whs) => {
+      if (whs && whs.length > 0) {
+        setWarehouses((prev) => {
+          if (
+            prev.length === whs.length &&
+            prev.every((w, i) => w.id === whs[i]?.id && w.isActive === whs[i]?.isActive)
+          ) {
+            return prev;
+          }
+          return whs;
+        });
+      }
+    });
 
     syncFromDb();
     const unsubscribe = db.subscribe(syncFromDb);
@@ -678,18 +1302,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('flyemass_wallets', JSON.stringify(wallets));
   }, [wallets]);
 
-  const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('flyemass_cart', JSON.stringify(cart));
+      } catch (e) {
+        console.warn('Failed to persist cart to localStorage', e);
+      }
+    }
+  }, [cart]);
+
+  const showToast = useCallback((message: string, type: 'success' | 'info' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => {
       setToast(null);
     }, 3200);
-  };
+  }, []);
 
-  const navigate = (route: ScreenRoute, param?: string) => {
+  const navigate = useCallback((route: ScreenRoute, param?: string) => {
+    let targetRoute = route;
+    if ((route as string) === '/cart' || (route as string) === '/shop/cart') targetRoute = 'cart';
+    if ((route as string) === '/checkout' || (route as string) === '/shop/checkout') targetRoute = 'checkout';
+    if ((route as string) === '/shop/product' || (route as string) === '/product') targetRoute = 'product-detail';
+
+    // Interactive Modal Popup Trigger for Currency Swap across all views
+    if (targetRoute === 'exchange' || (route as string) === '/exchange') {
+      openSwapModal();
+      return;
+    }
+
     const isAdmin = isAdminEnvironment();
 
     // Security Guard 1: Customer app cannot access admin routes
-    if (!isAdmin && (route.startsWith('admin-') || route === 'schema-inspector')) {
+    if (!isAdmin && (targetRoute.startsWith('admin-') || targetRoute === 'schema-inspector')) {
       showToast('Access Denied: Admin operations are restricted to https://admin.flyemass.com', 'error');
       setCurrentRoute('home');
       if (typeof window !== 'undefined' && window.history) {
@@ -699,7 +1344,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     // Security Guard 2: Admin app cannot accidentally navigate to customer screens
-    if (isAdmin && !route.startsWith('admin-') && route !== 'schema-inspector') {
+    if (isAdmin && !targetRoute.startsWith('admin-') && targetRoute !== 'schema-inspector') {
       setCurrentRoute('admin-dashboard');
       if (typeof window !== 'undefined' && window.history) {
         window.history.replaceState({ route: 'admin-dashboard' }, '', '/admin');
@@ -710,39 +1355,58 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (param !== undefined) {
       setRouteParam(param);
     }
-    setRouteHistory((prev) => [...prev, route]);
-    setCurrentRoute(route);
+    setRouteHistory((prev) => [...prev, targetRoute]);
+    setCurrentRoute(targetRoute);
 
-    const targetPath = ROUTE_TO_PATH[route] || `/${route}`;
-    if (window.location.pathname !== targetPath) {
-      window.history.pushState({ route, param }, '', targetPath);
+    const targetPath = ROUTE_TO_PATH[targetRoute] || `/${targetRoute}`;
+    if (typeof window !== 'undefined' && window.location.pathname !== targetPath) {
+      window.history.pushState({ route: targetRoute, param }, '', targetPath);
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const goBack = () => {
-    if (routeHistory.length > 1) {
-      const nextHistory = [...routeHistory];
-      nextHistory.pop(); // Remove current
-      const previous = nextHistory[nextHistory.length - 1];
-      setRouteHistory(nextHistory);
-      setCurrentRoute(previous);
-    } else {
-      setCurrentRoute('home');
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
     }
-  };
+  }, [openSwapModal, showToast]);
 
-  const toggleBalancePrivacy = () => {
+  const prefetchRoute = useCallback((route: ScreenRoute) => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('flyemass:prefetch-route', { detail: { route } }));
+    }
+  }, []);
+
+  const refreshWarehouses = useCallback(() => db.fetchWarehouses(true), []);
+
+  const goBack = useCallback(() => {
+    setRouteHistory((prev) => {
+      if (prev.length > 1) {
+        const nextHistory = [...prev];
+        nextHistory.pop();
+        const previous = nextHistory[nextHistory.length - 1];
+        setCurrentRoute(previous);
+        return nextHistory;
+      } else {
+        setCurrentRoute('home');
+        return ['home'];
+      }
+    });
+  }, []);
+
+  const toggleBalancePrivacy = useCallback(() => {
     setIsBalanceHidden((prev) => !prev);
-  };
+  }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setThemeMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
+  }, []);
 
-  const toggleFrameMockup = () => {
-    setIsFrameMockup((prev) => !prev);
-  };
+  const toggleFrameMockup = useCallback(() => {
+    setIsFrameMockup((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('flyemass_frame_mockup', String(next));
+      }
+      return next;
+    });
+  }, []);
 
   const login = async (identifier?: string, password?: string) => {
     try {
@@ -759,6 +1423,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (res.user?.uid) {
         switchUser(res.user.uid);
       }
+      try {
+        await supabaseAuth.setSession({
+          user: {
+            id: res.user?.uid || activeUserId,
+            email: res.user?.email || 'user@flyemass.com'
+          },
+          token: `fms_${Date.now()}`
+        });
+      } catch (e) {}
       navigate('home');
       showToast('Authenticated successfully with Biometrics / Password', 'success');
       return true;
@@ -769,6 +1442,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return false;
       }
       setIsAuthenticated(true);
+      try {
+        await supabaseAuth.setSession({
+          user: {
+            id: user?.uid || activeUserId,
+            email: user?.email || 'user@flyemass.com'
+          },
+          token: `fms_${Date.now()}`
+        });
+      } catch (e) {}
       navigate('home');
       showToast('Authenticated successfully (Secure Session)', 'success');
       return true;
@@ -777,6 +1459,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logout = () => {
     setIsAuthenticated(false);
+    try {
+      supabaseAuth.signOut();
+    } catch (e) {}
     navigate('welcome');
     showToast('Signed out of corporate session', 'info');
   };
@@ -946,6 +1631,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const storage = selectedStorage || 
       variant?.storage || 
       defaultVariant?.storage || 
+      product.storage ||
       product.storageOptions?.[0] || 
       'Standard';
 
@@ -962,6 +1648,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const basePriceNGN = product.priceNGN || Math.round((product.priceUSD || 0) * (rates.USD_NGN || 1485));
     const unitPriceNGN = basePriceNGN + priceAdjustmentNGN;
 
+    const qty = Math.max(1, quantity || 1);
+
     setCart((prev) => {
       const existing = prev.find(
         (item) =>
@@ -972,7 +1660,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       let updated: CartItem[];
       if (existing) {
         updated = prev.map((item) =>
-          item === existing ? { ...item, quantity: item.quantity + (quantity || 1) } : item
+          item === existing ? { ...item, quantity: item.quantity + qty } : item
         );
       } else {
         updated = [
@@ -980,7 +1668,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           {
             id: `ci-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
             product,
-            quantity: quantity || 1,
+            quantity: qty,
             variantId,
             selectedColor: color,
             selectedStorage: storage,
@@ -989,10 +1677,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
         ];
       }
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('flyemass_cart', JSON.stringify(updated));
+        } catch (e) {}
+      }
       db.syncCloudCart(activeUserId, updated).catch(() => {});
       return updated;
     });
-    showToast(`Added ${quantity > 1 ? `${quantity}x ` : ''}${product.title} to Cart`, 'success');
+    showToast(`Added ${qty > 1 ? `${qty}x ` : ''}${product.title} (${color}, ${storage}) to Cart`, 'success');
   };
 
   const updateCartQuantity = (productIdOrCartItemId: string, delta: number, variantId?: string) => {
@@ -1008,6 +1701,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return item;
         })
         .filter(Boolean) as CartItem[];
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('flyemass_cart', JSON.stringify(updated));
+        } catch (e) {}
+      }
       db.syncCloudCart(activeUserId, updated).catch(() => {});
       return updated;
     });
@@ -1020,6 +1718,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (item.product.id === productIdOrCartItemId && (variantId ? item.variantId === variantId : true)) return false;
         return true;
       });
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('flyemass_cart', JSON.stringify(updated));
+        } catch (e) {}
+      }
       db.syncCloudCart(activeUserId, updated).catch(() => {});
       return updated;
     });
@@ -1028,6 +1731,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const clearCart = () => {
     setCart([]);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('flyemass_cart');
+      } catch (e) {}
+    }
     db.syncCloudCart(activeUserId, []).catch(() => {});
   };
 
@@ -1235,8 +1943,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`Support ticket ${newTkt.ticketNumber} created!`, 'success');
   };
 
-  const addTicketMessage = (ticketId: string, text: string) => {
-    if (!text.trim()) return;
+  const addTicketMessage = (ticketId: string, text: string, attachment?: { url: string; fileName: string; fileType: string }) => {
+    if (!text.trim() && !attachment) return;
 
     setSupportTickets((prev) =>
       prev.map((tkt) => {
@@ -1244,15 +1952,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const userMsg = {
             sender: 'user' as const,
             senderName: userProfile.name,
-            text,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            text: text.trim() || (attachment ? `Attached file: ${attachment.fileName}` : ''),
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            attachmentUrl: attachment?.url,
+            attachmentName: attachment?.fileName,
+            attachmentType: attachment?.fileType
           };
 
           db.addTicketMessage(ticketId, {
             senderId: 'usr_alade_01',
             senderName: userProfile.name,
-            text,
-            isAdmin: false
+            text: userMsg.text,
+            isAdmin: false,
+            attachmentUrl: attachment?.url,
+            attachmentName: attachment?.fileName,
+            attachmentType: attachment?.fileType
           });
           return {
             ...tkt,
@@ -1397,28 +2111,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setChatMessages((prev) => [...prev, userMsg]);
 
-    setTimeout(() => {
-      let replyText = 'Thank you for contacting FlyeMass trade desk. Our Guangzhou and Lagos agents are reviewing your request. For urgent supplier escrow or freight booking, our average response time is under 2 minutes.';
-      const lower = text.toLowerCase();
-      if (lower.includes('rate') || lower.includes('fx') || lower.includes('rmb') || lower.includes('exchange')) {
-        replyText = `Current live rate is ₦214.50 per RMB and ₦1,485.00 per USD. You can lock rates instantly for 60 seconds directly in the Exchange tab with zero slippage!`;
-      } else if (lower.includes('cargo') || lower.includes('track') || lower.includes('package') || lower.includes('shipment')) {
-        replyText = `Your active air cargo FM-CAN-LOS-89241 is currently in flight on Ethiopian Cargo ET921 and scheduled to touch down at Lagos MM2 Cargo apron tomorrow!`;
-      } else if (lower.includes('address') || lower.includes('warehouse')) {
-        replyText = `Our Guangzhou Baiyun warehouse address: 广东省广州市白云区石井国际物流园B栋302室. Mark all cartons with your user mark FM-90214.`;
-      } else if (lower.includes('alipay') || lower.includes('wechat')) {
-        replyText = `We process direct 1688 and factory Alipay/WeChat settlement within 90 seconds. Verification is automated via China Merchant Clearing API.`;
-      }
-
-      const botReply: ChatMessage = {
-        id: `msg-reply-${Date.now()}`,
-        sender: 'support',
-        senderName: 'Li Na (FlyeMass Trade Concierge)',
-        text: replyText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setChatMessages((prev) => [...prev, botReply]);
-    }, 1000);
+    // Dispatch to Gemini API AI Concierge & Trade Support backend
+    db.sendConciergeChat(text, selectedTicketId || 'tkt_8901', activeUserId, userProfile.name)
+      .then((res) => {
+        if (res && res.aiMessage) {
+          const aiReply: ChatMessage = {
+            id: `msg-reply-${Date.now()}`,
+            sender: 'support',
+            senderName: res.aiMessage.senderName || 'Chen Wei (Trade AI)',
+            text: res.aiMessage.text || 'Trade AI is momentarily busy. Please try again or tap to escalate to human support.',
+            timestamp: res.aiMessage.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+          setChatMessages((prev) => [...prev, aiReply]);
+        }
+      })
+      .catch((err) => {
+        console.error('[sendChatMessage Dispatch Error]:', err);
+        const botReply: ChatMessage = {
+          id: `msg-reply-${Date.now()}`,
+          sender: 'support',
+          senderName: 'Chen Wei (Trade AI)',
+          text: 'Trade AI is momentarily busy. Please try again or tap to escalate to human support.',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setChatMessages((prev) => [...prev, botReply]);
+      });
   };
 
   return (
@@ -1426,6 +2143,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       value={{
         currentRoute,
         navigate,
+        prefetchRoute,
         goBack,
         routeHistory,
         routeParam,
@@ -1468,6 +2186,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         paySupplier,
         withdrawToBank,
         registerPackage,
+        warehouses,
+        refreshWarehouses,
         hotelBookings,
         bookHotel,
         chatMessages,
@@ -1494,7 +2214,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         viewAsClient,
         adminUser,
         loginAdmin,
-        logoutAdmin
+        logoutAdmin,
+        language,
+        setLanguage,
+        t,
+        getRouteTitle,
+        isSwapModalOpen,
+        setIsSwapModalOpen,
+        swapModalInitialPair,
+        openSwapModal,
+        closeSwapModal
       }}
     >
       {children}

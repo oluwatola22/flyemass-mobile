@@ -12,9 +12,27 @@ import {
   SupportTicketDocument,
   TechProduct,
   CartItem,
-  DeviceShopSettings
+  DeviceShopSettings,
+  ManualPaymentDocument,
+  Warehouse,
+  LagosHub,
+  ShippingCorridor,
+  FreightCalculationResult,
+  DestinationHubSurcharge
 } from '../types';
 import { TECH_PRODUCTS } from '../data/mockData';
+import {
+  AdminUser,
+  AdminRole,
+  AdminModulePermission,
+  INITIAL_ADMINS,
+  ROLE_DEFAULT_PERMISSIONS
+} from './firebase';
+import {
+  renderTransactionalEmail,
+  TransactionalEmailEvent,
+  EmailRecipient
+} from './emailTemplates';
 
 export interface DatabaseState {
   users: Record<string, UserDocument>;
@@ -22,6 +40,7 @@ export interface DatabaseState {
   shipments: Record<string, ShipmentDocument>;
   supplier_payments: Record<string, SupplierPaymentDocument>;
   withdrawals: Record<string, WithdrawalDocument>;
+  manual_payments?: Record<string, ManualPaymentDocument>;
   agent_requests: Record<string, AgentRequestDocument>;
   supplier_subscriptions: Record<string, SupplierSubscriptionDocument>;
   shop_orders: Record<string, ShopOrderDocument>;
@@ -34,6 +53,7 @@ export interface DatabaseState {
   device_shop_settings?: DeviceShopSettings;
   user_favorites?: Record<string, string[]>;
   device_cart_items?: Record<string, CartItem[]>;
+  chat_messages?: any[];
   support_tickets: Record<string, SupportTicketDocument>;
   banners: BannerDocument[];
   system_settings: SystemSettingsDocument;
@@ -41,6 +61,12 @@ export interface DatabaseState {
   double_entry_ledger?: Record<string, any>;
   notifications?: any[];
   email_receipts?: Record<string, any>;
+  warehouses?: Record<string, Warehouse>;
+  lagos_hubs?: Record<string, LagosHub>;
+  suppliers?: Record<string, any>;
+  private_supplier_contacts?: Record<string, any>;
+  admin_staff?: Record<string, AdminUser>;
+  fx_rates?: Record<string, any>;
 }
 
 import { getBackendBaseUrl } from '../utils/environment';
@@ -48,7 +74,199 @@ import { getBackendBaseUrl } from '../utils/environment';
 const STORAGE_KEY = 'flyemass_nosql_db_v2';
 const BACKEND_BASE = getBackendBaseUrl();
 
+export const DEFAULT_SHIPPING_CORRIDORS: ShippingCorridor[] = [
+  {
+    id: 'cn_los',
+    name: 'China ➔ Nigeria (Direct Cargo Corridor)',
+    originCountry: 'China',
+    originCode: 'CN',
+    originHub: 'Guangzhou / Yiwu / Foshan / Shenzhen / Hong Kong',
+    destinationCountry: 'Nigeria',
+    destinationHub: 'Lagos MMIA Hub (Ikeja, Alaba, Trade Fair, Abuja, Kano, Onitsha)',
+    flag: '🇳🇬',
+    airExpressRateUSD: 11.50,
+    airExpressBaseFeeUSD: 5.00,
+    airExpressDeliveryDays: '3–5 Days',
+    airExpressMinKg: 1.0,
+    airRegularRateUSD: 9.50,
+    airRegularBaseFeeUSD: 3.00,
+    airRegularDeliveryDays: '7–10 Days',
+    airRegularMinKg: 2.0,
+    seaFreightRateCbmUSD: 280.00,
+    seaFreightBaseFeeUSD: 25.00,
+    seaFreightDeliveryDays: '25–35 Days',
+    seaFreightMinCbm: 0.1,
+    customsClearanceIncluded: true,
+    isActive: true,
+    destinationHubSurcharges: [
+      { hubId: 'los_main', name: 'Lagos MMIA Cargo Terminal', state: 'Lagos', airSurchargeUSD: 0, seaSurchargeUSD: 0 },
+      { hubId: 'abj_hub', name: 'Abuja Cargo Hub', state: 'FCT Abuja', airSurchargeUSD: 1.20, seaSurchargeUSD: 35.00 },
+      { hubId: 'kan_hub', name: 'Kano Hub', state: 'Kano', airSurchargeUSD: 1.50, seaSurchargeUSD: 45.00 },
+      { hubId: 'phc_hub', name: 'Port Harcourt Hub', state: 'Rivers', airSurchargeUSD: 1.30, seaSurchargeUSD: 40.00 },
+      { hubId: 'oni_hub', name: 'Onitsha Commercial Dock', state: 'Anambra', airSurchargeUSD: 1.40, seaSurchargeUSD: 38.00 }
+    ]
+  }
+];
+
+export const DEFAULT_LAGOS_HUBS: Record<string, LagosHub> = {
+  'HUB-IKEJA': {
+    id: 'HUB-IKEJA',
+    name: 'Ikeja MMIA Cargo Terminal',
+    code: 'LOS-IKJ',
+    district: 'Ikeja',
+    address: 'Cargo Village, Murtala Muhammed International Airport, Airport Road, Ikeja, Lagos',
+    phone: '+234 803 999 1001',
+    contactPerson: 'Babatunde Balogun',
+    operatingHours: 'Mon - Sat: 8:00 AM - 6:00 PM',
+    doorstepDispatchAvailable: true,
+    sortOrder: 1,
+    isActive: true,
+    createdAt: 1772000000000,
+    updatedAt: 1772000000000
+  },
+  'HUB-ALABA': {
+    id: 'HUB-ALABA',
+    name: 'Alaba International Market Hub',
+    code: 'LOS-ALB',
+    district: 'Alaba',
+    address: 'Electronic Section Block C, Alaba International Market, Ojo, Lagos',
+    phone: '+234 803 999 1002',
+    contactPerson: 'Emeka Okonkwo',
+    operatingHours: 'Mon - Sat: 8:30 AM - 5:30 PM',
+    doorstepDispatchAvailable: true,
+    sortOrder: 2,
+    isActive: true,
+    createdAt: 1772000000000,
+    updatedAt: 1772000000000
+  },
+  'HUB-TRADEFAIR': {
+    id: 'HUB-TRADEFAIR',
+    name: 'Lagos Trade Fair Complex Hub',
+    code: 'LOS-TFC',
+    district: 'Amuwo-Odofin',
+    address: 'ASPAMDA Zone Plaza 4, Lagos-Badagry Expressway, Amuwo-Odofin, Lagos',
+    phone: '+234 803 999 1003',
+    contactPerson: 'Alhaji Usman Musa',
+    operatingHours: 'Mon - Sat: 8:00 AM - 6:00 PM',
+    doorstepDispatchAvailable: true,
+    sortOrder: 3,
+    isActive: true,
+    createdAt: 1772000000000,
+    updatedAt: 1772000000000
+  },
+  'HUB-YABA': {
+    id: 'HUB-YABA',
+    name: 'Yaba Tech & Commercial Hub',
+    code: 'LOS-YAB',
+    district: 'Yaba',
+    address: '248 Herbert Macaulay Way, Commercial Avenue Junction, Yaba, Lagos',
+    phone: '+234 803 999 1004',
+    contactPerson: 'Folashade Adeleke',
+    operatingHours: 'Mon - Sat: 8:00 AM - 6:30 PM',
+    doorstepDispatchAvailable: true,
+    sortOrder: 4,
+    isActive: true,
+    createdAt: 1772000000000,
+    updatedAt: 1772000000000
+  },
+  'HUB-LEKKI': {
+    id: 'HUB-LEKKI',
+    name: 'Lekki / Island Dispatch Station',
+    code: 'LOS-LKK',
+    district: 'Lekki Phase 1',
+    address: 'Plot 12 Admiralty Way, Lekki Phase 1, Victoria Island Corridor, Lagos',
+    phone: '+234 803 999 1005',
+    contactPerson: 'Chidi Nnamdi',
+    operatingHours: 'Mon - Sat: 9:00 AM - 7:00 PM',
+    doorstepDispatchAvailable: true,
+    sortOrder: 5,
+    isActive: true,
+    createdAt: 1772000000000,
+    updatedAt: 1772000000000
+  }
+};
+
+export const DEFAULT_WAREHOUSES: Record<string, Warehouse> = {
+  'wh_gz_main': {
+    id: 'wh_gz_main',
+    name: 'Guangzhou Main Air & Sea Logistics Terminal',
+    hubName: 'Guangzhou Main Hub',
+    country: 'China',
+    province: 'Guangdong Province',
+    city: 'Guangzhou',
+    fullAddress: 'Room 302, Building B, Shijing International Logistics Park, Baiyun District, Guangzhou, Guangdong Province, China',
+    postalCode: '510440',
+    phone: '+86 186 2008 9142',
+    contactPerson: 'Manager Chen',
+    isActive: true,
+    createdAt: 1772000000000,
+    updatedAt: 1772000000000
+  },
+  'wh_yiwu_port': {
+    id: 'wh_yiwu_port',
+    name: 'Yiwu International Port Consolidation Hub',
+    hubName: 'Yiwu Consolidation Port',
+    country: 'China',
+    province: 'Zhejiang',
+    city: 'Yiwu',
+    fullAddress: 'Block 4, Yiwu International Port Logistics Center, Chouzhou North Road, Yiwu, Zhejiang, China',
+    postalCode: '322000',
+    phone: '+86 138 5791 2240',
+    contactPerson: 'Director Lin',
+    isActive: true,
+    createdAt: 1772000000000,
+    updatedAt: 1772000000000
+  },
+  'wh_foshan_heavy': {
+    id: 'wh_foshan_heavy',
+    name: 'Foshan Furniture & Heavy Cargo Terminal',
+    hubName: 'Foshan Cargo Terminal',
+    country: 'China',
+    province: 'Guangdong Province',
+    city: 'Foshan',
+    fullAddress: 'Building 7, Lecong International Furniture & Logistics Complex, Shunde/Nanhai, Foshan, Guangdong Province, China',
+    postalCode: '528315',
+    phone: '+86 139 2855 8192',
+    contactPerson: 'Supervisor Liang',
+    isActive: true,
+    createdAt: 1772000000000,
+    updatedAt: 1772000000000
+  },
+  'wh_shenzhen_tech': {
+    id: 'wh_shenzhen_tech',
+    name: 'Shenzhen Tech & Battery Cargo Terminal',
+    hubName: 'Shenzhen Tech Port',
+    country: 'China',
+    province: 'Guangdong Province',
+    city: 'Shenzhen',
+    fullAddress: 'Fuyong Logistics Park, Airport North Road, Bao\'an District, Shenzhen, Guangdong Province, China',
+    postalCode: '518103',
+    phone: '+86 137 1422 9018',
+    contactPerson: 'Manager Zhao',
+    isActive: true,
+    createdAt: 1772000000000,
+    updatedAt: 1772000000000
+  },
+  'wh_hongkong_air': {
+    id: 'wh_hongkong_air',
+    name: 'Hong Kong Express Air Freight Terminal',
+    hubName: 'Hong Kong Express Port',
+    country: 'China',
+    province: 'Hong Kong SAR',
+    city: 'Hong Kong',
+    fullAddress: 'Container Terminal 3, Kwai Chung Logistics Hub, New Territories, Hong Kong',
+    postalCode: '999077',
+    phone: '+852 2388 9102',
+    contactPerson: 'Operations Lead Wong',
+    isActive: true,
+    createdAt: 1772000000000,
+    updatedAt: 1772000000000
+  }
+};
+
 export const INITIAL_DATABASE: DatabaseState = {
+  lagos_hubs: DEFAULT_LAGOS_HUBS,
+  warehouses: DEFAULT_WAREHOUSES,
   users: {
     'usr_alade_01': {
       uid: 'usr_alade_01',
@@ -367,6 +585,128 @@ export const INITIAL_DATABASE: DatabaseState = {
   },
 
   hotels: {
+    'hotel-canton-trade': {
+      id: 'hotel-canton-trade',
+      name: 'Canton Trade Tower Hotel',
+      chineseName: '广州广交商贸大厦酒店',
+      city: 'Guangzhou',
+      district: 'Haizhu Pazhou Complex Zone',
+      englishAddress: '888 Xingang East Road, Haizhu District, Guangzhou',
+      chineseAddress: '广州市海珠区新港东路888号',
+      description: 'Contemporary business hotel located 5 minutes from Canton Fair Complex, offering Pearl River views and Canton Fair shuttles.',
+      pricePerNightUSD: 45,
+      pricePerNightCNY: 320,
+      pricePerNightNGN: 72000,
+      rating: 4.5,
+      reviewsCount: 180,
+      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['Canton Fair Shuttle', 'English Concierge', 'Executive Desk'],
+      distanceToMarket: '5 mins to Pazhou Exhibition Complex',
+      amenities: ['Free Wi-Fi', 'Breakfast included', 'Air conditioning', 'Airport shuttle', 'Elevator', '24/7 reception', 'Laundry service', 'Gym'],
+      roomType: 'Standard Room',
+      roomTypes: [
+        { id: 'rm-std', name: 'Standard Room', nightlySurchargeUSD: 0, maxGuests: 2, description: 'Comfortable king bed, city view, high-speed Wi-Fi', amenities: ['King Bed', 'Free Wi-Fi', 'Rain Shower'] },
+        { id: 'rm-dlx', name: 'Deluxe King Room', nightlySurchargeUSD: 15, maxGuests: 3, description: 'Spacious double bed suite, complimentary executive breakfast', amenities: ['Twin Double Beds', 'Breakfast Included', 'Work Desk'] },
+        { id: 'rm-ste', name: 'Executive Fair Suite', nightlySurchargeUSD: 35, maxGuests: 4, description: 'Luxury 65sqm suite with private meeting lounge & panoramic skyline view', amenities: ['Separate Living Area', 'Executive Lounge Access', 'Bathtub', 'Airport Transfer'] }
+      ],
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      isPublished: true,
+      taxiCardZh: '师傅，请带我去广州广交商贸大厦酒店（海珠区新港东路888号）。谢谢！'
+    },
+    'hotel-yiwu-market': {
+      id: 'hotel-yiwu-market',
+      name: 'Yiwu Market View Residence',
+      chineseName: '义乌商贸城景观公馆',
+      city: 'Yiwu',
+      district: 'Futian International Trade City',
+      englishAddress: '168 Chouzhou North Road, Yiwu, Zhejiang',
+      chineseAddress: '浙江省金华市义乌市稠州北路168号',
+      description: 'Directly opposite Yiwu International Trade City District 1 and 2, tailored for international commodity buyers.',
+      pricePerNightUSD: 38,
+      pricePerNightCNY: 270,
+      pricePerNightNGN: 61000,
+      rating: 4.3,
+      reviewsCount: 145,
+      image: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['Opposite Futian Trade Market', 'African Buyers Favorite', 'Free Trade Shuttle'],
+      distanceToMarket: '400m to District 1 & 2 Commodity Mart',
+      amenities: ['Free Wi-Fi', 'Air conditioning', 'Elevator', '24/7 reception', 'Laundry service', 'Restaurant', 'English-speaking staff'],
+      roomType: 'One-Bedroom Residence',
+      roomTypes: [
+        { id: 'rm-std', name: 'One-Bedroom Residence', nightlySurchargeUSD: 0, maxGuests: 2, description: 'Fully furnished residence near trade market', amenities: ['Queen Bed', 'Free Wi-Fi', 'Kitchenette'] },
+        { id: 'rm-ste', name: 'Two-Bedroom Trade Suite', nightlySurchargeUSD: 20, maxGuests: 4, description: 'Two bedroom suite for trade partners', amenities: ['2 Bedrooms', 'Living Room', 'Work Desk'] }
+      ],
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      isPublished: true,
+      taxiCardZh: '师傅，请带我去义乌商贸城景观公馆（稠州北路168号）。谢谢！'
+    },
+    'hotel-sz-huaqiangbei': {
+      id: 'hotel-sz-huaqiangbei',
+      name: 'Shenzhen Huaqiangbei Suites',
+      chineseName: '深圳华强北行政套房酒店',
+      city: 'Shenzhen',
+      district: 'Futian District / Huaqiangbei',
+      englishAddress: '1002 Shennan Middle Road, Futian District, Shenzhen',
+      chineseAddress: '深圳市福田区深南中路1002号',
+      description: 'Prime tech hub accommodation 2 minutes from Huaqiangbei electronics market with high-speed fiber internet.',
+      pricePerNightUSD: 52,
+      pricePerNightCNY: 370,
+      pricePerNightNGN: 83000,
+      rating: 4.8,
+      reviewsCount: 210,
+      image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['Huaqiangbei Tech Hub', 'Multi-Language Desk', 'High-Speed Fiber'],
+      distanceToMarket: '200m to Huaqiangbei Electronics Market',
+      amenities: ['Free Wi-Fi', 'Breakfast included', 'Air conditioning', 'Elevator', '24/7 reception', 'Gym', 'Parking', 'English-speaking staff'],
+      roomType: 'Studio Suite',
+      roomTypes: [
+        { id: 'rm-std', name: 'Studio Suite', nightlySurchargeUSD: 0, maxGuests: 2, description: 'High-tech studio with fiber internet', amenities: ['King Bed', 'Free Wi-Fi', 'Smart TV'] },
+        { id: 'rm-dlx', name: 'Superior Electronics Suite', nightlySurchargeUSD: 18, maxGuests: 3, description: 'Spacious suite with work conference desk', amenities: ['Twin Beds', 'Breakfast included', 'Meeting Desk'] },
+        { id: 'rm-ste', name: 'High-Floor Skyline Executive', nightlySurchargeUSD: 40, maxGuests: 4, description: 'Skyline view with private lounge access', amenities: ['Skyline View', 'Lounge Access', 'Bathtub'] }
+      ],
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      isPublished: true,
+      taxiCardZh: '师傅，请带我去深圳华强北行政套房酒店（深南中路1002号）。谢谢！'
+    },
+    'hotel-sh-bund-loft': {
+      id: 'hotel-sh-bund-loft',
+      name: 'Shanghai Bund Loft BNB',
+      chineseName: '上海外滩景观阁楼民宿',
+      city: 'Shanghai',
+      district: 'Huangpu District / The Bund',
+      englishAddress: '88 Zhongshan East 1st Road, Huangpu District, Shanghai',
+      chineseAddress: '上海市黄浦区中山东一路88号',
+      description: 'Chic historic loft accommodation overlooking the Huangpu River and Lujiazui financial skyline.',
+      pricePerNightUSD: 60,
+      pricePerNightCNY: 430,
+      pricePerNightNGN: 96000,
+      rating: 4.7,
+      reviewsCount: 195,
+      image: 'https://images.unsplash.com/photo-1541971875076-8f970d573be6?auto=format&fit=crop&w=600&q=80',
+      images: [
+        'https://images.unsplash.com/photo-1541971875076-8f970d573be6?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['Huangpu River Bund View', 'Historic Architecture', 'Panoramic Skyline'],
+      distanceToMarket: '500m to The Bund Promenade',
+      amenities: ['Free Wi-Fi', 'Air conditioning', 'Elevator', '24/7 reception', 'Swimming pool', 'Restaurant', 'English-speaking staff'],
+      roomType: 'Bund View Loft',
+      roomTypes: [
+        { id: 'rm-std', name: 'Bund View Loft', nightlySurchargeUSD: 0, maxGuests: 2, description: 'Romantic duplex loft with Bund river view', amenities: ['Queen Bed', 'Free Wi-Fi', 'River View'] },
+        { id: 'rm-ste', name: 'Duplex Riverside Penthouse', nightlySurchargeUSD: 25, maxGuests: 4, description: 'Panoramic penthouse with outdoor terrace', amenities: ['Terrace', 'Living Room', 'Bathtub'] }
+      ],
+      cancellationPolicy: 'Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.',
+      isPublished: true,
+      taxiCardZh: '师傅，请带我去上海外滩景观阁楼民宿（中山东一路88号）。谢谢！'
+    },
     'hotel-gz-westin': {
       id: 'hotel-gz-westin',
       name: 'The Westin Pazhou Guangzhou',
@@ -918,6 +1258,8 @@ export const INITIAL_DATABASE: DatabaseState = {
     }
   },
 
+  chat_messages: [],
+
   support_tickets: {
     'tkt_8901': {
       id: 'tkt_8901',
@@ -989,6 +1331,21 @@ export const INITIAL_DATABASE: DatabaseState = {
       supplierVerificationUSD: 150,
       factoryAuditUSD: 250,
       qualityControlUSD: 200
+    },
+    shipping_corridors: DEFAULT_SHIPPING_CORRIDORS,
+    air_shipping_rates: {
+      expressRatePerKgUSD: 13.00,
+      expressHandlingFeeUSD: 0.00,
+      normalRatePerKgUSD: 9.60,
+      normalHandlingFeeUSD: 0.00,
+      updatedAt: Date.now(),
+      updatedBy: 'Admin'
+    },
+    logistics_fx_rates: {
+      usdToNgn: 1400.00,
+      usdToCny: 7.25,
+      updatedAt: Date.now(),
+      updatedBy: 'Admin'
     }
   },
 
@@ -1006,6 +1363,13 @@ export const INITIAL_DATABASE: DatabaseState = {
   },
   user_favorites: {},
   device_cart_items: {},
+
+  admin_staff: {
+    ...INITIAL_ADMINS.reduce((acc, adm) => {
+      acc[adm.uid] = adm;
+      return acc;
+    }, {} as Record<string, AdminUser>)
+  },
 
   audit_logs: [
     {
@@ -1038,9 +1402,21 @@ export const INITIAL_DATABASE: DatabaseState = {
 class DatabaseService {
   private state: DatabaseState;
   private listeners: (() => void)[] = [];
+  private ratesPromise: Promise<any> | null = null;
+  private lastRatesFetch: number = 0;
+  private warehousesFetchPromise: Promise<Warehouse[]> | null = null;
+  private lastWarehousesFetch: number = 0;
+  private supplierPricesPromise: Promise<any> | null = null;
+  private lastSupplierPricesFetch: number = 0;
+  private stateRevision: number = 1;
+  private lastSerializedState: string = '';
+  private pendingNotify: boolean = false;
 
   constructor() {
     this.state = this.loadState();
+    try {
+      this.lastSerializedState = JSON.stringify(this.state);
+    } catch (e) {}
     this.initSync();
   }
 
@@ -1052,9 +1428,16 @@ class DatabaseService {
         try {
           const data = JSON.parse(event.data);
           if (data && data.state) {
+            const incomingStr = JSON.stringify(data.state);
+            // Strict equality gate: skip redundant sync broadcasts
+            if (incomingStr === this.lastSerializedState) {
+              return;
+            }
             this.state = { ...this.state, ...data.state };
+            this.lastSerializedState = incomingStr;
+            this.stateRevision++;
             try {
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+              localStorage.setItem(STORAGE_KEY, incomingStr);
             } catch (err) {}
             this.notifyListeners();
           }
@@ -1126,7 +1509,9 @@ class DatabaseService {
           device_shop_settings: { ...(INITIAL_DATABASE.device_shop_settings || {}), ...(parsed.device_shop_settings || {}) },
           user_favorites: parsed.user_favorites || {},
           device_cart_items: parsed.device_cart_items || {},
+          chat_messages: parsed.chat_messages || [],
           support_tickets: { ...INITIAL_DATABASE.support_tickets, ...(parsed.support_tickets || {}) },
+          lagos_hubs: { ...DEFAULT_LAGOS_HUBS, ...(parsed.lagos_hubs || {}) },
           banners: parsed.banners || INITIAL_DATABASE.banners,
           system_settings: parsed.system_settings || INITIAL_DATABASE.system_settings
         };
@@ -1139,7 +1524,10 @@ class DatabaseService {
 
   private persist() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+      const stateStr = JSON.stringify(this.state);
+      this.lastSerializedState = stateStr;
+      this.stateRevision++;
+      localStorage.setItem(STORAGE_KEY, stateStr);
       this.notifyListeners();
       this.syncRemote();
     } catch (e) {
@@ -1155,7 +1543,23 @@ class DatabaseService {
   }
 
   private notifyListeners() {
-    this.listeners.forEach((l) => l());
+    if (this.pendingNotify) return;
+    this.pendingNotify = true;
+    queueMicrotask(() => {
+      this.pendingNotify = false;
+      const listeners = [...this.listeners];
+      for (const listener of listeners) {
+        try {
+          listener();
+        } catch (e) {
+          console.error('Error in database listener', e);
+        }
+      }
+    });
+  }
+
+  public getStateRevision(): number {
+    return this.stateRevision;
   }
 
   public getState(): DatabaseState {
@@ -1213,6 +1617,49 @@ class DatabaseService {
     }
   }
 
+  public async resetPin(userId: string, newPin: string, resetToken?: string, email?: string): Promise<{ success: boolean; error?: string; message?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/auth/reset-pin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, newPin, resetToken, email })
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: true };
+    }
+  }
+
+  public async unlockUserPin(userId: string, adminId?: string): Promise<{ success: boolean; error?: string; message?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/users/unlock-pin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, adminId })
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: true };
+    }
+  }
+
+  public async requestAccountDeletion(userId: string, reason: string): Promise<{ success: boolean; error?: string; message?: string; reference?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/auth/delete-account`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, reason })
+      });
+      return await res.json();
+    } catch (e) {
+      return { 
+        success: true, 
+        message: 'Account scheduled for de-identification in 14 days',
+        reference: 'REF-DEL-' + Math.floor(1000 + Math.random() * 9000)
+      };
+    }
+  }
+
   public async fundWallet(userId: string, currency: string, amount: number, paymentMethod: string, reference?: string): Promise<any> {
     try {
       const res = await fetch(`${BACKEND_BASE}/api/wallets/fund`, {
@@ -1230,17 +1677,410 @@ class DatabaseService {
     }
   }
 
-  public async executeSwap(userId: string, fromCurrency: string, toCurrency: string, fromAmount: number, toAmount: number, rate: number, pin?: string): Promise<any> {
+  public async simulateGatewayFunding(userId: string, currency: string, amount: number, paymentMethod: string, simulateStatus: 'completed' | 'failed' = 'completed', reference?: string): Promise<any> {
     try {
-      const res = await fetch(`${BACKEND_BASE}/api/wallets/swap`, {
+      const res = await fetch(`${BACKEND_BASE}/api/wallets/fund-simulate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, fromCurrency, toCurrency, fromAmount, toAmount, rate, pin })
+        body: JSON.stringify({ userId, currency, amount, paymentMethod, simulateStatus, reference })
       });
       return await res.json();
     } catch (e) {
-      return { success: true };
+      return { 
+        success: false, 
+        error: 'Authoritative backend connection required.' 
+      };
     }
+  }
+
+  public async getReceivingAccounts(): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/wallets/receiving-accounts`);
+      const data = await res.json();
+      return data.receiving_accounts || (this.state.system_settings as any)?.receiving_accounts;
+    } catch (e) {
+      return (this.state.system_settings as any)?.receiving_accounts || {
+        ngn: {
+          bankName: 'Providus Bank',
+          accountNumber: '9082341902',
+          accountName: 'FlyeMass Logistics & Trade Ltd',
+          instructions: 'Please include your FlyeMass Customer User Code (e.g. FLYE-NG-8821) as payment narration.'
+        },
+        usd: {
+          bankName: 'JPMorgan Chase Bank, N.A. (New York)',
+          accountName: 'FlyeMass Global International Inc.',
+          accountNumber: '02100002148902',
+          swiftBic: 'CHASUS33',
+          routingNumber: '021000021',
+          intermediaryBankInstructions: 'For international wires, quote beneficiary IBAN US89JPMC02100002148902 and your FlyeMass account ID.'
+        }
+      };
+    }
+  }
+
+  public async updateReceivingAccounts(data: any, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/receiving-accounts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'finance_officer'
+      },
+      body: JSON.stringify({ ...data, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to update receiving accounts');
+    if (result.receiving_accounts && (this.state.system_settings as any)) {
+      (this.state.system_settings as any).receiving_accounts = result.receiving_accounts;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async getGatewaySettings(): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/gateways/settings`);
+      const data = await res.json();
+      return data.gateways || (this.state.system_settings as any)?.gateways;
+    } catch (e) {
+      return (this.state.system_settings as any)?.gateways;
+    }
+  }
+
+  public async updateGatewaySettings(data: any, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/gateways/settings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'finance_officer'
+      },
+      body: JSON.stringify({ ...data, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to update gateway settings');
+    if (result.gateways && (this.state.system_settings as any)) {
+      (this.state.system_settings as any).gateways = result.gateways;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async submitManualDeposit(depositData: any): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/wallets/manual-deposit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(depositData)
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to submit manual deposit');
+      if (result.payment) {
+        if (!this.state.manual_payments) (this.state as any).manual_payments = {};
+        (this.state as any).manual_payments[result.payment.id] = result.payment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      console.warn('Backend manual deposit endpoint failed, using local fallback:', e.message);
+      const paymentId = depositData.id || `mpay_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      const curr = depositData.currency || 'USD';
+      const num = Number(depositData.amount) || 0;
+      const payment = {
+        id: paymentId,
+        reference: depositData.reference || `FLYE-${curr}-${Date.now()}`,
+        userId: depositData.userId || 'usr_alade_01',
+        customerName: depositData.customerName || 'Chief Babatunde Alade',
+        customerEmail: depositData.customerEmail || 'alade.investments@flyemass.ng',
+        currency: curr,
+        amount: num,
+        paymentMethod: depositData.paymentMethod || 'Manual Bank Wire / Transfer',
+        senderName: depositData.senderName || depositData.customerName || 'Chief Babatunde Alade',
+        originatingBank: depositData.originatingBank || 'Wire Transfer',
+        destinationBank: depositData.destinationBank || (curr === 'USD' ? 'JPMorgan Chase Bank, N.A. (New York)' : 'Providus Bank'),
+        receiptUrl: depositData.receiptUrl || null,
+        receiptFileName: depositData.receiptFileName || 'bank_transfer_receipt',
+        status: 'pending',
+        notes: depositData.notes || 'Pending admin verification of bank wire',
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      if (!this.state.manual_payments) (this.state as any).manual_payments = {};
+      (this.state as any).manual_payments[paymentId] = payment;
+      this.persist();
+      this.notifyListeners();
+      return { success: true, payment };
+    }
+  }
+
+  public getManualPayments(): any[] {
+    const payments = Object.values((this.state as any).manual_payments || {});
+    return payments.sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+  }
+
+  public async approveManualPayment(paymentId: string, internalNotes: string = '', adminId: string = 'adm-001'): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/manual-payments/approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-id': adminId,
+          'x-admin-role': 'finance_officer'
+        },
+        body: JSON.stringify({ paymentId, internalNotes, adminId })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to approve manual payment');
+      if (result.payment) {
+        if (!this.state.manual_payments) (this.state as any).manual_payments = {};
+        (this.state as any).manual_payments[result.payment.id] = result.payment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      console.warn('Backend manual payment approve failed, using local fallback:', e.message);
+      if (!this.state.manual_payments || !(this.state as any).manual_payments[paymentId]) {
+        throw new Error('Manual payment request not found');
+      }
+      const payment = (this.state as any).manual_payments[paymentId];
+      payment.status = 'approved';
+      payment.adminNotes = internalNotes || 'Approved by Finance Desk';
+      payment.updatedAt = Date.now();
+
+      // Credit user's wallet
+      const user = this.state.users[payment.userId];
+      if (user) {
+        const curr = payment.currency || 'USD';
+        user.balances[curr as 'NGN' | 'USD' | 'CNY'] = (user.balances[curr as 'NGN' | 'USD' | 'CNY'] || 0) + payment.amount;
+
+        const ledgerId = `ldg_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+        if (!this.state.wallets_ledger) this.state.wallets_ledger = {};
+        this.state.wallets_ledger[ledgerId] = {
+          id: ledgerId,
+          userId: user.uid,
+          type: 'FUND',
+          sourceCurrency: curr as any,
+          targetCurrency: curr as any,
+          amount: payment.amount,
+          fee: 0,
+          openingBalance: user.balances[curr as 'NGN' | 'USD' | 'CNY'] - payment.amount,
+          closingBalance: user.balances[curr as 'NGN' | 'USD' | 'CNY'],
+          status: 'completed',
+          reference: payment.reference,
+          timestamp: Date.now(),
+          notes: `Manual ${curr} wire transfer approved and credited (${curr === 'USD' ? '$' : '₦'}${payment.amount.toLocaleString()})`
+        };
+      }
+      this.persist();
+      this.notifyListeners();
+      return { success: true, payment, balances: user?.balances };
+    }
+  }
+
+  public async rejectManualPayment(paymentId: string, rejectionReason: string, adminId: string = 'adm-001'): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/manual-payments/reject`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-id': adminId,
+          'x-admin-role': 'finance_officer'
+        },
+        body: JSON.stringify({ paymentId, rejectionReason, adminId })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to reject manual payment');
+      if (result.payment) {
+        if (!this.state.manual_payments) (this.state as any).manual_payments = {};
+        (this.state as any).manual_payments[result.payment.id] = result.payment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      console.warn('Backend manual payment reject failed, using local fallback:', e.message);
+      if (!this.state.manual_payments || !(this.state as any).manual_payments[paymentId]) {
+        throw new Error('Manual payment request not found');
+      }
+      const payment = (this.state as any).manual_payments[paymentId];
+      payment.status = 'rejected';
+      payment.rejectionReason = rejectionReason || 'Transfer receipt could not be verified';
+      payment.adminNotes = rejectionReason || 'Rejected by Finance Desk';
+      payment.updatedAt = Date.now();
+      this.persist();
+      this.notifyListeners();
+      return { success: true, payment };
+    }
+  }
+
+  public async requeryPaymentReference(reference: string, provider?: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/gateway/requery`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'finance_officer'
+      },
+      body: JSON.stringify({ reference, provider, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to requery payment reference');
+    return result;
+  }
+
+  public async executeSwap(
+    userId: string, 
+    fromCurrency: string, 
+    toCurrency: string, 
+    fromAmount: number, 
+    toAmount?: number, 
+    rate?: number, 
+    pin?: string,
+    idempotencyKey?: string
+  ): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/wallets/swap`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(idempotencyKey ? { 'x-idempotency-key': idempotencyKey } : {})
+        },
+        body: JSON.stringify({ userId, fromCurrency, toCurrency, fromAmount, toAmount, rate, pin, idempotencyKey })
+      });
+      const data = await res.json();
+      if (data.success && data.balances && this.state.users[userId]) {
+        this.state.users[userId].balances = data.balances;
+        if (data.ledger) {
+          this.state.wallets_ledger[data.ledger.id] = data.ledger;
+        }
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Swap execution failed' };
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // ENTERPRISE FX: rate book, publishing (publish_fx_rate), fee settings
+  // and atomic swaps (execute_currency_swap)
+  // ---------------------------------------------------------------------
+  public async getFxBook(): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/fx/book`);
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed to load FX rate book');
+    return data;
+  }
+
+  private fxAdminHeaders(adminId?: string, role: string = 'super_admin') {
+    return { 'Content-Type': 'application/json', 'x-admin-id': adminId || 'adm-001', 'x-admin-role': role };
+  }
+
+  public async publishFxRate(
+    base: string, quote: string, buyRate: number, sellRate: number, adminId?: string, adminName?: string, role?: string
+  ): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/fx/publish`, {
+        method: 'POST',
+        headers: this.fxAdminHeaders(adminId, role),
+        body: JSON.stringify({ base, quote, buyRate, sellRate, adminName })
+      });
+      const data = await res.json();
+      if (data.success) await this.refreshAfterFxChange();
+      return data;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Rate publishing failed' };
+    }
+  }
+
+  public async updateFxFeeSetting(
+    direction: string, feePercent: number, minAmountMinor: number, adminId?: string, adminName?: string, role?: string,
+    maxRateAgeMinutes?: number
+  ): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/fx/fees`, {
+        method: 'POST',
+        headers: this.fxAdminHeaders(adminId, role),
+        body: JSON.stringify({ direction, feePercent, minAmountMinor, adminName, maxRateAgeMinutes })
+      });
+      return await res.json();
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Fee update failed' };
+    }
+  }
+
+  public async getFxAuditLog(adminId?: string, role?: string): Promise<any[]> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/fx/audit-log`, { headers: this.fxAdminHeaders(adminId, role) });
+      const data = await res.json();
+      return data.logs || [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async executeCurrencySwap(
+    userId: string, direction: string, amountMinor: number, pin: string, expectedRateId?: string
+  ): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/fx/swap`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, direction, amountMinor, pin, expectedRateId })
+      });
+      const data = await res.json();
+      if (data.success && data.balances && this.state.users[userId]) {
+        this.state.users[userId].balances = data.balances;
+        if (data.ledger) this.state.wallets_ledger[data.ledger.id] = data.ledger;
+        this.persist();
+        this.notifyListeners();
+      }
+      if (!res.ok && !data.error) data.error = 'Swap failed';
+      return data;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Swap execution failed' };
+    }
+  }
+
+  private async refreshAfterFxChange() {
+    this.lastRatesFetch = 0;
+    try { await this.getAuthoritativeRates(true); } catch { /* ignore */ }
+    this.notifyListeners();
+  }
+
+  public async getAuthoritativeRates(force: boolean = false): Promise<any> {
+    const now = Date.now();
+    if (!force && this.state.system_settings?.rates && (now - this.lastRatesFetch < 30000)) {
+      return this.state.system_settings.rates;
+    }
+    if (this.ratesPromise) {
+      return this.ratesPromise;
+    }
+    this.ratesPromise = (async () => {
+      try {
+        const res = await fetch(`${BACKEND_BASE}/api/wallets/rates`);
+        const data = await res.json();
+        if (data.rates) {
+          if (!this.state.system_settings) {
+            this.state.system_settings = { rates: data.rates } as any;
+          } else {
+            this.state.system_settings.rates = data.rates;
+          }
+          this.lastRatesFetch = Date.now();
+        }
+        return data.rates;
+      } catch {
+        return this.state.system_settings?.rates || { USD_NGN: 1485, USD_CNY: 7.24, NGN_CNY: 214.50, spreadPercent: 0.75 };
+      } finally {
+        this.ratesPromise = null;
+      }
+    })();
+    return this.ratesPromise;
   }
 
   public async paySupplier(
@@ -1262,7 +2102,20 @@ class DatabaseService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      return await res.json();
+      const data = await res.json();
+      if (data && data.success) {
+        const uId = payload.userId || 'usr_alade_01';
+        if (data.balances && this.state.users[uId]) {
+          this.state.users[uId].balances = data.balances;
+        }
+        if (data.payment) {
+          if (!this.state.supplier_payments) this.state.supplier_payments = {};
+          this.state.supplier_payments[data.payment.id] = data.payment;
+        }
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
     } catch (e: any) {
       return { success: false, error: e.message || 'Network error executing supplier payment' };
     }
@@ -1290,23 +2143,54 @@ class DatabaseService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      return await res.json();
+      const data = await res.json();
+      if (data && data.success) {
+        const uId = payload.userId || 'usr_alade_01';
+        if (data.balances && this.state.users[uId]) {
+          this.state.users[uId].balances = data.balances;
+        }
+        if (data.withdrawal) {
+          if (!this.state.withdrawals) this.state.withdrawals = {};
+          this.state.withdrawals[data.withdrawal.id] = data.withdrawal;
+        }
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
     } catch (e: any) {
       return { success: false, error: e.message || 'Network error requesting withdrawal' };
     }
   }
 
-  public async payFreight(shipmentId: string, userId: string, paidWith: string, pin?: string): Promise<any> {
+  public async payFreight(shipmentId: string, userId: string, paidWith: string, pin?: string, idempotencyKey?: string): Promise<any> {
     try {
       const res = await fetch(`${BACKEND_BASE}/api/shipments/pay-freight`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shipmentId, userId, paidWith, pin })
+        headers: {
+          'Content-Type': 'application/json',
+          ...(idempotencyKey ? { 'x-idempotency-key': idempotencyKey } : {})
+        },
+        body: JSON.stringify({ shipmentId, userId, paidWith, pin, idempotencyKey })
       });
-      return await res.json();
-    } catch (e) {
-      return { success: true };
+      const data = await res.json();
+      if (data.shipment) {
+        this.state.shipments[data.shipment.id] = data.shipment;
+        if (data.balances && this.state.users[userId]) {
+          this.state.users[userId].balances = data.balances;
+        }
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error processing freight payment' };
     }
+  }
+
+  public getShipmentsForUser(userId: string): ShipmentDocument[] {
+    return Object.values(this.state.shipments)
+      .filter(s => s.userId === userId)
+      .sort((a, b) => b.updatedAt - a.updatedAt);
   }
 
   public async getSupplierDirectoryPreview(): Promise<any> {
@@ -1327,13 +2211,32 @@ class DatabaseService {
     }
   }
 
-  public async getSupplierPrices(): Promise<any> {
-    try {
-      const res = await fetch(`${BACKEND_BASE}/api/suppliers/prices`);
-      return await res.json();
-    } catch (e: any) {
-      return { success: false, prices: { ngn: 15000, usd: 10, cny: 70 } };
+  public async getSupplierPrices(force: boolean = false): Promise<any> {
+    const now = Date.now();
+    if (!force && (now - this.lastSupplierPricesFetch < 60000)) {
+      const cached = (this.state.system_settings as any)?.supplier_directory_prices;
+      if (cached) return { success: true, prices: cached };
     }
+    if (this.supplierPricesPromise) {
+      return this.supplierPricesPromise;
+    }
+    this.supplierPricesPromise = (async () => {
+      try {
+        const res = await fetch(`${BACKEND_BASE}/api/suppliers/prices`);
+        const data = await res.json();
+        if (data && data.prices) {
+          if (!this.state.system_settings) this.state.system_settings = {} as any;
+          (this.state.system_settings as any).supplier_directory_prices = data.prices;
+          this.lastSupplierPricesFetch = Date.now();
+        }
+        return data;
+      } catch (e: any) {
+        return { success: false, prices: { ngn: 15000, usd: 10, cny: 70 } };
+      } finally {
+        this.supplierPricesPromise = null;
+      }
+    })();
+    return this.supplierPricesPromise;
   }
 
   public async setSupplierPrices(ngn: number, usd: number, cny: number, adminId: string = 'adm-001'): Promise<any> {
@@ -1404,22 +2307,64 @@ class DatabaseService {
         headers: { 'Content-Type': 'application/json', 'x-admin-id': adminId || 'adm-001', 'x-admin-role': 'finance_officer' },
         body: JSON.stringify({ withdrawalId, adminId })
       });
-      return await res.json();
+      const data = await res.json();
+      if (data && data.success && data.withdrawal) {
+        if (!this.state.withdrawals) this.state.withdrawals = {};
+        this.state.withdrawals[data.withdrawal.id] = data.withdrawal;
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
     } catch (e: any) {
       return { success: false, error: e.message || 'Network error updating withdrawal to processing' };
     }
   }
 
-  public async disburseWithdrawal(withdrawalId: string, transferReference: string, paymentProofUrl?: string, adminNotes?: string, adminId?: string): Promise<any> {
+  public async disburseWithdrawal(
+    withdrawalId: string, 
+    transferReference: string, 
+    adminIdOrProofUrl?: string, 
+    adminNotesOrOptions?: any, 
+    legacyAdminId?: string
+  ): Promise<any> {
     try {
+      let payload: any = { withdrawalId, transferReference };
+      let effectiveAdminId = 'adm-001';
+
+      if (typeof adminNotesOrOptions === 'object' && adminNotesOrOptions !== null) {
+        effectiveAdminId = adminIdOrProofUrl || 'adm-001';
+        payload = {
+          ...payload,
+          adminId: effectiveAdminId,
+          ...adminNotesOrOptions
+        };
+      } else {
+        if (adminIdOrProofUrl && (adminIdOrProofUrl.startsWith('adm-') || adminIdOrProofUrl.includes('@') || !adminIdOrProofUrl.startsWith('http'))) {
+          effectiveAdminId = adminIdOrProofUrl;
+          payload.adminId = effectiveAdminId;
+        } else {
+          payload.paymentProofUrl = adminIdOrProofUrl;
+          payload.adminNotes = adminNotesOrOptions;
+          payload.adminId = legacyAdminId || 'adm-001';
+          effectiveAdminId = payload.adminId;
+        }
+      }
+
       const res = await fetch(`${BACKEND_BASE}/api/admin/withdrawals/disburse`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-id': adminId || 'adm-001', 'x-admin-role': 'finance_officer' },
-        body: JSON.stringify({ withdrawalId, transferReference, paymentProofUrl, adminNotes, adminId })
+        headers: { 'Content-Type': 'application/json', 'x-admin-id': effectiveAdminId, 'x-admin-role': 'finance_officer' },
+        body: JSON.stringify(payload)
       });
-      return await res.json();
-    } catch (e) {
-      return { success: false, error: 'Network error disbursing withdrawal' };
+      const data = await res.json();
+      if (data && data.success && data.withdrawal) {
+        if (!this.state.withdrawals) this.state.withdrawals = {};
+        this.state.withdrawals[data.withdrawal.id] = data.withdrawal;
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error disbursing withdrawal' };
     }
   }
 
@@ -1427,26 +2372,80 @@ class DatabaseService {
     try {
       const res = await fetch(`${BACKEND_BASE}/api/admin/withdrawals/refund`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-admin-id': adminId || 'adm-001', 'x-admin-role': 'finance_officer' },
         body: JSON.stringify({ withdrawalId, reason, adminId })
       });
-      return await res.json();
-    } catch (e) {
-      return { success: false, error: 'Network error processing withdrawal refund' };
+      const data = await res.json();
+      if (data && data.success && data.withdrawal) {
+        if (!this.state.withdrawals) this.state.withdrawals = {};
+        this.state.withdrawals[data.withdrawal.id] = data.withdrawal;
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error processing withdrawal refund' };
     }
   }
 
-  public async updateSystemSettings(adminName: string, rates?: any, fees?: any): Promise<any> {
+  public async updateSystemSettings(adminName: string, rates?: any, fees?: any, live_fx_display?: any): Promise<any> {
     try {
       const res = await fetch(`${BACKEND_BASE}/api/settings/update`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adminName, rates, fees })
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-role': 'super_admin',
+          'x-admin-id': 'adm-001'
+        },
+        body: JSON.stringify({ adminName, rates, fees, live_fx_display })
       });
-      return await res.json();
+      const data = await res.json();
+      if (data && (data.success || data.rates) && this.state.system_settings) {
+        if (rates) {
+          this.state.system_settings.rates = {
+            ...this.state.system_settings.rates,
+            ...rates,
+            lastUpdated: Date.now()
+          };
+          if (!this.state.fx_rates) {
+            this.state.fx_rates = {};
+          }
+          this.state.fx_rates = {
+            ...this.state.fx_rates,
+            ...this.state.system_settings.rates
+          };
+          if (rates.USD_NGN || rates.USD_CNY) {
+            if (!this.state.system_settings.logistics_fx_rates) {
+              this.state.system_settings.logistics_fx_rates = {} as any;
+            }
+            if (rates.USD_NGN) this.state.system_settings.logistics_fx_rates.usdToNgn = Number(rates.USD_NGN);
+            if (rates.USD_CNY) this.state.system_settings.logistics_fx_rates.usdToCny = Number(rates.USD_CNY);
+          }
+        }
+        if (fees) {
+          this.state.system_settings.fees = {
+            ...this.state.system_settings.fees,
+            ...fees
+          };
+        }
+        if (live_fx_display) {
+          this.state.system_settings.live_fx_display = {
+            ...(this.state.system_settings.live_fx_display || {}),
+            ...live_fx_display,
+            lastUpdated: Date.now()
+          };
+        }
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
     } catch (e) {
       return { success: true };
     }
+  }
+
+  public async updateExchangeRates(rates: { NGN_CNY?: number; USD_NGN?: number; NGN_USD?: number; USD_CNY?: number; spreadPercent?: number }, adminName?: string): Promise<any> {
+    return this.updateSystemSettings(adminName || 'Admin Central Treasury', rates);
   }
 
   // -------------------------------------------------------------
@@ -1495,7 +2494,14 @@ class DatabaseService {
         headers: { 'Content-Type': 'application/json', 'x-admin-id': adminId || 'adm-001', 'x-admin-role': 'finance_officer' },
         body: JSON.stringify({ paymentId, ...evidence })
       });
-      return await res.json();
+      const data = await res.json();
+      if (data && data.success && data.payment) {
+        if (!this.state.supplier_payments) this.state.supplier_payments = {};
+        this.state.supplier_payments[data.payment.id] = data.payment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
     } catch (e) {
       return { success: false, error: 'Network error disbursing supplier remittance' };
     }
@@ -1789,6 +2795,13 @@ class DatabaseService {
     return order;
   }
 
+  public updateOrderStatus(
+    orderId: string,
+    fulfillmentStatus: ShopOrderDocument['fulfillmentStatus']
+  ): ShopOrderDocument | undefined {
+    return this.updateShopOrderStatus(orderId, fulfillmentStatus);
+  }
+
   public getSupportTickets(): SupportTicketDocument[] {
     return Object.values(this.state.support_tickets).sort((a, b) => b.updatedAt - a.updatedAt);
   }
@@ -1814,11 +2827,61 @@ class DatabaseService {
       tkt.status = status;
       tkt.updatedAt = Date.now();
       this.persist();
+      this.notifyListeners();
+
+      try {
+        fetch(`${BACKEND_BASE}/api/admin/support/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ticketId, status })
+        }).catch(() => {});
+      } catch {}
     }
     return tkt;
   }
 
-  public addTicketMessage(ticketId: string, message: { senderId: string; text: string; isAdmin: boolean; senderName?: string }) {
+  public async updateTicketLifecycle(
+    ticketId: string,
+    updates: {
+      status?: SupportTicketDocument['status'];
+      priority?: SupportTicketDocument['priority'];
+      resolutionNotes?: string;
+      adminId?: string;
+      adminName?: string;
+    }
+  ): Promise<SupportTicketDocument | undefined> {
+    const tkt = this.state.support_tickets[ticketId];
+    if (tkt) {
+      if (updates.status) tkt.status = updates.status;
+      if (updates.priority) {
+        tkt.priority = updates.priority;
+        let slaMins = 120;
+        if (updates.priority === 'Urgent') slaMins = 15;
+        else if (updates.priority === 'High' || updates.priority === 'High Priority') slaMins = 30;
+        else if (updates.priority === 'Low') slaMins = 240;
+        tkt.slaDueAt = Date.now() + slaMins * 60 * 1000;
+        tkt.slaStatus = 'on_track';
+      }
+      if (updates.adminName && (updates.status === 'Human In-Progress' || updates.status === 'In Progress')) {
+        tkt.assignedAgent = updates.adminName;
+        tkt.assignedAgentId = updates.adminId || 'adm-002';
+      }
+      tkt.updatedAt = Date.now();
+      this.persist();
+      this.notifyListeners();
+
+      try {
+        fetch(`${BACKEND_BASE}/api/admin/support/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ticketId, ...updates })
+        }).catch(() => {});
+      } catch {}
+    }
+    return tkt;
+  }
+
+  public addTicketMessage(ticketId: string, message: { senderId: string; text: string; isAdmin: boolean; senderName?: string; isAi?: boolean; attachmentUrl?: string; attachmentName?: string; attachmentType?: string }) {
     const tkt = this.state.support_tickets[ticketId];
     if (tkt) {
       tkt.messages.push({
@@ -1827,8 +2890,298 @@ class DatabaseService {
       });
       tkt.updatedAt = Date.now();
       this.persist();
+      this.notifyListeners();
+
+      try {
+        fetch(`${BACKEND_BASE}/api/admin/support/message`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ticketId,
+            senderId: message.senderId,
+            senderName: message.senderName,
+            text: message.text,
+            isAdmin: message.isAdmin,
+            attachmentUrl: message.attachmentUrl,
+            attachmentName: message.attachmentName,
+            attachmentType: message.attachmentType
+          })
+        }).catch(() => {});
+      } catch {}
     }
     return tkt;
+  }
+
+  public appendChatMessage(msg: any) {
+    if (!this.state.chat_messages) this.state.chat_messages = [];
+    this.state.chat_messages.push(msg);
+    this.persist();
+    this.notifyListeners();
+  }
+
+  public saveSupportTicket(ticket: SupportTicketDocument) {
+    this.state.support_tickets[ticket.id] = ticket;
+    this.persist();
+    this.notifyListeners();
+  }
+
+  public async uploadChatAttachment(
+    file: File,
+    ticketId?: string,
+    userId?: string
+  ): Promise<{ success: boolean; url: string; storageUrl?: string; fileName: string; fileType: string }> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64Data = reader.result as string;
+          const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const isImg = file.type.startsWith('image/');
+          const bucket = isImg ? 'chat-images' : 'chat-documents';
+          const defaultStorageUrl = `https://supabase.flyemass.com/storage/v1/object/public/${bucket}/${Date.now()}-${cleanName}`;
+
+          try {
+            const res = await fetch(`${BACKEND_BASE}/api/support/upload-attachment`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                fileName: file.name,
+                fileData: base64Data,
+                mimeType: file.type,
+                ticketId,
+                userId
+              })
+            });
+            const data = await res.json();
+            if (data && data.success) {
+              return resolve({
+                success: true,
+                url: data.url || base64Data,
+                storageUrl: data.storageUrl || defaultStorageUrl,
+                fileName: data.fileName || file.name,
+                fileType: data.fileType || file.type
+              });
+            }
+          } catch (netErr) {
+            console.warn('[Offline Chat Upload Fallback]:', netErr);
+          }
+
+          resolve({
+            success: true,
+            url: base64Data,
+            storageUrl: defaultStorageUrl,
+            fileName: file.name,
+            fileType: file.type
+          });
+        } catch (e) {
+          reject(e);
+        }
+      };
+      reader.onerror = (e) => reject(e);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  public async sendConciergeChat(
+    text: string,
+    ticketId: string = 'tkt_8901',
+    userId: string = 'usr_alade_01',
+    userName?: string,
+    retries: number = 2,
+    attachment?: { url?: string; fileName?: string; fileType?: string }
+  ): Promise<{ success: boolean; response?: string; ticket?: SupportTicketDocument; aiMessage?: any; userMessage?: any; analysis?: any; error?: string }> {
+    let lastError: any = null;
+
+    // Graceful automatic retry mechanism (1-2 retries) before falling back
+    for (let attempt = 1; attempt <= retries + 1; attempt++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      try {
+        const res = await fetch(`${BACKEND_BASE}/api/support/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            message: text,
+            text,
+            ticketId,
+            userId,
+            userName,
+            attachmentUrl: attachment?.url,
+            attachmentName: attachment?.fileName,
+            attachmentType: attachment?.fileType
+          })
+        });
+        clearTimeout(timeoutId);
+
+        const data = await res.json();
+        if (data && data.ticket && data.aiMessage) {
+          this.state.support_tickets[data.ticket.id] = data.ticket;
+          if (!this.state.chat_messages) this.state.chat_messages = [];
+          if (data.userMessage) this.state.chat_messages.push(data.userMessage);
+          if (data.aiMessage) this.state.chat_messages.push(data.aiMessage);
+          this.persist();
+          this.notifyListeners();
+          return data;
+        }
+        if (data && data.response) {
+          return data;
+        }
+        throw new Error(data?.error || 'Invalid server response without ticket state');
+      } catch (err: any) {
+        clearTimeout(timeoutId);
+        lastError = err;
+        console.warn(`[Gemini Concierge Attempt ${attempt}/${retries + 1} Warning]:`, err?.message || err);
+        if (attempt <= retries) {
+          await new Promise((r) => setTimeout(r, 400 * attempt));
+        }
+      }
+    }
+
+    console.error('[Gemini AI Concierge db.sendConciergeChat Error / Fallback Activated]:', lastError);
+    console.error('[Gemini AI Concierge All Retries Exhausted - Using High-Availability Engine]:', lastError);
+
+    // Local high-availability fallback engine with human-like answers for greetings and trade queries
+    const ticket: SupportTicketDocument = this.state.support_tickets[ticketId] || {
+      id: ticketId,
+      ticketNumber: 'TKT-8901',
+      userId,
+      userName: userName || 'Chief Babatunde Alade',
+      subject: 'Trade Concierge Live Chat',
+      category: 'General Trade',
+      status: 'Open - AI Handled',
+      priority: 'Normal',
+      messages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+
+    const effectiveText = text.trim() || (attachment?.fileName ? `[Uploaded Attachment: ${attachment.fileName}]` : '[Attachment Attached]');
+    const userMsg = {
+      senderId: userId,
+      senderName: userName || 'Chief Babatunde Alade',
+      text: effectiveText,
+      isAdmin: false,
+      attachmentUrl: attachment?.url,
+      attachmentName: attachment?.fileName,
+      attachmentType: attachment?.fileType,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    ticket.messages.push(userMsg);
+
+    const lower = text.toLowerCase().trim();
+    let status: SupportTicketDocument['status'] = 'Open - AI Handled';
+    let category = 'General Trade';
+    let priority: SupportTicketDocument['priority'] = 'Normal';
+    let aiText = `Hello ${userName || 'Trader'}! I am Chen Wei / Trade AI, your expert B2B trade concierge at FlyeMass. I am here 24/7 to assist with live NGN/RMB currency swaps, paying China factories via Alipay/WeChat, Guangzhou warehouse shipping marks, and air/sea waybill tracking. How can I assist your business today?`;
+
+    // Simple greetings and general conversational inquiries
+    if (
+      lower === 'hi' ||
+      lower === 'hello' ||
+      lower === 'hey' ||
+      lower === 'hi chen wei' ||
+      lower === 'hello chen wei' ||
+      lower === 'hey chen wei' ||
+      lower === 'good morning' ||
+      lower === 'good afternoon' ||
+      lower === 'good evening' ||
+      lower.startsWith('hi ') ||
+      lower.startsWith('hello ') ||
+      lower.startsWith('hey ') ||
+      lower.includes('how are you') ||
+      lower.includes('who are you') ||
+      lower.includes('what can you do') ||
+      lower.includes('how do you work') ||
+      lower.includes('help me')
+    ) {
+      aiText = `Hello ${userName || 'Trader'}! I am Chen Wei / Trade AI, your dedicated FlyeMass B2B trade concierge. I am here 24/7 to assist with your China sourcing, Alipay & WeChat factory settlements, Guangzhou warehouse waybills, and zero-slippage FX swaps. How can I help your business grow today?`;
+    } else if (lower.includes('rate') || lower.includes('fx') || lower.includes('rmb') || lower.includes('dollar') || lower.includes('naira')) {
+      aiText = `Live wholesale rate: ₦214.50 per RMB and ₦1,485.00 per USD. Zero slippage guaranteed on your instant FX Swap dashboard!`;
+      category = 'FX Swap Slippage';
+    } else if (lower.includes('flight') || lower.includes('et921') || lower.includes('cargo') || lower.includes('tracking')) {
+      aiText = `Your shipment FM-CAN-LOS-89241 is airborne on Ethiopian Cargo ET921, arriving at Lagos MMIA tomorrow morning at 06:30 AM WAT.`;
+      category = 'Air Freight Waybill';
+    } else if (lower.includes('address') || lower.includes('warehouse')) {
+      aiText = `Our Guangzhou Baiyun receiving address: 广东省广州市白云区石井国际物流园B栋302室. Mark cartons with: FM / FM-USR-8924 / ${userName || 'Chief Alade'}.`;
+      category = 'Air Freight Waybill';
+    } else if (lower.includes('alipay') || lower.includes('wechat') || lower.includes('pay supplier')) {
+      aiText = `We settle China factory payouts via Alipay (支付宝), WeChat Pay (微信支付), and Bank Transfer (银联 / CNAPS) in real-time with clearing confirmation under 90 seconds.`;
+      category = 'Supplier Escrow';
+    } else if (lower.includes('delay') || lower.includes('complaint') || lower.includes('refund') || lower.includes('human') || lower.includes('agent') || lower.includes('issue') || lower.includes('problem')) {
+      aiText = `I apologize for any inconvenience. I have logged ticket #${ticket.ticketNumber || ticket.id} and marked it for Pending Human Review on our supervisor desk. A senior officer will follow up directly!`;
+      status = 'Pending Human Review';
+      priority = 'High';
+    } else if (lastError && !lower.includes('hi') && !lower.includes('hello') && !lower.includes('rate') && !lower.includes('where') && !lower.includes('address')) {
+      aiText = 'Trade AI is momentarily busy. Please try again or tap to escalate to human support.';
+    }
+
+    const aiMsg = {
+      senderId: 'ai-chen-wei',
+      senderName: 'Chen Wei (Trade AI)',
+      text: aiText,
+      isAdmin: true,
+      isAi: true,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    ticket.messages.push(aiMsg);
+    ticket.status = status;
+    ticket.category = category;
+    ticket.priority = priority;
+    ticket.aiHandled = true;
+    ticket.updatedAt = Date.now();
+    this.state.support_tickets[ticket.id] = ticket;
+
+    if (!this.state.chat_messages) this.state.chat_messages = [];
+    this.state.chat_messages.push(userMsg);
+    this.state.chat_messages.push(aiMsg);
+
+    this.persist();
+    this.notifyListeners();
+    return { success: true, response: aiText, ticket, aiMessage: aiMsg, userMessage: userMsg, error: lastError?.message };
+  }
+
+  public async takeOverSupportTicket(
+    ticketId: string,
+    adminId: string = 'adm-002',
+    adminName: string = 'Senior Trade Officer (Guangzhou Hub)'
+  ): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/support/take-over`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId, adminId, adminName })
+      });
+      const data = await res.json();
+      if (data.ticket) {
+        this.state.support_tickets[data.ticket.id] = data.ticket;
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
+    } catch {
+      const ticket = this.state.support_tickets[ticketId];
+      if (ticket) {
+        ticket.status = 'Human In-Progress';
+        ticket.assignedAgent = adminName;
+        ticket.messages.push({
+          senderId: adminId,
+          senderName: 'System Escalation Desk',
+          text: `[Human Agent Takeover] ${adminName} has joined the thread for manual assistance.`,
+          isAdmin: true,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        ticket.updatedAt = Date.now();
+        this.persist();
+        this.notifyListeners();
+      }
+      return { success: true, ticket };
+    }
+  }
+
+  public getChatMessages(): any[] {
+    return this.state.chat_messages || [];
   }
 
   public getBanners(): BannerDocument[] {
@@ -1928,6 +3281,69 @@ class DatabaseService {
     }
   }
 
+  public async getEmailReceipts(userId?: string): Promise<any[]> {
+    try {
+      const query = userId ? `?userId=${encodeURIComponent(userId)}` : '';
+      const res = await fetch(`${BACKEND_BASE}/api/emails/my-receipts${query}`);
+      const data = await res.json();
+      if (data && data.success && Array.isArray(data.receipts)) {
+        return data.receipts;
+      }
+    } catch {
+      // Fallback to in-memory state
+    }
+    const raw = this.state.email_receipts || {};
+    const all = Array.isArray(raw) ? raw : Object.values(raw);
+    if (!userId) return all;
+    return all.filter((r: any) => 
+      r.userId === userId || 
+      (r.recipientEmail && this.state.users[userId]?.email?.toLowerCase() === r.recipientEmail.toLowerCase())
+    );
+  }
+
+  public async dispatchTransactionalEmail(
+    eventType: TransactionalEmailEvent,
+    recipient: EmailRecipient,
+    payload: any = {}
+  ): Promise<{ success: boolean; emailId?: string; error?: string }> {
+    try {
+      const rendered = renderTransactionalEmail(eventType, recipient, payload);
+      const res = await fetch(`${BACKEND_BASE}/api/emails/dispatch-transactional`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType,
+          recipient,
+          payload,
+          rendered
+        })
+      });
+      return await res.json();
+    } catch (e: any) {
+      // Fallback offline dispatch to local state
+      const rendered = renderTransactionalEmail(eventType, recipient, payload);
+      const emailId = `eml_local_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+      const record = {
+        id: emailId,
+        userId: recipient.userId,
+        recipientEmail: recipient.email,
+        customerName: recipient.name,
+        subject: rendered.subject,
+        html: rendered.html,
+        text: rendered.text,
+        eventType,
+        payload,
+        deliveredAt: Date.now(),
+        status: 'delivered',
+        provider: 'local_offline'
+      };
+      if (!this.state.email_receipts) this.state.email_receipts = {};
+      this.state.email_receipts[emailId] = record;
+      return { success: true, emailId };
+    }
+  }
+
+
   public async deleteAdminNotification(notificationId: string, adminId?: string): Promise<{ success: boolean }> {
     try {
       const res = await fetch(`${BACKEND_BASE}/api/admin/notifications/delete`, {
@@ -1969,16 +3385,96 @@ class DatabaseService {
     return prod;
   }
 
+  public async uploadProductImage(file: File): Promise<{ success: boolean; url: string; storageUrl?: string }> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const fileData = e.target?.result as string;
+        try {
+          const res = await fetch(`${BACKEND_BASE}/api/shop/upload-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName: file.name,
+              mimeType: file.type,
+              fileData
+            })
+          });
+          const json = await res.json();
+          if (json && json.success) {
+            resolve({ success: true, url: json.url || fileData, storageUrl: json.storageUrl });
+            return;
+          }
+        } catch {}
+        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const storageUrl = `https://supabase.flyemass.com/storage/v1/object/public/products/${Date.now()}-${cleanName}`;
+        resolve({ success: true, url: fileData, storageUrl });
+      };
+      reader.onerror = () => {
+        resolve({ success: false, url: '' });
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   public addProduct(product: TechProduct): TechProduct {
     if (!this.state.products) this.state.products = {};
-    this.state.products[product.id] = product;
+    const gallery = Array.isArray(product.images) && product.images.length > 0
+      ? product.images.filter(Boolean)
+      : (product.image ? [product.image] : []);
+    const preparedProd = {
+      ...product,
+      image: gallery[0] || product.image || '',
+      images: gallery
+    };
+    this.state.products[product.id] = preparedProd;
     this.persist();
     fetch(`${BACKEND_BASE}/api/shop/add-product`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product })
+      body: JSON.stringify({ product: preparedProd })
     }).catch(() => {});
-    return product;
+    return preparedProd;
+  }
+
+  public updateProduct(productId: string, updates: Partial<TechProduct>): TechProduct | undefined {
+    if (!this.state.products) this.state.products = {};
+    const existing = this.state.products[productId];
+    if (existing) {
+      const updatedGallery = Array.isArray(updates.images)
+        ? updates.images.filter(Boolean)
+        : existing.images || (existing.image ? [existing.image] : []);
+      const updated = { 
+        ...existing, 
+        ...updates, 
+        id: productId,
+        images: updatedGallery,
+        image: updatedGallery[0] || updates.image || existing.image
+      };
+      this.state.products[productId] = updated;
+      this.persist();
+      fetch(`${BACKEND_BASE}/api/shop/update-product`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, updates })
+      }).catch(() => {});
+      return updated;
+    }
+    return undefined;
+  }
+
+  public deleteProduct(productId: string): boolean {
+    if (this.state.products && this.state.products[productId]) {
+      delete this.state.products[productId];
+      this.persist();
+      fetch(`${BACKEND_BASE}/api/shop/delete-product`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId })
+      }).catch(() => {});
+      return true;
+    }
+    return false;
   }
 
   public async checkoutShopWithPin(
@@ -2061,12 +3557,31 @@ class DatabaseService {
 
   public getCloudCart(userId: string): CartItem[] {
     if (!this.state.device_cart_items) this.state.device_cart_items = {};
-    return this.state.device_cart_items[userId] || [];
+    const memoryCart = this.state.device_cart_items[userId];
+    if (Array.isArray(memoryCart) && memoryCart.length > 0) return memoryCart;
+    if (typeof window !== 'undefined') {
+      try {
+        const local = localStorage.getItem('flyemass_cart');
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            this.state.device_cart_items[userId] = parsed;
+            return parsed;
+          }
+        }
+      } catch (e) {}
+    }
+    return [];
   }
 
   public async syncCloudCart(userId: string, items: CartItem[]): Promise<any> {
     if (!this.state.device_cart_items) this.state.device_cart_items = {};
     this.state.device_cart_items[userId] = items;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('flyemass_cart', JSON.stringify(items));
+      } catch (e) {}
+    }
     this.persist();
     try {
       const res = await fetch(`${BACKEND_BASE}/api/shop/cart/sync`, {
@@ -2191,7 +3706,19 @@ class DatabaseService {
     return await res.json();
   }
 
-  public async registerUser(details: { fullName: string; email: string; phone?: string; businessName?: string; pin?: string }): Promise<any> {
+  public async registerUser(details: {
+    fullName: string;
+    email: string;
+    phone?: string;
+    businessName?: string;
+    pin?: string;
+    firstName?: string;
+    surname?: string;
+    otherName?: string;
+    dateOfBirth?: string;
+    country?: string;
+    accountType?: string;
+  }): Promise<any> {
     const res = await fetch(`${BACKEND_BASE}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2200,26 +3727,161 @@ class DatabaseService {
     return await res.json();
   }
 
+  public async rebindHardwareSession(
+    userId: string,
+    details: {
+      method?: 'biometric' | 'qr_sync';
+      deviceName?: string;
+      sessionToken?: string;
+      hardwareEnclaveId?: string;
+      syncedFrom?: string;
+    }
+  ): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/auth/device-migrate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, ...details })
+      });
+      const data = await res.json();
+      if (data.user && this.state.users[userId]) {
+        this.state.users[userId] = {
+          ...this.state.users[userId],
+          primaryTerminal: data.user.primaryTerminal,
+          hardwareSession: data.user.hardwareSession
+        } as any;
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
+    } catch {
+      // Local fallback
+      const user = this.state.users[userId || 'usr_alade_01'];
+      if (user) {
+        (user as any).primaryTerminal = details.deviceName || 'iPhone 16 Pro (Mobile Enclave)';
+        (user as any).hardwareSession = {
+          method: details.method || 'biometric',
+          deviceName: details.deviceName || 'iPhone 16 Pro (Mobile Enclave)',
+          sessionToken: details.sessionToken || `tok_${Date.now()}`,
+          authorizedAt: Date.now(),
+          isPrimary: true
+        };
+        this.persist();
+        this.notifyListeners();
+      }
+      return { success: true, message: 'Hardware session bound locally' };
+    }
+  }
+
+  public async authorizeTerminalSession(
+    userId: string,
+    details: {
+      method?: 'biometric' | 'qr_sync';
+      deviceName?: string;
+      sessionToken?: string;
+      syncedFrom?: string;
+    }
+  ): Promise<any> {
+    return this.rebindHardwareSession(userId, { method: 'qr_sync', ...details });
+  }
+
   public async manualAdjustBalance(
     userId: string,
     currency: string,
     amount: number,
     type: 'credit' | 'debit',
     reason: string,
-    adminId: string = 'adm-001'
+    adminId: string = 'adm-001',
+    adminPin: string = '2468'
   ): Promise<any> {
-    const res = await fetch(`${BACKEND_BASE}/api/admin/wallets/manual-adjust`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-admin-id': adminId,
-        'x-admin-role': 'super_admin'
-      },
-      body: JSON.stringify({ userId, currency, amount, type, reason, adminId })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to adjust balance');
-    return data;
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/wallets/manual-adjust`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-id': adminId,
+          'x-admin-role': 'super_admin'
+        },
+        body: JSON.stringify({ userId, currency, amount, type, reason, adminId, adminPin })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to adjust balance');
+
+      // Sync local reactive state
+      const curr = currency.toUpperCase();
+      if (this.state.users[userId] && data.balances) {
+        this.state.users[userId].balances = data.balances;
+      }
+      this.notifyListeners();
+      return data;
+    } catch (err: any) {
+      if (err.message && err.message.includes('Security Guardrail')) {
+        throw err;
+      }
+      if (err.message && err.message.includes('Mandatory admin note')) {
+        throw err;
+      }
+      if (err.message && err.message.includes('Insufficient customer balance')) {
+        throw err;
+      }
+      // Local fallback for offline mode
+      const curr = currency.toUpperCase();
+      const user = this.state.users[userId];
+      if (user) {
+        const opening = user.balances[curr] || 0;
+        if (type === 'debit' && opening < amount) {
+          throw new Error(`Insufficient customer balance (${curr} ${opening.toLocaleString()})`);
+        }
+        const closing = type === 'credit' ? opening + amount : opening - amount;
+        user.balances[curr] = closing;
+        const ref = `ADJ-ADMIN-${curr}-${Date.now().toString().slice(-6)}`;
+        const ledgerId = `ldg_${Date.now()}`;
+        this.state.wallets_ledger[ledgerId] = {
+          id: ledgerId,
+          userId: user.uid,
+          type: type === 'credit' ? 'FUND' : 'WITHDRAW',
+          sourceCurrency: curr,
+          targetCurrency: curr,
+          amount,
+          fee: 0,
+          openingBalance: opening,
+          closingBalance: closing,
+          status: 'completed',
+          reference: ref,
+          timestamp: Date.now(),
+          notes: `Manual ${type.toUpperCase()} by Admin (${adminId}): ${reason}`
+        };
+        const currSym = curr === 'NGN' ? '₦' : curr === 'USD' ? '$' : '¥';
+        if (!this.state.notifications) this.state.notifications = [];
+        this.state.notifications.unshift({
+          id: `notif_${Date.now()}`,
+          userId: user.uid,
+          targetUserId: user.uid,
+          title: `Wallet ${type === 'credit' ? 'Credited' : 'Debited'}`,
+          message: `Your ${curr} wallet has been ${type === 'credit' ? 'credited' : 'debited'} with ${currSym}${amount.toLocaleString()} by FlyeMass Support. Note: ${reason}`,
+          type: 'wallet',
+          linkRoute: 'wallets',
+          read: false,
+          timestamp: Date.now(),
+          time: 'Just now'
+        });
+        this.notifyListeners();
+        return { success: true, balances: user.balances, reference: ref, ledgerId };
+      }
+      throw err;
+    }
+  }
+
+  public async adminAdjustWalletBalance(
+    userId: string,
+    currency: string,
+    amount: number,
+    type: 'credit' | 'debit',
+    adminNote: string,
+    adminId: string = 'adm-001',
+    adminPin: string = '2468'
+  ): Promise<any> {
+    return this.manualAdjustBalance(userId, currency, amount, type, adminNote, adminId, adminPin);
   }
 
   public async suspendUser(
@@ -2327,33 +3989,86 @@ class DatabaseService {
   }
 
   public async createSupplier(supplier: any, adminId: string = 'adm-001'): Promise<any> {
-    const res = await fetch(`${BACKEND_BASE}/api/admin/suppliers/create`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-admin-id': adminId,
-        'x-admin-role': 'super_admin'
-      },
-      body: JSON.stringify({ supplier, adminId })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to create supplier');
-    return data;
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/suppliers/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-id': adminId,
+          'x-admin-role': 'super_admin'
+        },
+        body: JSON.stringify({ supplier, adminId })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create supplier');
+      return data;
+    } catch (e: any) {
+      console.warn('Backend supplier create failed, applying local fallback:', e.message);
+      const supplierId = supplier.id || `sup_${Date.now()}`;
+      const newSup = {
+        ...supplier,
+        id: supplierId,
+        verifiedYears: Number(supplier.verifiedYears) || 1,
+        inspectionPassed: supplier.inspectionPassed ?? true,
+        active: supplier.active !== false,
+        tags: Array.isArray(supplier.tags) ? supplier.tags : ['Verified Business', 'Factory Direct'],
+        createdAt: Date.now()
+      };
+      if (!this.state.suppliers) this.state.suppliers = {};
+      this.state.suppliers[supplierId] = newSup;
+      if (!this.state.private_supplier_contacts) this.state.private_supplier_contacts = {};
+      this.state.private_supplier_contacts[supplierId] = {
+        wechatId: supplier.wechatId || '',
+        phone: supplier.phone || '',
+        whatsapp: supplier.whatsapp || '',
+        directManager: supplier.directManager || 'General Export Manager',
+        factoryAddress: supplier.businessAddress || supplier.factoryAddress || '',
+        description: supplier.description || ''
+      };
+      this.notifyListeners();
+      return { success: true, supplier: newSup };
+    }
   }
 
   public async updateSupplier(supplier: any, adminId: string = 'adm-001'): Promise<any> {
-    const res = await fetch(`${BACKEND_BASE}/api/admin/suppliers/update`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-admin-id': adminId,
-        'x-admin-role': 'super_admin'
-      },
-      body: JSON.stringify({ supplier, adminId })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to update supplier');
-    return data;
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/suppliers/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-id': adminId,
+          'x-admin-role': 'super_admin'
+        },
+        body: JSON.stringify({ supplier, adminId })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update supplier');
+      return data;
+    } catch (e: any) {
+      console.warn('Backend supplier update failed, applying local fallback:', e.message);
+      if (!supplier || !supplier.id) throw new Error('Supplier ID is required');
+      if (!this.state.suppliers) this.state.suppliers = {};
+      const existing = this.state.suppliers[supplier.id] || {};
+      const updatedSup = {
+        ...existing,
+        ...supplier,
+        id: supplier.id,
+        updatedAt: Date.now()
+      };
+      this.state.suppliers[supplier.id] = updatedSup;
+      if (!this.state.private_supplier_contacts) this.state.private_supplier_contacts = {};
+      this.state.private_supplier_contacts[supplier.id] = {
+        ...(this.state.private_supplier_contacts[supplier.id] || {}),
+        wechatId: supplier.wechatId !== undefined ? supplier.wechatId : (this.state.private_supplier_contacts[supplier.id]?.wechatId || ''),
+        phone: supplier.phone !== undefined ? supplier.phone : (this.state.private_supplier_contacts[supplier.id]?.phone || ''),
+        whatsapp: supplier.whatsapp !== undefined ? supplier.whatsapp : (this.state.private_supplier_contacts[supplier.id]?.whatsapp || ''),
+        directManager: supplier.directManager || this.state.private_supplier_contacts[supplier.id]?.directManager || 'General Export Manager',
+        factoryAddress: supplier.businessAddress || supplier.factoryAddress || this.state.private_supplier_contacts[supplier.id]?.factoryAddress || '',
+        description: supplier.description || this.state.private_supplier_contacts[supplier.id]?.description || ''
+      };
+      this.notifyListeners();
+      return { success: true, supplier: updatedSup };
+    }
   }
 
   public async toggleSupplierStatus(supplierId: string, active?: boolean, adminId: string = 'adm-001'): Promise<any> {
@@ -2399,6 +4114,371 @@ class DatabaseService {
     return data;
   }
 
+  // ==========================================
+  // WAREHOUSES & CONSOLIDATION HUBS
+  // ==========================================
+
+  public getWarehouses(includeInactive: boolean = false): Warehouse[] {
+    const list = Object.values(this.state.warehouses || {}) as Warehouse[];
+    if (includeInactive) return list;
+    return list.filter((w) => w.isActive !== false);
+  }
+
+  public async fetchWarehouses(all: boolean = false, force: boolean = false): Promise<Warehouse[]> {
+    const now = Date.now();
+    if (!force && this.state.warehouses && Object.keys(this.state.warehouses).length > 0 && (now - this.lastWarehousesFetch < 15000)) {
+      return this.getWarehouses(all);
+    }
+    if (this.warehousesFetchPromise) {
+      return this.warehousesFetchPromise;
+    }
+    this.warehousesFetchPromise = (async () => {
+      try {
+        const res = await fetch(`${BACKEND_BASE}/api/warehouses${all ? '?all=true' : ''}`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.warehouses)) {
+          if (!this.state.warehouses) this.state.warehouses = {};
+          let hasChanges = false;
+          for (const w of data.warehouses) {
+            const existing = this.state.warehouses[w.id];
+            if (!existing || existing.updatedAt !== w.updatedAt || existing.isActive !== w.isActive) {
+              hasChanges = true;
+            }
+            this.state.warehouses[w.id] = w;
+          }
+          this.lastWarehousesFetch = Date.now();
+          if (hasChanges) {
+            const stateStr = JSON.stringify(this.state);
+            this.lastSerializedState = stateStr;
+            this.stateRevision++;
+            try {
+              localStorage.setItem(STORAGE_KEY, stateStr);
+            } catch (_) {}
+            this.notifyListeners();
+          }
+          return data.warehouses;
+        }
+        return this.getWarehouses(all);
+      } catch {
+        return this.getWarehouses(all);
+      } finally {
+        this.warehousesFetchPromise = null;
+      }
+    })();
+    return this.warehousesFetchPromise;
+  }
+
+  public async addWarehouse(
+    warehouse: Partial<Warehouse>,
+    adminId: string = 'adm-001',
+    adminRole: string = 'super_admin',
+    adminName: string = 'Super Administrator'
+  ): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/warehouses`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': adminRole,
+        'x-admin-name': adminName
+      },
+      body: JSON.stringify(warehouse)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to add warehouse');
+    if (data.warehouse) {
+      if (!this.state.warehouses) this.state.warehouses = {};
+      this.state.warehouses[data.warehouse.id] = data.warehouse;
+      this.persist();
+      this.notifyListeners();
+    }
+    return data;
+  }
+
+  public async updateWarehouse(
+    id: string,
+    warehouse: Partial<Warehouse>,
+    adminId: string = 'adm-001',
+    adminRole: string = 'super_admin',
+    adminName: string = 'Super Administrator'
+  ): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/warehouses/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': adminRole,
+        'x-admin-name': adminName
+      },
+      body: JSON.stringify(warehouse)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update warehouse');
+    if (data.warehouse) {
+      if (!this.state.warehouses) this.state.warehouses = {};
+      this.state.warehouses[id] = data.warehouse;
+      this.persist();
+      this.notifyListeners();
+    }
+    return data;
+  }
+
+  public async toggleWarehouseStatus(
+    id: string,
+    isActive: boolean,
+    adminId: string = 'adm-001',
+    adminRole: string = 'super_admin',
+    adminName: string = 'Super Administrator'
+  ): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/warehouses/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': adminRole,
+        'x-admin-name': adminName
+      },
+      body: JSON.stringify({ isActive })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update warehouse status');
+    if (data.warehouse) {
+      if (!this.state.warehouses) this.state.warehouses = {};
+      this.state.warehouses[id] = data.warehouse;
+      this.persist();
+      this.notifyListeners();
+    }
+    return data;
+  }
+
+  public async deleteWarehouse(
+    id: string,
+    adminId: string = 'adm-001',
+    adminRole: string = 'super_admin',
+    adminName: string = 'Super Administrator'
+  ): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/warehouses/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': adminRole,
+        'x-admin-name': adminName
+      }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to delete warehouse');
+    if (this.state.warehouses && this.state.warehouses[id]) {
+      delete this.state.warehouses[id];
+      this.persist();
+      this.notifyListeners();
+    }
+    return data;
+  }
+
+  // ==========================================
+  // LAGOS WAREHOUSES & LAST-MILE HUBS
+  // ==========================================
+
+  public getLagosHubs(onlyActive: boolean = true): LagosHub[] {
+    const map = this.state.lagos_hubs || DEFAULT_LAGOS_HUBS;
+    const list = Object.values(map) as LagosHub[];
+    const filtered = onlyActive ? list.filter(h => h.isActive !== false) : list;
+    return filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+  }
+
+  public async lagosHubsQuery(onlyActive: boolean = true): Promise<LagosHub[]> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/lagos-hubs${onlyActive ? '?active=true' : '?all=true'}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.hubs)) {
+        if (!this.state.lagos_hubs) this.state.lagos_hubs = {};
+        for (const h of data.hubs) {
+          this.state.lagos_hubs[h.id] = h;
+        }
+        this.persist();
+        this.notifyListeners();
+        return data.hubs;
+      }
+      return this.getLagosHubs(onlyActive);
+    } catch {
+      return this.getLagosHubs(onlyActive);
+    }
+  }
+
+  public async createLagosHub(hub: Partial<LagosHub>, adminId: string = 'adm-001'): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/lagos-hubs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...hub, adminId })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create Lagos Hub');
+      if (data.hub) {
+        if (!this.state.lagos_hubs) this.state.lagos_hubs = {};
+        this.state.lagos_hubs[data.hub.id] = data.hub;
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
+    } catch (e: any) {
+      const id = hub.id || `HUB-${Date.now()}`;
+      const newHub: LagosHub = {
+        id,
+        name: hub.name || 'New Lagos Hub',
+        code: hub.code || `LOS-${Date.now().toString().slice(-4)}`,
+        district: hub.district || 'Lagos',
+        address: hub.address || '',
+        phone: hub.phone || '+234 803 000 0000',
+        contactPerson: hub.contactPerson,
+        operatingHours: hub.operatingHours || 'Mon - Sat: 8:00 AM - 6:00 PM',
+        doorstepDispatchAvailable: hub.doorstepDispatchAvailable !== false,
+        sortOrder: hub.sortOrder || 1,
+        isActive: hub.isActive !== false,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      if (!this.state.lagos_hubs) this.state.lagos_hubs = {};
+      this.state.lagos_hubs[id] = newHub;
+      this.persist();
+      this.notifyListeners();
+      return { success: true, hub: newHub };
+    }
+  }
+
+  public async updateLagosHub(id: string, updates: Partial<LagosHub>, adminId: string = 'adm-001'): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/lagos-hubs/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...updates, adminId })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update Lagos Hub');
+      if (data.hub) {
+        if (!this.state.lagos_hubs) this.state.lagos_hubs = {};
+        this.state.lagos_hubs[id] = data.hub;
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
+    } catch (e: any) {
+      if (this.state.lagos_hubs && this.state.lagos_hubs[id]) {
+        this.state.lagos_hubs[id] = { ...this.state.lagos_hubs[id], ...updates, updatedAt: Date.now() };
+        this.persist();
+        this.notifyListeners();
+        return { success: true, hub: this.state.lagos_hubs[id] };
+      }
+      throw e;
+    }
+  }
+
+  public async deleteLagosHub(id: string): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/lagos-hubs/${id}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete Lagos Hub');
+      if (this.state.lagos_hubs && this.state.lagos_hubs[id]) {
+        delete this.state.lagos_hubs[id];
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
+    } catch (e: any) {
+      if (this.state.lagos_hubs && this.state.lagos_hubs[id]) {
+        delete this.state.lagos_hubs[id];
+        this.persist();
+        this.notifyListeners();
+        return { success: true };
+      }
+      throw e;
+    }
+  }
+
+  public async convertFulfillmentMethod(
+    shipmentId: string,
+    fulfillmentMethod: 'pickup' | 'delivery',
+    details: { lagosHubId?: string; lagosHubLabel?: string; deliveryAddress?: any }
+  ): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/shipments/convert-fulfillment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shipmentId, fulfillmentMethod, ...details })
+      });
+      const data = await res.json();
+      if (data.shipment) {
+        this.state.shipments[data.shipment.id] = data.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
+    } catch (e: any) {
+      const ship = this.state.shipments[shipmentId];
+      if (ship) {
+        ship.fulfillmentMethod = fulfillmentMethod;
+        (ship as any).fulfillment_method = fulfillmentMethod;
+        ship.deliveryType = fulfillmentMethod === 'delivery' ? 'doorstep' : 'pickup';
+        if (fulfillmentMethod === 'pickup') {
+          ship.lagosHubId = details.lagosHubId;
+          (ship as any).lagos_hub_id = details.lagosHubId;
+          ship.lagosHubLabel = details.lagosHubLabel;
+          (ship as any).lagos_hub_label = details.lagosHubLabel;
+          ship.pickupHub = details.lagosHubLabel;
+          ship.destinationHub = details.lagosHubLabel;
+        } else {
+          ship.deliveryAddress = details.deliveryAddress;
+          (ship as any).delivery_address = details.deliveryAddress;
+          ship.doorstepAddress = details.deliveryAddress;
+          ship.destinationHub = 'Lagos Doorstep Delivery';
+        }
+        ship.updatedAt = Date.now();
+        this.persist();
+        this.notifyListeners();
+        return { success: true, shipment: ship };
+      }
+      return { success: false, error: e.message || 'Conversion failed' };
+    }
+  }
+
+  public async assignDeliveryRider(
+    shipmentId: string,
+    riderName: string,
+    riderPhone: string,
+    adminId: string = 'adm-001'
+  ): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/shipments/assign-rider`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shipmentId, riderName, riderPhone, adminId })
+      });
+      const data = await res.json();
+      if (data.shipment) {
+        this.state.shipments[data.shipment.id] = data.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
+    } catch (e: any) {
+      const ship = this.state.shipments[shipmentId];
+      if (ship) {
+        ship.assignedRiderName = riderName;
+        ship.assignedRiderPhone = riderPhone;
+        ship.currentStatus = 'out_for_delivery';
+        ship.status = 'out_for_delivery';
+        ship.updatedAt = Date.now();
+        this.persist();
+        this.notifyListeners();
+        return { success: true, shipment: ship };
+      }
+      return { success: false, error: e.message || 'Failed to assign rider' };
+    }
+  }
+
   public async createHotel(hotel: any, adminId: string = 'adm-001'): Promise<any> {
     const res = await fetch(`${BACKEND_BASE}/api/admin/hotels/create`, {
       method: 'POST',
@@ -2411,7 +4491,89 @@ class DatabaseService {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to create hotel');
+    if (data.hotel) {
+      if (!this.state.hotels) this.state.hotels = {};
+      this.state.hotels[data.hotel.id] = data.hotel;
+      this.persist();
+      this.notifyListeners();
+    }
     return data;
+  }
+
+  public async updateHotel(hotelId: string, hotelData: any, adminId: string = 'adm-001'): Promise<any> {
+    return this.createHotel({ ...hotelData, id: hotelId }, adminId);
+  }
+
+  public async toggleHotelStatus(hotelId: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/hotels/toggle-status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ hotelId, adminId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to toggle hotel status');
+    if (data.hotel) {
+      if (!this.state.hotels) this.state.hotels = {};
+      this.state.hotels[data.hotel.id] = data.hotel;
+      this.persist();
+      this.notifyListeners();
+    }
+    return data;
+  }
+
+  public async deleteHotel(hotelId: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/hotels/delete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ hotelId, adminId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to delete hotel');
+    if (this.state.hotels && this.state.hotels[hotelId]) {
+      delete this.state.hotels[hotelId];
+      this.persist();
+      this.notifyListeners();
+    }
+    return data;
+  }
+
+  public async updateRoomAvailability(hotelId: string, roomName: string, isAvailable: boolean, availableCount?: number, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/hotels/room-availability`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ hotelId, roomName, isAvailable, availableCount, adminId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update room availability');
+    if (data.hotel && this.state.hotels) {
+      this.state.hotels[hotelId] = data.hotel;
+      this.persist();
+      this.notifyListeners();
+    }
+    return data;
+  }
+
+  public async getAdminHotelBookings(): Promise<any[]> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/hotels/bookings`);
+      const data = await res.json();
+      if (data.bookings) return data.bookings;
+    } catch {
+      // Fallback to local state
+    }
+    return this.getHotelBookings();
   }
 
   public async registerShipment(data: any): Promise<any> {
@@ -2474,6 +4636,117 @@ class DatabaseService {
     }
   }
 
+  public async lookupUser(query: string): Promise<{ success: boolean; user?: any; shipments?: ShipmentDocument[]; pendingPreAlerts?: ShipmentDocument[]; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/users/lookup?query=${encodeURIComponent(query)}`);
+      return await res.json();
+    } catch {
+      const q = (query || '').toLowerCase().trim();
+      const user = Object.values(this.state.users || {}).find(u =>
+        (u.uid && u.uid.toLowerCase() === q) ||
+        ((u as any).flyeTag && (u as any).flyeTag.toLowerCase() === q) ||
+        ((u as any).shippingMark && (u as any).shippingMark.toLowerCase() === q) ||
+        (u.email && u.email.toLowerCase() === q) ||
+        (u.fullName && u.fullName.toLowerCase() === q)
+      );
+      if (!user) return { success: false, error: `No user found matching "${query}"` };
+      const userShipments = Object.values(this.state.shipments || {}).filter(s => s.userId === user.uid);
+      const pendingPreAlerts = userShipments.filter(s => s.currentStatus === 'pre_alert' || s.currentStatus === 'pending' || s.status === 'pre_alert');
+      return { success: true, user, shipments: userShipments, pendingPreAlerts };
+    }
+  }
+
+  public async markWarehouseArrival(shipmentIdOrCode: string, notes?: string, adminId: string = 'adm-001'): Promise<{ success: boolean; shipment?: ShipmentDocument; user?: any; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/shipments/receive`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shipmentId: shipmentIdOrCode, trackingNumber: shipmentIdOrCode, notes, adminId })
+      });
+      const data = await res.json();
+      if (data.shipment) {
+        this.state.shipments[data.shipment.id] = data.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return data;
+    } catch {
+      // Local fallback
+      const query = (shipmentIdOrCode || '').toLowerCase().trim();
+      let ship = Object.values(this.state.shipments || {}).find(s =>
+        (s.id && s.id.toLowerCase() === query) ||
+        (s.trackingNumber && s.trackingNumber.toLowerCase() === query) ||
+        (s.shipmentCode && s.shipmentCode.toLowerCase() === query) ||
+        (s.trackingCode && s.trackingCode.toLowerCase() === query) ||
+        (s.chineseCourierTracking && s.chineseCourierTracking.toLowerCase() === query) ||
+        ((s as any).shippingMark && (s as any).shippingMark.toLowerCase() === query) ||
+        ((s as any).flyeTag && (s as any).flyeTag.toLowerCase() === query)
+      );
+
+      let matchedUser: any = null;
+      if (!ship) {
+        matchedUser = Object.values(this.state.users || {}).find(u =>
+          (u.uid && u.uid.toLowerCase() === query) ||
+          ((u as any).flyeTag && (u as any).flyeTag.toLowerCase() === query) ||
+          ((u as any).shippingMark && (u as any).shippingMark.toLowerCase() === query)
+        );
+        if (matchedUser) {
+          ship = Object.values(this.state.shipments || {}).find(s =>
+            s.userId === matchedUser.uid && (s.currentStatus === 'pre_alert' || s.currentStatus === 'pending' || s.status === 'pre_alert')
+          );
+          if (!ship) {
+            const newShipId = `SHP-${Date.now().toString().slice(-6)}`;
+            const trackingNum = `FM-CN-${Math.floor(100000 + Math.random() * 900000)}`;
+            const userTag = (matchedUser as any).flyeTag || (matchedUser as any).shippingMark || (matchedUser.uid === 'usr_alade_01' ? 'FM-USR-8924' : `FM-USR-${matchedUser.uid.slice(-4).toUpperCase()}`);
+            ship = {
+              id: newShipId,
+              trackingNumber: trackingNum,
+              shipmentCode: trackingNum,
+              trackingCode: trackingNum,
+              title: `Intake Parcel (${matchedUser.fullName || matchedUser.businessName || 'Client'})`,
+              userId: matchedUser.uid,
+              userEmail: matchedUser.email,
+              receiverName: matchedUser.fullName || 'Chief Babatunde Alade',
+              flyeTag: userTag,
+              shippingMark: userTag,
+              originWarehouse: 'Guangzhou',
+              destination: 'Lagos MMIA Hub',
+              destinationHub: 'Lagos MMIA Hub',
+              method: 'air_cargo',
+              status: 'received_warehouse',
+              currentStatus: 'received_warehouse',
+              weightKg: 3.5,
+              cbm: 0.02,
+              pieces: 1,
+              declaredValueUSD: 120,
+              createdAt: Date.now(),
+              timeline: []
+            } as any;
+            this.state.shipments[newShipId] = ship;
+          }
+        }
+      }
+
+      if (!ship) return { success: false, error: 'Shipment not found' };
+
+      const whName = ship.originWarehouse || 'Guangzhou';
+      ship.currentStatus = 'received_warehouse';
+      ship.status = 'received_warehouse';
+      if (!ship.timeline) ship.timeline = [];
+      ship.timeline.push({
+        status: 'Arrived at Guangzhou Warehouse',
+        location: `${whName} Warehouse Receiving Bay (Bay 04)`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        notes: notes || `Physical parcel arrived from courier (${ship.courierCompany || 'SF Express'} #${ship.chineseCourierTracking || ship.trackingNumber}). Barcode verified & intake logged.`
+      });
+      ship.updatedAt = Date.now();
+      this.state.shipments[ship.id] = ship;
+      this.persist();
+      this.notifyListeners();
+      return { success: true, shipment: ship, user: matchedUser || this.state.users[ship.userId] };
+    }
+  }
+
   public async billShipment(shipmentIdOrData: any, optionalData?: any): Promise<any> {
     const payload = optionalData ? { shipmentId: shipmentIdOrData, ...optionalData } : (typeof shipmentIdOrData === 'object' ? shipmentIdOrData : { shipmentId: shipmentIdOrData });
     try {
@@ -2491,6 +4764,149 @@ class DatabaseService {
       return result;
     } catch (e: any) {
       return { success: false, error: e.message || 'Failed to bill shipment' };
+    }
+  }
+
+  public async repackageAndBillShipment(payload: {
+    shipmentId: string;
+    freightFeeUSD?: number;
+    freightFeeNGN?: number;
+    freightFeeCNY?: number;
+    freightCurrency?: 'USD' | 'NGN' | 'CNY';
+    freightAmount?: number;
+    chargeableWeightKg?: number;
+    shippingTier?: string;
+    ratePerKg?: number;
+    customerNotes?: string;
+    billingNotes?: string;
+    warehousePhotos?: string[];
+    inspectionPhotos?: string[];
+    adminId?: string;
+  }): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/shipments/repackage-bill`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      if (result.shipment) {
+        this.state.shipments[result.shipment.id] = result.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      // Local fallback
+      const ship = this.state.shipments[payload.shipmentId] || Object.values(this.state.shipments).find(s => s.id === payload.shipmentId || s.trackingCode === payload.shipmentId || s.trackingNumber === payload.shipmentId || s.platformCode === payload.shipmentId);
+      if (!ship) return { success: false, error: 'Shipment not found' };
+      const usdNgnRate = this.state.system_settings?.rates?.USD_NGN || 1485;
+      const usdCnyRate = this.state.system_settings?.rates?.USD_CNY || 7.24;
+      const feeUSD = Number((payload.freightFeeUSD ?? 0).toFixed(2));
+      ship.freightFeeUSD = feeUSD;
+      ship.freightFee = feeUSD;
+      ship.freightFeeNGN = payload.freightFeeNGN !== undefined ? Math.round(payload.freightFeeNGN) : Math.round(feeUSD * usdNgnRate);
+      ship.freightFeeCNY = payload.freightFeeCNY !== undefined ? Number(payload.freightFeeCNY.toFixed(2)) : Number((feeUSD * usdCnyRate).toFixed(2));
+      if (payload.chargeableWeightKg !== undefined) {
+        ship.billableWeightKg = Number(payload.chargeableWeightKg);
+        ship.actualWeightKg = Number(payload.chargeableWeightKg);
+        ship.weightKg = Number(payload.chargeableWeightKg);
+      }
+      if (payload.shippingTier) {
+        ship.method = payload.shippingTier;
+      }
+      if (payload.ratePerKg) ship.ratePerKg = payload.ratePerKg;
+      const notes = payload.customerNotes !== undefined ? payload.customerNotes : payload.billingNotes;
+      if (notes !== undefined) {
+        ship.billingNotes = notes;
+        ship.customerNotes = notes;
+      }
+      const photos = payload.warehousePhotos || payload.inspectionPhotos;
+      if (Array.isArray(photos)) {
+        ship.inspectionPhotos = photos;
+        ship.warehousePhotos = photos;
+      }
+      ship.paymentStatus = 'awaiting_payment';
+      ship.currentStatus = 'awaiting_payment';
+      ship.status = 'Awaiting Payment';
+      ship.isBilled = feeUSD > 0;
+      ship.updatedAt = Date.now();
+      this.persist();
+      this.notifyListeners();
+      return { success: true, shipment: ship };
+    }
+  }
+
+  public async uploadShipmentPhotos(shipmentId: string, photos: string[], adminId: string = 'adm-001'): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/shipments/upload-photos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shipmentId, photos, adminId })
+      });
+      const result = await res.json();
+      if (result.shipment) {
+        this.state.shipments[result.shipment.id] = result.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      const ship = this.state.shipments[shipmentId] || Object.values(this.state.shipments).find(s => s.id === shipmentId || s.trackingCode === shipmentId || s.trackingNumber === shipmentId || s.platformCode === shipmentId);
+      if (ship) {
+        ship.inspectionPhotos = photos;
+        ship.warehousePhotos = photos;
+        ship.updatedAt = Date.now();
+        this.persist();
+        this.notifyListeners();
+        return { success: true, shipment: ship };
+      }
+      return { success: false, error: e.message || 'Failed to upload photos' };
+    }
+  }
+
+  public async inlineUpdateShipment(shipmentId: string, updates: {
+    location?: string;
+    eta?: string;
+    freightFeeUSD?: number;
+    status?: string;
+    currentStatus?: string;
+    paymentStatus?: string;
+    fulfillmentMethod?: string;
+    method?: string;
+    adminId?: string;
+  }): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/shipments/inline-update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shipmentId, ...updates })
+      });
+      const result = await res.json();
+      if (result.shipment) {
+        this.state.shipments[result.shipment.id] = result.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      const ship = this.state.shipments[shipmentId] || Object.values(this.state.shipments).find(s => s.id === shipmentId || s.trackingCode === shipmentId || s.trackingNumber === shipmentId || s.platformCode === shipmentId);
+      if (!ship) return { success: false, error: 'Shipment not found' };
+      if (updates.location !== undefined) ship.location = updates.location;
+      if (updates.eta !== undefined) ship.eta = updates.eta;
+      if (updates.freightFeeUSD !== undefined) {
+        ship.freightFeeUSD = Number(updates.freightFeeUSD);
+        ship.freightFee = Number(updates.freightFeeUSD);
+      }
+      const nextStatus = updates.status !== undefined ? updates.status : updates.currentStatus;
+      if (nextStatus !== undefined) {
+        ship.status = nextStatus;
+        ship.currentStatus = nextStatus;
+      }
+      ship.updatedAt = Date.now();
+      this.persist();
+      this.notifyListeners();
+      return { success: true, shipment: ship };
     }
   }
 
@@ -2514,6 +4930,81 @@ class DatabaseService {
     }
   }
 
+  public async trackShipment(codeOrNumber: string): Promise<any> {
+    const q = (codeOrNumber || '').trim().toLowerCase();
+    if (!q) return { success: false, error: 'Tracking code is required' };
+
+    // 1. Check local state first
+    const local = Object.values(this.state.shipments || {}).find(s => 
+      (s.id && s.id.toLowerCase() === q) ||
+      (s.trackingNumber && s.trackingNumber.toLowerCase() === q) ||
+      (s.shipmentCode && s.shipmentCode.toLowerCase() === q) ||
+      (s.trackingCode && s.trackingCode.toLowerCase() === q) ||
+      (s.chineseCourierTracking && s.chineseCourierTracking.toLowerCase() === q)
+    );
+    if (local) {
+      return { success: true, shipment: local, cached: true };
+    }
+
+    // 2. Fetch live from backend
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/shipments/track?code=${encodeURIComponent(codeOrNumber.trim())}`);
+      const result = await res.json();
+      if (result.success && result.shipment) {
+        if (!this.state.shipments) this.state.shipments = {};
+        this.state.shipments[result.shipment.id] = result.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Failed to fetch shipment tracking' };
+    }
+  }
+
+  public async addMilestoneCheckpoint(
+    shipmentId: string, 
+    milestone: { status: string; location: string; notes?: string; timestamp?: string; updateCurrentStatus?: boolean; adminId?: string }
+  ): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/shipments/add-milestone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shipmentId, ...milestone })
+      });
+      const result = await res.json();
+      if (result.success && result.shipment) {
+        if (!this.state.shipments) this.state.shipments = {};
+        this.state.shipments[result.shipment.id] = result.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Failed to add milestone checkpoint' };
+    }
+  }
+
+  public async assignShipmentUser(shipmentId: string, userId: string, receiverName?: string, adminId?: string): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/shipments/assign-user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shipmentId, userId, receiverName, adminId })
+      });
+      const result = await res.json();
+      if (result.success && result.shipment) {
+        if (!this.state.shipments) this.state.shipments = {};
+        this.state.shipments[result.shipment.id] = result.shipment;
+        this.persist();
+        this.notifyListeners();
+      }
+      return result;
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Failed to assign shipment user' };
+    }
+  }
+
   public async verifyPickupOtp(shipmentIdOrData: any, otp?: string, freightCollected?: boolean, staffId?: string): Promise<any> {
     const payload = otp ? { shipmentId: shipmentIdOrData, otp, freightCollected, staffId } : shipmentIdOrData;
     try {
@@ -2530,6 +5021,24 @@ class DatabaseService {
       }
       return result;
     } catch (e: any) {
+      const shipId = payload.shipmentId;
+      const ship = this.state.shipments[shipId];
+      if (ship) {
+        if (ship.pickupOtp && String(payload.otp).trim() !== String(ship.pickupOtp).trim()) {
+          return { success: false, error: 'Invalid 4-digit Pickup OTP. Package release blocked.' };
+        }
+        ship.otpVerified = true;
+        (ship as any).pickup_otp_verified_at = new Date().toISOString();
+        ship.pickupOtpVerifiedAt = Date.now();
+        ship.currentStatus = 'completed';
+        ship.status = 'completed';
+        ship.handedOverTo = payload.staffId || 'Lagos Hub Handover Officer';
+        ship.handoverTimestamp = Date.now();
+        ship.updatedAt = Date.now();
+        this.persist();
+        this.notifyListeners();
+        return { success: true, shipment: ship };
+      }
       return { success: false, error: e.message || 'Failed to verify pickup OTP' };
     }
   }
@@ -2746,6 +5255,87 @@ class DatabaseService {
     return result;
   }
 
+  public async payAgentQuotation(requestId: string, pin: string, paymentWalletUsed: string = 'USD', userId?: string): Promise<any> {
+    return this.acceptAgentQuote(requestId, pin, paymentWalletUsed, userId);
+  }
+
+  public async submitAgentQuotation(requestId: string, quoteData: any, adminId: string = 'adm-001'): Promise<any> {
+    return this.quoteAgentRequest(requestId, quoteData, undefined, undefined, undefined, adminId);
+  }
+
+  public async submitAgentServiceRequest(payload: any): Promise<any> {
+    return this.createAgentRequest(payload);
+  }
+
+  public async bookAgentWithWallet(payload: any): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/agents/book-with-wallet`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to book ground agent');
+      if (result.request) {
+        this.state.agent_requests[result.request.id] = result.request;
+      }
+      if (result.balances && payload.userId && this.state.users[payload.userId]) {
+        this.state.users[payload.userId].balances = result.balances;
+      }
+      this.persist();
+      this.notifyListeners();
+      return result;
+    } catch (err: any) {
+      // Local fallback
+      const rfq = this.recordAgentRequest({
+        ...payload,
+        status: 'in_progress',
+        paymentStatus: 'paid'
+      });
+      return { success: true, request: rfq };
+    }
+  }
+
+  public async assignAgent(requestId: string, assignedAgent: string, adminNotes?: string, agentLocation?: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/agents/assign`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'operations'
+      },
+      body: JSON.stringify({ requestId, assignedAgent, adminNotes, agentLocation, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to assign agent');
+    if (result.request) {
+      this.state.agent_requests[result.request.id] = result.request;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async sendAgentClientUpdate(requestId: string, message: string, status?: string, agentLocation?: string, inspectionReportUrl?: string, reportSummary?: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/agents/communicate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'operations'
+      },
+      body: JSON.stringify({ requestId, message, status, agentLocation, inspectionReportUrl, reportSummary, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to send client update');
+    if (result.request) {
+      this.state.agent_requests[result.request.id] = result.request;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
   public async completeAgentRequest(requestId: string, reportSummary?: string, adminId: string = 'adm-001'): Promise<any> {
     const res = await fetch(`${BACKEND_BASE}/api/admin/agents/complete`, {
       method: 'POST',
@@ -2914,6 +5504,47 @@ class DatabaseService {
     return this.createRentalProperty({ id: propertyId, ...data }, adminId);
   }
 
+  public async toggleRentalPropertyStatus(propertyId: string, status?: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/rentals/toggle-status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ propertyId, status, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to toggle rental property status');
+    if (result.property) {
+      if (!this.state.rental_properties) this.state.rental_properties = {};
+      this.state.rental_properties[result.property.id] = result.property;
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
+  public async deleteRentalProperty(propertyId: string, adminId: string = 'adm-001'): Promise<any> {
+    const res = await fetch(`${BACKEND_BASE}/api/admin/rentals/delete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-id': adminId,
+        'x-admin-role': 'super_admin'
+      },
+      body: JSON.stringify({ propertyId, adminId })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'Failed to delete rental property');
+    if (this.state.rental_properties && this.state.rental_properties[propertyId]) {
+      delete this.state.rental_properties[propertyId];
+      this.persist();
+      this.notifyListeners();
+    }
+    return result;
+  }
+
   public getPropertyInquiries(userId?: string): any[] {
     const list = Object.values(this.state.property_inquiries || {}).sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
     if (userId) {
@@ -2961,6 +5592,588 @@ class DatabaseService {
       this.notifyListeners();
     }
     return result;
+  }
+
+  // ---------------------------------------------------------------------------
+  // FREIGHT RATE CALCULATOR & GLOBAL SHIPPING CORRIDORS
+  // ---------------------------------------------------------------------------
+
+  public getShippingCorridors(): ShippingCorridor[] {
+    const fromSettings = this.state.system_settings?.shipping_corridors;
+    if (Array.isArray(fromSettings) && fromSettings.length > 0) {
+      return fromSettings;
+    }
+    return DEFAULT_SHIPPING_CORRIDORS;
+  }
+
+  public async updateShippingCorridor(corridorId: string, updates: Partial<ShippingCorridor>, adminId: string = 'adm-001'): Promise<{ success: boolean; corridor?: ShippingCorridor; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/logistics/corridors/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ corridorId, updates, adminId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.corridors) {
+          if (!this.state.system_settings) {
+            this.state.system_settings = { rates: { NGN_CNY: 215.2, USD_NGN: 1490, USD_CNY: 7.26, spreadPercent: 0.75, lastUpdated: Date.now(), updatedBy: 'Admin' }, fees: { withdrawalFlatNGN: 500, fundingCardPercent: 1.2, supplierEscrowPercent: 0.5, airFreightPerKgUSD: 10, seaFreightPerCbmUSD: 145, supplier30DayPassUSD: 50 } };
+          }
+          this.state.system_settings.shipping_corridors = data.corridors;
+          this.persist();
+          this.notifyListeners();
+        }
+        return data;
+      }
+    } catch {
+      // Local fallback
+    }
+
+    // Local fallback update
+    const corridors = [...this.getShippingCorridors()];
+    const idx = corridors.findIndex(c => c.id === corridorId);
+    if (idx !== -1) {
+      corridors[idx] = { ...corridors[idx], ...updates, updatedAt: Date.now(), updatedBy: adminId };
+      if (!this.state.system_settings) {
+        this.state.system_settings = { rates: { NGN_CNY: 215.2, USD_NGN: 1490, USD_CNY: 7.26, spreadPercent: 0.75, lastUpdated: Date.now(), updatedBy: 'Admin' }, fees: { withdrawalFlatNGN: 500, fundingCardPercent: 1.2, supplierEscrowPercent: 0.5, airFreightPerKgUSD: 10, seaFreightPerCbmUSD: 145, supplier30DayPassUSD: 50 } };
+      }
+      this.state.system_settings.shipping_corridors = corridors;
+      this.persist();
+      this.notifyListeners();
+      return { success: true, corridor: corridors[idx] };
+    }
+    return { success: false, error: 'Corridor not found' };
+  }
+
+  public async createShippingCorridor(corridor: Partial<ShippingCorridor>, adminId: string = 'adm-001'): Promise<{ success: boolean; corridor?: ShippingCorridor; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/logistics/corridors/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ corridor, adminId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.corridors) {
+          if (!this.state.system_settings) {
+            this.state.system_settings = { rates: { NGN_CNY: 215.2, USD_NGN: 1490, USD_CNY: 7.26, spreadPercent: 0.75, lastUpdated: Date.now(), updatedBy: 'Admin' }, fees: { withdrawalFlatNGN: 500, fundingCardPercent: 1.2, supplierEscrowPercent: 0.5, airFreightPerKgUSD: 10, seaFreightPerCbmUSD: 145, supplier30DayPassUSD: 50 } };
+          }
+          this.state.system_settings.shipping_corridors = data.corridors;
+          this.persist();
+          this.notifyListeners();
+        }
+        return data;
+      }
+    } catch {
+      // Local fallback
+    }
+
+    const corridors = [...this.getShippingCorridors()];
+    const newCorridor: ShippingCorridor = {
+      id: corridor.id || `corridor_${Date.now()}`,
+      name: corridor.name || 'New Corridor',
+      originCountry: corridor.originCountry || 'International',
+      originCode: corridor.originCode || 'INT',
+      originHub: corridor.originHub || 'Central Transit Hub',
+      destinationCountry: corridor.destinationCountry || 'Nigeria',
+      destinationHub: corridor.destinationHub || 'Lagos MMIA Hub',
+      flag: corridor.flag || '🌐',
+      airExpressRateUSD: Number(corridor.airExpressRateUSD) || 12.00,
+      airExpressBaseFeeUSD: Number(corridor.airExpressBaseFeeUSD) || 5.00,
+      airExpressDeliveryDays: corridor.airExpressDeliveryDays || '3–5 Days',
+      airExpressMinKg: Number(corridor.airExpressMinKg) || 1.0,
+      airRegularRateUSD: Number(corridor.airRegularRateUSD) || 10.00,
+      airRegularBaseFeeUSD: Number(corridor.airRegularBaseFeeUSD) || 3.00,
+      airRegularDeliveryDays: corridor.airRegularDeliveryDays || '7–10 Days',
+      airRegularMinKg: Number(corridor.airRegularMinKg) || 2.0,
+      seaFreightRateCbmUSD: Number(corridor.seaFreightRateCbmUSD) || 280.00,
+      seaFreightBaseFeeUSD: Number(corridor.seaFreightBaseFeeUSD) || 25.00,
+      seaFreightDeliveryDays: corridor.seaFreightDeliveryDays || '25–35 Days',
+      seaFreightMinCbm: Number(corridor.seaFreightMinCbm) || 0.1,
+      customsClearanceIncluded: corridor.customsClearanceIncluded !== false,
+      isActive: corridor.isActive !== false,
+      destinationHubSurcharges: corridor.destinationHubSurcharges || [
+        { hubId: 'los_main', name: 'Lagos MMIA Hub', state: 'Lagos', airSurchargeUSD: 0, seaSurchargeUSD: 0 },
+        { hubId: 'abj_hub', name: 'Abuja Cargo Hub', state: 'FCT Abuja', airSurchargeUSD: 1.20, seaSurchargeUSD: 35.00 },
+        { hubId: 'kan_hub', name: 'Kano Hub', state: 'Kano', airSurchargeUSD: 1.50, seaSurchargeUSD: 45.00 },
+        { hubId: 'phc_hub', name: 'Port Harcourt Hub', state: 'Rivers', airSurchargeUSD: 1.30, seaSurchargeUSD: 40.00 },
+        { hubId: 'oni_hub', name: 'Onitsha Commercial Dock', state: 'Anambra', airSurchargeUSD: 1.40, seaSurchargeUSD: 38.00 }
+      ],
+      updatedAt: Date.now(),
+      updatedBy: adminId
+    };
+    corridors.push(newCorridor);
+    if (!this.state.system_settings) {
+      this.state.system_settings = { rates: { NGN_CNY: 215.2, USD_NGN: 1490, USD_CNY: 7.26, spreadPercent: 0.75, lastUpdated: Date.now(), updatedBy: 'Admin' }, fees: { withdrawalFlatNGN: 500, fundingCardPercent: 1.2, supplierEscrowPercent: 0.5, airFreightPerKgUSD: 10, seaFreightPerCbmUSD: 145, supplier30DayPassUSD: 50 } };
+    }
+    this.state.system_settings.shipping_corridors = corridors;
+    this.persist();
+    this.notifyListeners();
+    return { success: true, corridor: newCorridor };
+  }
+
+  public getAirShippingRates(): {
+    expressRatePerKgUSD: number;
+    expressHandlingFeeUSD: number;
+    normalRatePerKgUSD: number;
+    normalHandlingFeeUSD: number;
+    updatedAt?: number;
+    updatedBy?: string;
+  } {
+    const saved = this.state.system_settings?.air_shipping_rates;
+    if (saved && typeof saved.expressRatePerKgUSD === 'number' && typeof saved.normalRatePerKgUSD === 'number') {
+      return saved;
+    }
+    return {
+      expressRatePerKgUSD: 13.00,
+      expressHandlingFeeUSD: 0.00,
+      normalRatePerKgUSD: 9.60,
+      normalHandlingFeeUSD: 0.00
+    };
+  }
+
+  public async updateAirShippingRates(
+    rates: {
+      expressRatePerKgUSD: number;
+      expressHandlingFeeUSD: number;
+      normalRatePerKgUSD: number;
+      normalHandlingFeeUSD: number;
+    },
+    adminId: string = 'adm-001'
+  ): Promise<{ success: boolean; air_shipping_rates?: any; recalculatedCount?: number; error?: string }> {
+    const cleanRates = {
+      expressRatePerKgUSD: Number(rates.expressRatePerKgUSD ?? 13.00),
+      expressHandlingFeeUSD: Number(rates.expressHandlingFeeUSD ?? 0.00),
+      normalRatePerKgUSD: Number(rates.normalRatePerKgUSD ?? 9.60),
+      normalHandlingFeeUSD: Number(rates.normalHandlingFeeUSD ?? 0.00),
+      updatedAt: Date.now(),
+      updatedBy: adminId
+    };
+
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/logistics/air-shipping-rates`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...cleanRates, adminId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (!this.state.system_settings) {
+          this.state.system_settings = INITIAL_DATABASE.system_settings;
+        }
+        this.state.system_settings.air_shipping_rates = data.air_shipping_rates || cleanRates;
+        if (data.shipping_corridors) {
+          this.state.system_settings.shipping_corridors = data.shipping_corridors;
+        }
+        this.persist();
+        this.notifyListeners();
+        return data;
+      }
+    } catch {
+      // Local fallback below
+    }
+
+    if (!this.state.system_settings) {
+      this.state.system_settings = INITIAL_DATABASE.system_settings;
+    }
+    this.state.system_settings.air_shipping_rates = cleanRates;
+    this.state.system_settings.fees.airFreightPerKgUSD = cleanRates.normalRatePerKgUSD;
+    this.state.system_settings.shipping_corridors = this.getShippingCorridors().map((c) => ({
+      ...c,
+      airExpressRateUSD: cleanRates.expressRatePerKgUSD,
+      airExpressBaseFeeUSD: cleanRates.expressHandlingFeeUSD,
+      airExpressDeliveryDays: '48 Hours (2 Days)',
+      airRegularRateUSD: cleanRates.normalRatePerKgUSD,
+      airRegularBaseFeeUSD: cleanRates.normalHandlingFeeUSD,
+      airRegularDeliveryDays: '5–7 Working Days',
+      updatedAt: Date.now(),
+      updatedBy: adminId
+    }));
+
+    const fx = this.getLogisticsFxRates();
+    let recalculatedCount = 0;
+    for (const shp of Object.values(this.state.shipments || {})) {
+      if (!shp.freightPaid && !shp.isBilled) {
+        const weight = Math.max(0.5, Number(shp.actualWeightKg || shp.weightKg || 1));
+        const isExpress = String(shp.method || shp.shippingMethod || shp.shippingMode || shp.mode || '').toLowerCase().includes('express');
+        const rate = isExpress ? cleanRates.expressRatePerKgUSD : cleanRates.normalRatePerKgUSD;
+        const handling = isExpress ? cleanRates.expressHandlingFeeUSD : cleanRates.normalHandlingFeeUSD;
+        shp.ratePerKg = rate;
+        shp.costEstimate = Number((weight * rate + handling).toFixed(2));
+        shp.updatedAt = Date.now();
+        recalculatedCount++;
+      } else if (!shp.freightPaid && Number(shp.freightFeeUSD || 0) > 0) {
+        shp.freightFeeNGN = Math.round(Number(shp.freightFeeUSD) * fx.usdToNgn);
+        shp.freightFeeCNY = Number((Number(shp.freightFeeUSD) * fx.usdToCny).toFixed(2));
+      }
+    }
+
+    this.persist();
+    this.notifyListeners();
+    return { success: true, air_shipping_rates: cleanRates, recalculatedCount };
+  }
+
+  public getLogisticsFxRates(): {
+    usdToNgn: number;
+    usdToCny: number;
+    updatedAt?: number;
+    updatedBy?: string;
+  } {
+    const saved = this.state.system_settings?.logistics_fx_rates;
+    if (saved && typeof saved.usdToNgn === 'number' && typeof saved.usdToCny === 'number') {
+      return saved;
+    }
+    return {
+      usdToNgn: 1400.00,
+      usdToCny: 7.25
+    };
+  }
+
+  public async updateLogisticsFxRates(
+    fxRates: { usdToNgn: number; usdToCny: number },
+    adminId: string = 'adm-001'
+  ): Promise<{ success: boolean; logistics_fx_rates?: any; recalculatedCount?: number; error?: string }> {
+    const cleanFx = {
+      usdToNgn: Number(fxRates.usdToNgn ?? 1400.00),
+      usdToCny: Number(fxRates.usdToCny ?? 7.25),
+      updatedAt: Date.now(),
+      updatedBy: adminId
+    };
+
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/logistics/fx-rates`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...cleanFx, adminId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (!this.state.system_settings) {
+          this.state.system_settings = INITIAL_DATABASE.system_settings;
+        }
+        this.state.system_settings.logistics_fx_rates = data.logistics_fx_rates || cleanFx;
+        this.persist();
+        this.notifyListeners();
+        return data;
+      }
+    } catch {
+      // Local fallback below
+    }
+
+    if (!this.state.system_settings) {
+      this.state.system_settings = INITIAL_DATABASE.system_settings;
+    }
+    this.state.system_settings.logistics_fx_rates = cleanFx;
+
+    let recalculatedCount = 0;
+    for (const shp of Object.values(this.state.shipments || {})) {
+      if (!shp.freightPaid && Number(shp.freightFeeUSD || 0) > 0) {
+        shp.freightFeeNGN = Math.round(Number(shp.freightFeeUSD) * cleanFx.usdToNgn);
+        shp.freightFeeCNY = Number((Number(shp.freightFeeUSD) * cleanFx.usdToCny).toFixed(2));
+        shp.updatedAt = Date.now();
+        recalculatedCount++;
+      }
+    }
+
+    this.persist();
+    this.notifyListeners();
+    return { success: true, logistics_fx_rates: cleanFx, recalculatedCount };
+  }
+
+  public calculateFreightCost(
+    corridorId: string,
+    mode: 'air_express' | 'air_regular' | 'sea',
+    weightKg: number,
+    cbm: number,
+    destinationHubId: string = 'los_main'
+  ): FreightCalculationResult {
+    const corridors = this.getShippingCorridors();
+    const rawCorridor = corridors.find(c => c.id === corridorId) || corridors[0] || DEFAULT_SHIPPING_CORRIDORS[0];
+    const airRates = this.getAirShippingRates();
+    const logisticsFx = this.getLogisticsFxRates();
+    const usdNgn = logisticsFx.usdToNgn || 1400;
+    const usdCny = logisticsFx.usdToCny || 7.25;
+
+    // Synchronize active air shipping rates & flat handling fees
+    const corridor: ShippingCorridor = {
+      ...rawCorridor,
+      airExpressRateUSD: airRates.expressRatePerKgUSD ?? rawCorridor.airExpressRateUSD,
+      airExpressBaseFeeUSD: airRates.expressHandlingFeeUSD ?? rawCorridor.airExpressBaseFeeUSD,
+      airRegularRateUSD: airRates.normalRatePerKgUSD ?? rawCorridor.airRegularRateUSD,
+      airRegularBaseFeeUSD: airRates.normalHandlingFeeUSD ?? rawCorridor.airRegularBaseFeeUSD
+    };
+
+    const hubSurchargeObj = corridor.destinationHubSurcharges?.find(h => h.hubId === destinationHubId);
+    const airSurchargeUSD = hubSurchargeObj?.airSurchargeUSD || 0;
+    const seaSurchargeUSD = hubSurchargeObj?.seaSurchargeUSD || 0;
+    const destinationHub = hubSurchargeObj?.name || corridor.destinationHub;
+
+    const validWeightKg = Math.max(0, Number(weightKg) || 0);
+    const validCbm = Math.max(0, Number(cbm) || 0);
+
+    // Air Express calculation: baseFee + (max(weight, minKg) * (ratePerKg + surcharge))
+    const expressBillableKg = Math.max(validWeightKg, corridor.airExpressMinKg);
+    const expressUnitRate = corridor.airExpressRateUSD + airSurchargeUSD;
+    const expressTotalUSD = Number((corridor.airExpressBaseFeeUSD + (expressBillableKg * expressUnitRate)).toFixed(2));
+
+    // Air Regular calculation
+    const regularBillableKg = Math.max(validWeightKg, corridor.airRegularMinKg);
+    const regularUnitRate = corridor.airRegularRateUSD + airSurchargeUSD;
+    const regularTotalUSD = Number((corridor.airRegularBaseFeeUSD + (regularBillableKg * regularUnitRate)).toFixed(2));
+
+    // Sea Freight calculation: baseFee + (max(cbm, minCbm) * (ratePerCbm + surcharge))
+    const seaBillableCbm = Math.max(validCbm, corridor.seaFreightMinCbm);
+    const seaUnitRate = corridor.seaFreightRateCbmUSD + seaSurchargeUSD;
+    const seaTotalUSD = Number((corridor.seaFreightBaseFeeUSD + (seaBillableCbm * seaUnitRate)).toFixed(2));
+
+    let baseFeeUSD = 0;
+    let unitRateUSD = 0;
+    let hubSurchargeUSD = 0;
+    let totalCostUSD = 0;
+    let deliveryDays = '';
+    let formulaDescription = '';
+
+    if (mode === 'air_express') {
+      baseFeeUSD = corridor.airExpressBaseFeeUSD;
+      unitRateUSD = corridor.airExpressRateUSD;
+      hubSurchargeUSD = airSurchargeUSD;
+      totalCostUSD = expressTotalUSD;
+      deliveryDays = corridor.airExpressDeliveryDays;
+      formulaDescription = `$${baseFeeUSD.toFixed(2)} base + (${expressBillableKg}kg × ($${unitRateUSD}/kg${hubSurchargeUSD ? ` + $${hubSurchargeUSD} hub` : ''}))`;
+    } else if (mode === 'air_regular') {
+      baseFeeUSD = corridor.airRegularBaseFeeUSD;
+      unitRateUSD = corridor.airRegularRateUSD;
+      hubSurchargeUSD = airSurchargeUSD;
+      totalCostUSD = regularTotalUSD;
+      deliveryDays = corridor.airRegularDeliveryDays;
+      formulaDescription = `$${baseFeeUSD.toFixed(2)} base + (${regularBillableKg}kg × ($${unitRateUSD}/kg${hubSurchargeUSD ? ` + $${hubSurchargeUSD} hub` : ''}))`;
+    } else {
+      baseFeeUSD = corridor.seaFreightBaseFeeUSD;
+      unitRateUSD = corridor.seaFreightRateCbmUSD;
+      hubSurchargeUSD = seaSurchargeUSD;
+      totalCostUSD = seaTotalUSD;
+      deliveryDays = corridor.seaFreightDeliveryDays;
+      formulaDescription = `$${baseFeeUSD.toFixed(2)} base + (${seaBillableCbm}CBM × ($${unitRateUSD}/CBM${hubSurchargeUSD ? ` + $${hubSurchargeUSD} hub` : ''}))`;
+    }
+
+    const totalCostNGN = Math.round(totalCostUSD * usdNgn);
+    const totalCostCNY = Number((totalCostUSD * usdCny).toFixed(2));
+
+    return {
+      corridor,
+      mode,
+      weightKg: validWeightKg,
+      cbm: validCbm,
+      destinationHub,
+      baseFeeUSD,
+      unitRateUSD,
+      hubSurchargeUSD,
+      totalCostUSD,
+      totalCostNGN,
+      totalCostCNY,
+      deliveryDays,
+      formulaDescription,
+      comparisons: {
+        airExpress: {
+          totalUSD: expressTotalUSD,
+          totalNGN: Math.round(expressTotalUSD * usdNgn),
+          totalCNY: Number((expressTotalUSD * usdCny).toFixed(2)),
+          days: corridor.airExpressDeliveryDays,
+          ratePerKg: corridor.airExpressRateUSD
+        },
+        airRegular: {
+          totalUSD: regularTotalUSD,
+          totalNGN: Math.round(regularTotalUSD * usdNgn),
+          totalCNY: Number((regularTotalUSD * usdCny).toFixed(2)),
+          days: corridor.airRegularDeliveryDays,
+          ratePerKg: corridor.airRegularRateUSD
+        },
+        seaFreight: {
+          totalUSD: seaTotalUSD,
+          totalNGN: Math.round(seaTotalUSD * usdNgn),
+          totalCNY: Number((seaTotalUSD * usdCny).toFixed(2)),
+          days: corridor.seaFreightDeliveryDays,
+          ratePerCbm: corridor.seaFreightRateCbmUSD
+        }
+      }
+    };
+  }
+
+  // =========================================================================
+  // RBAC & STAFF ACCOUNT MANAGEMENT METHODS
+  // =========================================================================
+
+  public getAdminStaff(): AdminUser[] {
+    if (this.state.admin_staff && Object.keys(this.state.admin_staff).length > 0) {
+      return Object.values(this.state.admin_staff);
+    }
+    return INITIAL_ADMINS;
+  }
+
+  public async provisionStaff(payload: {
+    name: string;
+    email: string;
+    role: AdminRole;
+    department?: string;
+    hubLocation?: string;
+    permissions?: AdminModulePermission[];
+    tempPassword?: string;
+  }, adminId: string = 'adm-001'): Promise<{ success: boolean; staff?: AdminUser; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/staff/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, adminId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.staff) {
+          if (!this.state.admin_staff) this.state.admin_staff = {};
+          this.state.admin_staff[data.staff.uid] = data.staff;
+          this.persist();
+          this.notifyListeners();
+        }
+        return data;
+      }
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || 'Failed to provision staff member');
+    } catch {
+      // Local fallback
+      const uid = `adm-${Date.now().toString().slice(-4)}`;
+      const roleTitles: Record<AdminRole, string> = {
+        super_admin: 'Super Administrator',
+        finance_officer: 'Treasury & FX Officer',
+        logistics_manager: 'Logistics Operations Officer',
+        support_agent: 'Client Concierge Specialist',
+        warehouse_officer: 'Warehouse Intake Officer',
+        custom: 'Operations Officer'
+      };
+      const newStaff: AdminUser = {
+        uid,
+        name: payload.name,
+        email: payload.email,
+        role: payload.role,
+        roleTitle: roleTitles[payload.role] || 'Operations Specialist',
+        department: payload.department || 'Operations Team',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
+        hubLocation: payload.hubLocation || 'Guangzhou Baiyun Hub',
+        lastLogin: 'Never (Pending 2FA Setup)',
+        status: 'active',
+        permissions: payload.permissions || ROLE_DEFAULT_PERMISSIONS[payload.role] || ['shipments'],
+        tempPassword: payload.tempPassword || `Flye@${Math.floor(1000 + Math.random() * 9000)}#2026`,
+        inviteToken: `inv_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        twoFactorEnabled: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      if (!this.state.admin_staff) this.state.admin_staff = {};
+      this.state.admin_staff[newStaff.uid] = newStaff;
+      this.persist();
+      this.notifyListeners();
+      return { success: true, staff: newStaff };
+    }
+  }
+
+  public async updateStaffPermissions(staffId: string, permissions: AdminModulePermission[], adminId: string = 'adm-001'): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/staff/update-permissions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staffId, permissions, adminId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.staff && this.state.admin_staff) {
+          this.state.admin_staff[staffId] = data.staff;
+          this.persist();
+          this.notifyListeners();
+        }
+        return data;
+      }
+    } catch {
+      // local fallback
+    }
+    if (this.state.admin_staff && this.state.admin_staff[staffId]) {
+      this.state.admin_staff[staffId].permissions = permissions;
+      this.state.admin_staff[staffId].updatedAt = Date.now();
+      this.persist();
+      this.notifyListeners();
+      return { success: true, staff: this.state.admin_staff[staffId] };
+    }
+    return { success: false, error: 'Staff member not found' };
+  }
+
+  public async toggleStaffStatus(staffId: string, status?: 'active' | 'suspended', adminId: string = 'adm-001'): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/staff/toggle-status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staffId, status, adminId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.staff && this.state.admin_staff) {
+          this.state.admin_staff[staffId] = data.staff;
+          this.persist();
+          this.notifyListeners();
+        }
+        return data;
+      }
+    } catch {
+      // local fallback
+    }
+    if (this.state.admin_staff && this.state.admin_staff[staffId]) {
+      const current = this.state.admin_staff[staffId].status;
+      const next = status || (current === 'active' ? 'suspended' : 'active');
+      this.state.admin_staff[staffId].status = next;
+      this.state.admin_staff[staffId].updatedAt = Date.now();
+      this.persist();
+      this.notifyListeners();
+      return { success: true, staff: this.state.admin_staff[staffId] };
+    }
+    return { success: false, error: 'Staff member not found' };
+  }
+
+  public async resetStaffCredentials(staffId: string, adminId: string = 'adm-001'): Promise<any> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/staff/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staffId, adminId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.staff && this.state.admin_staff) {
+          this.state.admin_staff[staffId] = data.staff;
+          this.persist();
+          this.notifyListeners();
+        }
+        return data;
+      }
+    } catch {
+      // local fallback
+    }
+    if (this.state.admin_staff && this.state.admin_staff[staffId]) {
+      this.state.admin_staff[staffId].tempPassword = `Flye@Reset${Math.floor(1000 + Math.random() * 9000)}#`;
+      this.state.admin_staff[staffId].inviteToken = `inv_reset_${Date.now()}`;
+      this.state.admin_staff[staffId].updatedAt = Date.now();
+      this.persist();
+      this.notifyListeners();
+      return { success: true, staff: this.state.admin_staff[staffId] };
+    }
+    return { success: false, error: 'Staff member not found' };
+  }
+
+  public async logAccessDenied(staffId: string, staffName: string, requestedPath: string, missingPermission: string): Promise<any> {
+    try {
+      await fetch(`${BACKEND_BASE}/api/admin/security/log-access-denied`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staffId, staffName, requestedPath, missingPermission })
+      });
+    } catch {
+      // ignore
+    }
   }
 }
 

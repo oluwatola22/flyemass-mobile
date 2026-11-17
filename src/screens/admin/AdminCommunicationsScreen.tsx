@@ -30,13 +30,15 @@ import {
 
 export const AdminCommunicationsScreen: React.FC = () => {
   const { showToast, adminUser } = useApp();
-  const [dbState, setDbState] = useState<DatabaseState>(db.getState());
+  const [, setDbRev] = useState(() => db.getStateRevision());
   const [activeTab, setActiveTab] = useState<'banners' | 'notifications' | 'emails' | 'campaign'>('banners');
 
   // Live state synchronization
   useEffect(() => {
-    return db.subscribe(() => setDbState({ ...db.getState() }));
+    return db.subscribe(() => setDbRev(db.getStateRevision()));
   }, []);
+
+  const dbState = db.getState();
 
   // Email Logs State
   const [emailLogs, setEmailLogs] = useState<any[]>([]);

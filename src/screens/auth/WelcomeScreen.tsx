@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { ShieldCheck, ArrowRight, Globe, Lock, ArrowLeftRight, PlaneTakeoff } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Globe, ArrowLeftRight, PlaneTakeoff, Wallet } from 'lucide-react';
 
 export const WelcomeScreen: React.FC = () => {
   const { navigate } = useApp();
@@ -55,10 +55,10 @@ export const WelcomeScreen: React.FC = () => {
 
         <div className="text-center space-y-3 max-w-sm mx-auto">
           <h1 className="text-3xl font-extrabold tracking-tight text-white leading-tight">
-            Bridging China Trade & African Enterprise.
+            Global Trade & Seamless Payments.
           </h1>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Direct Alipay/WeChat settlement, instant NGN-RMB-USD FX swaps, factory escrow, and express air freight tracking in one secure mobile vault.
+            Your secure mobile vault for China sourcing, direct supplier settlements, and express air & sea cargo tracking.
           </p>
         </div>
 
@@ -68,10 +68,10 @@ export const WelcomeScreen: React.FC = () => {
             <ShieldCheck className="w-3 h-3 text-emerald-400" /> Instant Escrow
           </span>
           <span className="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[10px] text-slate-300 flex items-center gap-1">
-            <Lock className="w-3 h-3 text-indigo-400" /> Zero FX Spread
+            <Wallet className="w-3 h-3 text-indigo-400" /> Multi-Currency Wallets (NGN, USD)
           </span>
-          <span className="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[10px] text-slate-300">
-            3-Day Air Cargo
+          <span className="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[10px] text-slate-300 flex items-center gap-1">
+            <PlaneTakeoff className="w-3 h-3 text-cyan-400" /> Express Air & Sea Cargo
           </span>
         </div>
       </div>
@@ -80,22 +80,18 @@ export const WelcomeScreen: React.FC = () => {
       <div className="space-y-3 pb-6">
         <button
           onClick={() => navigate('signup')}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-sm tracking-wide shadow-lg shadow-emerald-500/25 active:scale-98 transition-all flex items-center justify-center gap-2 group"
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-sm tracking-wide shadow-lg shadow-emerald-500/25 active:scale-98 transition-all flex items-center justify-center gap-2 group cursor-pointer"
         >
-          <span>Open Verified Business Account</span>
+          <span>Create Your FlyeMass Account</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </button>
 
         <button
           onClick={() => navigate('login')}
-          className="w-full py-3.5 rounded-2xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-200 font-semibold text-xs tracking-wide transition-all"
+          className="w-full py-3.5 rounded-2xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-200 font-semibold text-xs tracking-wide transition-all cursor-pointer"
         >
           Already Registered? Log In
         </button>
-
-        <p className="text-[10px] text-center text-slate-400">
-          Licensed & compliant cross-border financial provider • CAC / CBN / SAFE Compliant
-        </p>
       </div>
     </div>
   );

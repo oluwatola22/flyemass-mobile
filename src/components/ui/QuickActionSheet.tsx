@@ -12,7 +12,6 @@ import {
   X,
   Sparkles,
   Building,
-  FileCheck2,
   Download,
   Headphones,
   ShieldCheck,
@@ -22,7 +21,7 @@ import {
 import { ScreenRoute } from '../../types';
 
 export const QuickActionSheet: React.FC = () => {
-  const { isQuickActionOpen, setIsQuickActionOpen, navigate } = useApp();
+  const { isQuickActionOpen, setIsQuickActionOpen, navigate, openSwapModal } = useApp();
   const [filterCategory, setFilterCategory] = useState<'all' | 'money' | 'cargo' | 'sourcing' | 'hospitality'>('all');
 
   if (!isQuickActionOpen) return null;
@@ -30,7 +29,7 @@ export const QuickActionSheet: React.FC = () => {
   const actions = [
     {
       title: 'Fund Multi-Wallet',
-      subtitle: 'Top up NGN, CNY, USD',
+      subtitle: 'Top up NGN wallet (Naira-only funding)',
       icon: PlusCircle,
       color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
       route: 'fund' as ScreenRoute,
@@ -38,7 +37,7 @@ export const QuickActionSheet: React.FC = () => {
     },
     {
       title: 'Pay China Supplier',
-      subtitle: 'Alipay / WeChat / Bank',
+      subtitle: 'Alipay / WeChat / Bank (RMB)',
       icon: Send,
       color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
       route: 'pay' as ScreenRoute,
@@ -46,7 +45,7 @@ export const QuickActionSheet: React.FC = () => {
     },
     {
       title: 'Instant FX Swap',
-      subtitle: 'Live rate lock & zero fee',
+      subtitle: 'NGN ↔ RMB bilateral swap',
       icon: ArrowLeftRight,
       color: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
       route: 'exchange' as ScreenRoute,
@@ -61,8 +60,16 @@ export const QuickActionSheet: React.FC = () => {
       cat: 'money'
     },
     {
+      title: 'Register Package',
+      subtitle: 'China warehouse parcel intake',
+      icon: FileBox,
+      color: 'text-teal-400 bg-teal-500/10 border-teal-500/20',
+      route: 'register-package' as ScreenRoute,
+      cat: 'cargo'
+    },
+    {
       title: 'Track Cargo Waybill',
-      subtitle: 'Air & Sea timeline status',
+      subtitle: 'Live air cargo milestones',
       icon: PackageSearch,
       color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
       route: 'track' as ScreenRoute,
@@ -70,39 +77,23 @@ export const QuickActionSheet: React.FC = () => {
     },
     {
       title: 'Freight Rate Calculator',
-      subtitle: '8 global trade corridors',
+      subtitle: 'Air Express & Regular pricing',
       icon: Truck,
       color: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
       route: 'logistics' as ScreenRoute,
       cat: 'cargo'
     },
     {
-      title: 'Register Package',
-      subtitle: 'Add 1688 / Taobao parcel',
-      icon: FileBox,
-      color: 'text-teal-400 bg-teal-500/10 border-teal-500/20',
-      route: 'register-package' as ScreenRoute,
-      cat: 'cargo'
-    },
-    {
-      title: 'Sourcing Ground Agent',
-      subtitle: 'Factory audit & Canton Fair',
+      title: 'Sourcing Ground Agent & RFQ',
+      subtitle: 'Factory audit & quotation desk',
       icon: Users2,
       color: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
       route: 'agent' as ScreenRoute,
       cat: 'sourcing'
     },
     {
-      title: 'Direct Factory RFQ',
-      subtitle: 'Price negotiation desk',
-      icon: FileCheck2,
-      color: 'text-orange-400 bg-orange-500/10 border-orange-500/20',
-      route: 'procure' as ScreenRoute,
-      cat: 'sourcing'
-    },
-    {
       title: 'Verified Suppliers',
-      subtitle: 'Direct manufacturer directory',
+      subtitle: 'Guangdong & Yiwu factories',
       icon: Building,
       color: 'text-amber-300 bg-amber-500/10 border-amber-500/20',
       route: 'suppliers' as ScreenRoute,
@@ -110,7 +101,7 @@ export const QuickActionSheet: React.FC = () => {
     },
     {
       title: 'Shop Apple & Tech',
-      subtitle: 'Wholesale Hong Kong stock',
+      subtitle: 'Direct gadget wholesale (NGN/RMB)',
       icon: Smartphone,
       color: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
       route: 'shop' as ScreenRoute,
@@ -118,7 +109,7 @@ export const QuickActionSheet: React.FC = () => {
     },
     {
       title: 'China Trade Hotels',
-      subtitle: 'Guangzhou / Yiwu stays',
+      subtitle: 'Guangzhou & Yiwu business stays',
       icon: Hotel,
       color: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
       route: 'hotels' as ScreenRoute,
@@ -134,7 +125,7 @@ export const QuickActionSheet: React.FC = () => {
     },
     {
       title: 'Commercial Offices',
-      subtitle: 'Trade showrooms & offices',
+      subtitle: 'Showrooms & office spaces',
       icon: Building,
       color: 'text-teal-400 bg-teal-500/10 border-teal-500/20',
       route: 'rentals-offices' as ScreenRoute,
@@ -142,15 +133,15 @@ export const QuickActionSheet: React.FC = () => {
     },
     {
       title: 'Concierge Live Help',
-      subtitle: 'Omnichannel support desk',
+      subtitle: '24/7 Trade support desk',
       icon: Headphones,
       color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
       route: 'support-chat' as ScreenRoute,
       cat: 'hospitality'
     },
     {
-      title: 'Security & 6-Digit PIN',
-      subtitle: 'Transaction credentials',
+      title: 'Security & 4-Digit PIN',
+      subtitle: 'Transaction authorization key',
       icon: ShieldCheck,
       color: 'text-slate-300 bg-slate-500/10 border-slate-500/20',
       route: 'security' as ScreenRoute,
@@ -162,7 +153,11 @@ export const QuickActionSheet: React.FC = () => {
 
   const handleAction = (route: ScreenRoute) => {
     setIsQuickActionOpen(false);
-    navigate(route);
+    if (route === 'exchange') {
+      openSwapModal();
+    } else {
+      navigate(route);
+    }
   };
 
   return (
@@ -195,7 +190,7 @@ export const QuickActionSheet: React.FC = () => {
           {[
             { id: 'all', label: 'All Services' },
             { id: 'money', label: 'Wallets & FX' },
-            { id: 'cargo', label: 'Air & Sea Cargo' },
+            { id: 'cargo', label: 'Air Cargo Logistics' },
             { id: 'sourcing', label: 'Sourcing & Shop' },
             { id: 'hospitality', label: 'Hotels & Support' }
           ].map(tab => (

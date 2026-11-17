@@ -89,6 +89,12 @@ async function runTestSuite() {
     'x-admin-role': 'super_admin'
   };
 
+  // Set active cryptographic PIN for test user
+  await request({
+    path: '/api/auth/set-pin',
+    method: 'POST'
+  }, { userId: TEST_USER, newPin: VALID_PIN });
+
   // -------------------------------------------------------------
   // TEST 1: ADMIN RBAC ENFORCEMENT
   // -------------------------------------------------------------
@@ -131,6 +137,17 @@ async function runTestSuite() {
     assert.strictEqual(fundRes.status, 200);
     assert.strictEqual(fundRes.body.success, true);
     assert(fundRes.body.balances.NGN >= fundAmount, 'Customer NGN balance must be credited');
+
+    // Also fund USD wallet so customer can execute USD freight payments
+    await request({
+      path: '/api/wallets/fund',
+      method: 'POST'
+    }, {
+      userId: TEST_USER,
+      currency: 'USD',
+      amount: 5000,
+      paymentMethod: 'Test Card'
+    });
   });
 
   // -------------------------------------------------------------
@@ -354,6 +371,17 @@ async function runTestSuite() {
   // TEST 7: TECH GADGET / APPLE SHOP INVENTORY & ORDERS
   // -------------------------------------------------------------
   await test('Commerce / Apple Shop: Stock management, order creation, & admin fulfillment', async () => {
+    // Fund USD wallet to ensure sufficient balance for MacBook purchase
+    await request({
+      path: '/api/wallets/fund',
+      method: 'POST'
+    }, {
+      userId: TEST_USER,
+      currency: 'USD',
+      amount: 10000,
+      paymentMethod: 'Test Card'
+    });
+
     const testProductId = `prod_test_${Date.now()}`;
     // 1. Admin adds product
     const createProdRes = await request({
@@ -409,6 +437,9 @@ async function runTestSuite() {
       ],
       deliveryAddress: 'Plot 12, Victoria Island Corporate Tower, Lagos'
     });
+    if (checkoutRes.status !== 200) {
+      console.log('CHECKOUT ERROR:', checkoutRes.status, checkoutRes.body);
+    }
     assert.strictEqual(checkoutRes.status, 200);
     const orderId = checkoutRes.body.order.id;
 

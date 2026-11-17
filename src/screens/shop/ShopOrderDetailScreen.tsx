@@ -24,13 +24,15 @@ import {
 export const ShopOrderDetailScreen: React.FC = () => {
   const { shopOrders, selectedOrderId, routeParam, navigate, showToast } = useApp();
   const [copiedTracking, setCopiedTracking] = useState(false);
-  const [dbState, setDbState] = useState(db.getState());
+  const [, setDbRev] = useState(() => db.getStateRevision());
 
   useEffect(() => {
     return db.subscribe(() => {
-      setDbState(db.getState());
+      setDbRev(db.getStateRevision());
     });
   }, []);
+
+  const dbState = db.getState();
 
   const orderId = routeParam || selectedOrderId;
   // Check in dbState first then fallback to shopOrders

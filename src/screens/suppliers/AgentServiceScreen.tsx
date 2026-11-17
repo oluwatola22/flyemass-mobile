@@ -38,7 +38,7 @@ export const AgentServiceScreen: React.FC = () => {
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<'overview' | 'my_requests'>('overview');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'action_needed' | 'active' | 'completed'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending_review' | 'quotation_sent' | 'paid_active' | 'completed' | 'action_needed' | 'active'>('all');
 
   // Requests State
   const [requests, setRequests] = useState<AgentRequestDocument[]>(() => db.getAgentRequests());
@@ -58,6 +58,7 @@ export const AgentServiceScreen: React.FC = () => {
   const [pinInput, setPinInput] = useState('');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [viewDetailRfq, setViewDetailRfq] = useState<AgentRequestDocument | null>(null);
+  const [submittedRfq, setSubmittedRfq] = useState<AgentRequestDocument | null>(null);
 
   // Sourcing Wizard Form State
   const [srcProductName, setSrcProductName] = useState('');
@@ -71,13 +72,20 @@ export const AgentServiceScreen: React.FC = () => {
   const [srcNewPhotoUrl, setSrcNewPhotoUrl] = useState('');
   const [isSubmittingSourcing, setIsSubmittingSourcing] = useState(false);
 
-  // Inspection Wizard Form State (Verification / Audit / QC)
+  // Inspection & Ground Booking Form State (Verification / Audit / QC / Canton Fair Escort)
+  const [inspProductName, setInspProductName] = useState('Industrial Machinery & High-Capacity Lithium Cells');
+  const [inspProductSpecs, setInspProductSpecs] = useState('51.2V 100Ah LiFePO4 cells, laser welded busbars, UN38.3 & CE certification');
+  const [inspTargetQuantity, setInspTargetQuantity] = useState('100');
+  const [inspCantonFairBooth, setInspCantonFairBooth] = useState('Area B, Hall 11.2, Booth C38-42');
   const [inspSupplierName, setInspSupplierName] = useState('Shenzhen Huaqiangbei Microelectronics Ltd');
   const [inspCity, setInspCity] = useState<'Guangzhou' | 'Shenzhen' | 'Yiwu' | 'Foshan'>('Shenzhen');
   const [inspAddress, setInspAddress] = useState('Building 4, Science & Technology Park, Nanshan, Shenzhen');
   const [inspContact, setInspContact] = useState('Manager Li / +86 138 2008 7711');
   const [inspWechat, setInspWechat] = useState('sz_micro_li');
   const [inspDate, setInspDate] = useState('2026-11-15');
+  const [inspPaymentMethod, setInspPaymentMethod] = useState<'wallet' | 'quote_first'>('wallet');
+  const [inspWalletCurrency, setInspWalletCurrency] = useState<'NGN' | 'CNY'>('NGN');
+  const [inspPin, setInspPin] = useState('');
   const [inspRequirements, setInspRequirements] = useState<string[]>([
     'AQL Level II sampling (2.5 Major / 4.0 Minor)',
     'Full packaging carton drop & barcode scan test',
@@ -90,7 +98,16 @@ export const AgentServiceScreen: React.FC = () => {
   useEffect(() => {
     db.getAgentSettings().then(setSettings).catch(() => {});
     return db.subscribe(() => {
-      setRequests(db.getAgentRequests());
+      const nextRequests = db.getAgentRequests();
+      setRequests((prev) => {
+        if (
+          prev.length === nextRequests.length &&
+          prev.every((r, i) => r.id === nextRequests[i]?.id && r.status === nextRequests[i]?.status && r.paymentStatus === nextRequests[i]?.paymentStatus)
+        ) {
+          return prev;
+        }
+        return nextRequests;
+      });
     });
   }, []);
 
@@ -98,14 +115,18 @@ export const AgentServiceScreen: React.FC = () => {
   const myRequests = requests.filter(r => !r.userId || r.userId === uid);
 
   // Metrics
-  const activeRequestsCount = myRequests.filter(r => r.status === 'in_progress' || r.status === 'pending_review' || r.status === 'pending_quote').length;
-  const actionNeededCount = myRequests.filter(r => r.status === 'awaiting_payment' || r.status === 'quote_ready').length;
+  const pendingReviewCount = myRequests.filter(r => r.status === 'pending_review' || r.status === 'submitted' || r.status === 'pending_quote').length;
+  const quotationSentCount = myRequests.filter(r => r.status === 'awaiting_payment' || r.status === 'quote_ready' || r.status === 'quotation_sent').length;
+  const paidActiveCount = myRequests.filter(r => r.status === 'in_progress' || r.status === 'paid_active' || r.status === 'approved').length;
   const completedCount = myRequests.filter(r => r.status === 'completed').length;
+  const activeRequestsCount = myRequests.filter(r => r.status === 'in_progress' || r.status === 'paid_active' || r.status === 'approved' || r.status === 'pending_review' || r.status === 'pending_quote').length;
+  const actionNeededCount = quotationSentCount;
 
   // Filtered requests list
   const filteredRequests = myRequests.filter(r => {
-    if (filterStatus === 'action_needed') return r.status === 'awaiting_payment' || r.status === 'quote_ready';
-    if (filterStatus === 'active') return r.status === 'in_progress' || r.status === 'pending_review' || r.status === 'pending_quote';
+    if (filterStatus === 'pending_review') return r.status === 'pending_review' || r.status === 'submitted' || r.status === 'pending_quote';
+    if (filterStatus === 'quotation_sent' || filterStatus === 'action_needed') return r.status === 'awaiting_payment' || r.status === 'quote_ready' || r.status === 'quotation_sent';
+    if (filterStatus === 'paid_active' || filterStatus === 'active') return r.status === 'in_progress' || r.status === 'paid_active' || r.status === 'approved';
     if (filterStatus === 'completed') return r.status === 'completed';
     return true;
   });
@@ -143,7 +164,7 @@ export const AgentServiceScreen: React.FC = () => {
         targetUnitCNY: unitCNY,
         totalBudgetCNY: estimatedTotalCNY,
         specifications: srcSpecs,
-        referencePhotos: srcPhotos,
+        referencePhotos: srcPhotos.slice(0, 4),
         inspectionRequired: true,
         userId: uid,
         clientName: userProfile?.name || 'Chief Babatunde Alade',
@@ -153,8 +174,7 @@ export const AgentServiceScreen: React.FC = () => {
       showToast(`Sourcing request #${res.request?.reference || res.request?.id} submitted successfully!`, 'success');
       setActiveWizard(null);
       setSourcingStep(1);
-      setActiveTab('my_requests');
-      setFilterStatus('all');
+      setSubmittedRfq(res.request);
     } catch (err: any) {
       showToast(err.message || 'Failed to submit sourcing request', 'error');
     } finally {
@@ -162,7 +182,7 @@ export const AgentServiceScreen: React.FC = () => {
     }
   };
 
-  // Inspection Submit Handler
+  // Inspection & Ground Booking Submit Handler
   const handleInspectionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeWizard) return;
@@ -172,35 +192,73 @@ export const AgentServiceScreen: React.FC = () => {
       ? (settings.supplierVerificationUSD || 150)
       : activeWizard === 'factory_audit'
       ? (settings.factoryAuditUSD || 250)
+      : activeWizard === 'canton_fair_escort'
+      ? (settings.cantonFairEscortUSD || 200)
       : (settings.qualityControlUSD || 200);
 
     const titleMap: Record<AgentServiceKind, string> = {
       sourcing: 'Product Sourcing',
       supplier_verification: 'Supplier Legitimacy Verification',
       factory_audit: 'Physical Factory Audit',
-      quality_control: 'Pre-Shipment Quality Control (QC)'
+      quality_control: 'Pre-Shipment Quality Control (QC)',
+      canton_fair_escort: 'Canton Fair Escort & Trade Guide'
     };
 
     try {
-      const res = await db.createAgentRequest({
-        serviceKind: activeWizard,
-        serviceType: titleMap[activeWizard],
-        productName: `${titleMap[activeWizard]} — ${inspSupplierName}`,
-        supplierName: inspSupplierName,
-        supplierCity: inspCity,
-        supplierLocation: inspAddress,
-        supplierContact: inspContact,
-        supplierWechat: inspWechat,
-        preferredDate: inspDate,
-        inspectionRequirements: inspRequirements,
-        serviceFeeUSD: feeUSD,
-        userId: uid,
-        clientName: userProfile?.name || 'Chief Babatunde Alade',
-        inspectionRequired: true
-      });
+      if (inspPaymentMethod === 'wallet') {
+        if (inspPin.length !== 6) {
+          showToast('Please enter your 6-digit transaction PIN to pay booking fee', 'error');
+          setIsSubmittingInspection(false);
+          return;
+        }
 
-      showToast(`Inspection request #${res.request?.reference || res.request?.id} filed with China Desk!`, 'success');
+        const res = await db.bookAgentWithWallet({
+          serviceKind: activeWizard,
+          serviceType: titleMap[activeWizard],
+          productName: inspProductName.trim() || `${titleMap[activeWizard]} — ${inspSupplierName}`,
+          specifications: inspProductSpecs.trim(),
+          targetQuantity: parseInt(inspTargetQuantity) || 100,
+          supplierName: inspSupplierName,
+          supplierCity: inspCity,
+          supplierLocation: inspAddress,
+          supplierContact: inspContact,
+          supplierWechat: inspWechat,
+          cantonFairBooth: activeWizard === 'canton_fair_escort' ? inspCantonFairBooth.trim() : undefined,
+          preferredDate: inspDate,
+          inspectionRequirements: inspRequirements,
+          paymentWalletUsed: inspWalletCurrency,
+          pin: inspPin,
+          userId: uid
+        });
+
+        showToast(`Ground agent booked! ${res.request?.escrowAmount || feeUSD} ${res.request?.escrowCurrency || inspWalletCurrency} held in secure escrow.`, 'success');
+      } else {
+        const res = await db.createAgentRequest({
+          serviceKind: activeWizard,
+          serviceType: titleMap[activeWizard],
+          productName: inspProductName.trim() || `${titleMap[activeWizard]} — ${inspSupplierName}`,
+          specifications: inspProductSpecs.trim(),
+          targetQuantity: parseInt(inspTargetQuantity) || 100,
+          supplierName: inspSupplierName,
+          supplierCity: inspCity,
+          supplierLocation: inspAddress,
+          supplierContact: inspContact,
+          supplierWechat: inspWechat,
+          cantonFairBooth: activeWizard === 'canton_fair_escort' ? inspCantonFairBooth.trim() : undefined,
+          preferredDate: inspDate,
+          inspectionRequirements: inspRequirements,
+          serviceFeeUSD: feeUSD,
+          userId: uid,
+          clientName: userProfile?.name || 'Chief Babatunde Alade',
+          inspectionRequired: true
+        });
+
+        showToast(`Inspection request #${res.request?.reference || res.request?.id} filed with China Desk!`, 'success');
+      }
+
       setActiveWizard(null);
+      setInspPin('');
+      setRequests(db.getAgentRequests());
       setActiveTab('my_requests');
       setFilterStatus('all');
     } catch (err: any) {
@@ -221,11 +279,12 @@ export const AgentServiceScreen: React.FC = () => {
 
     try {
       const res = await db.acceptAgentQuote(paymentModalRfq.id, pinInput, selectedWallet, uid);
-      showToast(`Payment of ${res.request?.escrowAmount} ${res.request?.escrowCurrency} authorized into secure escrow!`, 'success');
+      showToast(`Quotation approved and paid! Status marked as Paid & Active.`, 'success');
       setPaymentModalRfq(null);
       setPinInput('');
       setRequests(db.getAgentRequests());
       setActiveTab('my_requests');
+      setFilterStatus('paid_active');
     } catch (err: any) {
       showToast(err.message || 'Payment authorization failed', 'error');
     } finally {
@@ -238,7 +297,7 @@ export const AgentServiceScreen: React.FC = () => {
 
   return (
     <div className="min-h-full pb-28 bg-slate-950 text-white">
-      <Header title="China Agent & Sourcing Hub" />
+      <Header title="China Agents & Sourcing" />
 
       <div className="p-4 space-y-4">
         {/* Navigation Switcher */}
@@ -274,30 +333,38 @@ export const AgentServiceScreen: React.FC = () => {
         {activeTab === 'overview' && (
           <div className="space-y-4 animate-in fade-in">
             {/* Metric Counter Chips */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               <div 
-                onClick={() => { setActiveTab('my_requests'); setFilterStatus('active'); }}
+                onClick={() => { setActiveTab('my_requests'); setFilterStatus('pending_review'); }}
                 className="p-3 rounded-2xl bg-slate-900 border border-slate-800 cursor-pointer hover:border-slate-700 transition-all text-center"
               >
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Active</span>
-                <span className="text-lg font-black text-white font-mono mt-0.5 block">{activeRequestsCount}</span>
-                <span className="text-[9px] text-emerald-400 font-medium">In Ground Progress</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Pending</span>
+                <span className="text-lg font-black text-white font-mono mt-0.5 block">{pendingReviewCount}</span>
+                <span className="text-[9px] text-slate-400 font-medium">Reviewing</span>
               </div>
               <div 
-                onClick={() => { setActiveTab('my_requests'); setFilterStatus('action_needed'); }}
+                onClick={() => { setActiveTab('my_requests'); setFilterStatus('quotation_sent'); }}
                 className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 cursor-pointer hover:border-amber-500/50 transition-all text-center"
               >
-                <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">Payment Due</span>
-                <span className="text-lg font-black text-amber-400 font-mono mt-0.5 block">{actionNeededCount}</span>
-                <span className="text-[9px] text-amber-300 font-medium">Quote Ready</span>
+                <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">Quoted</span>
+                <span className="text-lg font-black text-amber-400 font-mono mt-0.5 block">{quotationSentCount}</span>
+                <span className="text-[9px] text-amber-300 font-medium">Payable</span>
+              </div>
+              <div 
+                onClick={() => { setActiveTab('my_requests'); setFilterStatus('paid_active'); }}
+                className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 cursor-pointer hover:border-indigo-500/50 transition-all text-center"
+              >
+                <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block">Active</span>
+                <span className="text-lg font-black text-indigo-400 font-mono mt-0.5 block">{paidActiveCount}</span>
+                <span className="text-[9px] text-emerald-400 font-medium">Ground Ops</span>
               </div>
               <div 
                 onClick={() => { setActiveTab('my_requests'); setFilterStatus('completed'); }}
                 className="p-3 rounded-2xl bg-slate-900 border border-slate-800 cursor-pointer hover:border-slate-700 transition-all text-center"
               >
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Completed</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Done</span>
                 <span className="text-lg font-black text-white font-mono mt-0.5 block">{completedCount}</span>
-                <span className="text-[9px] text-slate-400 font-medium">Reports Filed</span>
+                <span className="text-[9px] text-slate-400 font-medium">Reports</span>
               </div>
             </div>
 
@@ -461,6 +528,41 @@ export const AgentServiceScreen: React.FC = () => {
                   </span>
                 </div>
               </div>
+
+              {/* Service 5: Canton Fair Escort & Trade Guide */}
+              <div 
+                onClick={() => setActiveWizard('canton_fair_escort')}
+                className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-amber-500/50 cursor-pointer transition-all shadow-lg group"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-all">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
+                          Canton Fair Escort & Trade Guide
+                        </h4>
+                        <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[9px] font-bold">
+                          ${settings.cantonFairEscortUSD || 200} USD / Day
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-400 leading-snug">
+                        Bilingual ground agent escort at Canton Fair (Guangzhou Pazhou Complex). Live English-Chinese translation, booth negotiation, catalog compilation, and supplier vetting.
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-2" />
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                  <span className="text-slate-500">Deliverable: Verified Booth Reports & Supplier Dossier</span>
+                  <span className="font-semibold text-amber-400 flex items-center gap-1">
+                    <span>Book Fair Escort</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Recent Requests Preview */}
@@ -522,15 +624,16 @@ export const AgentServiceScreen: React.FC = () => {
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
               {[
                 { id: 'all', label: `All (${myRequests.length})` },
-                { id: 'action_needed', label: `Action Needed (${actionNeededCount})` },
-                { id: 'active', label: `Active (${activeRequestsCount})` },
+                { id: 'pending_review', label: `Pending Review (${pendingReviewCount})` },
+                { id: 'quotation_sent', label: `Quotation Sent (${quotationSentCount})` },
+                { id: 'paid_active', label: `Paid & Active (${paidActiveCount})` },
                 { id: 'completed', label: `Completed (${completedCount})` }
               ].map(f => (
                 <button
                   key={f.id}
                   onClick={() => setFilterStatus(f.id as any)}
                   className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
-                    filterStatus === f.id
+                    filterStatus === f.id || (f.id === 'quotation_sent' && filterStatus === 'action_needed') || (f.id === 'paid_active' && filterStatus === 'active')
                       ? 'bg-emerald-500 text-slate-950 shadow-md'
                       : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
                   }`}
@@ -568,12 +671,18 @@ export const AgentServiceScreen: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-xs font-bold text-emerald-400">{rfq.reference || rfq.id}</span>
                           <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
-                            rfq.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300' :
-                            rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
-                            rfq.status === 'in_progress' ? 'bg-indigo-500/20 text-indigo-300' :
+                            rfq.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                            rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' || rfq.status === 'quotation_sent' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                            rfq.status === 'in_progress' || rfq.status === 'paid_active' || rfq.status === 'approved' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' :
                             'bg-slate-800 text-slate-300'
                           }`}>
-                            {rfq.status === 'awaiting_payment' ? 'Awaiting Payment' : rfq.status.replace('_', ' ')}
+                            {rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' || rfq.status === 'quotation_sent' 
+                              ? 'Quotation Sent' 
+                              : (rfq.status === 'in_progress' || rfq.status === 'paid_active' || rfq.status === 'approved')
+                              ? 'Paid & Active'
+                              : (rfq.status === 'pending_review' || rfq.status === 'submitted' || rfq.status === 'pending_quote')
+                              ? 'Pending Review'
+                              : rfq.status.replace('_', ' ')}
                           </span>
                         </div>
                         <h4 className="text-sm font-bold text-white pt-1">{rfq.productName}</h4>
@@ -637,17 +746,17 @@ export const AgentServiceScreen: React.FC = () => {
 
                     {/* Action Bar */}
                     <div className="flex items-center gap-2 pt-1">
-                      {/* Action Needed: Review Quotation & Pay */}
-                      {(rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready') && (
+                      {/* Action Needed: Review & Pay Quotation */}
+                      {(rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' || rfq.status === 'quotation_sent') && (
                         <button
                           onClick={() => {
                             setPaymentModalRfq(rfq);
                             setPinInput('');
                           }}
-                          className="flex-1 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                          className="flex-1 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           <Lock className="w-3.5 h-3.5" />
-                          <span>Review Quotation & Pay Escrow</span>
+                          <span>Review & Pay Quotation ({rfq.totalPayableCNY ? `¥${rfq.totalPayableCNY.toLocaleString()} RMB` : `$${rfq.quoteAmountUSD} USD`})</span>
                         </button>
                       )}
 
@@ -790,13 +899,20 @@ export const AgentServiceScreen: React.FC = () => {
                   />
                 </div>
 
-                {/* Photos & Mock Uploader */}
+                {/* Photos & Uploader */}
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Reference Photos (agent-uploads)</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase block">
+                      Reference Photos ({srcPhotos.length}/4)
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-medium">Max 4 photos</span>
+                  </div>
+
+                  {/* Thumbnail gallery */}
                   <div className="flex flex-wrap gap-2 mb-2">
                     {srcPhotos.map((photo, i) => (
-                      <div key={i} className="relative w-14 h-14 rounded-xl overflow-hidden border border-slate-700 group">
-                        <img src={photo} alt={`Sample ${i}`} className="w-full h-full object-cover" />
+                      <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-slate-700 group">
+                        <img src={photo} alt={`Sample ${i + 1}`} className="w-full h-full object-cover" />
                         <button
                           type="button"
                           onClick={() => setSrcPhotos(srcPhotos.filter((_, idx) => idx !== i))}
@@ -808,27 +924,54 @@ export const AgentServiceScreen: React.FC = () => {
                     ))}
                   </div>
 
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={srcNewPhotoUrl}
-                      onChange={(e) => setSrcNewPhotoUrl(e.target.value)}
-                      placeholder="Add photo URL or paste image link"
-                      className="flex-1 p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-[11px] outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (srcNewPhotoUrl.trim()) {
-                          setSrcPhotos([...srcPhotos, srcNewPhotoUrl.trim()]);
-                          setSrcNewPhotoUrl('');
-                        }
-                      }}
-                      className="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold"
-                    >
-                      Add Photo
-                    </button>
-                  </div>
+                  {srcPhotos.length < 4 && (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={srcNewPhotoUrl}
+                          onChange={(e) => setSrcNewPhotoUrl(e.target.value)}
+                          placeholder="Paste reference photo URL"
+                          className="flex-1 p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-[11px] outline-none focus:border-emerald-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (srcNewPhotoUrl.trim() && srcPhotos.length < 4) {
+                              setSrcPhotos([...srcPhotos, srcNewPhotoUrl.trim()]);
+                              setSrcNewPhotoUrl('');
+                            }
+                          }}
+                          className="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold"
+                        >
+                          Add URL
+                        </button>
+                      </div>
+
+                      {/* File upload from device */}
+                      <label className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-slate-950 border border-dashed border-slate-700 hover:border-emerald-500 text-slate-400 hover:text-white cursor-pointer transition-all text-[11px] font-semibold">
+                        <Camera className="w-4 h-4 text-emerald-400" />
+                        <span>Upload photo from device (agent-uploads)</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file && srcPhotos.length < 4) {
+                              const reader = new FileReader();
+                              reader.onload = (ev) => {
+                                if (ev.target?.result && srcPhotos.length < 4) {
+                                  setSrcPhotos(prev => [...prev, ev.target!.result as string]);
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                  )}
                 </div>
 
                 {/* Continue to Step 2 */}
@@ -882,6 +1025,39 @@ export const AgentServiceScreen: React.FC = () => {
                     <span className="font-mono font-bold">¥{estimatedCommissionCNY.toLocaleString()} CNY</span>
                   </div>
 
+                  {totalProductCNY * (commissionPercent / 100) < minCommission && (
+                    <div className="text-[10px] text-slate-500 font-mono text-right">
+                      * Includes minimum commission threshold (¥{minCommission} CNY)
+                    </div>
+                  )}
+
+                  {srcSpecs && (
+                    <div className="pt-2 border-t border-slate-800 flex justify-between">
+                      <span className="text-slate-400">Specifications:</span>
+                      <span className="text-white text-right max-w-[200px] truncate">{srcSpecs}</span>
+                    </div>
+                  )}
+
+                  {srcProductUrl && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Reference Link:</span>
+                      <a href={srcProductUrl} target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline text-right max-w-[200px] truncate">
+                        {srcProductUrl}
+                      </a>
+                    </div>
+                  )}
+
+                  {srcPhotos.length > 0 && (
+                    <div className="pt-2 border-t border-slate-800">
+                      <span className="text-slate-400 block mb-1.5 font-bold uppercase text-[10px]">Reference Photos ({srcPhotos.length}):</span>
+                      <div className="flex gap-2">
+                        {srcPhotos.map((p, idx) => (
+                          <img key={idx} src={p} alt={`Preview ${idx + 1}`} className="w-12 h-12 rounded-xl object-cover border border-slate-800" />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="pt-2 border-t border-slate-800 flex justify-between items-center">
                     <span className="font-bold text-white uppercase text-[11px]">Estimated Sourcing Escrow:</span>
                     <div className="text-right">
@@ -893,6 +1069,17 @@ export const AgentServiceScreen: React.FC = () => {
                       </span>
                     </div>
                   </div>
+                </div>
+
+                {/* Explicit Prominent Notice (Phase 2 Requirement) */}
+                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300 space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-400">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>Notice: No Wallet Debit at Submission</span>
+                  </div>
+                  <p className="text-slate-300 leading-relaxed">
+                    This estimate is not a final quote and no wallet debit occurs at submission. FlyeMass sourcing agents in Guangzhou will inspect the Chinese market and formulate an official binding quotation with verified factory pricing.
+                  </p>
                 </div>
 
                 <div className="p-3 rounded-2xl bg-indigo-950/40 border border-indigo-900/40 text-[11px] text-indigo-300 space-y-1">
@@ -950,8 +1137,9 @@ export const AgentServiceScreen: React.FC = () => {
                 </span>
                 <h3 className="text-base font-black text-white">
                   {activeWizard === 'supplier_verification' && 'Supplier Legitimacy Verification'}
-                  {activeWizard === 'factory_audit' && 'Physical Factory Audit Assignment'}
+                  {activeWizard === 'factory_audit' && 'Physical Factory Inspection & Audit'}
                   {activeWizard === 'quality_control' && 'Pre-Shipment AQL Quality Control'}
+                  {activeWizard === 'canton_fair_escort' && 'Canton Fair Escort & Trade Guide'}
                 </h3>
               </div>
               <button
@@ -964,81 +1152,153 @@ export const AgentServiceScreen: React.FC = () => {
             </div>
 
             <div className="space-y-3.5 text-xs">
-              {/* Supplier Name */}
-              <div>
-                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
-                  Supplier / Factory Chinese & English Name
-                </label>
-                <input
-                  type="text"
-                  value={inspSupplierName}
-                  onChange={(e) => setInspSupplierName(e.target.value)}
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500"
-                  required
-                />
-              </div>
+              {/* Product Specifications & Target Quantity */}
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                  Product Specifications & Target Volume
+                </span>
 
-              {/* City Hub */}
-              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Hub City</label>
-                  <select
-                    value={inspCity}
-                    onChange={(e) => setInspCity(e.target.value as any)}
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none"
-                  >
-                    <option value="Guangzhou">Guangzhou (广州)</option>
-                    <option value="Shenzhen">Shenzhen (深圳)</option>
-                    <option value="Yiwu">Yiwu (义乌)</option>
-                    <option value="Foshan">Foshan (佛山)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Scheduled Date</label>
-                  <input
-                    type="date"
-                    value={inspDate}
-                    onChange={(e) => setInspDate(e.target.value)}
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Factory Address */}
-              <div>
-                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Factory / Office Address in China</label>
-                <input
-                  type="text"
-                  value={inspAddress}
-                  onChange={(e) => setInspAddress(e.target.value)}
-                  placeholder="Industrial Park, Street, District"
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500"
-                  required
-                />
-              </div>
-
-              {/* Contact Person & WeChat */}
-              <div className="grid grid-cols-2 gap-2.5">
-                <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Contact Person & Phone</label>
+                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                    Product Name / Hardware Commodity
+                  </label>
                   <input
                     type="text"
-                    value={inspContact}
-                    onChange={(e) => setInspContact(e.target.value)}
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none"
+                    value={inspProductName}
+                    onChange={(e) => setInspProductName(e.target.value)}
+                    placeholder="e.g. 5kW Hybrid Inverters / Lithium Batteries / Industrial Extrusions"
+                    className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
                     required
                   />
                 </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="col-span-2">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                      Product Specifications
+                    </label>
+                    <input
+                      type="text"
+                      value={inspProductSpecs}
+                      onChange={(e) => setInspProductSpecs(e.target.value)}
+                      placeholder="Materials, voltage, packaging, CE/UN38.3 standard"
+                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                      Target Quantity
+                    </label>
+                    <input
+                      type="number"
+                      value={inspTargetQuantity}
+                      onChange={(e) => setInspTargetQuantity(e.target.value)}
+                      placeholder="100"
+                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500 text-xs"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {activeWizard === 'canton_fair_escort' && (
+                  <div>
+                    <label className="text-[11px] font-bold text-amber-400 uppercase block mb-1">
+                      Canton Fair Booth Number / Complex Hall
+                    </label>
+                    <input
+                      type="text"
+                      value={inspCantonFairBooth}
+                      onChange={(e) => setInspCantonFairBooth(e.target.value)}
+                      placeholder="e.g. Area B, Hall 11.2, Booth C38-42"
+                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none focus:border-amber-500 text-xs font-mono"
+                      required
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Supplier / Factory Details */}
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Supplier & Location Information
+                </span>
+
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">WeChat ID</label>
+                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                    Supplier / Factory Chinese & English Name
+                  </label>
                   <input
                     type="text"
-                    value={inspWechat}
-                    onChange={(e) => setInspWechat(e.target.value)}
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none"
+                    value={inspSupplierName}
+                    onChange={(e) => setInspSupplierName(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
                     required
                   />
+                </div>
+
+                {/* City Hub */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Hub City</label>
+                    <select
+                      value={inspCity}
+                      onChange={(e) => setInspCity(e.target.value as any)}
+                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none text-xs"
+                    >
+                      <option value="Guangzhou">Guangzhou (广州)</option>
+                      <option value="Shenzhen">Shenzhen (深圳)</option>
+                      <option value="Yiwu">Yiwu (义乌)</option>
+                      <option value="Foshan">Foshan (佛山)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Scheduled Date</label>
+                    <input
+                      type="date"
+                      value={inspDate}
+                      onChange={(e) => setInspDate(e.target.value)}
+                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none text-xs"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Factory Address */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Factory / Office Address in China</label>
+                  <input
+                    type="text"
+                    value={inspAddress}
+                    onChange={(e) => setInspAddress(e.target.value)}
+                    placeholder="Industrial Park, Street, District"
+                    className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
+                    required
+                  />
+                </div>
+
+                {/* Contact Person & WeChat */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Contact Person & Phone</label>
+                    <input
+                      type="text"
+                      value={inspContact}
+                      onChange={(e) => setInspContact(e.target.value)}
+                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none text-xs"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">WeChat ID</label>
+                    <input
+                      type="text"
+                      value={inspWechat}
+                      onChange={(e) => setInspWechat(e.target.value)}
+                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none text-xs"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1082,35 +1342,140 @@ export const AgentServiceScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* Fixed Fee Preview */}
-              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
-                <div>
-                  <span className="text-[10px] text-slate-400 block uppercase font-bold">Standard Ground Fee:</span>
-                  <span className="text-emerald-400 font-mono font-black text-sm">
-                    ${activeWizard === 'supplier_verification' 
-                      ? settings.supplierVerificationUSD 
-                      : activeWizard === 'factory_audit' 
-                      ? settings.factoryAuditUSD 
-                      : settings.qualityControlUSD} USD
-                  </span>
-                </div>
-                <div className="text-right text-[11px] text-slate-400 font-mono">
-                  <span>≈ ₦{((activeWizard === 'supplier_verification' ? settings.supplierVerificationUSD : activeWizard === 'factory_audit' ? settings.factoryAuditUSD : settings.qualityControlUSD) * 1485).toLocaleString()} NGN</span>
-                  <span className="block text-slate-500">
-                    ≈ ¥{Math.round((activeWizard === 'supplier_verification' ? settings.supplierVerificationUSD : activeWizard === 'factory_audit' ? settings.factoryAuditUSD : settings.qualityControlUSD) * usdRate)} CNY
-                  </span>
-                </div>
-              </div>
+              {/* Fixed Fee Preview & Multi-Wallet Payment Option */}
+              {(() => {
+                const currentFeeUSD = activeWizard === 'supplier_verification' 
+                  ? (settings.supplierVerificationUSD || 150)
+                  : activeWizard === 'factory_audit' 
+                  ? (settings.factoryAuditUSD || 250)
+                  : activeWizard === 'canton_fair_escort'
+                  ? (settings.cantonFairEscortUSD || 200)
+                  : (settings.qualityControlUSD || 200);
+
+                const feeInSelectedCurr = inspWalletCurrency === 'CNY'
+                  ? Math.round(currentFeeUSD * usdRate)
+                  : Math.round(currentFeeUSD * 1485);
+
+                const currentBal = (userBalances as any)?.[inspWalletCurrency] || 0;
+                const hasSufficient = currentBal >= feeInSelectedCurr;
+
+                return (
+                  <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block uppercase font-bold">Standard Ground Fee:</span>
+                        <span className="text-emerald-400 font-mono font-black text-sm">
+                          ${currentFeeUSD} USD
+                        </span>
+                      </div>
+                      <div className="text-right text-[11px] text-slate-400 font-mono">
+                        <span>≈ ₦{(currentFeeUSD * 1485).toLocaleString()} NGN</span>
+                        <span className="block text-slate-500">
+                          ≈ ¥{Math.round(currentFeeUSD * usdRate).toLocaleString()} CNY
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Payment Mode Selector */}
+                    <div className="pt-2 border-t border-slate-800/80 space-y-2">
+                      <span className="text-[11px] font-bold text-slate-300 uppercase block">Payment Method</span>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setInspPaymentMethod('wallet')}
+                          className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                            inspPaymentMethod === 'wallet'
+                              ? 'bg-slate-900 border-emerald-500 text-emerald-400 font-bold shadow-sm'
+                              : 'bg-slate-900/60 border-slate-800 text-slate-400'
+                          }`}
+                        >
+                          <span className="block text-xs">Pay via Wallet</span>
+                          <span className="text-[9px] text-slate-400">Instant Escrow Lock</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setInspPaymentMethod('quote_first')}
+                          className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                            inspPaymentMethod === 'quote_first'
+                              ? 'bg-slate-900 border-indigo-500 text-indigo-400 font-bold shadow-sm'
+                              : 'bg-slate-900/60 border-slate-800 text-slate-400'
+                          }`}
+                        >
+                          <span className="block text-xs">Request Quote First</span>
+                          <span className="text-[9px] text-slate-400">Pay on Approval</span>
+                        </button>
+                      </div>
+
+                      {/* If Wallet Payment: Currency & PIN */}
+                      {inspPaymentMethod === 'wallet' && (
+                        <div className="space-y-2.5 pt-2">
+                          <div>
+                            <span className="text-[10px] text-slate-400 block uppercase font-bold mb-1">Select Debit Vault</span>
+                            <div className="grid grid-cols-2 gap-2">
+                              {(['NGN', 'CNY'] as const).map(curr => (
+                                <button
+                                  key={curr}
+                                  type="button"
+                                  onClick={() => setInspWalletCurrency(curr)}
+                                  className={`p-2.5 rounded-xl border text-center cursor-pointer transition-all ${
+                                    inspWalletCurrency === curr
+                                      ? 'bg-slate-900 border-emerald-500 text-emerald-400 font-bold ring-1 ring-emerald-500/30'
+                                      : 'bg-slate-900/60 border-slate-800 text-slate-400'
+                                  }`}
+                                >
+                                  <span className="block font-bold">{curr === 'NGN' ? '🇳🇬 Naira' : '🇨🇳 RMB'}</span>
+                                  <span className="text-[10px] font-mono block text-slate-300 mt-0.5">
+                                    {curr === 'NGN' ? `₦${(userBalances as any)?.NGN?.toLocaleString()}` :
+                                     `¥${(userBalances as any)?.CNY?.toLocaleString()}`}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
+                            <span className="text-slate-400">Required Escrow:</span>
+                            <span className="font-mono font-bold text-emerald-400">
+                              {inspWalletCurrency === 'CNY' ? `¥${feeInSelectedCurr.toLocaleString()} CNY` : `₦${feeInSelectedCurr.toLocaleString()} NGN`}
+                            </span>
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                              Enter 6-Digit Transaction PIN
+                            </label>
+                            <input
+                              type="password"
+                              maxLength={6}
+                              value={inspPin}
+                              onChange={(e) => setInspPin(e.target.value.replace(/\D/g, ''))}
+                              placeholder="••••••"
+                              className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-center text-white tracking-widest text-lg font-mono outline-none focus:border-emerald-500"
+                              required={inspPaymentMethod === 'wallet'}
+                            />
+                          </div>
+
+                          {!hasSufficient && (
+                            <p className="text-[11px] text-rose-400 font-medium">
+                              ⚠️ Insufficient {inspWalletCurrency} balance. Please fund your wallet or select another currency.
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               <button
                 type="submit"
                 disabled={isSubmittingInspection}
-                className="w-full mt-2 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                className="w-full mt-2 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                {isSubmittingInspection ? <span>Registering...</span> : (
+                {isSubmittingInspection ? <span>Processing Booking...</span> : (
                   <>
                     <Check className="w-4 h-4" />
-                    <span>Confirm Ground Assignment</span>
+                    <span>{inspPaymentMethod === 'wallet' ? 'Pay Booking Fee & Confirm Assignment' : 'Submit Ground Assignment for Review'}</span>
                   </>
                 )}
               </button>
@@ -1264,10 +1629,10 @@ export const AgentServiceScreen: React.FC = () => {
                   : 'bg-slate-800 text-slate-500 cursor-not-allowed'
               }`}
             >
-              {isProcessingPayment ? <span>Authorizing Escrow...</span> : (
+              {isProcessingPayment ? <span>Authorizing Payment...</span> : (
                 <>
-                  <Lock className="w-4 h-4" />
-                  <span>Authorize & Disburse to Escrow</span>
+                  <Check className="w-4 h-4" />
+                  <span>Approve & Pay</span>
                 </>
               )}
             </button>
@@ -1363,6 +1728,70 @@ export const AgentServiceScreen: React.FC = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== MODAL 5: SUBMISSION CONFIRMATION MODAL ===================== */}
+      {submittedRfq && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-center space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+
+            <div>
+              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider font-mono">
+                {submittedRfq.reference || submittedRfq.id}
+              </span>
+              <h3 className="text-base font-black text-white mt-0.5">Sourcing Request Submitted!</h3>
+              <p className="text-xs text-slate-400 mt-1">
+                Your request for <strong>{submittedRfq.productName}</strong> ({submittedRfq.targetQuantity} units) has been assigned to our China sourcing desk.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400 leading-relaxed text-left space-y-1">
+              <div className="flex justify-between">
+                <span>Target Unit:</span>
+                <span className="font-mono text-white">¥{submittedRfq.targetUnitCNY} CNY</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Target Budget:</span>
+                <span className="font-mono text-white">¥{submittedRfq.totalBudgetCNY?.toLocaleString()} CNY</span>
+              </div>
+              <p className="text-slate-500 pt-1 border-t border-slate-800 text-[10px]">
+                You will receive an in-app notification when your factory quote is formulated.
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setSubmittedRfq(null);
+                  setActiveTab('my_requests');
+                  setFilterStatus('all');
+                }}
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5"
+              >
+                <span>Open My Requests</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSubmittedRfq(null);
+                  setSrcProductName('');
+                  setSrcProductUrl('');
+                  setSrcSpecs('');
+                  setSourcingStep(1);
+                  setActiveWizard('sourcing');
+                }}
+                className="w-full py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs transition-all"
+              >
+                Submit Another Request
+              </button>
             </div>
           </div>
         </div>

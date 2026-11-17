@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production build outputs
+dist/
+dist-ssr/
+build/
+
+# Local Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+
+# Backups & WAL transaction journals
+backups/
+*.wal.jsonl
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Editor & OS artifacts
+.DS_Store
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

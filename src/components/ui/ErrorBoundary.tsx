@@ -1,6 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Trash2, Home, LayoutDashboard } from 'lucide-react';
-import { getMobileAppUrl, getAdminAppUrl } from '../../utils/environment';
+import { getMobileAppUrl, getAdminAppUrl, isAdminEnvironment } from '../../utils/environment';
 
 interface Props {
   children: ReactNode;
@@ -96,15 +96,17 @@ export class ErrorBoundary extends Component<Props, State> {
                 className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors"
               >
                 <Home className="w-3.5 h-3.5" />
-                Mobile App
+                Return Home
               </a>
-              <a
-                href={getAdminAppUrl()}
-                className="flex items-center gap-1.5 hover:text-blue-400 transition-colors"
-              >
-                <LayoutDashboard className="w-3.5 h-3.5" />
-                Admin Command Center
-              </a>
+              {isAdminEnvironment() && (
+                <a
+                  href={getAdminAppUrl()}
+                  className="flex items-center gap-1.5 hover:text-blue-400 transition-colors"
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  Admin Command Center
+                </a>
+              )}
             </div>
           </div>
         </div>

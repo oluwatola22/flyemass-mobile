@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { HeaderContext } from './HeaderContext';
 import { 
   Bell, 
   Eye, 
@@ -8,7 +9,8 @@ import {
   ChevronLeft, 
   Headphones, 
   Check, 
-  X
+  X,
+  ShoppingBag
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -16,16 +18,67 @@ interface HeaderProps {
   title?: string;
 }
 
+export { HeaderContext } from './HeaderContext';
+
+const ROUTE_TITLES: Record<string, string> = {
+  'home': '',
+  'wallets': 'Wallets & Multi-Currency',
+  'logistics': 'Logistics & Shipping',
+  'shop': 'Apple & Tech Store',
+  'profile': 'Corporate Profile',
+  'history': 'Audit Ledger & History',
+  'notifications': 'Notification Feed',
+  'fund': 'Fund Wallet',
+  'pay': 'Send Money to China (RMB)',
+  'exchange': 'Currency Swap',
+  'withdraw': 'Withdraw Naira (NGN)',
+  'track': 'Cargo Waybill Tracker',
+  'register-package': 'Register Shipment',
+  'cart': 'Shopping Cart',
+  'checkout': 'Secure Wallet Checkout',
+  'shop-saved': 'Saved Devices & Wishlist',
+  'shop-compare': 'Specification Comparison',
+  'shop-orders': 'Order History & Tracking',
+  'shop-order-detail': 'Order Details',
+  'product-detail': 'Device Specifications',
+  'suppliers': 'VIP Supplier Directory',
+  'agent': 'China Agent & Sourcing Hub',
+  'procure': 'Direct Quotation Manager',
+  'hotels': 'China Business Hotels & BNBs',
+  'hotel-detail': 'Hotel Booking & Voucher',
+  'hotel-bookings': 'My Hotel Vouchers',
+  'rentals-apartments': 'Apartments & House Rentals',
+  'rentals-offices': 'Commercial Office Rentals',
+  'security': 'Security & Trusted Devices',
+  'support': 'Trade Help & Concierge',
+  'support-chat': 'Trade Concierge',
+  'support-tickets': 'Support Tickets',
+  'support-ticket-detail': 'Support Ticket Detail',
+  'support-new-ticket': 'Open Support Ticket',
+  'terms': 'Terms of Trade Service',
+  'privacy': 'Privacy Policy & NDPR',
+  'delete-account': 'Account Deletion Request'
+};
+
 export const Header: React.FC<HeaderProps> = ({ showBack, title }) => {
+  const isNested = React.useContext(HeaderContext);
+  if (isNested) {
+    return null;
+  }
+
   const { 
     userProfile, 
     isBalanceHidden, 
     toggleBalancePrivacy, 
     goBack, 
     currentRoute, 
-    navigate 
+    navigate,
+    cart,
+    t,
+    getRouteTitle
   } = useApp();
 
+  const cartCount = (cart || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
   const [showNotifications, setShowNotifications] = useState(false);
 
   const notificationsList = [
@@ -54,20 +107,24 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title }) => {
 
   // If on sub-page with back button or specific page title
   const isSubPage = Boolean(title) || showBack || currentRoute !== 'home';
+  const translatedTitle = getRouteTitle ? getRouteTitle(currentRoute) : '';
+  const displayTitle = translatedTitle || title || (currentRoute === 'cart' && cart?.length > 0 
+    ? `${t('route.cart', 'Shopping Cart')} (${cart.length} ${cart.length === 1 ? 'item' : 'items'})` 
+    : (ROUTE_TITLES[currentRoute] || currentRoute.replace('-', ' ').toUpperCase()));
 
   if (isSubPage) {
     return (
-      <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80 px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80 px-4 py-3 safe-top flex items-center justify-between shrink-0">
         <button
           onClick={goBack}
-          className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white p-1 rounded-lg active:scale-95 transition-all"
+          className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white p-1 rounded-lg active:scale-95 transition-all cursor-pointer"
         >
           <ChevronLeft className="w-5 h-5 text-emerald-400" />
-          <span>Back</span>
+          <span>{t('action.back', 'Back')}</span>
         </button>
 
         <h2 className="text-sm font-bold text-white tracking-wide truncate max-w-[200px]">
-          {title || currentRoute.replace('-', ' ').toUpperCase()}
+          {displayTitle}
         </h2>
 
         <div className="flex items-center gap-2">
@@ -80,6 +137,24 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title }) => {
               {isBalanceHidden ? <EyeOff className="w-3.5 h-3.5 text-amber-400" /> : <Eye className="w-3.5 h-3.5" />}
             </button>
           )}
+
+          {/* Cart Icon in Subpage header */}
+          <button
+            onClick={() => navigate('cart')}
+            className={`w-8 h-8 rounded-full border flex items-center justify-center transition-colors relative ${
+              currentRoute === 'cart'
+                ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400'
+                : 'bg-slate-900 border-slate-800 text-slate-300 hover:text-emerald-400'
+            }`}
+            title={`Shopping Cart (${cartCount} items)`}
+          >
+            <ShoppingBag className={`w-3.5 h-3.5 ${cartCount > 0 ? 'text-emerald-400' : 'text-slate-300'}`} />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-emerald-500 text-slate-950 font-black text-[8px] min-w-[14px] h-3.5 px-0.5 rounded-full flex items-center justify-center border border-slate-950 shadow-sm">
+                {cartCount}
+              </span>
+            )}
+          </button>
 
           <button
             onClick={() => navigate('support-chat')}
@@ -94,7 +169,7 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title }) => {
   }
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80 px-4 pt-3 pb-3">
+    <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80 px-4 pt-3 pb-3 safe-top shrink-0">
       <div className="flex items-center justify-between">
         {/* User Greeting & Verified Status */}
         <div className="flex items-center gap-3">
@@ -137,6 +212,20 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title }) => {
             title={isBalanceHidden ? 'Show Balances' : 'Hide Balances'}
           >
             {isBalanceHidden ? <EyeOff className="w-4 h-4 text-amber-400" /> : <Eye className="w-4 h-4" />}
+          </button>
+
+          {/* Shopping Cart Button & Live Counter Badge */}
+          <button
+            onClick={() => navigate('cart')}
+            className="w-9 h-9 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-400 hover:text-emerald-400 flex items-center justify-center transition-all active:scale-95 relative"
+            title={`Shopping Cart (${cartCount} items)`}
+          >
+            <ShoppingBag className={`w-4 h-4 ${cartCount > 0 ? 'text-emerald-400' : 'text-slate-400'}`} />
+            {cartCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-emerald-500 text-slate-950 font-black text-[9px] min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center border-2 border-slate-950 shadow-sm shadow-emerald-500/30">
+                {cartCount}
+              </span>
+            )}
           </button>
 
           {/* Support Concierge */}

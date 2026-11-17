@@ -19,6 +19,8 @@ export const SupportScreen: React.FC = () => {
   const faqs = [
     { q: 'How long does direct Alipay/WeChat settlement take?', a: 'All supplier payments are processed in real-time via China Merchant Clearing API in under 90 seconds.' },
     { q: 'What is the transit time from Guangzhou Baiyun to Lagos Ikeja?', a: 'Express Air Cargo takes 3 to 5 business days with single-window pre-cleared customs.' },
+    { q: 'What are Nigeria Customs Single-Window Form M clearing rules?', a: 'All cargo is pre-filed under electronic Form M and Pre-Arrival Assessment Report (PAAR) with valid HS codes to guarantee fast-track clearing at Ikeja Cargo terminal and Apapa port.' },
+    { q: 'How do I resolve a cross-border customs or cargo dispute?', a: 'Submit a ticket directly through our Support Tickets Desk or tap "Live Concierge". Our bilingual trade officers in Guangzhou Baiyun and Lagos liaise with carriers and customs within 2 hours.' },
     { q: 'Can I swap NGN directly into RMB in my wallet?', a: 'Yes. Use our Instant FX Swap screen to lock live market rates for 60 seconds with 0% slippage.' },
     { q: 'Where are your physical China warehouses located?', a: 'We have full-scale receiving hubs in Guangzhou (Baiyun Shijing Logistics Park) and Yiwu (Futian Trade Port).' }
   ];
@@ -48,6 +50,27 @@ export const SupportScreen: React.FC = () => {
             </div>
           </div>
           <ChevronRight className="w-5 h-5 text-emerald-400" />
+        </div>
+
+        {/* Support & Shipping Tickets Launcher */}
+        <div 
+          onClick={() => navigate('support-tickets')}
+          className="p-4 rounded-3xl bg-slate-900 border border-slate-800 cursor-pointer shadow-lg flex items-center justify-between group hover:border-slate-700 transition-all"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-white">Support & Shipping Tickets</h3>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Track open disputes, cargo inquiries & customs clearance
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-cyan-400 transition-colors" />
         </div>
 
         {/* Contact Numbers */}

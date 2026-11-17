@@ -49,9 +49,14 @@ export const HotelDetailScreen: React.FC = () => {
   const [guestEmail, setGuestEmail] = useState(userProfile?.email || 'alade@aladeholdings.ng');
   const [guestPhone, setGuestPhone] = useState(userProfile?.phone || '+234 803 123 4567');
 
+  const isCnyConfigured = (hotel?.pricePerNightCNY ?? (hotel as any)?.priceCNY ?? 0) > 0;
+  const isNgnConfigured = (hotel?.pricePerNightNGN ?? (hotel as any)?.priceNGN ?? 0) > 0;
+
+  const defaultCurrency: Currency = isNgnConfigured ? 'NGN' : isCnyConfigured ? 'CNY' : 'NGN';
+
   const [copiedTaxiCard, setCopiedTaxiCard] = useState(false);
   const [copiedAddressZh, setCopiedAddressZh] = useState(false);
-  const [paymentCurrency, setPaymentCurrency] = useState<Currency>('USD');
+  const [paymentCurrency, setPaymentCurrency] = useState<Currency>(defaultCurrency);
   const [showPinModal, setShowPinModal] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
 
@@ -61,17 +66,29 @@ export const HotelDetailScreen: React.FC = () => {
   const rawNights = Math.round((end - start) / (1000 * 60 * 60 * 24));
   const nights = rawNights > 0 ? rawNights : 1;
 
-  // Authoritative calculations
-  const baseNightlyUSD = hotel?.pricePerNightUSD || 120;
-  const surchargeUSD = selectedRoom?.nightlySurchargeUSD || 0;
-  const nightlyTotalUSD = baseNightlyUSD + surchargeUSD;
+  // Multi-Currency Authoritative Calculations (No invented rates overwriting admin prices)
+  const baseUSD = Number(hotel?.pricePerNightUSD ?? (hotel as any)?.priceUSD) || 0;
+  const surchUSD = Number(selectedRoom?.nightlySurchargeUSD) || 0;
+  const nightlyTotalUSD = (baseUSD || 120) + surchUSD;
   const totalUSD = nightlyTotalUSD * nights;
-  const totalCNY = Math.round(totalUSD * 7.24);
-  const totalNGN = Math.round(totalUSD * 1485);
+
+  const baseCNY = Number(hotel?.pricePerNightCNY ?? (hotel as any)?.priceCNY) || 0;
+  const surchCNY = Number((selectedRoom as any)?.surchargeCNY ?? (selectedRoom as any)?.nightlySurchargeCNY) || 
+    (surchUSD && baseUSD > 0 ? Math.round(surchUSD * (baseCNY / baseUSD)) : 0);
+  const nightlyTotalCNY = baseCNY + surchCNY;
+  const totalCNY = nightlyTotalCNY * nights;
+
+  const baseNGN = Number(hotel?.pricePerNightNGN ?? (hotel as any)?.priceNGN) || 0;
+  const surchNGN = Number((selectedRoom as any)?.surchargeNGN ?? (selectedRoom as any)?.nightlySurchargeNGN) || 
+    (surchUSD && baseUSD > 0 ? Math.round(surchUSD * (baseNGN / baseUSD)) : 0);
+  const nightlyTotalNGN = baseNGN + surchNGN;
+  const totalNGN = nightlyTotalNGN * nights;
 
   const currentWallet = wallets.find((w) => w.currency === paymentCurrency);
+  const isPaymentCurrencyConfigured = paymentCurrency === 'CNY' ? isCnyConfigured : isNgnConfigured;
   const debitAmount = paymentCurrency === 'NGN' ? totalNGN : paymentCurrency === 'CNY' ? totalCNY : totalUSD;
   const hasSufficient = (currentWallet?.balance || 0) >= debitAmount;
+  const isPublished = (hotel as any)?.isPublished !== false;
 
   const chineseAddressText = hotel?.chineseAddress || (hotel?.district ? `中国广东省广州市${hotel.district}` : '中国广东省广州市');
   const taxiCardZh = hotel?.taxiCardZh || `师傅您好，请带我到：${hotel?.chineseName || hotel?.name || '中国商务酒店'}（${chineseAddressText}）。谢谢！`;
@@ -91,6 +108,18 @@ export const HotelDetailScreen: React.FC = () => {
   };
 
   const handleBook = () => {
+    if (!isPublished) {
+      showToast('This hotel is currently unavailable for booking.', 'error');
+      return;
+    }
+    if ((selectedRoom as any)?.isAvailable === false) {
+      showToast('Selected room type is currently sold out. Please choose an available room category.', 'error');
+      return;
+    }
+    if (!isPaymentCurrencyConfigured) {
+      showToast(`Hotel does not accept ${paymentCurrency}. Please choose an eligible configured currency.`, 'error');
+      return;
+    }
     if (!hasSufficient) {
       showToast(`Insufficient balance in ${paymentCurrency} wallet. Top up or swap first!`, 'error');
       return;
@@ -220,14 +249,23 @@ export const HotelDetailScreen: React.FC = () => {
             {roomTypes.map((rt) => {
               const isSelected = selectedRoom.name === rt.name || selectedRoom.id === rt.id;
               const surcharge = rt.nightlySurchargeUSD || 0;
-              const roomNightly = baseNightlyUSD + surcharge;
+              const roomNightly = (baseUSD || 120) + surcharge;
+              const isRoomAvailable = (rt as any).isAvailable !== false;
 
               return (
                 <div
                   key={rt.name}
-                  onClick={() => setSelectedRoom(rt)}
+                  onClick={() => {
+                    if (isRoomAvailable) {
+                      setSelectedRoom(rt);
+                    } else {
+                      showToast(`${rt.name} is currently sold out. Please select an available category.`, 'info');
+                    }
+                  }}
                   className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                    isSelected
+                    !isRoomAvailable
+                      ? 'bg-slate-950/40 border-slate-900 opacity-60'
+                      : isSelected
                       ? 'bg-emerald-500/10 border-emerald-500 text-white shadow-md'
                       : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
                   }`}
@@ -235,6 +273,11 @@ export const HotelDetailScreen: React.FC = () => {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-white">{rt.name}</span>
+                      <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold ${
+                        isRoomAvailable ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
+                      }`}>
+                        {isRoomAvailable ? 'Available' : 'Sold Out'}
+                      </span>
                       {surcharge > 0 ? (
                         <span className="px-1.5 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-mono text-[9px] font-bold">
                           +${surcharge} USD / nt
@@ -345,6 +388,17 @@ export const HotelDetailScreen: React.FC = () => {
           </div>
         </div>
 
+        {/* Unpublished Warning */}
+        {!isPublished && (
+          <div className="p-4 rounded-3xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div>
+              <h5 className="text-xs font-bold text-rose-300">Listing Currently Unavailable</h5>
+              <p className="text-[11px] text-rose-200/80">This hotel has been unpublished by administration and is not currently accepting reservations.</p>
+            </div>
+          </div>
+        )}
+
         {/* Settlement Wallet Selector & Breakdown */}
         <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3">
           <div className="flex items-center justify-between">
@@ -352,24 +406,32 @@ export const HotelDetailScreen: React.FC = () => {
             <span className="text-[10px] text-slate-400">Available: {currentWallet?.currency} {currentWallet?.balance.toLocaleString()}</span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            {(['USD', 'CNY', 'NGN'] as Currency[]).map((c) => {
+          <div className="grid grid-cols-2 gap-2">
+            {(['NGN', 'CNY'] as Currency[]).map((c) => {
               const w = wallets.find((wal) => wal.currency === c);
               const isSelected = paymentCurrency === c;
+              const isEligible = c === 'CNY' ? isCnyConfigured : isNgnConfigured;
+
               return (
                 <button
                   key={c}
                   type="button"
+                  disabled={!isEligible}
                   onClick={() => setPaymentCurrency(c)}
                   className={`p-2.5 rounded-2xl border text-center transition-all ${
-                    isSelected
-                      ? 'bg-emerald-500/10 border-emerald-500 text-white'
-                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                    !isEligible
+                      ? 'bg-slate-950/40 border-slate-900 text-slate-600 opacity-60 cursor-not-allowed'
+                      : isSelected
+                      ? 'bg-emerald-500/10 border-emerald-500 text-white shadow-md ring-1 ring-emerald-500/30'
+                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
                   }`}
                 >
-                  <span className="font-bold text-xs block">{c} Wallet</span>
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    {c === 'NGN' ? '₦' : c === 'CNY' ? '¥' : '$'}{(w?.balance || 0).toLocaleString()}
+                  <div className="flex items-center justify-center gap-1">
+                    <span className="font-bold text-xs">{c === 'NGN' ? '🇳🇬 NGN' : '🇨🇳 CNY'}</span>
+                    {!isEligible && <span className="text-[8px] px-1 py-0.2 bg-slate-800 text-slate-500 rounded">N/A</span>}
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
+                    {c === 'NGN' ? '₦' : '¥'}{(w?.balance || 0).toLocaleString()}
                   </span>
                 </button>
               );
@@ -379,13 +441,18 @@ export const HotelDetailScreen: React.FC = () => {
           {/* Pricing Breakdown */}
           <div className="pt-2 border-t border-slate-800/80 space-y-1.5 text-xs">
             <div className="flex justify-between text-slate-400">
-              <span>{selectedRoom.name} (${nightlyTotalUSD}/night × {nights} nights)</span>
-              <span className="text-white font-mono font-bold">${totalUSD} USD</span>
+              <span>{selectedRoom.name} ({paymentCurrency === 'CNY' ? `¥${nightlyTotalCNY.toLocaleString()}/nt` : `₦${nightlyTotalNGN.toLocaleString()}/nt`} × {nights} nights)</span>
+              <span className="text-white font-mono font-bold">
+                {paymentCurrency === 'CNY' ? `¥${totalCNY.toLocaleString()} CNY` : `₦${totalNGN.toLocaleString()} NGN`}
+              </span>
             </div>
 
             <div className="flex justify-between text-slate-400 text-[11px]">
-              <span>Authoritative Equivalent</span>
-              <span className="text-emerald-400 font-mono">≈ ¥{totalCNY.toLocaleString()} CNY / ₦{totalNGN.toLocaleString()} NGN</span>
+              <span>Direct Admin Pricing</span>
+              <span className="text-emerald-400 font-mono">
+                {paymentCurrency === 'CNY' && isNgnConfigured ? `(or ₦${totalNGN.toLocaleString()} NGN)` : ''}
+                {paymentCurrency === 'NGN' && isCnyConfigured ? `(or ¥${totalCNY.toLocaleString()} CNY)` : ''}
+              </span>
             </div>
 
             <div className="pt-2 border-t border-slate-800/80 flex items-baseline justify-between">
@@ -396,7 +463,7 @@ export const HotelDetailScreen: React.FC = () => {
                 </span>
               </div>
 
-              {!hasSufficient && (
+              {!hasSufficient && isPaymentCurrencyConfigured && (
                 <div className="flex items-center gap-1 text-[11px] text-rose-400 font-bold">
                   <AlertCircle className="w-3.5 h-3.5" />
                   <span>Insufficient Balance</span>
@@ -409,12 +476,12 @@ export const HotelDetailScreen: React.FC = () => {
         {/* Submit Booking CTA */}
         <button
           type="button"
-          disabled={!hasSufficient || isBooking}
+          disabled={!hasSufficient || isBooking || !isPublished || !isPaymentCurrencyConfigured}
           onClick={handleBook}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/20 active:scale-95 disabled:opacity-50 transition-all cursor-pointer"
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/20 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
         >
           <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
-          <span>Confirm Booking with 6-Digit PIN</span>
+          <span>{isPublished ? 'Confirm Booking with 6-Digit PIN' : 'Listing Currently Unavailable'}</span>
         </button>
       </div>
 
