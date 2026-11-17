@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { PinPad } from '../../components/ui/PinPad';
@@ -249,6 +250,25 @@ export const SuppliersScreen: React.FC = () => {
     });
     return () => unsubscribe();
   }, [activeUserId]);
+
+  // Lock body scroll whenever any pop-up modal is open
+  useEffect(() => {
+    if (cardModalSupplier || activeProfileSupplier || showPaywallModal) {
+      if (typeof document !== 'undefined' && document.body) {
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+          document.body.style.overflow = originalOverflow;
+        };
+      }
+    }
+  }, [cardModalSupplier, activeProfileSupplier, showPaywallModal]);
+
+  // Teleport modals directly to body root to avoid containment traps and ensure immediate centered viewport visibility
+  const renderPortal = (children: React.ReactNode) => {
+    if (typeof document === 'undefined') return children;
+    return createPortal(children, document.body);
+  };
 
   // Robust Cross-Platform Copy Helper with subtle haptic feedback
   const copyToClipboard = (text: string, label: string) => {
@@ -1253,8 +1273,8 @@ export const SuppliersScreen: React.FC = () => {
       {/* =====================================================================
           VIP SUBSCRIPTION BOTTOM SHEET PAYWALL MODAL (CENTERED AT THE MIDDLE)
          ===================================================================== */}
-      {showPaywallModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+      {showPaywallModal && renderPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
           <div 
             className="absolute inset-0" 
             onClick={() => setShowPaywallModal(false)} 
@@ -1441,8 +1461,8 @@ export const SuppliersScreen: React.FC = () => {
       {/* =====================================================================
           SUPPLIER COMPLETE PROFILE / DOSSIER MODAL (CENTERED AT THE MIDDLE OF MOBILE APP)
          ===================================================================== */}
-      {activeProfileSupplier && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+      {activeProfileSupplier && renderPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
           <div 
             className="absolute inset-0" 
             onClick={() => setActiveProfileSupplier(null)} 
@@ -1607,8 +1627,8 @@ export const SuppliersScreen: React.FC = () => {
       {/* =====================================================================
           BUSINESS CARD POP-UP MODAL (CENTERED AT THE MIDDLE OF MOBILE APP)
          ===================================================================== */}
-      {cardModalSupplier && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+      {cardModalSupplier && renderPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
           {/* Backdrop dismiss */}
           <div 
             className="absolute inset-0" 
