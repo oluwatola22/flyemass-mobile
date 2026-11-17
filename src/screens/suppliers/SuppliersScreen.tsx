@@ -202,8 +202,8 @@ export const SuppliersScreen: React.FC = () => {
           });
           setCategoryCounts(counts);
 
-          // Subtle background prefetch for first 10 cards to guarantee 0ms instant display
-          dirRes.suppliers.slice(0, 10).forEach((s: Supplier) => {
+          // Subtle background prefetch for first 12 cards to guarantee 0ms instant display
+          dirRes.suppliers.slice(0, 12).forEach((s: Supplier) => {
             if (!s.businessCardUrl && !cardUrlCache.current[s.id]) {
               db.getSupplierCardSignedUrl(s.id, activeUserId, 'card')
                 .then(res => {
@@ -955,14 +955,14 @@ export const SuppliersScreen: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* 2. Main Products Chips */}
+                  {/* 2. Main Products Chips with crisp borders */}
                   {supplier.mainProducts && supplier.mainProducts.length > 0 && (
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mr-1">Products:</span>
                       {supplier.mainProducts.map((p) => (
                         <span
                           key={p}
-                          className="px-2.5 py-0.5 rounded-lg bg-slate-950 text-slate-300 border border-slate-800 text-[10px] font-semibold"
+                          className="px-2.5 py-0.5 rounded-lg bg-slate-950 text-slate-300 border border-[#374151] text-[10px] font-medium"
                         >
                           {p}
                         </span>
@@ -1098,12 +1098,12 @@ export const SuppliersScreen: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* COPY ALL CONTACT DETAILS ACTION BUTTON */}
+                      {/* COPY ALL CONTACT DETAILS ACTION BUTTON WITH GOLD/EMERALD LUXURY BORDER */}
                       <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
                         <button
                           type="button"
                           onClick={() => handleCopyAllSupplierDetails(supplier)}
-                          className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 border border-amber-500/30 text-xs font-black flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-98 transition-all"
+                          className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-amber-500/10 hover:from-amber-500/20 hover:to-emerald-500/20 text-amber-300 hover:text-white border border-amber-500/40 hover:border-amber-400/60 text-xs font-black flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-98 transition-all"
                         >
                           <Copy className="w-3.5 h-3.5 text-amber-400" />
                           <span>Copy All Contact Details</span>
@@ -1190,7 +1190,7 @@ export const SuppliersScreen: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Locked State Banner Banner */}
+                      {/* Locked State Banner */}
                       <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs gap-2">
                         <div className="min-w-0 flex-1">
                           <span className="text-slate-300 font-bold block text-[11px] truncate">
