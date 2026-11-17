@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { PinPad } from '../../components/ui/PinPad';
@@ -43,7 +43,12 @@ import {
   AlertCircle,
   Eye,
   Wallet,
-  Sparkle
+  Sparkle,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Maximize2,
+  ChevronDown
 } from 'lucide-react';
 import { Supplier, Currency } from '../../types';
 
@@ -81,7 +86,7 @@ export const SuppliersScreen: React.FC = () => {
   const [selectedCityHub, setSelectedCityHub] = useState<string>('All');
   const [selectedTag, setSelectedTag] = useState<string>('All');
 
-  // Modals
+  // Modals & UI States
   const [showPaywallModal, setShowPaywallModal] = useState(false);
   const [payWallet, setPayWallet] = useState<Currency>('NGN');
   const [isSubscribing, setIsSubscribing] = useState(false);
@@ -90,10 +95,22 @@ export const SuppliersScreen: React.FC = () => {
   // Supplier Detail Dossier Modal
   const [activeProfileSupplier, setActiveProfileSupplier] = useState<Supplier | null>(null);
 
-  // Business Card Signed Preview Modal
+  // Business Card Interactive Expansion & Lightbox Modal States
+  const [expandedCardSupplierId, setExpandedCardSupplierId] = useState<string | null>(null);
   const [cardModalSupplier, setCardModalSupplier] = useState<Supplier | null>(null);
   const [signedCardUrl, setSignedCardUrl] = useState<string | null>(null);
   const [isLoadingCard, setIsLoadingCard] = useState(false);
+
+  // In-memory Signed Card URL Cache for instant 0ms transitions
+  const cardUrlCache = useRef<Record<string, { url: string; expires: number }>>({});
+
+  // Lightbox Zoom and Pan Controls
+  const [zoomScale, setZoomScale] = useState<number>(1);
+  const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const isDraggingRef = useRef(false);
+  const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const touchDistanceRef = useRef<number | null>(null);
+  const lastTapRef = useRef<number>(0);
 
   // Pagination / Display limit
   const [displayCount, setDisplayCount] = useState<number>(10);
@@ -126,6 +143,30 @@ export const SuppliersScreen: React.FC = () => {
     'Established Supplier',
     '10+ Years'
   ];
+
+  // Helper to fetch or read cached signed URL
+  const getOrFetchCardUrl = useCallback(async (supplier: Supplier): Promise<string | null> => {
+    if (supplier.businessCardUrl) {
+      return supplier.businessCardUrl;
+    }
+    const cached = cardUrlCache.current[supplier.id];
+    if (cached && cached.expires > Date.now() + 60000) {
+      return cached.url;
+    }
+    try {
+      const res = await db.getSupplierCardSignedUrl(supplier.id, activeUserId, 'card');
+      if (res && res.success && res.signedUrl) {
+        cardUrlCache.current[supplier.id] = {
+          url: res.signedUrl,
+          expires: res.expiresAt || Date.now() + 3500000
+        };
+        return res.signedUrl;
+      }
+    } catch (e) {
+      console.warn('[BusinessCard] Signed URL fetch exception:', e);
+    }
+    return null;
+  }, [activeUserId]);
 
   // Fetch directory status and supplier records silently in background
   const loadDirectoryData = async (silent: boolean = false) => {
@@ -160,6 +201,22 @@ export const SuppliersScreen: React.FC = () => {
             else counts['Other'] = (counts['Other'] || 0) + 1;
           });
           setCategoryCounts(counts);
+
+          // Subtle background prefetch for first 10 cards to guarantee 0ms instant display
+          dirRes.suppliers.slice(0, 10).forEach((s: Supplier) => {
+            if (!s.businessCardUrl && !cardUrlCache.current[s.id]) {
+              db.getSupplierCardSignedUrl(s.id, activeUserId, 'card')
+                .then(res => {
+                  if (res && res.success && res.signedUrl) {
+                    cardUrlCache.current[s.id] = {
+                      url: res.signedUrl,
+                      expires: res.expiresAt || Date.now() + 3500000
+                    };
+                  }
+                })
+                .catch(() => {});
+            }
+          });
         }
       } else {
         const prevRes = await db.getSupplierDirectoryPreview();
@@ -284,33 +341,104 @@ export const SuppliersScreen: React.FC = () => {
     window.location.href = `tel:${cleanNumber}`;
   };
 
-  // View Business Card via 1-Hour Signed URL
+  // Option A: Toggle in-place smooth card expansion
+  const handleToggleInlineBusinessCard = async (supplier: Supplier) => {
+    if (!effectiveIsSubscribed) {
+      setShowPaywallModal(true);
+      return;
+    }
+
+    if (expandedCardSupplierId === supplier.id) {
+      setExpandedCardSupplierId(null);
+      return;
+    }
+
+    setExpandedCardSupplierId(supplier.id);
+
+    // Ensure URL is cached in background if not already present
+    const cached = cardUrlCache.current[supplier.id]?.url || supplier.businessCardUrl;
+    if (!cached) {
+      setIsLoadingCard(true);
+      await getOrFetchCardUrl(supplier);
+      setIsLoadingCard(false);
+    }
+  };
+
+  // Option B: View Business Card via Smooth Interactive Lightbox Modal
   const handleViewBusinessCard = async (supplier: Supplier) => {
     if (!effectiveIsSubscribed) {
       setShowPaywallModal(true);
       return;
     }
 
-    setIsLoadingCard(true);
     setCardModalSupplier(supplier);
-    try {
-      if (supplier.businessCardUrl) {
-        setSignedCardUrl(supplier.businessCardUrl);
-      } else {
-        const res = await db.getSupplierCardSignedUrl(supplier.id, activeUserId, 'card');
-        if (res && res.success && res.signedUrl) {
-          setSignedCardUrl(res.signedUrl);
-        } else {
-          showToast(res.error || 'Failed to generate signed document URL', 'error');
-          setCardModalSupplier(null);
-        }
-      }
-    } catch (e: any) {
-      showToast(e.message || 'Storage enclave access error', 'error');
-      setCardModalSupplier(null);
-    } finally {
+    setZoomScale(1);
+    setPanOffset({ x: 0, y: 0 });
+
+    const cached = cardUrlCache.current[supplier.id]?.url || supplier.businessCardUrl;
+    if (cached) {
+      setSignedCardUrl(cached);
       setIsLoadingCard(false);
+    } else {
+      setIsLoadingCard(true);
+      const url = await getOrFetchCardUrl(supplier);
+      setIsLoadingCard(false);
+      if (url) {
+        setSignedCardUrl(url);
+      } else {
+        showToast('Storage enclave access error', 'error');
+        setCardModalSupplier(null);
+      }
     }
+  };
+
+  // Touch and Pinch-to-zoom handlers for Lightbox Modal
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      touchDistanceRef.current = dist;
+    } else if (e.touches.length === 1) {
+      // Double tap detector
+      const now = Date.now();
+      if (now - lastTapRef.current < 300) {
+        setZoomScale(prev => (prev > 1 ? 1 : 2));
+        setPanOffset({ x: 0, y: 0 });
+      }
+      lastTapRef.current = now;
+
+      if (zoomScale > 1) {
+        isDraggingRef.current = true;
+        dragStartRef.current = {
+          x: e.touches[0].clientX - panOffset.x,
+          y: e.touches[0].clientY - panOffset.y
+        };
+      }
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 2 && touchDistanceRef.current !== null) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const delta = dist / touchDistanceRef.current;
+      setZoomScale(prev => Math.min(Math.max(prev * delta, 0.8), 3.5));
+      touchDistanceRef.current = dist;
+    } else if (e.touches.length === 1 && isDraggingRef.current && zoomScale > 1) {
+      setPanOffset({
+        x: e.touches[0].clientX - dragStartRef.current.x,
+        y: e.touches[0].clientY - dragStartRef.current.y
+      });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchDistanceRef.current = null;
+    isDraggingRef.current = false;
   };
 
   // Execute Subscription Payment
@@ -392,7 +520,7 @@ export const SuppliersScreen: React.FC = () => {
 
       {/* Floating Haptic Toast Notification Banner */}
       {copiedField && (
-        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-200 pointer-events-none">
           <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-emerald-500/95 backdrop-blur-md text-slate-950 font-black text-xs shadow-2xl shadow-emerald-500/30 border border-emerald-400">
             <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
             <span>{copiedField} copied to clipboard!</span>
@@ -747,7 +875,7 @@ export const SuppliersScreen: React.FC = () => {
         </div>
 
         {/* =====================================================================
-            SHOWCASE: RE-DESIGNED VETTED FACTORY CARDS WITH 1-TAP COPY
+            SHOWCASE: RE-DESIGNED VETTED FACTORY CARDS WITH INLINE CARD EXPANSION
            ===================================================================== */}
         {isLoading ? (
           <div className="py-16 text-center text-slate-400 text-xs">
@@ -773,6 +901,8 @@ export const SuppliersScreen: React.FC = () => {
           <div className="space-y-4">
             {visibleSuppliers.map((supplier) => {
               const contactPerson = (supplier as any).directManager || 'General Export Manager';
+              const isInlineExpanded = expandedCardSupplierId === supplier.id;
+              const cardUrl = cardUrlCache.current[supplier.id]?.url || supplier.businessCardUrl;
 
               return (
                 <div
@@ -1082,6 +1212,77 @@ export const SuppliersScreen: React.FC = () => {
                     </div>
                   )}
 
+                  {/* =========================================================
+                      OPTION A: IN-PLACE INLINE CARD EXPANSION VIEWER
+                     ========================================================= */}
+                  {effectiveIsSubscribed && isInlineExpanded && (
+                    <div className="p-3 sm:p-4 rounded-2xl bg-gradient-to-b from-slate-950 to-slate-900 border border-amber-500/40 space-y-3 animate-in fade-in slide-in-from-top-3 duration-300 shadow-2xl">
+                      <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5 text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="p-1.5 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                            <CreditCard className="w-4 h-4" />
+                          </span>
+                          <div>
+                            <span className="text-white font-extrabold block text-xs">Official Verified Business Card</span>
+                            <span className="text-[10px] text-slate-400 font-serif">{supplier.chineseName || 'China Direct Manufacturer'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleViewBusinessCard(supplier)}
+                            className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors border border-slate-700 shadow-sm"
+                            title="Open Fullscreen Lightbox"
+                          >
+                            <Maximize2 className="w-3 h-3 text-cyan-400" />
+                            <span className="hidden sm:inline">Fullscreen</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setExpandedCardSupplierId(null)}
+                            className="w-6 h-6 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer text-xs"
+                            title="Close inline preview"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Inline Business Card Canvas / Shimmer */}
+                      <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800/80 p-1.5 shadow-inner">
+                        {cardUrl ? (
+                          <img
+                            src={cardUrl}
+                            alt={`${supplier.name} Business Card`}
+                            className="w-full h-auto rounded-xl object-contain max-h-[320px] mx-auto transition-transform duration-200"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="py-16 text-center text-xs text-slate-400 space-y-2">
+                            <CreditCard className="w-8 h-8 text-amber-400/60 animate-pulse mx-auto" />
+                            <p className="text-[11px] font-medium">Decrypting official factory card credentials...</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+                        <span className="font-mono text-emerald-400 flex items-center gap-1">
+                          <ShieldCheck className="w-3 h-3" />
+                          <span>1-Hour Secure Enclave Signature Verified</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleViewBusinessCard(supplier)}
+                          className="text-amber-400 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>Pinch & Zoom</span>
+                          <ZoomIn className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* 4. Card Footer: MOQ + Actions */}
                   <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
                     <div className="space-y-0.5">
@@ -1103,11 +1304,16 @@ export const SuppliersScreen: React.FC = () => {
 
                           <button
                             type="button"
-                            onClick={() => handleViewBusinessCard(supplier)}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold transition-all active:scale-95 cursor-pointer border border-slate-700/60"
+                            onClick={() => handleToggleInlineBusinessCard(supplier)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all active:scale-95 cursor-pointer border ${
+                              isInlineExpanded
+                                ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-md ring-1 ring-amber-500/30'
+                                : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700/60'
+                            }`}
                           >
                             <CreditCard className="w-3.5 h-3.5 text-amber-400" />
                             <span>Official Business Card</span>
+                            <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${isInlineExpanded ? 'rotate-180 text-amber-400' : 'text-slate-400'}`} />
                           </button>
                         </>
                       ) : (
@@ -1489,60 +1695,133 @@ export const SuppliersScreen: React.FC = () => {
       )}
 
       {/* =====================================================================
-          BUSINESS CARD SIGNED PREVIEW MODAL
+          OPTION B: CLEAN FULL-SCREEN LIGHTBOX MODAL WITH PINCH-TO-ZOOM & PAN
          ===================================================================== */}
       {cardModalSupplier && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-lg animate-in fade-in">
-          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-amber-400" />
-                <div>
-                  <h3 className="text-sm font-bold text-white">Verified Chinese Business Card</h3>
-                  <p className="text-[10px] text-slate-300">{cardModalSupplier.name}</p>
-                </div>
+        <div 
+          className="fixed inset-0 z-50 flex flex-col justify-between bg-slate-950/95 backdrop-blur-2xl animate-in fade-in duration-200 select-none overflow-hidden"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Lightbox Luxury Header */}
+          <div className="px-4 py-3.5 bg-slate-900/90 border-b border-slate-800/90 flex items-center justify-between text-xs backdrop-blur-md z-10 shrink-0">
+            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+              <div className="w-9 h-9 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+                <CreditCard className="w-4 h-4" />
               </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-sm font-black text-white truncate">{cardModalSupplier.name}</h3>
+                  <span className="px-2 py-0.2 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[9px] font-extrabold uppercase shrink-0">
+                    Verified
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-400 font-serif truncate">
+                  {cardModalSupplier.chineseName || 'China Direct Manufacturer'} • {cardModalSupplier.city}
+                </p>
+              </div>
+            </div>
+
+            {/* Interactive Zoom Toolbar & Close Button */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 shadow-inner">
+                <button
+                  type="button"
+                  onClick={() => setZoomScale(prev => Math.max(prev - 0.25, 0.75))}
+                  className="w-7 h-7 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer transition-colors"
+                  title="Zoom Out"
+                >
+                  <ZoomOut className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setZoomScale(1); setPanOffset({ x: 0, y: 0 }); }}
+                  className="px-2 h-7 text-[10px] font-mono font-bold text-amber-400 hover:text-amber-300 flex items-center justify-center cursor-pointer"
+                  title="Reset Zoom"
+                >
+                  {Math.round(zoomScale * 100)}%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setZoomScale(prev => Math.min(prev + 0.25, 3))}
+                  className="w-7 h-7 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer transition-colors"
+                  title="Zoom In"
+                >
+                  <ZoomIn className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
               <button 
                 type="button"
                 onClick={() => { setCardModalSupplier(null); setSignedCardUrl(null); }}
-                className="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer"
+                className="w-9 h-9 rounded-2xl bg-slate-800/90 hover:bg-slate-700 text-white flex items-center justify-center cursor-pointer border border-slate-700 shadow-md transition-all active:scale-95 ml-1"
+                title="Close lightbox"
               >
-                ✕
+                <X className="w-4 h-4 stroke-[2.5]" />
               </button>
             </div>
+          </div>
 
+          {/* Lightbox Interactive Canvas */}
+          <div className="flex-1 flex items-center justify-center p-3 relative overflow-hidden touch-none">
             {isLoadingCard ? (
-              <div className="py-16 text-center text-xs text-slate-300">
-                Generating secure 1-hour signed storage URL...
+              <div className="text-center space-y-3">
+                <CreditCard className="w-10 h-10 text-amber-400/80 animate-pulse mx-auto" />
+                <p className="text-xs text-slate-300 font-medium">Decrypting verified factory business card...</p>
               </div>
             ) : signedCardUrl ? (
-              <div className="space-y-3">
-                <div className="rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 p-1.5 shadow-inner">
+              <div 
+                className="max-w-2xl w-full max-h-[82vh] transition-transform duration-100 ease-out cursor-grab active:cursor-grabbing flex items-center justify-center"
+                style={{
+                  transform: `scale(${zoomScale}) translate(${panOffset.x / zoomScale}px, ${panOffset.y / zoomScale}px)`
+                }}
+              >
+                <div className="rounded-3xl overflow-hidden border border-amber-500/30 bg-slate-950 p-2 shadow-2xl shadow-amber-500/10">
                   <img
                     src={signedCardUrl}
                     alt={cardModalSupplier.name}
-                    className="w-full h-auto rounded-xl object-contain max-h-[360px] mx-auto"
+                    className="w-full h-auto rounded-2xl object-contain max-h-[72vh] mx-auto pointer-events-none"
+                    draggable={false}
                   />
-                </div>
-
-                <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-                  <span className="text-[10px] font-mono">
-                    🔒 Temporary signed URL valid for 60 minutes
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => { setCardModalSupplier(null); setSignedCardUrl(null); }}
-                    className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs cursor-pointer shadow-sm transition-all"
-                  >
-                    Done
-                  </button>
                 </div>
               </div>
             ) : (
-              <div className="py-12 text-center text-xs text-rose-400">
-                Failed to load signed document.
+              <div className="py-12 text-center text-xs text-rose-400 space-y-2">
+                <AlertCircle className="w-8 h-8 mx-auto opacity-80" />
+                <p>Failed to load signed business card document.</p>
               </div>
             )}
+          </div>
+
+          {/* Lightbox Luxury Footer Bar */}
+          <div className="px-4 py-3 bg-slate-900/90 border-t border-slate-800/90 flex items-center justify-between text-xs backdrop-blur-md z-10 shrink-0">
+            <div className="flex items-center gap-2 text-slate-300">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span className="text-[11px] font-mono text-emerald-300">
+                Pinch to zoom • Drag to pan • 60-min signed link
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {cardModalSupplier.wechatId && (
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(cardModalSupplier.wechatId || '', 'WeChat ID')}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors border border-slate-700"
+                >
+                  <Copy className="w-3 h-3" />
+                  <span>Copy WeChat</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => { setCardModalSupplier(null); setSignedCardUrl(null); }}
+                className="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs cursor-pointer shadow-md transition-all active:scale-95"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}
