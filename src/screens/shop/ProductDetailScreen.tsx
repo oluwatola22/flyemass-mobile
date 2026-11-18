@@ -581,7 +581,7 @@ export const ProductDetailScreen: React.FC = () => {
                 <span>Warranty</span>
               </span>
               <span className="font-semibold text-white text-right">
-                {product.warrantyInfo || specs.warranty || '1-Year Apple Warranty + FlyeMass Escrow'}
+                {product.warrantyInfo || specs.warranty || '1-Year Apple Warranty + FlyeMass Protection'}
               </span>
             </div>
           </div>

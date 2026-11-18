@@ -269,7 +269,7 @@ export const CheckoutScreen: React.FC = () => {
               <Wallet className="w-3.5 h-3.5 text-emerald-400" />
               <span>Step 3: Select Payment Wallet</span>
             </span>
-            <span className="text-[10px] text-emerald-400 font-bold">Instant Escrow Settlement</span>
+            <span className="text-[10px] text-emerald-400 font-bold">Instant Direct Settlement</span>
           </div>
 
           <div className="space-y-2">
@@ -317,7 +317,7 @@ export const CheckoutScreen: React.FC = () => {
         <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2 text-xs">
           <div className="flex justify-between text-slate-400">
             <span>Air Cargo Clearance:</span>
-            <span className="text-emerald-400 font-bold">Pre-cleared via FlyeMass Air Escrow</span>
+            <span className="text-emerald-400 font-bold">Pre-cleared via FlyeMass Air Clearing</span>
           </div>
           <div className="flex justify-between text-slate-400">
             <span>Funding Source:</span>

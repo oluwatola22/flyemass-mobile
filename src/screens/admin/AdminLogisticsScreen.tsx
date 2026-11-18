@@ -1698,7 +1698,7 @@ export const AdminLogisticsScreen: React.FC<{
                     <label className="text-xs font-bold text-[#CBD5E1] block mb-1">
                       Express handling / clearance fee
                       <span className="block text-[10px] text-[#94A3B8] font-normal uppercase mt-0.5">
-                        FLAT USD ADDED TO EVERY EXPRESS QUOTE
+                        FLAT BASE FEE ADDED TO EVERY EXPRESS QUOTE
                       </span>
                     </label>
                     <input
@@ -1731,7 +1731,7 @@ export const AdminLogisticsScreen: React.FC<{
                     <label className="text-xs font-bold text-[#CBD5E1] block mb-1">
                       Normal handling / clearance fee
                       <span className="block text-[10px] text-[#94A3B8] font-normal uppercase mt-0.5">
-                        FLAT USD ADDED TO EVERY NORMAL AIR QUOTE
+                        FLAT BASE FEE ADDED TO EVERY NORMAL AIR QUOTE
                       </span>
                     </label>
                     <input
@@ -1761,7 +1761,7 @@ export const AdminLogisticsScreen: React.FC<{
                 <div>
                   <h3 className="text-sm font-extrabold text-[#FFFFFF]">Logistics FX rates</h3>
                   <p className="text-xs text-[#94A3B8]">
-                    Independent of the peer-to-peer wallet swap rate. Real-time rates used to convert USD freight invoices into NGN and RMB.
+                    Independent of the peer-to-peer wallet swap rate. Real-time rates used to convert tariffs into NGN and RMB.
                   </p>
                 </div>
               </div>
@@ -1769,9 +1769,9 @@ export const AdminLogisticsScreen: React.FC<{
               <div className="space-y-3.5">
                 <div>
                   <label className="text-xs font-bold text-[#CBD5E1] block mb-1">
-                    1 USD to NGN (Logistics)
+                    Air Freight NGN Clearing Factor
                     <span className="block text-[10px] text-[#94A3B8] font-normal uppercase mt-0.5">
-                      NAIRA PER US DOLLAR FOR FREIGHT
+                      NAIRA CLEARING RATE FOR FREIGHT
                     </span>
                   </label>
                   <input
@@ -1785,9 +1785,9 @@ export const AdminLogisticsScreen: React.FC<{
 
                 <div>
                   <label className="text-xs font-bold text-[#CBD5E1] block mb-1">
-                    1 USD to CNY (Logistics)
+                    Air Freight CNY Clearing Factor
                     <span className="block text-[10px] text-[#94A3B8] font-normal uppercase mt-0.5">
-                      RMB PER US DOLLAR FOR FREIGHT
+                      RMB CLEARING RATE FOR FREIGHT
                     </span>
                   </label>
                   <input

@@ -457,7 +457,7 @@ export const AdminHotelsScreen: React.FC = () => {
   const handleCancelAndRefundBooking = async (b: any) => {
     if (!window.confirm(`Cancel booking ${b.reference || b.id} and refund ${b.currency || 'USD'} ${(b.amountDebited || b.totalUSD)?.toLocaleString()} back to customer wallet?`)) return;
     try {
-      await db.cancelHotelBooking(b.id, b.userId, 'Cancelled by Admin Stays Desk with full escrow refund');
+      await db.cancelHotelBooking(b.id, b.userId, 'Cancelled by Admin Stays Desk with full refund');
       showToast(`Booking cancelled. Funds refunded to customer wallet with balanced double-entry ledger.`, 'success');
       setDbRev(db.getStateRevision());
     } catch (e: any) {
@@ -761,7 +761,7 @@ export const AdminHotelsScreen: React.FC = () => {
                   <tr className="border-b border-slate-200/80 bg-slate-50/70 text-[11px] font-bold text-slate-400 uppercase">
                     <th className="py-3.5 px-5">Property</th>
                     <th className="py-3.5 px-5">City</th>
-                    <th className="py-3.5 px-5">Nightly (USD / CNY / NGN)</th>
+                    <th className="py-3.5 px-5">Nightly (RMB / NGN)</th>
                     <th className="py-3.5 px-5">Rooms</th>
                     <th className="py-3.5 px-5">Status</th>
                     <th className="py-3.5 px-5 text-right">Actions</th>
@@ -812,7 +812,7 @@ export const AdminHotelsScreen: React.FC = () => {
 
                         {/* Nightly Prices */}
                         <td className="py-3.5 px-5 font-mono text-slate-700 font-semibold text-[11px]">
-                          ${hotel.pricePerNightUSD?.toFixed(2)} • ¥{hotel.pricePerNightCNY?.toFixed(2)} • ₦{hotel.pricePerNightNGN ? hotel.pricePerNightNGN.toLocaleString() + '.00' : Math.round((hotel.pricePerNightUSD || 45) * 1600).toLocaleString() + '.00'}
+                          ¥{hotel.pricePerNightCNY?.toFixed(2)} RMB • ₦{hotel.pricePerNightNGN ? hotel.pricePerNightNGN.toLocaleString() + '.00' : Math.round((hotel.pricePerNightUSD || 45) * 1600).toLocaleString() + '.00'}
                         </td>
 
                         {/* Rooms Count */}
@@ -901,12 +901,12 @@ export const AdminHotelsScreen: React.FC = () => {
               <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
                 <span className="text-[11px] font-bold text-slate-400 uppercase block">Completed</span>
                 <span className="text-2xl font-black text-purple-600 mt-1">{completedBookingsCount}</span>
-                <span className="text-[10px] text-slate-500 mt-0.5 block">Escrow settled</span>
+                <span className="text-[10px] text-slate-500 mt-0.5 block">Bookings settled</span>
               </div>
               <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
                 <span className="text-[11px] font-bold text-slate-400 uppercase block">Total Revenue</span>
-                <span className="text-xl font-black text-slate-900 font-mono mt-1">${revenueUSD.toLocaleString()}</span>
-                <span className="text-[10px] text-slate-500 mt-0.5 block">Escrow volume</span>
+                <span className="text-xl font-black text-slate-900 font-mono mt-1">¥{Math.round(revenueUSD * 7.24).toLocaleString()}</span>
+                <span className="text-[10px] text-slate-500 mt-0.5 block">≈ ₦{Math.round(revenueUSD * 1485).toLocaleString()} NGN</span>
               </div>
             </div>
 
@@ -1007,7 +1007,7 @@ export const AdminHotelsScreen: React.FC = () => {
                           </div>
                           <div className="text-[10px] text-slate-400 flex items-center gap-1">
                             <ShieldCheck className="w-3 h-3 text-emerald-500" />
-                            Escrow Locked
+                            Booking Confirmed
                           </div>
                         </td>
 
@@ -1175,7 +1175,7 @@ export const AdminHotelsScreen: React.FC = () => {
                   <tr className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold text-slate-400 uppercase">
                     <th className="py-3.5 px-5">Property</th>
                     <th className="py-3.5 px-5">Type & District</th>
-                    <th className="py-3.5 px-5">Monthly Rent (CNY / USD / NGN)</th>
+                    <th className="py-3.5 px-5">Monthly Rent (RMB / NGN)</th>
                     <th className="py-3.5 px-5">Area & Specs</th>
                     <th className="py-3.5 px-5">Status</th>
                     <th className="py-3.5 px-5 text-right">Actions</th>
@@ -1223,7 +1223,7 @@ export const AdminHotelsScreen: React.FC = () => {
                         </td>
 
                         <td className="py-3.5 px-5 font-mono text-slate-700 font-semibold text-[11px]">
-                          ¥{r.monthlyRentCNY?.toLocaleString()} • ${r.monthlyRentUSD?.toLocaleString()} • ₦{r.estimatedRentNGN?.toLocaleString()}
+                          ¥{r.monthlyRentCNY?.toLocaleString()} RMB • ₦{r.estimatedRentNGN?.toLocaleString()}
                         </td>
 
                         <td className="py-3.5 px-5">
@@ -1620,18 +1620,13 @@ export const AdminHotelsScreen: React.FC = () => {
                     NIGHTLY PRICING (PER WALLET CURRENCY)
                   </h3>
 
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-600 block mb-1">
-                        USD
-                      </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div style={{ display: 'none' }} aria-hidden="true">
                       <input
                         type="number"
                         step="0.01"
                         value={priceUSD}
                         onChange={(e) => setPriceUSD(e.target.value)}
-                        placeholder="45.00"
-                        className="w-full p-2 rounded-xl bg-white border border-slate-200 text-xs font-mono font-bold text-slate-900 outline-none focus:border-slate-900 shadow-sm"
                       />
                     </div>
 
@@ -1969,15 +1964,11 @@ export const AdminHotelsScreen: React.FC = () => {
                       />
                     </div>
 
-                    <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-600 block mb-1">
-                        EST. USD ($)
-                      </label>
+                    <div style={{ display: 'none' }} aria-hidden="true">
                       <input
                         type="number"
                         value={rentalRentUSD}
                         onChange={(e) => setRentalRentUSD(e.target.value)}
-                        className="w-full p-2 rounded-xl bg-white border border-slate-200 text-xs font-mono font-bold text-slate-900 outline-none"
                       />
                     </div>
 
@@ -2395,7 +2386,7 @@ export const AdminHotelsScreen: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Amount Paid:</span>
-                <span className="font-mono font-bold text-emerald-600">{voucherModalBooking.currency || 'USD'} {(voucherModalBooking.amountDebited || voucherModalBooking.totalUSD)?.toLocaleString()}</span>
+                <span className="font-mono font-bold text-emerald-600">{voucherModalBooking.currency === 'USD' ? 'CNY' : (voucherModalBooking.currency || 'CNY')} {(voucherModalBooking.amountDebited || voucherModalBooking.totalCNY || voucherModalBooking.totalUSD)?.toLocaleString()}</span>
               </div>
             </div>
 

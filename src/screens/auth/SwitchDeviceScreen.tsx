@@ -203,7 +203,7 @@ export const SwitchDeviceScreen: React.FC = () => {
                 </div>
                 <h4 className="text-sm font-bold text-white">Biometric Enclave Re-binding</h4>
                 <p className="text-[11px] text-slate-400 leading-relaxed max-w-xs mx-auto">
-                  Scan your biometric print or Face ID to re-authenticate this hardware handset with the central liquidity escrow.
+                  Scan your biometric print or Face ID to re-authenticate this hardware handset with the central liquidity vault.
                 </p>
                 <button
                   type="button"

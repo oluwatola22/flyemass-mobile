@@ -1310,7 +1310,7 @@ export interface SupportTicket {
   id: string;
   ticketNumber: string;
   subject: string;
-  category: 'Supplier Escrow' | 'Customs & Port' | 'Air Freight Waybill' | 'FX Swap Slippage' | 'General' | string;
+  category: 'Supplier Trade Payout' | 'Supplier Escrow' | 'Customs & Port' | 'Air Freight Waybill' | 'FX Swap Slippage' | 'General' | string;
   priority: SupportTicketPriority;
   status: SupportTicketStatus;
   lastUpdated: string;

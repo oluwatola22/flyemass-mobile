@@ -678,7 +678,7 @@ export const AdminPaymentsScreen: React.FC = () => {
                   </div>
 
                   <div className="flex gap-1.5 p-1 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-bold">
-                    {(['all', 'NGN', 'USD', 'CNY'] as const).map((curr) => (
+                    {(['all', 'NGN', 'CNY'] as const).map((curr) => (
                       <button
                         key={curr}
                         onClick={() => setDepositCurrencyFilter(curr)}
@@ -1329,8 +1329,8 @@ export const AdminPaymentsScreen: React.FC = () => {
                   </div>
                 </div>
 
-                {/* USD */}
-                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                {/* USD (Hidden from display per two-currency architecture) */}
+                <div style={{ display: 'none' }} aria-hidden="true" className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-white">🇺🇸 US Dollar (USD)</span>
                     <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-[10px]">

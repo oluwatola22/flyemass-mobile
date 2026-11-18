@@ -283,7 +283,7 @@ export const OfficeRentalsScreen: React.FC = () => {
                     <div>
                       <span className="text-[10px] uppercase font-bold text-slate-400 block">Monthly Commercial Rent</span>
                       <span className="text-base font-extrabold text-white num-tabular">
-                        ¥{office.monthlyRentCNY.toLocaleString()} CNY <span className="text-xs text-slate-400 font-normal">(~${office.monthlyRentUSD} USD)</span>
+                        ¥{office.monthlyRentCNY.toLocaleString()} RMB <span className="text-xs text-slate-400 font-normal">(≈ ₦{office.estimatedRentNGN?.toLocaleString() || Math.round(office.monthlyRentCNY * 215).toLocaleString()})</span>
                       </span>
                     </div>
                     <div className="text-right">

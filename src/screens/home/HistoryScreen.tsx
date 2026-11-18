@@ -100,7 +100,7 @@ export const HistoryScreen: React.FC = () => {
 
         {/* Currency Filter Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
-          {(['All', 'NGN', 'CNY', 'USD'] as const).map((curr) => (
+          {(['All', 'NGN', 'CNY'] as const).map((curr) => (
             <button
               key={curr}
               onClick={() => setCurrencyFilter(curr)}
@@ -110,7 +110,7 @@ export const HistoryScreen: React.FC = () => {
                   : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
               }`}
             >
-              {curr === 'All' ? 'All Currencies' : curr === 'NGN' ? '₦ Naira' : curr === 'CNY' ? '¥ Yuan RMB' : '$ US Dollar'}
+              {curr === 'All' ? 'All Currencies' : curr === 'NGN' ? '₦ Naira' : '¥ Yuan RMB'}
             </button>
           ))}
         </div>

@@ -71,8 +71,8 @@ export const ShopOrderDetailScreen: React.FC = () => {
   const defaultSteps = [
     { 
       status: 'pending', 
-      title: 'Order Confirmed & Payment Escrowed', 
-      desc: `Authorized via ${currency} customer wallet. Funds held safely in FlyeMass escrow.`,
+      title: 'Order Confirmed & Payment Settled', 
+      desc: `Authorized via ${currency} customer wallet. Funds held safely in FlyeMass clearing vault.`,
       time: order.createdAt ? new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Day 1'
     },
     { 

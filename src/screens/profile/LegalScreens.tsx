@@ -30,9 +30,9 @@ export const TermsScreen: React.FC = () => {
 
         <div className="space-y-4 p-4 rounded-3xl bg-slate-900/60 border border-slate-800">
           <section className="space-y-1.5">
-            <h4 className="text-xs font-bold text-white">1. Multi-Currency Liquidity & Escrow</h4>
+            <h4 className="text-xs font-bold text-white">1. Multi-Currency Liquidity & Trade Settlement</h4>
             <p className="text-[11px] text-slate-400">
-              FlyeMass operates licensed liquidity pools facilitating Nigerian Naira (NGN), Chinese Yuan (CNY/RMB), and US Dollar (USD) settlements. Payouts via Alipay China and WeChat Pay are executed within 90 seconds under China Merchant Clearing API guidelines.
+              FlyeMass operates licensed liquidity pools facilitating Nigerian Naira (NGN) and Chinese Yuan (CNY/RMB) settlements. Payouts via Alipay China and WeChat Pay are executed within 90 seconds under China Merchant Clearing API guidelines.
             </p>
           </section>
 

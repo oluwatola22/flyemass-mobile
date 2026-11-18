@@ -228,7 +228,7 @@ export const CartScreen: React.FC = () => {
             <div>
               <p className="font-bold text-white">Direct Hong Kong Air Flight to Lagos</p>
               <p className="text-[11px] text-slate-400">
-                Consolidated cargo shipment with door-to-door escrow clearance. Standard flat delivery fee: ₦{deliveryFeeNGN.toLocaleString()}.
+                Consolidated cargo shipment with door-to-door direct clearance. Standard flat delivery fee: ₦{deliveryFeeNGN.toLocaleString()}.
               </p>
             </div>
           </div>
@@ -250,7 +250,7 @@ export const CartScreen: React.FC = () => {
           </div>
 
           <div className="flex justify-between text-slate-400">
-            <span>Customs Duties & Escrow Guard:</span>
+            <span>Customs Duties & Trade Guard:</span>
             <span className="text-emerald-400 font-bold">100% Guaranteed</span>
           </div>
 

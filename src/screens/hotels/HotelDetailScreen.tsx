@@ -280,7 +280,7 @@ export const HotelDetailScreen: React.FC = () => {
                       </span>
                       {surcharge > 0 ? (
                         <span className="px-1.5 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-mono text-[9px] font-bold">
-                          +${surcharge} USD / nt
+                          +¥{Math.round(surcharge * 7.24)} RMB / nt
                         </span>
                       ) : (
                         <span className="px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-400 text-[9px]">
@@ -459,7 +459,7 @@ export const HotelDetailScreen: React.FC = () => {
               <div>
                 <span className="text-slate-400 text-xs">Total Settlement:</span>
                 <span className="text-base font-extrabold text-white block num-tabular">
-                  {paymentCurrency === 'NGN' ? `₦${totalNGN.toLocaleString()} NGN` : paymentCurrency === 'CNY' ? `¥${totalCNY.toLocaleString()} CNY` : `$${totalUSD.toLocaleString()} USD`}
+                  {paymentCurrency === 'CNY' ? `¥${totalCNY.toLocaleString()} RMB` : `₦${totalNGN.toLocaleString()} NGN`}
                 </span>
               </div>
 
@@ -493,7 +493,7 @@ export const HotelDetailScreen: React.FC = () => {
               onComplete={handlePinSuccess}
               onCancel={() => setShowPinModal(false)}
               title="Confirm Hotel Reservation"
-              subtitle={`Enter 6-digit transaction PIN to debit ${paymentCurrency} ${debitAmount.toLocaleString()} to hotel escrow`}
+              subtitle={`Enter 6-digit transaction PIN to debit ${paymentCurrency} ${debitAmount.toLocaleString()} for hotel reservation`}
             />
           </div>
         </div>

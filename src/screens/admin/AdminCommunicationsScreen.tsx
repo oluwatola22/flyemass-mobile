@@ -1028,7 +1028,7 @@ export const AdminCommunicationsScreen: React.FC = () => {
 
                 <div className="pt-4 border-t border-slate-100 space-y-2">
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[10px] text-slate-500 leading-relaxed">
-                    <strong>Trade Protection Notice:</strong> FlyeMass operates licensed escrow, Guangzhou bonded warehousing, and Lagos clearing. For direct China supplier transactions, always coordinate through your FlyeMass account.
+                    <strong>Trade Protection Notice:</strong> FlyeMass operates licensed trade settlement, Guangzhou bonded warehousing, and Lagos clearing. For direct China supplier transactions, always coordinate through your FlyeMass account.
                   </div>
                   <div className="text-center text-[10px] text-slate-400">
                     FlyeMass Global Hub — Guangzhou · Yiwu · Lagos

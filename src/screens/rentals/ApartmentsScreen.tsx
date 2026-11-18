@@ -285,7 +285,7 @@ export const ApartmentsScreen: React.FC = () => {
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-slate-400">Monthly Rent:</span>
                         <span className="font-extrabold text-white num-tabular">
-                          ¥{prop.monthlyRentCNY.toLocaleString()} CNY <span className="text-slate-400 font-normal">(~${prop.monthlyRentUSD} USD)</span>
+                          ¥{prop.monthlyRentCNY.toLocaleString()} RMB <span className="text-slate-400 font-normal">(≈ ₦{prop.estimatedRentNGN?.toLocaleString() || Math.round(prop.monthlyRentCNY * 215).toLocaleString()})</span>
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-[11px]">
@@ -297,7 +297,7 @@ export const ApartmentsScreen: React.FC = () => {
                       <div className="pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
                         <span className="text-emerald-400 font-bold">Est. Upfront Move-In Cost:</span>
                         <span className="font-mono font-black text-emerald-400 num-tabular">
-                          ¥{upfrontMoveInCNY.toLocaleString()} CNY <span className="text-[10px] text-slate-400 font-normal">(~${upfrontMoveInUSD} USD)</span>
+                          ¥{upfrontMoveInCNY.toLocaleString()} RMB
                         </span>
                       </div>
                     </div>

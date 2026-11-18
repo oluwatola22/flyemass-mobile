@@ -629,7 +629,7 @@ export const SupportTicketsScreen: React.FC<SupportTicketsScreenProps> = ({ init
                 <span className="text-[10px] text-slate-500 font-mono">Select Issue Area</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                {(['Supplier Escrow', 'Customs & Port', 'Air Freight Waybill', 'FX Swap Slippage'] as const).map((cat) => (
+                {(['Supplier Trade Payout', 'Customs & Port', 'Air Freight Waybill', 'FX Swap Slippage'] as const).map((cat) => (
                   <button
                     key={cat}
                     type="button"

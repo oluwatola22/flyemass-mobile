@@ -63,7 +63,7 @@ const RBAC_MODULE_SPECS: RBACModuleSpec[] = [
     name: 'Agent Sourcing & Procurement',
     path: '/admin/agent-requests',
     category: 'core',
-    description: 'Mobile client RFQs, factory negotiation, quotation dispatch, and escrow locks'
+    description: 'Mobile client RFQs, factory negotiation, quotation dispatch, and direct settlement'
   },
   {
     id: 'support',

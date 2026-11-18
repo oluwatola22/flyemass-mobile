@@ -39,7 +39,8 @@ import {
   ShoppingBag,
   Factory,
   CheckCircle,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Coins
 } from 'lucide-react';
 
 interface AdminAgentsScreenProps {
@@ -81,7 +82,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
   const [quoteDocUrl, setQuoteDocUrl] = useState('');
   const [fxOverrideUSD_CNY, setFxOverrideUSD_CNY] = useState('');
   const [fxOverrideUSD_NGN, setFxOverrideUSD_NGN] = useState('');
-  const [quoteCurrency, setQuoteCurrency] = useState<'USD' | 'NGN' | 'RMB'>('USD');
+  const [quoteCurrency, setQuoteCurrency] = useState<'USD' | 'NGN' | 'RMB'>('RMB');
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
 
   // Operations Progress Drawer State
@@ -203,7 +204,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
       setFxOverrideUSD_CNY('');
       setFxOverrideUSD_NGN('');
     }
-    setQuoteCurrency('USD');
+    setQuoteCurrency('RMB');
     setQuoteAgentName(rfq.assignedAgent || 'Zhang Wei (Guangzhou Sourcing Desk)');
     setQuoteFindings(rfq.supplierFindings || 'Direct manufacturer identified and preliminary catalog reviewed.');
     setQuoteNotes(rfq.adminNotes || 'Quotation formulated according to client specifications.');
@@ -396,7 +397,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
     }
   };
 
-  // Complete Request & Disburse Escrow
+  // Complete Request & Settle Payment
   const handleCompleteRequest = async () => {
     if (!opsDrawerRfq) return;
     try {
@@ -405,7 +406,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
         opsNotes || 'Ground inspection and factory audit completed successfully. Verified deliverables filed.',
         'adm-001'
       );
-      showToast(`Request #${opsDrawerRfq.reference || opsDrawerRfq.id} completed & escrow disbursed to revenue!`, 'success');
+      showToast(`Request #${opsDrawerRfq.reference || opsDrawerRfq.id} completed & payment disbursed to revenue!`, 'success');
       setOpsDrawerRfq(null);
       setRfqs(db.getAgentRequests());
     } catch (err: any) {
@@ -491,7 +492,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                   China Ground Trade Sourcing & Inspections
                 </h1>
                 <p className="text-sm font-medium text-slate-300">
-                  Live 1688 RFQ formulations, ground factory legitimacy audits, bilingual Canton Fair escort, and double-entry escrow disbursement.
+                  Live 1688 RFQ formulations, ground factory legitimacy audits, bilingual Canton Fair escort, and double-entry payment disbursement.
                 </p>
               </div>
             </div>
@@ -607,13 +608,13 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
           <div className="p-4 rounded-xl bg-[#152238] border border-[#293A52] hover:border-emerald-500/50 transition-all shadow-md">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Pipeline Value</span>
-              <DollarSign className="w-4 h-4 text-emerald-400" />
+              <Coins className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="mt-2">
               <span className="text-xl font-black text-emerald-400 font-mono block">
-                ${totalQuotedValueUSD.toLocaleString()}
+                ¥{Math.round(totalQuotedValueUSD * 7.24).toLocaleString()}
               </span>
-              <span className="text-[11px] text-slate-400 font-mono">USD Quoted</span>
+              <span className="text-[11px] text-slate-400 font-mono">RMB Quoted (≈ ₦{Math.round(totalQuotedValueUSD * 1485).toLocaleString()})</span>
             </div>
           </div>
         </div>
@@ -779,10 +780,10 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                             </span>
                           </span>
 
-                          {/* Escrow Status Pill */}
+                          {/* Payment Status Pill */}
                           {rfq.paymentStatus && (
                             <span className="px-2.5 py-1 rounded-lg bg-emerald-950/70 text-emerald-300 text-xs font-mono font-bold border border-emerald-800/50">
-                              Escrow: {rfq.paymentStatus}
+                              Payment: {rfq.paymentStatus}
                             </span>
                           )}
 
@@ -960,10 +961,10 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                                 <div className="space-y-2">
                                   <div>
                                     <span className="text-2xl font-black text-emerald-400 font-mono block">
-                                      {rfq.totalPayableCNY ? `¥${rfq.totalPayableCNY.toLocaleString()} CNY` : `$${rfq.quoteAmountUSD} USD`}
+                                      {rfq.totalPayableCNY ? `¥${rfq.totalPayableCNY.toLocaleString()} RMB` : `¥${Math.round(rfq.quoteAmountUSD * 7.24).toLocaleString()} RMB`}
                                     </span>
                                     <span className="text-xs text-slate-300 font-mono font-medium block mt-0.5">
-                                      ≈ ${rfq.quoteAmountUSD} USD · ₦{(rfq.quoteAmountNGN || rfq.quoteAmountUSD * 1485).toLocaleString()} NGN
+                                      ≈ ₦{(rfq.quoteAmountNGN || Math.round(rfq.quoteAmountUSD * 1485)).toLocaleString()} NGN
                                     </span>
                                   </div>
 
@@ -1477,18 +1478,15 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                     <label className="text-xs font-bold text-slate-300 uppercase block mb-1.5">
                       Select Quotation Fee Currency
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(['USD', 'NGN', 'RMB'] as const).map((c) => (
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['NGN', 'RMB'] as const).map((c) => (
                         <button
                           key={c}
                           type="button"
                           onClick={() => {
                             if (quoteCurrency !== c) {
                               const currentVal = parseFloat(quoteServiceFeeUSD) || 0;
-                              if (c === 'USD') {
-                                const newUSD = quoteCurrency === 'NGN' ? Math.round((currentVal / 1485) * 100) / 100 : Math.round((currentVal / 7.24) * 100) / 100;
-                                setQuoteServiceFeeUSD(String(newUSD || 250));
-                              } else if (c === 'NGN') {
+                              if (c === 'NGN') {
                                 const newNGN = quoteCurrency === 'USD' ? Math.round(currentVal * 1485) : Math.round((currentVal / 7.24) * 1485);
                                 setQuoteServiceFeeUSD(String(newNGN || 371250));
                               } else {
@@ -1504,9 +1502,12 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                               : 'bg-[#0B1220] border-[#293A52] text-slate-300 hover:text-white'
                           }`}
                         >
-                          {c === 'USD' ? '$ USD' : c === 'NGN' ? '₦ NGN' : '¥ RMB'}
+                          {c === 'NGN' ? '₦ NGN' : '¥ RMB'}
                         </button>
                       ))}
+                      <div style={{ display: 'none' }} aria-hidden="true">
+                        <button type="button" onClick={() => setQuoteCurrency('USD')}>$ USD</button>
+                      </div>
                     </div>
                   </div>
 
@@ -1801,7 +1802,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                   className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Complete Request & Disburse Escrow</span>
+                  <span>Complete Request & Settle Payment</span>
                 </button>
               </div>
             </div>
@@ -1983,7 +1984,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                 <p><strong>Request Ref:</strong> <span className="font-mono text-rose-300 font-bold">{refundModalRfq.reference || refundModalRfq.id}</span></p>
                 <p><strong>Client:</strong> {refundModalRfq.clientName}</p>
                 {refundModalRfq.paidAmount && (
-                  <p><strong>Paid Escrow:</strong> <span className="font-mono font-bold text-emerald-400">{refundModalRfq.paidAmount} {refundModalRfq.paidWith}</span></p>
+                  <p><strong>Paid Amount:</strong> <span className="font-mono font-bold text-emerald-400">{refundModalRfq.paidAmount} {refundModalRfq.paidWith}</span></p>
                 )}
               </div>
 
@@ -2023,7 +2024,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                 {isProcessingRefund ? <span>Executing Reversal...</span> : (
                   <>
                     <RotateCcw className="w-4 h-4" />
-                    <span>Authorize Full Escrow Reversal</span>
+                    <span>Authorize Full Refund</span>
                   </>
                 )}
               </button>
@@ -2186,12 +2187,11 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                       <div>
                         <span className="text-[10px] text-slate-400 block uppercase font-bold">Total Client Payable</span>
                         <span className="text-emerald-400 font-mono font-bold text-base">
-                          {manageDrawerRfq.totalPayableCNY ? `¥${manageDrawerRfq.totalPayableCNY.toLocaleString()} CNY` : `$${manageDrawerRfq.quoteAmountUSD} USD`}
+                          {manageDrawerRfq.totalPayableCNY ? `¥${manageDrawerRfq.totalPayableCNY.toLocaleString()} RMB` : `¥${Math.round(manageDrawerRfq.quoteAmountUSD * 7.24).toLocaleString()} RMB`}
                         </span>
                       </div>
                       <div className="text-right text-xs font-mono text-slate-300">
-                        <span className="text-white font-bold block">${manageDrawerRfq.quoteAmountUSD} USD</span>
-                        <span>₦{manageDrawerRfq.quoteAmountNGN?.toLocaleString()} NGN</span>
+                        <span className="text-white font-bold block">₦{(manageDrawerRfq.quoteAmountNGN || Math.round(manageDrawerRfq.quoteAmountUSD * 1485)).toLocaleString()} NGN</span>
                       </div>
                     </div>
                     {manageDrawerRfq.supplierFindings && (
@@ -2212,12 +2212,12 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                 )}
               </div>
 
-              {/* Escrow Payment Card */}
+              {/* Payment Card */}
               <div className="p-4 rounded-xl bg-[#0B1220] border border-[#22304A] space-y-2 text-xs">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Wallet Payment & Escrow Liability</span>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Wallet Payment & Clearing Liability</span>
                 <div className="grid grid-cols-2 gap-2 text-slate-300">
                   <div>
-                    <span className="text-slate-400 block text-xs">Escrow Status:</span>
+                    <span className="text-slate-400 block text-xs">Payment Status:</span>
                     <span className="font-bold text-white uppercase text-xs">{manageDrawerRfq.paymentStatus || 'unpaid'}</span>
                   </div>
                   <div>
@@ -2381,7 +2381,7 @@ export const AdminAgentsScreen: React.FC<AdminAgentsScreenProps> = ({ initialTab
                     <option value="Canton Fair VIP">Canton Fair VIP</option>
                     <option value="Factory Direct">Factory Direct</option>
                     <option value="Gold Manufacturer">Gold Manufacturer</option>
-                    <option value="Verified Escrow">Verified Escrow</option>
+                    <option value="Verified Direct">Verified Direct</option>
                   </select>
                 </div>
               </div>

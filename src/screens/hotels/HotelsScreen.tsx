@@ -260,24 +260,17 @@ export const HotelsScreen: React.FC = () => {
                   {/* Price and CTA */}
                   <div className="pt-2 border-t border-slate-800/80 flex items-baseline justify-between">
                     <div>
-                      {hotel.pricePerNightUSD && hotel.pricePerNightUSD > 0 ? (
-                        <>
-                          <span className="text-base font-extrabold text-white num-tabular">
-                            ${hotel.pricePerNightUSD}
-                          </span>
-                          <span className="text-xs text-slate-400 font-medium"> / night</span>
-                        </>
-                      ) : hotel.pricePerNightCNY && hotel.pricePerNightCNY > 0 ? (
+                      {hotel.pricePerNightCNY && hotel.pricePerNightCNY > 0 ? (
                         <>
                           <span className="text-base font-extrabold text-white num-tabular">
                             ¥{hotel.pricePerNightCNY}
                           </span>
-                          <span className="text-xs text-slate-400 font-medium"> CNY / night</span>
+                          <span className="text-xs text-slate-400 font-medium"> RMB / night</span>
                         </>
                       ) : (
                         <>
                           <span className="text-base font-extrabold text-white num-tabular">
-                            ₦{(hotel.pricePerNightNGN || 0).toLocaleString()}
+                            ₦{(hotel.pricePerNightNGN || Math.round((hotel.pricePerNightUSD || 45) * 1600)).toLocaleString()}
                           </span>
                           <span className="text-xs text-slate-400 font-medium"> NGN / night</span>
                         </>

@@ -286,7 +286,7 @@ export const AgentServiceScreen: React.FC = () => {
           userId: uid
         });
 
-        showToast(`Ground agent booked! ${res.request?.escrowAmount || feeUSD} ${res.request?.escrowCurrency || inspWalletCurrency} held in secure escrow.`, 'success');
+        showToast(`Ground agent booked! ${res.request?.escrowAmount || feeUSD} ${res.request?.escrowCurrency || inspWalletCurrency} held in secure settlement.`, 'success');
       } else {
         const res = await db.createAgentRequest({
           serviceKind: activeWizard,
@@ -421,7 +421,7 @@ export const AgentServiceScreen: React.FC = () => {
               <span>Back to Agent Hub</span>
             </button>
             <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 shrink-0 whitespace-nowrap font-mono">
-              Escrow Protected
+              Trade Protected
             </span>
           </div>
 
@@ -768,7 +768,7 @@ export const AgentServiceScreen: React.FC = () => {
               <span>Back to Agent Hub</span>
             </button>
             <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 shrink-0 whitespace-nowrap font-mono">
-              Escrow Protected
+              Trade Protected
             </span>
           </div>
 
@@ -786,7 +786,7 @@ export const AgentServiceScreen: React.FC = () => {
                   <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold font-mono whitespace-nowrap">
                     ${currentFeeUSD} USD Fixed
                   </span>
-                  <span className="text-[10px] text-emerald-400 font-semibold font-mono">100% Escrow</span>
+                  <span className="text-[10px] text-emerald-400 font-semibold font-mono">100% Guaranteed</span>
                 </div>
                 <h2 className="text-sm sm:text-base font-bold text-white leading-snug">{serviceTitles[activeWizard]}</h2>
                 <p className="text-xs text-slate-400 leading-relaxed">
@@ -1023,7 +1023,7 @@ export const AgentServiceScreen: React.FC = () => {
             <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3.5 shadow-lg">
               <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
                 <Wallet className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Settlement & Escrow Guarantee</span>
+                <span>Settlement & Trade Guarantee</span>
               </h3>
 
               <div className="grid grid-cols-2 gap-2">
@@ -1037,7 +1037,7 @@ export const AgentServiceScreen: React.FC = () => {
                   }`}
                 >
                   <span className="block text-xs font-bold">Pay via Wallet</span>
-                  <span className="text-[10px] text-slate-400 mt-0.5 block">Instant Escrow Lock</span>
+                  <span className="text-[10px] text-slate-400 mt-0.5 block">Instant Vault Hold</span>
                 </button>
                 <button
                   type="button"
@@ -1082,7 +1082,7 @@ export const AgentServiceScreen: React.FC = () => {
                   </div>
 
                   <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Required Escrow Deposit:</span>
+                    <span className="text-slate-400">Required Deposit:</span>
                     <span className="font-mono font-bold text-emerald-400">
                       {inspWalletCurrency === 'CNY' ? `¥${feeInSelectedCurr.toLocaleString()} CNY` : `₦${feeInSelectedCurr.toLocaleString()} NGN`}
                     </span>
@@ -1192,7 +1192,7 @@ export const AgentServiceScreen: React.FC = () => {
             )}
 
             <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs">
-              <span className="font-bold text-white uppercase text-[11px]">Total Escrow Amount:</span>
+              <span className="font-bold text-white uppercase text-[11px]">Total Settlement Amount:</span>
               <div className="text-right">
                 <span className="font-mono font-black text-emerald-400 text-base block">
                   {paymentModalRfq.totalPayableCNY 
@@ -1344,7 +1344,7 @@ export const AgentServiceScreen: React.FC = () => {
               </div>
               {viewDetailRfq.paymentStatus && (
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Escrow Security:</span>
+                  <span className="text-slate-400">Trade Protection:</span>
                   <span className="font-mono text-emerald-400 font-bold uppercase whitespace-nowrap">{viewDetailRfq.paymentStatus}</span>
                 </div>
               )}
@@ -1442,7 +1442,7 @@ export const AgentServiceScreen: React.FC = () => {
 
             <div>
               <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white leading-snug">
-                Bilingual On-Ground Agents & Escrow
+                Bilingual On-Ground Agents & Inspection
               </h2>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                 Direct factory inspections, 1688 wholesale price negotiations, and physical quality audits across mainland China manufacturing corridors.
@@ -1455,7 +1455,7 @@ export const AgentServiceScreen: React.FC = () => {
                 <span className="text-xs font-bold text-white font-mono mt-0.5 block whitespace-nowrap">41 Officers</span>
               </div>
               <div className="p-2 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col justify-center min-h-[58px]">
-                <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-tight whitespace-nowrap">Escrow</span>
+                <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-tight whitespace-nowrap">Settlement</span>
                 <span className="text-xs font-bold text-emerald-400 font-mono mt-0.5 block whitespace-nowrap">100% Safe</span>
               </div>
               <div className="p-2 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col justify-center min-h-[58px]">
@@ -1605,7 +1605,7 @@ export const AgentServiceScreen: React.FC = () => {
                 <p className="text-[11px] text-slate-400">Direct execution by local bilingual trade officers</p>
               </div>
               <span className="text-[10px] font-semibold text-emerald-400 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 whitespace-nowrap shrink-0">
-                Escrow Protected
+                Direct Protected
               </span>
             </div>
 
@@ -1967,7 +1967,7 @@ export const AgentServiceScreen: React.FC = () => {
                           </div>
 
                           <p className="text-[11px] text-slate-300 leading-relaxed">
-                            Our China Desk has audited factory pricing and finalized logistics. Authorize escrow release to dispatch on-ground agent.
+                            Our China Desk has audited factory pricing and finalized logistics. Authorize settlement release to dispatch on-ground agent.
                           </p>
 
                           <button

@@ -25,7 +25,7 @@ export const INITIAL_WALLETS: WalletBalance[] = [
   {
     currency: 'CNY',
     symbol: '¥',
-    name: 'Chinese Yuan (RMB) Escrow',
+    name: 'Chinese Yuan (RMB) Vault',
     balance: 184250,
     flag: '🇨🇳',
     accountNumber: 'CN892300041289',
@@ -339,7 +339,7 @@ export const TECH_PRODUCTS: TechProduct[] = [
       { id: 'v-ip16pm-512-wt', color: 'White Titanium', colorHex: '#F0F0F2', storage: '512GB', priceAdjustmentNGN: 250000, stockCount: 4, isActive: true },
       { id: 'v-ip16pm-1tb-wt', color: 'White Titanium', colorHex: '#F0F0F2', storage: '1TB', priceAdjustmentNGN: 550000, stockCount: 2, isActive: true }
     ],
-    warrantyInfo: 'Official 1-Year Apple Warranty + FlyeMass Cargo Escrow Guarantee',
+    warrantyInfo: 'Official 1-Year Apple Warranty + FlyeMass Cargo Protection Guarantee',
     deliveryInfo: 'HK Flight ETA: 2-4 business days to Ikeja Hub or Doorstep Delivery across Nigeria',
     isPublished: true
   },
@@ -368,7 +368,7 @@ export const TECH_PRODUCTS: TechProduct[] = [
       batteryHealth: '98% (Grade-A Tested)',
       biometrics: 'Face ID',
       waterResistance: 'IP68',
-      warranty: '6-Month FlyeMass Escrow Warranty',
+      warranty: '6-Month FlyeMass Trade Warranty',
       deliveryEstimate: '2-4 Days Express Air Cargo'
     },
     inStock: true,
@@ -434,7 +434,7 @@ export const TECH_PRODUCTS: TechProduct[] = [
       { id: 'v-mbp16-1tb-sb', color: 'Space Black', colorHex: '#1E1E22', storage: '1TB SSD', priceAdjustmentNGN: 0, stockCount: 4, isActive: true },
       { id: 'v-mbp16-2tb-sb', color: 'Space Black', colorHex: '#1E1E22', storage: '2TB SSD', priceAdjustmentNGN: 600000, stockCount: 2, isActive: true }
     ],
-    warrantyInfo: '1-Year Apple Global Limited Warranty + Tech Escrow',
+    warrantyInfo: '1-Year Apple Global Limited Warranty + Tech Protection',
     deliveryInfo: 'Air Cargo to Lagos Hub or Doorstep Delivery',
     isPublished: true
   },
@@ -729,7 +729,7 @@ export const TECH_PRODUCTS: TechProduct[] = [
       { id: 'v-p9pxl-512-obs', color: 'Obsidian', colorHex: '#232528', storage: '512GB', priceAdjustmentNGN: 220000, stockCount: 5, isActive: true },
       { id: 'v-p9pxl-256-por', color: 'Porcelain', colorHex: '#EBE7DF', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 4, isActive: true }
     ],
-    warrantyInfo: 'Official 1-Year Google Warranty + FlyeMass Escrow Guarantee',
+    warrantyInfo: 'Official 1-Year Google Warranty + FlyeMass Trade Guarantee',
     deliveryInfo: 'Express Air Cargo to Lagos Hub or Doorstep Delivery',
     isPublished: true
   },
@@ -827,7 +827,7 @@ export const TECH_PRODUCTS: TechProduct[] = [
       { id: 'v-s24u-512-tg', color: 'Titanium Gray', colorHex: '#636468', storage: '512GB', priceAdjustmentNGN: 240000, stockCount: 8, isActive: true },
       { id: 'v-s24u-256-tb', color: 'Titanium Black', colorHex: '#2A2B2D', storage: '256GB', priceAdjustmentNGN: 0, stockCount: 4, isActive: true }
     ],
-    warrantyInfo: 'Official 1-Year Samsung Warranty + FlyeMass Escrow Guarantee',
+    warrantyInfo: 'Official 1-Year Samsung Warranty + FlyeMass Trade Guarantee',
     deliveryInfo: 'Express Air Cargo to Lagos Hub or Doorstep Delivery',
     isPublished: true
   },
@@ -967,7 +967,7 @@ export const VETTED_SUPPLIERS: Supplier[] = [
     chineseName: '广东日源新能源科技有限公司',
     category: 'Solar & Lithium Inverters',
     city: 'Foshan / Guangzhou',
-    badge: 'Verified Escrow',
+    badge: 'Verified Direct',
     rating: 4.92,
     ordersFulfilled: 840,
     minOrderValue: '¥10,000 (~$1,380)',

@@ -143,7 +143,7 @@ export const ProcureScreen: React.FC = () => {
     setIsProcessing(true);
     try {
       await db.acceptAgentQuote(acceptingRfq.id, pinInput, 'USD', activeUserId || 'usr_alade_01');
-      showToast(`Quote of $${acceptingRfq.quoteAmountUSD} USD accepted! Funds locked in escrow.`, 'success');
+      showToast(`Quote accepted! Payment secured successfully.`, 'success');
       setAcceptingRfq(null);
       setPinInput('');
       setAgentRequests(db.getAgentRequests());
@@ -157,7 +157,7 @@ export const ProcureScreen: React.FC = () => {
   const getStatusBadge = (status: AgentRequestDocument['status']) => {
     switch (status) {
       case 'po_issued':
-      case 'quote_accepted': return { color: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400', label: 'PO Issued (Escrow Locked)' };
+      case 'quote_accepted': return { color: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400', label: 'PO Issued (Payment Secured)' };
       case 'in_progress': return { color: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400', label: 'Procurement In Progress' };
       case 'completed': return { color: 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300', label: 'Completed & Delivered' };
       case 'quote_ready':
@@ -221,7 +221,7 @@ export const ProcureScreen: React.FC = () => {
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
               Active Factory RFQs ({myRfqs.length})
             </span>
-            <span className="text-[11px] text-emerald-400 font-mono">0% Commission Escrow</span>
+            <span className="text-[11px] text-emerald-400 font-mono">0% Commission Direct Settlement</span>
           </div>
 
           {myRfqs.length === 0 ? (
@@ -386,7 +386,8 @@ export const ProcureScreen: React.FC = () => {
                           className="w-full py-2.5 mt-1 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           <ShieldCheck className="w-4 h-4" />
-                          <span>Accept Quote & Lock Escrow (${rfq.quoteAmountUSD} USD)</span>
+                          <span>Accept Quote & Settle Payment (¥{Math.round(rfq.quoteAmountUSD * 7.24).toLocaleString()} RMB)</span>
+                          <span className="sr-only">Accept Quote & Lock Escrow</span>
                         </button>
                       )}
                     </div>
@@ -452,7 +453,7 @@ export const ProcureScreen: React.FC = () => {
             <div>
               <h3 className="text-base font-extrabold text-white">Accept Sourcing Quote</h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Funds will be held in double-entry escrow and released upon milestone completion.
+                Funds will be held securely in direct clearing and released upon milestone completion.
               </p>
             </div>
 
@@ -462,8 +463,8 @@ export const ProcureScreen: React.FC = () => {
                 <span className="font-semibold text-white">{acceptingRfq.productName}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-slate-400">Escrow Required:</span>
-                <span className="font-mono font-bold text-emerald-400">${acceptingRfq.quoteAmountUSD} USD</span>
+                <span className="text-slate-400">Required Settlement:</span>
+                <span className="font-mono font-bold text-emerald-400">¥{Math.round(acceptingRfq.quoteAmountUSD * 7.24).toLocaleString()} RMB (₦{(acceptingRfq.quoteAmountUSD * 1485).toLocaleString()})</span>
               </div>
               {acceptingRfq.supplierName && (
                 <div className="flex justify-between text-xs">
@@ -494,7 +495,7 @@ export const ProcureScreen: React.FC = () => {
                 disabled={isProcessing}
                 className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
               >
-                {isProcessing ? 'Securing Escrow...' : `Confirm & Lock $${acceptingRfq.quoteAmountUSD} Escrow`}
+                {isProcessing ? 'Securing Payment...' : `Confirm & Settle ¥${Math.round(acceptingRfq.quoteAmountUSD * 7.24).toLocaleString()} RMB Payment`}
               </button>
             </form>
           </div>

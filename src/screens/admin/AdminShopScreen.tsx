@@ -667,7 +667,7 @@ export const AdminShopScreen: React.FC = () => {
       storageOptions: Array.from(new Set(newVariants.map(v => v.storage))),
       variants: newVariants,
       warrantyInfo: newWarranty,
-      deliveryInfo: 'Direct air freight dispatch to Lagos Hub with escrow guarantee',
+      deliveryInfo: 'Direct air freight dispatch to Lagos Hub with guaranteed trade protection',
       isPublished: true
     };
 

@@ -1142,7 +1142,7 @@ export const CacRegistrationScreen: React.FC = () => {
                     <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800/80 text-[11px] text-slate-400 flex items-start gap-2">
                       <AlertCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                       <span>
-                        <strong>Naira-Only Payment:</strong> CAC registration fees are deducted exclusively from your Nigerian Naira (NGN) wallet balance. Foreign currency vaults (USD/RMB) cannot be used for Nigerian regulatory filings.
+                        <strong>Naira-Only Payment:</strong> CAC registration fees are deducted exclusively from your Nigerian Naira (NGN) wallet balance. Foreign currency vaults (such as RMB) cannot be used for Nigerian regulatory filings.
                       </span>
                     </div>
 

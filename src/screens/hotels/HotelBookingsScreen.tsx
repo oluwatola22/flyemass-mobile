@@ -47,8 +47,8 @@ export const HotelBookingsScreen: React.FC = () => {
   };
 
   const handleCancel = async (bk: any) => {
-    const refundCur = bk.currency || 'USD';
-    const refundAmt = bk.amountDebited || bk.totalUSD;
+    const refundCur = bk.currency === 'USD' ? 'CNY' : (bk.currency || 'CNY');
+    const refundAmt = bk.amountDebited || bk.totalCNY || bk.totalUSD;
     if (!window.confirm(`Cancel reservation at ${bk.hotelName || bk.hotel?.name}? You will receive an immediate atomic refund of ${refundCur} ${refundAmt.toLocaleString()} to your wallet.`)) {
       return;
     }
@@ -90,8 +90,8 @@ Guests: ${bk.guestCount || 1}
 
 SETTLEMENT / 结算凭证:
 Settlement Status: FULLY SETTLED / 已付讫
-Paid Amount: ${bk.currency || 'USD'} ${(bk.amountDebited || bk.totalUSD).toLocaleString()}
-Double-Entry Escrow Ledger Reference: liabilities:hotel_escrow:${bk.id}
+Paid Amount: ${bk.currency === 'USD' ? 'CNY' : (bk.currency || 'CNY')} ${(bk.amountDebited || bk.totalCNY || bk.totalUSD).toLocaleString()}
+Double-Entry Clearing Ledger Reference: liabilities:hotel_clearing:${bk.id}
 
 QR VERIFICATION TOKEN / 电子验证码:
 ${bk.qrVerificationToken || `FLYEMASS|${voucherRef}|${bk.hotelId}|${bk.checkIn}`}
@@ -251,7 +251,7 @@ Support 24/7: support@flyemass.com
                   <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80">
                     <span className="text-[10px] text-slate-500 block">Paid Settlement</span>
                     <span className="font-bold text-emerald-400 num-tabular">
-                      {bk.currency || 'USD'} {(bk.amountDebited || bk.totalUSD).toLocaleString()} (Paid)
+                      {bk.currency === 'USD' ? 'CNY' : (bk.currency || 'CNY')} {(bk.amountDebited || bk.totalCNY || bk.totalUSD).toLocaleString()} (Paid)
                     </span>
                   </div>
                 </div>

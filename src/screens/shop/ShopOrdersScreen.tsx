@@ -84,7 +84,7 @@ export const ShopOrdersScreen: React.FC = () => {
             <h3 className="text-base font-extrabold text-white mt-0.5">
               {displayOrders.length} Apple Purchases
             </h3>
-            <p className="text-[11px] text-emerald-400 mt-0.5">Automated Escrow & Waybill Tracking</p>
+            <p className="text-[11px] text-emerald-400 mt-0.5">Automated Trade Settlement & Waybill Tracking</p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20 shadow-lg">
             <PackageCheck className="w-6 h-6" />

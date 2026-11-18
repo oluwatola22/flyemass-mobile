@@ -134,7 +134,7 @@ export const ShopScreen: React.FC = () => {
         badge: 'New Arrival',
         title: 'Apple M4 Max & Pro Hardware',
         subtitle: 'Global Apple Limited Warranty with cryptographic serial number tracking.',
-        description: 'Brand new Apple Silicon hardware available with escrow inspection.',
+        description: 'Brand new Apple Silicon hardware available with direct quality inspection.',
         imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80',
         destinationRoute: 'shop' as ScreenRoute,
         isActive: true,
@@ -144,7 +144,7 @@ export const ShopScreen: React.FC = () => {
         id: 'banner-wholesale',
         badge: 'Wholesale & Retail',
         title: 'Direct Ikeja Retailer Pricing',
-        subtitle: 'Multi-currency checkout with escrow clearance in Naira, USD, or Chinese Yuan.',
+        subtitle: 'Multi-currency checkout with verified trade clearance in Naira or Chinese Yuan.',
         description: 'Bulk wholesale orders with insured freight and zero customs demurrage.',
         imageUrl: 'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?auto=format&fit=crop&w=1200&q=80',
         destinationRoute: 'shop' as ScreenRoute,
@@ -480,7 +480,7 @@ export const ShopScreen: React.FC = () => {
                 <div className="relative z-10 flex items-center justify-between pt-1 border-t border-white/10">
                   <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 drop-shadow-sm">
                     <ShieldCheck className="w-3 h-3" />
-                    <span>Escrow Guaranteed Protection</span>
+                    <span>Trade Protected Settlement</span>
                   </span>
 
                   {/* Carousel Indicator Dots */}
@@ -978,8 +978,8 @@ export const ShopScreen: React.FC = () => {
               <span className="text-slate-400">Guangzhou / HK Hub to Lagos MM2 Hub in 2-4 Days.</span>
             </div>
             <div className="p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800/80">
-              <span className="font-bold text-slate-200 block">🔒 Escrow Protection</span>
-              <span className="text-slate-400">Funds released only after arrival verification.</span>
+              <span className="font-bold text-slate-200 block">🔒 Trade Protection</span>
+              <span className="text-slate-400">Funds settled securely upon arrival verification.</span>
             </div>
           </div>
         </div>

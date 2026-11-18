@@ -339,7 +339,7 @@ const buildUserWallets = (balances?: { NGN?: number; CNY?: number }): WalletBala
       currency: 'CNY',
       balance: cny,
       symbol: '¥',
-      name: 'Chinese Yuan (RMB) Escrow',
+      name: 'Chinese Yuan (RMB) Vault',
       flag: '🇨🇳',
       accountNumber: 'CN6227003320094892',
       bankName: 'Bank of China (Guangzhou)',
@@ -1068,7 +1068,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           id: t.id,
           ticketNumber: t.ticketNumber || `TKT-${t.id.slice(-4)}`,
           subject: t.subject,
-          category: (t.category as SupportTicket['category']) || 'Supplier Escrow',
+          category: (t.category as SupportTicket['category']) || 'Supplier Trade Payout',
           priority: (t.priority === 'Urgent' ? 'Urgent' : t.priority === 'High' ? 'High' : 'Normal') as SupportTicket['priority'],
           status: (t.status === 'resolved' ? 'Resolved' : t.status === 'in_progress' ? 'In Progress' : 'Open') as SupportTicket['status'],
           lastUpdated: 'Recently',
@@ -1975,7 +1975,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'completed',
       reference: newOrder.orderNumber,
       recipient: 'FlyeMass Hong Kong Distribution',
-      paymentMethod: `${paidWith} Wallet Escrow`,
+      paymentMethod: `${paidWith} Direct Settlement`,
       type: 'shop_purchase'
     });
 

@@ -65,10 +65,10 @@ export const WelcomeScreen: React.FC = () => {
         {/* Feature Pills */}
         <div className="flex items-center justify-center gap-2 mt-6 flex-wrap">
           <span className="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[10px] text-slate-300 flex items-center gap-1">
-            <ShieldCheck className="w-3 h-3 text-emerald-400" /> Instant Escrow
+            <ShieldCheck className="w-3 h-3 text-emerald-400" /> Instant Settlement
           </span>
           <span className="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[10px] text-slate-300 flex items-center gap-1">
-            <Wallet className="w-3 h-3 text-indigo-400" /> Multi-Currency Wallets (NGN, USD)
+            <Wallet className="w-3 h-3 text-indigo-400" /> Multi-Currency Wallets (NGN, RMB)
           </span>
           <span className="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[10px] text-slate-300 flex items-center gap-1">
             <PlaneTakeoff className="w-3 h-3 text-cyan-400" /> Express Air & Sea Cargo

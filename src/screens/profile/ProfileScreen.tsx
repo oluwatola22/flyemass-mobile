@@ -103,7 +103,7 @@ export const ProfileScreen: React.FC = () => {
       title: t('profile.legal_section', 'Legal, Compliance & Governance'),
       items: [
         { title: 'CAC Business Registration', desc: 'Corporate Affairs Commission BN & RC Portal', icon: FileCheck, route: 'cac-registration' as any, color: 'text-emerald-400 bg-emerald-500/10' },
-        { title: t('profile.terms', 'Terms of Trade Service'), desc: 'Cross-border escrow and logistics rules', icon: FileText, route: 'terms', color: 'text-slate-400 bg-slate-800' },
+        { title: t('profile.terms', 'Terms of Trade Service'), desc: 'Cross-border trade and logistics rules', icon: FileText, route: 'terms', color: 'text-slate-400 bg-slate-800' },
         { title: t('profile.privacy', 'Privacy Policy & NDPR'), desc: 'Nigeria Data Protection Regulation', icon: ShieldCheck, route: 'privacy', color: 'text-slate-400 bg-slate-800' },
         { title: t('profile.delete_account', 'Account Deletion Request'), desc: 'Store compliant data purge protocol', icon: LogOut, route: 'delete-account', color: 'text-rose-400 bg-rose-500/10' }
       ]
