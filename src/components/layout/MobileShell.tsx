@@ -6,6 +6,7 @@ import { HeaderContext } from './HeaderContext';
 import { ScreenErrorBoundary } from '../ui/ScreenErrorBoundary';
 import { QuickActionSheet } from '../ui/QuickActionSheet';
 import { CurrencySwapModal } from '../wallet/CurrencySwapModal';
+import { FundWalletModal } from '../wallet/FundWalletModal';
 import { Toast } from '../ui/Toast';
 import { 
   Wifi, 
@@ -593,6 +594,7 @@ export const MobileShell: React.FC = () => {
 
           {/* Global Modals & Toasts */}
           <CurrencySwapModal />
+          <FundWalletModal />
           <QuickActionSheet />
           <Toast />
         </div>

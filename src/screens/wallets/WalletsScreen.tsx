@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
+import { FundWalletModal } from '../../components/wallet/FundWalletModal';
 import { db } from '../../services/db';
 import { 
   ArrowDownLeft, 
@@ -45,6 +46,9 @@ export const WalletsScreen: React.FC = () => {
     showToast,
     activeUserId,
     openSwapModal,
+    openFundModal,
+    isFundModalOpen,
+    closeFundModal,
     t
   } = useApp();
 
@@ -299,7 +303,8 @@ export const WalletsScreen: React.FC = () => {
         {/* ======================================================== */}
         <div className="grid grid-cols-4 gap-2">
           <button
-            onClick={() => navigate('fund')}
+            onClick={() => openFundModal()}
+            data-testid="fund-wallet-btn"
             className="p-2.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 active:scale-95 transition-all flex flex-col items-center text-center group cursor-pointer"
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md">
@@ -661,6 +666,9 @@ export const WalletsScreen: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Providus Bank Dedicated Virtual Account (DVA) Funding Modal */}
+      <FundWalletModal isOpen={isFundModalOpen} onClose={closeFundModal} />
     </div>
   );
 };

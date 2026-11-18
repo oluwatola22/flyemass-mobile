@@ -1390,3 +1390,181 @@ REVOKE ALL ON FUNCTION public.publish_fx_rate(VARCHAR, VARCHAR, NUMERIC, NUMERIC
 GRANT EXECUTE ON FUNCTION public.publish_fx_rate(VARCHAR, VARCHAR, NUMERIC, NUMERIC) TO authenticated;
 REVOKE ALL ON FUNCTION public.execute_currency_swap(VARCHAR, BIGINT, TEXT, UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.execute_currency_swap(VARCHAR, BIGINT, TEXT, UUID) TO authenticated;
+
+-- =============================================================================
+-- PROVIDUS BANK DEDICATED VIRTUAL ACCOUNT (DVA) & WEBHOOK ENGINE
+-- =============================================================================
+
+CREATE TABLE IF NOT EXISTS public.providus_virtual_accounts (
+    id TEXT PRIMARY KEY DEFAULT ('dva_' || extract(epoch from now())::bigint || '_' || substr(md5(random()::text), 1, 6)),
+    user_id TEXT NOT NULL,
+    wallet_id TEXT,
+    account_number TEXT NOT NULL,
+    account_name TEXT NOT NULL,
+    bank_name TEXT NOT NULL DEFAULT 'Providus Bank',
+    bank_code TEXT NOT NULL DEFAULT '101',
+    initiation_tran_ref TEXT UNIQUE NOT NULL,
+    expected_amount NUMERIC(18, 4),
+    currency TEXT NOT NULL DEFAULT 'NGN',
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'settled', 'expired', 'failed')),
+    settled_amount NUMERIC(18, 4),
+    settlement_id TEXT,
+    session_id TEXT,
+    settled_at TIMESTAMPTZ,
+    expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '30 minutes'),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_providus_dva_ref ON public.providus_virtual_accounts(initiation_tran_ref);
+CREATE INDEX IF NOT EXISTS idx_providus_dva_acc ON public.providus_virtual_accounts(account_number);
+CREATE INDEX IF NOT EXISTS idx_providus_dva_user ON public.providus_virtual_accounts(user_id);
+
+ALTER TABLE public.providus_virtual_accounts ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own virtual accounts" ON public.providus_virtual_accounts;
+CREATE POLICY "Users can view own virtual accounts"
+ON public.providus_virtual_accounts FOR SELECT
+USING (true);
+
+DROP POLICY IF EXISTS "Allow insert virtual accounts" ON public.providus_virtual_accounts;
+CREATE POLICY "Allow insert virtual accounts"
+ON public.providus_virtual_accounts FOR INSERT
+WITH CHECK (true);
+
+CREATE TABLE IF NOT EXISTS public.providus_webhook_logs (
+    id TEXT PRIMARY KEY DEFAULT ('pwhk_' || extract(epoch from now())::bigint || '_' || substr(md5(random()::text), 1, 6)),
+    session_id TEXT UNIQUE NOT NULL,
+    initiation_tran_ref TEXT,
+    account_number TEXT NOT NULL,
+    amount NUMERIC(18, 4) NOT NULL,
+    settlement_id TEXT,
+    channel_id TEXT DEFAULT 'NIP',
+    raw_payload JSONB NOT NULL,
+    signature TEXT,
+    status TEXT NOT NULL DEFAULT 'PROCESSED',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE OR REPLACE FUNCTION public.credit_providus_deposit(
+    _user_id TEXT,
+    _account_number TEXT,
+    _amount NUMERIC,
+    _reference TEXT,
+    _session_id TEXT,
+    _raw_payload JSONB DEFAULT '{}'::jsonb
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_wallet RECORD;
+    v_existing_log RECORD;
+    v_tx_id TEXT;
+    v_new_balance NUMERIC;
+    v_opening_balance NUMERIC;
+BEGIN
+    SELECT * INTO v_existing_log FROM public.providus_webhook_logs WHERE session_id = _session_id;
+    IF FOUND THEN
+        RETURN jsonb_build_object(
+            'success', true,
+            'already_processed', true,
+            'message', 'Transaction already processed for session_id ' || _session_id
+        );
+    END IF;
+
+    SELECT * INTO v_wallet 
+    FROM public.wallets 
+    WHERE (user_id = _user_id OR _user_id IS NULL) AND currency = 'NGN'
+    ORDER BY created_at ASC
+    LIMIT 1
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RETURN jsonb_build_object('success', false, 'error', 'NGN wallet not found');
+    END IF;
+
+    v_opening_balance := v_wallet.balance;
+    v_new_balance := v_opening_balance + _amount;
+
+    UPDATE public.wallets
+    SET balance = v_new_balance,
+        ledger_balance = v_new_balance,
+        updated_at = NOW()
+    WHERE id = v_wallet.id;
+
+    v_tx_id := 'tx_' || extract(epoch from now())::bigint || '_' || substr(md5(random()::text), 1, 6);
+    INSERT INTO public.transactions (
+        id,
+        user_id,
+        type,
+        currency,
+        amount,
+        fee,
+        status,
+        description,
+        reference,
+        channel,
+        metadata,
+        created_at
+    ) VALUES (
+        v_tx_id,
+        v_wallet.user_id,
+        'FUND',
+        'NGN',
+        _amount,
+        0.00,
+        'completed',
+        'Providus Virtual Direct Account Transfer (' || _account_number || ')',
+        _reference,
+        'Providus DVA',
+        jsonb_build_object(
+            'sessionId', _session_id,
+            'accountNumber', _account_number,
+            'provider', 'Providus Bank',
+            'raw', _raw_payload
+        ),
+        NOW()
+    );
+
+    UPDATE public.providus_virtual_accounts
+    SET status = 'settled',
+        settled_amount = _amount,
+        settlement_id = _reference,
+        session_id = _session_id,
+        settled_at = NOW()
+    WHERE (initiation_tran_ref = _reference OR account_number = _account_number)
+      AND status = 'active';
+
+    INSERT INTO public.providus_webhook_logs (
+        session_id,
+        initiation_tran_ref,
+        account_number,
+        amount,
+        settlement_id,
+        raw_payload,
+        status,
+        created_at
+    ) VALUES (
+        _session_id,
+        _reference,
+        _account_number,
+        _amount,
+        _reference,
+        _raw_payload,
+        'PROCESSED',
+        NOW()
+    );
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'transaction_id', v_tx_id,
+        'opening_balance', v_opening_balance,
+        'new_balance', v_new_balance,
+        'amount_credited', _amount,
+        'reference', _reference,
+        'user_id', v_wallet.user_id
+    );
+END;
+$$;

@@ -35,7 +35,7 @@ const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'db-state.json');
 const WAL_FILE = process.env.WAL_FILE || path.join(__dirname, 'db-transactions.wal.jsonl');
 const BACKUPS_DIR = process.env.BACKUPS_DIR || path.join(__dirname, 'backups');
 
-const PROVIDUS_WEBHOOK_SECRET = process.env.PROVIDUS_WEBHOOK_SECRET || 'PROVIDUS_SECRET_KEY_PROD_998124';
+const PROVIDUS_WEBHOOK_SECRET = process.env.PROVIDUS_WEBHOOK_SECRET || 'sec_providus_flyemass_live_2026';
 const MONNIFY_WEBHOOK_SECRET = process.env.MONNIFY_WEBHOOK_SECRET || 'MONNIFY_SECRET_KEY_99182';
 const KORAPAY_WEBHOOK_SECRET = process.env.KORAPAY_WEBHOOK_SECRET || 'KORAPAY_SECRET_KEY_99182';
 const MASTER_RECOVERY_KEY = process.env.MASTER_RECOVERY_KEY || 'FLYE-MASTER-RECOVERY-KEY-2026-ALADE';
@@ -3041,7 +3041,7 @@ function recordDoubleEntry(entry) {
   if (userId && dbState.users[userId]) {
     const user = dbState.users[userId];
     for (const p of postings) {
-      if (p.account === `liabilities:customer:${userId}:${p.currency}`) {
+      if ((p.account || '').toLowerCase() === `liabilities:customer:${userId}:${p.currency}`.toLowerCase()) {
         const netChange = Number(p.credit || 0) - Number(p.debit || 0);
         user.balances[p.currency] = (user.balances[p.currency] || 0) + netChange;
         // Never allow negative customer balance
@@ -4266,54 +4266,182 @@ const server = http.createServer(async (req, res) => {
     }
 
     // -------------------------------------------------------------
-    // 11. PAYMENT PROVIDER WEBHOOKS (Providus, Monnify, Korapay)
+    // 11. PROVIDUS DEDICATED VIRTUAL ACCOUNT (DVA) & WEBHOOK ENGINE
     // -------------------------------------------------------------
-    if (pathname === '/api/webhooks/providus' && req.method === 'POST') {
-      const payload = await readJsonBody(req);
-      const signature = req.headers['x-providus-signature'] || req.headers['x-auth-signature'];
+
+    // 11a. Create Dedicated Virtual Account (DVA)
+    if ((pathname === '/api/providus/create-dva' || pathname === '/api/functions/v1/providus-create-dva') && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const { userId = 'usr_alade_01', walletId = 'w_ngn_01', amount = 0, accountName = 'Chief Babatunde Alade' } = body;
+
+      if (!dbState.providus_virtual_accounts) {
+        dbState.providus_virtual_accounts = {};
+      }
+
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
+      const initiationTranRef = `FLY-DVA-${timestamp}-${randomSuffix}`;
+      const expiresAt = timestamp + 30 * 60 * 1000; // 30 minutes time-sensitive
+
+      // Deterministic Providus 10-digit NUBAN generation (prefix 99)
+      const prefix = '99';
+      let hash = 0;
+      const seed = `${userId}-${timestamp}`;
+      for (let i = 0; i < seed.length; i++) {
+        hash = (hash * 31 + seed.charCodeAt(i)) % 10000000;
+      }
+      const mid = String(Math.abs(hash)).padStart(7, '0').substring(0, 7);
+      const partial = prefix + mid;
+      const bankCode = '101';
+      const combined = bankCode + partial;
+      const weights = [3, 7, 3, 3, 7, 3, 3, 7, 3, 3, 7, 3];
+      let sum = 0;
+      for (let i = 0; i < 12; i++) {
+        sum += parseInt(combined[i], 10) * weights[i];
+      }
+      const checkDigit = (10 - (sum % 10)) % 10;
+      const accountNumber = partial + checkDigit;
+
+      const dva = {
+        id: `dva_${timestamp}_${randomSuffix.toLowerCase()}`,
+        userId,
+        walletId,
+        accountNumber,
+        accountName: `FlyeMass / ${accountName}`,
+        bankName: 'Providus Bank',
+        bankCode: '101',
+        initiationTranRef,
+        expectedAmount: Number(amount) || 0,
+        currency: 'NGN',
+        status: 'active',
+        expiresAt,
+        createdAt: timestamp
+      };
+
+      dbState.providus_virtual_accounts[initiationTranRef] = dva;
+      dbState.providus_virtual_accounts[accountNumber] = dva;
+
+      persistState();
+      broadcastUpdate();
+
+      return sendJson(res, 200, {
+        success: true,
+        requestSuccessful: true,
+        responseCode: '00',
+        responseMessage: 'Dedicated Virtual Account generated successfully',
+        dva
+      });
+    }
+
+    // 11b. Get Active DVA for User
+    if (pathname.startsWith('/api/providus/dva/') && req.method === 'GET') {
+      const targetUserId = pathname.split('/')[4] || 'usr_alade_01';
+      const allDvas = Object.values(dbState.providus_virtual_accounts || {});
+      const userDva = allDvas.reverse().find(d => d.userId === targetUserId && d.status === 'active' && d.expiresAt > Date.now());
+      return sendJson(res, 200, { success: true, dva: userDva || null });
+    }
+
+    // 11c. Simulate Providus Webhook Payment (Sandbox / Test Assistant)
+    if (pathname === '/api/providus/simulate-webhook' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const { accountNumber = '9082341902', amount = 100000, initiationTranRef, sessionId, userId = 'usr_alade_01' } = body;
+      const now = Date.now();
+      const sid = sessionId || `SIM-SES-${now}`;
+      const ref = initiationTranRef || `SIM-REF-${now}`;
+
+      const simPayload = {
+        sessionId: sid,
+        accountNumber,
+        transactionAmount: Number(amount),
+        settledAmount: Number(amount),
+        settlementId: `SETTLE-${now}`,
+        initiationTranRef: ref,
+        currency: 'NGN',
+        tranRemarks: `Providus NIP Auto-Settlement (${ref})`,
+        transactionDateTime: new Date().toISOString()
+      };
+
+      const raw = JSON.stringify(simPayload);
+      const signature = crypto.createHmac('sha512', PROVIDUS_WEBHOOK_SECRET).update(raw).digest('hex');
+
+      // Inject into webhook handler
+      req.rawBody = raw;
+      req.headers['x-auth-signature'] = signature;
+      // Continue execution by calling webhook logic directly below
+    }
+
+    // 11d. Providus Inbound Webhook Notification (pTRAM / paymentNotification)
+    if ((pathname === '/api/webhooks/providus' || pathname === '/api/functions/v1/providus-webhook') && req.method === 'POST') {
+      const payload = typeof req.rawBody === 'string' && req.rawBody.trim().startsWith('{')
+        ? JSON.parse(req.rawBody)
+        : await readJsonBody(req);
+
+      const signature = req.headers['x-providus-signature'] || 
+                        req.headers['x-auth-signature'] || 
+                        req.headers['X-Auth-Signature'];
+
       if (signature) {
-        const expected = crypto.createHmac('sha256', PROVIDUS_WEBHOOK_SECRET).update(req.rawBody).digest('hex');
-        if (signature !== expected) {
-          return sendJson(res, 401, { success: false, requestSuccessful: false, error: 'Invalid HMAC signature' });
+        const expected256 = crypto.createHmac('sha256', PROVIDUS_WEBHOOK_SECRET).update(req.rawBody || '').digest('hex');
+        const expected512 = crypto.createHmac('sha512', PROVIDUS_WEBHOOK_SECRET).update(req.rawBody || '').digest('hex');
+        if (signature.toLowerCase() !== expected256.toLowerCase() && signature.toLowerCase() !== expected512.toLowerCase()) {
+          return sendJson(res, 401, { success: false, requestSuccessful: false, responseCode: '02', error: 'Invalid HMAC signature' });
         }
       }
 
-      const { sessionId, accountNumber, transactionAmount, settlementId, initiationTranRef } = payload;
+      const sessionId = payload.sessionId || payload.session_id || `SES-${Date.now()}`;
+      const accountNumber = payload.accountNumber || payload.account_number || '9082341902';
+      const transactionAmount = payload.transactionAmount || payload.settledAmount || payload.amount || 0;
+      const settlementId = payload.settlementId || payload.settlement_id;
+      const initiationTranRef = payload.initiationTranRef || payload.initiation_tran_ref;
       const ref = initiationTranRef || settlementId || `PROV-${sessionId}`;
 
-      if (dbState.processed_webhooks[ref]) {
-        return sendJson(res, 200, { success: true, already_processed: true, requestSuccessful: true, responseMessage: 'Duplicate webhook ignored' });
+      if (dbState.processed_webhooks[ref] || dbState.processed_webhooks[sessionId]) {
+        return sendJson(res, 200, {
+          success: true,
+          already_processed: true,
+          requestSuccessful: true,
+          responseCode: '00',
+          responseMessage: 'Duplicate webhook ignored'
+        });
       }
 
       const amount = Number(transactionAmount);
       if (isNaN(amount) || amount <= 0) {
-        return sendJson(res, 400, { error: 'Invalid settlement amount' });
+        return sendJson(res, 400, { requestSuccessful: false, responseCode: '03', error: 'Invalid settlement amount' });
       }
 
-      // Default to demo client Chief Alade for Providus virtual account
-      const userId = 'usr_alade_01';
-      const user = dbState.users[userId];
+      // Match virtual account if exists
+      let matchedDva = dbState.providus_virtual_accounts?.[accountNumber] || 
+                       dbState.providus_virtual_accounts?.[ref] ||
+                       dbState.providus_virtual_accounts?.[initiationTranRef];
 
-      await withUserLock(userId, async () => {
+      const targetUserId = matchedDva?.userId || payload.userId || 'usr_alade_01';
+      const user = dbState.users[targetUserId] || dbState.users['usr_alade_01'];
+
+      if (!user) {
+        return sendJson(res, 404, { requestSuccessful: false, responseCode: '04', error: 'User wallet not found' });
+      }
+
+      await withUserLock(targetUserId, async () => {
         const openingBalance = user.balances.NGN || 0;
 
         recordDoubleEntry({
           reference: ref,
-          userId,
+          userId: targetUserId,
           transactionType: 'FUND',
-          description: `Providus Virtual Direct Account Transfer (${accountNumber || '9082341902'})`,
+          description: `Providus Virtual Direct Account Transfer (${accountNumber})`,
           postings: [
             { account: 'assets:bank:providus_clearing:ngn', currency: 'NGN', debit: amount, credit: 0 },
-            { account: `liabilities:customer:${userId}:ngn`, currency: 'NGN', debit: 0, credit: amount }
+            { account: `liabilities:customer:${targetUserId}:ngn`, currency: 'NGN', debit: 0, credit: amount }
           ],
-          metadata: { provider: 'Providus', payload }
+          metadata: { provider: 'Providus', sessionId, accountNumber, payload }
         });
 
         const closingBalance = user.balances.NGN;
         const ledgerId = `ldg_${Date.now()}`;
         dbState.wallets_ledger[ledgerId] = {
           id: ledgerId,
-          userId,
+          userId: targetUserId,
           type: 'FUND',
           sourceCurrency: 'NGN',
           targetCurrency: 'NGN',
@@ -4327,25 +4455,45 @@ const server = http.createServer(async (req, res) => {
           notes: `Providus NIP virtual settlement confirmed (${ref})`
         };
 
+        // Mark matching DVA as settled
+        if (matchedDva) {
+          matchedDva.status = 'settled';
+          matchedDva.settledAmount = amount;
+          matchedDva.settlementId = ref;
+          matchedDva.sessionId = sessionId;
+          matchedDva.settledAt = Date.now();
+        }
+
         dbState.processed_webhooks[ref] = true;
+        dbState.processed_webhooks[sessionId] = true;
+
         if (!dbState.webhook_events) dbState.webhook_events = [];
         dbState.webhook_events.unshift({
           id: `whk_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
           provider: 'Providus',
           reference: ref,
+          sessionId,
           amount,
           currency: 'NGN',
           status: 'SUCCESS',
           timestamp: Date.now(),
-          accountNumber: accountNumber || '9082341902',
-          userId
+          accountNumber,
+          userId: targetUserId
         });
-        recordAudit('Providus Webhook Engine', 'PAYMENT_CREDITED', 'wallets_ledger', ledgerId, `Credited ₦${amount} via Providus webhook`, req);
+
+        recordAudit('Providus Webhook Engine', 'PAYMENT_CREDITED', 'wallets_ledger', ledgerId, `Credited ₦${amount} via Providus webhook (${ref})`, req);
       });
 
       persistState();
       broadcastUpdate();
-      return sendJson(res, 200, { success: true, requestSuccessful: true, responseMessage: 'Settlement confirmed & wallet credited' });
+
+      return sendJson(res, 200, {
+        success: true,
+        requestSuccessful: true,
+        sessionId,
+        responseCode: '00',
+        responseMessage: 'Settlement confirmed & wallet credited'
+      });
     }
 
     if (pathname === '/api/webhooks/monnify' && req.method === 'POST') {

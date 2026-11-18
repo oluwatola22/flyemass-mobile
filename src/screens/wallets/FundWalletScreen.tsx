@@ -14,9 +14,13 @@ import {
   ArrowRight,
   Info, 
   ArrowLeftRight,
-  Lock
+  Lock,
+  Clock,
+  Zap,
+  RefreshCw
 } from 'lucide-react';
 import { db } from '../../services/db';
+import { supabase } from '../../services/supabaseClient';
 
 // Automated NGN Payment Gateway • Providus Bank Virtual Account • Korapay Checkout • Corporate USD Wire Account Details • JPMorgan Chase Bank, N.A. (New York) • Upload Bank Transfer Receipt
 // Legacy references for tests: US89JPMC02100002148902 CN6227003320094892
@@ -36,9 +40,131 @@ export const FundWalletScreen: React.FC = () => {
   const [method, setMethod] = useState<'providus' | 'korapay'>('providus');
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
+  // Providus Dedicated Virtual Account (DVA) & Realtime State
+  const [dva, setDva] = useState<any>(null);
+  const [dvaStatus, setDvaStatus] = useState<'generating' | 'awaiting' | 'settled'>('awaiting');
+  const [settledTx, setSettledTx] = useState<any>(null);
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(1800);
+  const [isSimulatingWebhook, setIsSimulatingWebhook] = useState(false);
+
   // Gateway Simulation State for NGN Rails
   const [isProcessingGateway, setIsProcessingGateway] = useState(false);
   const [gatewayStep, setGatewayStep] = useState<string>('');
+
+  const initProvidusDva = async (targetAmount: number) => {
+    try {
+      setDvaStatus('generating');
+      const res = await db.createProvidusDva({
+        userId: activeUserId || 'usr_alade_01',
+        amount: targetAmount,
+        walletId: 'w_ngn_01'
+      });
+      if (res && res.dva) {
+        setDva(res.dva);
+        setDvaStatus('awaiting');
+        const remaining = Math.max(0, Math.floor((res.dva.expiresAt - Date.now()) / 1000));
+        setSecondsRemaining(remaining || 1800);
+      }
+    } catch (e) {
+      setDvaStatus('awaiting');
+    }
+  };
+
+  useEffect(() => {
+    initProvidusDva(parseFloat(amount) || 500000);
+  }, []);
+
+  // Expiry Countdown
+  useEffect(() => {
+    if (dvaStatus === 'settled') return;
+    const timer = setInterval(() => {
+      setSecondsRemaining(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [dvaStatus]);
+
+  // Realtime Settlement Listener (Supabase Realtime + SSE state broadcast)
+  useEffect(() => {
+    if (!dva) return;
+
+    let channel: any = null;
+    try {
+      channel = supabase
+        .channel(`screen-providus-dva-${dva.accountNumber}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'providus_virtual_accounts',
+            filter: `account_number=eq.${dva.accountNumber}`
+          },
+          (payload: any) => {
+            if (payload?.new && (payload.new.status === 'settled' || payload.new.status === 'completed')) {
+              setDvaStatus('settled');
+              setSettledTx(payload.new);
+              showToast(`₦${(payload.new.settled_amount || amount).toLocaleString()} credited via Providus Realtime!`, 'success');
+            }
+          }
+        )
+        .subscribe();
+    } catch (e) {}
+
+    const unsub = db.subscribe(() => {
+      const state = db.getState();
+      const allDvas = (state as any)?.providus_virtual_accounts || {};
+      const current = allDvas[dva.initiationTranRef] || allDvas[dva.accountNumber];
+
+      if (current && (current.status === 'settled' || current.status === 'completed')) {
+        setDvaStatus('settled');
+        setSettledTx(current);
+        return;
+      }
+
+      const ledger = Object.values(state.wallets_ledger || {});
+      const matchingFund = ledger.find(
+        (tx: any) => 
+          tx.type === 'FUND' && 
+          tx.status === 'completed' && 
+          (tx.reference === dva.initiationTranRef || tx.notes?.includes(dva.accountNumber))
+      );
+
+      if (matchingFund && dvaStatus !== 'settled') {
+        setDvaStatus('settled');
+        setSettledTx(matchingFund);
+        showToast(`Instant Providus settlement confirmed! ₦${Number(matchingFund.amount).toLocaleString()} credited.`, 'success');
+      }
+    });
+
+    return () => {
+      unsub();
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [dva, dvaStatus, amount]);
+
+  const handleSimulateWebhook = async () => {
+    if (!dva) return;
+    setIsSimulatingWebhook(true);
+    try {
+      const num = parseFloat(amount) || 500000;
+      await db.simulateProvidusWebhook({
+        accountNumber: dva.accountNumber,
+        amount: num,
+        initiationTranRef: dva.initiationTranRef,
+        userId: activeUserId || 'usr_alade_01'
+      });
+    } catch (err: any) {
+      showToast(err.message || 'Webhook simulation error', 'error');
+    } finally {
+      setIsSimulatingWebhook(false);
+    }
+  };
 
   const ngnWallet = wallets.find((w) => w.currency === 'NGN') || {
     currency: 'NGN',
@@ -218,39 +344,125 @@ export const FundWalletScreen: React.FC = () => {
             </div>
 
             {method === 'providus' && (
-              <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] text-slate-500 block uppercase font-bold">Bank Name</span>
-                    <span className="font-semibold text-slate-200">{(ngnWallet as any).bankName || 'Providus Bank Plc'}</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    Instant Clearing
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] text-slate-500 block uppercase font-bold">Account Number</span>
-                    <span className="font-mono font-bold text-white text-sm">{(ngnWallet as any).accountNumber || '9082341902'}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCopy((ngnWallet as any).accountNumber || '9082341902', 'Account Number');
-                    }}
-                    className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white flex items-center gap-1 cursor-pointer"
+              <div className="space-y-3">
+                {dvaStatus === 'settled' ? (
+                  <div 
+                    data-testid="dva-status-success"
+                    className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-center space-y-3 animate-in zoom-in-95 duration-200"
                   >
-                    {copiedField === 'Account Number' ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span className="text-[10px]">{copiedField === 'Account Number' ? 'Copied' : 'Copy'}</span>
-                  </button>
-                </div>
+                    <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center">
+                      <CheckCircle2 className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black text-white">Payment Confirmed & Settled!</h4>
+                      <p className="text-[11px] text-emerald-300 font-mono">
+                        +₦{(settledTx?.settled_amount || settledTx?.amount || amount).toLocaleString()} credited via Providus Realtime
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 space-y-2.5 text-xs">
+                      {/* Bank Name */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] text-slate-500 block uppercase font-bold">Bank Name</span>
+                          <span data-testid="dva-bank-name" className="font-semibold text-slate-200">
+                            {dva?.bankName || 'Providus Bank'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <Clock className="w-2.5 h-2.5 text-amber-400" />
+                          <span>{Math.floor(secondsRemaining / 60)}:{(secondsRemaining % 60).toString().padStart(2, '0')} remaining</span>
+                        </div>
+                      </div>
 
-                <div>
-                  <span className="text-[10px] text-slate-500 block uppercase font-bold">Beneficiary Name</span>
-                  <span className="font-semibold text-slate-200">{(ngnWallet as any).accountName || 'FlyeMass / Babatunde Alade'}</span>
-                </div>
+                      {/* Account Number */}
+                      <div className="flex items-center justify-between border-t border-slate-800/60 pt-2">
+                        <div>
+                          <span className="text-[10px] text-slate-500 block uppercase font-bold">Virtual Account Number</span>
+                          <span 
+                            data-testid="dva-account-number"
+                            className="font-mono font-black text-white text-base tracking-wide"
+                          >
+                            {dva?.accountNumber || (ngnWallet as any).accountNumber || '9902341902'}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          data-testid="copy-dva-account-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopy(dva?.accountNumber || (ngnWallet as any).accountNumber || '9902341902', 'Account Number');
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 cursor-pointer text-xs font-bold transition-all"
+                        >
+                          {copiedField === 'Account Number' ? <CheckCheck className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                          <span className="text-[10px]">{copiedField === 'Account Number' ? 'Copied' : 'Copy'}</span>
+                        </button>
+                      </div>
+
+                      {/* Beneficiary Name */}
+                      <div className="flex items-center justify-between border-t border-slate-800/60 pt-2">
+                        <div>
+                          <span className="text-[10px] text-slate-500 block uppercase font-bold">Beneficiary Name</span>
+                          <span data-testid="dva-account-name" className="font-semibold text-slate-200">
+                            {dva?.accountName || (ngnWallet as any).accountName || 'FlyeMass / Chief Babatunde Alade'}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopy(dva?.accountName || 'FlyeMass / Chief Babatunde Alade', 'Beneficiary Name');
+                          }}
+                          className="p-1 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+                        >
+                          {copiedField === 'Beneficiary Name' ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Live Status Indicator */}
+                    <div 
+                      data-testid="dva-status-awaiting"
+                      className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="relative flex h-2.5 w-2.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                        </span>
+                        <div>
+                          <span className="text-xs font-bold text-amber-300 block leading-tight">
+                            Awaiting Transfer...
+                          </span>
+                          <span className="text-[9px] text-amber-400/80 font-mono">
+                            Listening via Providus Realtime
+                          </span>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-mono font-bold">
+                        LIVE
+                      </span>
+                    </div>
+
+                    {/* Simulator Button */}
+                    <button
+                      type="button"
+                      data-testid="simulate-providus-webhook-btn"
+                      disabled={isSimulatingWebhook}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSimulateWebhook();
+                      }}
+                      className="w-full py-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      {isSimulatingWebhook ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3 text-amber-400" />}
+                      <span>{isSimulatingWebhook ? 'Triggering...' : 'Simulate Providus Bank Transfer (Test Webhook)'}</span>
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>

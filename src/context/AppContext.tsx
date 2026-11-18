@@ -133,6 +133,10 @@ interface AppContextType {
   swapModalInitialPair: { from?: Currency; to?: Currency } | null;
   openSwapModal: (from?: Currency, to?: Currency) => void;
   closeSwapModal: () => void;
+  isFundModalOpen: boolean;
+  setIsFundModalOpen: (open: boolean) => void;
+  openFundModal: () => void;
+  closeFundModal: () => void;
 }
 
 const ROUTE_TO_PATH: Record<ScreenRoute, string> = {
@@ -618,6 +622,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const closeSwapModal = useCallback(() => {
     setIsSwapModalOpen(false);
+  }, []);
+
+  const [isFundModalOpen, setIsFundModalOpen] = useState(false);
+  const openFundModal = useCallback(() => {
+    setIsFundModalOpen(true);
+  }, []);
+  const closeFundModal = useCallback(() => {
+    setIsFundModalOpen(false);
   }, []);
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
   const [language, setLanguageState] = useState<Language>(() => {
@@ -2312,7 +2324,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsSwapModalOpen,
         swapModalInitialPair,
         openSwapModal,
-        closeSwapModal
+        closeSwapModal,
+        isFundModalOpen,
+        setIsFundModalOpen,
+        openFundModal,
+        closeFundModal
       }}
     >
       {children}
