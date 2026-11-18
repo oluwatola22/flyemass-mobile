@@ -213,8 +213,120 @@ async function runTests() {
   assert.strictEqual(completeRes.body.user.cacRcNumber, 'RC-1928401', 'user.cacRcNumber must be tagged');
   console.log('✓ Application completed, CAC certificate dispatched, and user profile officially tagged with RC-1928401');
 
+  // 8. Dynamic Share Capital Matrix Pricing Management (Admin)
+  console.log('[Test 8] Testing dynamic Share Capital Matrix customization & publish by Admin...');
+  const customTiers = [
+    {
+      id: 'sct_1m',
+      name: 'Standard Commercial Tier',
+      shareCapitalNGN: 1000000,
+      totalFeeNGN: 78000,
+      stampDutyNGN: 15000,
+      filingFeeNGN: 63000,
+      description: '₦1,000,000 SME baseline',
+      isDefault: true
+    },
+    {
+      id: 'sct_2m',
+      name: 'Commercial Wholesale Tier',
+      shareCapitalNGN: 2000000,
+      totalFeeNGN: 98000,
+      stampDutyNGN: 26000,
+      filingFeeNGN: 72000,
+      description: '₦2,000,000 Import/export & haulage'
+    },
+    {
+      id: 'sct_5m',
+      name: 'Enterprise Corporate Tier',
+      shareCapitalNGN: 5000000,
+      totalFeeNGN: 148000,
+      stampDutyNGN: 48000,
+      filingFeeNGN: 100000,
+      description: '₦5,000,000 Corporate contracting'
+    }
+  ];
+
+  const updateMatrixRes = await request('POST', '/api/admin/cac/pricing', {
+    business_name_ngn: 36000,
+    company_registration_ngn: 78000,
+    share_capital_tiers: customTiers,
+    adminId: 'Super Admin Babatunde'
+  });
+  assert.strictEqual(updateMatrixRes.status, 200, 'Admin matrix update should return 200');
+  assert(Array.isArray(updateMatrixRes.body.pricing.share_capital_tiers), 'Updated pricing must contain share_capital_tiers');
+  assert.strictEqual(updateMatrixRes.body.pricing.share_capital_tiers.length, 3, 'Should have 3 custom tiers');
+  assert.strictEqual(updateMatrixRes.body.pricing.share_capital_tiers[1].totalFeeNGN, 98000, '2M tier total fee should be 98,000');
+  console.log('✓ Share Capital Matrix customized and published to storefront');
+
+  // 9. Company Filing with Explicit Share Capital Tier & Director Residential Address
+  console.log('[Test 9] Testing Company filing with Share Capital Tier (₦2M) & Director Residential Addresses...');
+  
+  // Credit wallet for filing
+  await request('POST', '/api/admin/users/wallet-credit', {
+    userId: 'usr_alade_01',
+    currency: 'NGN',
+    amount: 150000,
+    reference: `FUND-TIER-${Date.now()}`,
+    notes: 'Credit for Share Capital Tier 2M Filing'
+  });
+
+  const tierFilingRes = await request('POST', '/api/cac/register', {
+    userId: 'usr_alade_01',
+    serviceType: 'company_registration',
+    primaryName: 'Trans-Atlantic Energy & Engineering Ltd',
+    alternativeName: 'Atlantic Offshore Logistics Ltd',
+    category: 'Oil and Gas',
+    commencementDate: '2026-03-01',
+    businessAddress: 'Suite 400, Victoria Island Corporate Towers, Lagos',
+    businessDescription: 'Marine engineering, offshore logistics and petroleum product distribution',
+    shareCapitalTierId: 'sct_2m',
+    shareCapitalNGN: 2000000,
+    partners: [
+      {
+        id: 'p_dir_101',
+        fullName: 'Engr. Damilola Alade',
+        email: 'damilola@transatlantic-energy.ng',
+        phone: '+234 802 334 5566',
+        residentialAddress: '18 Admiralty Way, Lekki Phase 1, Lagos State',
+        role: 'Managing Director',
+        sharesPercent: 60,
+        idCardType: 'NIN',
+        idCardUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136',
+        signatureUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e'
+      },
+      {
+        id: 'p_dir_102',
+        fullName: 'Barr. Ngozi Okonjo',
+        email: 'ngozi@transatlantic-energy.ng',
+        phone: '+234 803 778 9900',
+        residentialAddress: '5 Bourdillon Road, Ikoyi, Lagos State',
+        role: 'Company Secretary & Director',
+        sharesPercent: 40,
+        idCardType: 'Driver License',
+        idCardUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136',
+        signatureUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e'
+      }
+    ],
+    passportPhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
+    idCardUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136',
+    idCardType: 'NIN',
+    signatureUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e',
+    referenceSignatureUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e',
+    pin: '246810'
+  });
+
+  assert.strictEqual(tierFilingRes.status, 201, 'Tier filing must return 201 Created');
+  const tierApp = tierFilingRes.body.application;
+  assert.strictEqual(tierApp.serviceFeeNGN, 98000, 'Fee must strictly be ₦98,000 as configured for ₦2M share capital tier');
+  assert.strictEqual(tierApp.shareCapitalNGN, 2000000, 'Application must store ₦2,000,000 share capital');
+  assert.strictEqual(tierApp.shareCapitalTierId, 'sct_2m', 'Application must record sct_2m tier ID');
+  assert.strictEqual(tierApp.partners.length, 2, 'Must preserve 2 directors');
+  assert.strictEqual(tierApp.partners[0].residentialAddress, '18 Admiralty Way, Lekki Phase 1, Lagos State', 'Director residential address must be stored');
+  assert.strictEqual(tierApp.partners[1].residentialAddress, '5 Bourdillon Road, Ikoyi, Lagos State', 'Second director residential address must be stored');
+  console.log(`✓ ₦2M Share Capital company filed successfully (Fee: ₦${tierApp.serviceFeeNGN.toLocaleString()}, Ref: ${tierApp.reference}) with verified director physical residential addresses`);
+
   console.log('\n============================================================');
-  console.log('ALL ENTERPRISE CAC REGISTRATION PORTAL TESTS PASSED (7/7)');
+  console.log('ALL ENTERPRISE CAC REGISTRATION PORTAL TESTS PASSED (9/9)');
   console.log('============================================================\n');
 }
 

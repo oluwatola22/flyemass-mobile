@@ -2586,6 +2586,45 @@ const INITIAL_DATABASE = {
     cac_pricing: {
       business_name_ngn: 35000,
       company_registration_ngn: 75000,
+      share_capital_tiers: [
+        {
+          id: 'sct_1m',
+          name: 'Standard Commercial Tier',
+          shareCapitalNGN: 1000000,
+          totalFeeNGN: 75000,
+          stampDutyNGN: 15000,
+          filingFeeNGN: 60000,
+          description: '₦1,000,000 Authorized Capital (SME baseline for logistics, retail & consulting)',
+          isDefault: true
+        },
+        {
+          id: 'sct_2m',
+          name: 'Commercial Wholesale Tier',
+          shareCapitalNGN: 2000000,
+          totalFeeNGN: 95000,
+          stampDutyNGN: 25000,
+          filingFeeNGN: 70000,
+          description: '₦2,000,000 Authorized Capital (Import/export, tech distribution, haulage)'
+        },
+        {
+          id: 'sct_5m',
+          name: 'Enterprise Corporate Tier',
+          shareCapitalNGN: 5000000,
+          totalFeeNGN: 145000,
+          stampDutyNGN: 45000,
+          filingFeeNGN: 100000,
+          description: '₦5,000,000 Authorized Capital (Corporate contracting, manufacturing & maritime clearing)'
+        },
+        {
+          id: 'sct_10m',
+          name: 'Institutional Capital Tier',
+          shareCapitalNGN: 10000000,
+          totalFeeNGN: 225000,
+          stampDutyNGN: 85000,
+          filingFeeNGN: 140000,
+          description: '₦10,000,000 Authorized Capital (Industrial projects, concessions & financial services)'
+        }
+      ],
       lastUpdated: Date.now()
     },
     shipping_corridors: DEFAULT_SHIPPING_CORRIDORS
@@ -2823,8 +2862,11 @@ try {
           ...(parsed.system_settings?.fees || {})
         },
         cac_pricing: {
-          ...(INITIAL_DATABASE.system_settings.cac_pricing || { business_name_ngn: 35000, company_registration_ngn: 75000, lastUpdated: Date.now() }),
-          ...(parsed.system_settings?.cac_pricing || {})
+          ...(INITIAL_DATABASE.system_settings.cac_pricing || {}),
+          ...(parsed.system_settings?.cac_pricing || {}),
+          share_capital_tiers: Array.isArray(parsed.system_settings?.cac_pricing?.share_capital_tiers) && parsed.system_settings.cac_pricing.share_capital_tiers.length > 0
+            ? parsed.system_settings.cac_pricing.share_capital_tiers
+            : INITIAL_DATABASE.system_settings.cac_pricing.share_capital_tiers
         },
         supplier_directory_prices: {
           ...(INITIAL_DATABASE.system_settings.supplier_directory_prices || { ngn: 15000, usd: 10, cny: 70 }),
@@ -11885,13 +11927,70 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
       return sendJson(res, 200, { success: true, pricing });
     }
 
-    // 2. Admin Update Dynamic CAC Pricing
+    // 2. Admin Update Dynamic CAC Pricing & Share Capital Matrix
     if (pathname === '/api/admin/cac/pricing' && req.method === 'POST') {
-      const { business_name_ngn, company_registration_ngn, adminId } = await readJsonBody(req);
+      const { business_name_ngn, company_registration_ngn, share_capital_tiers, adminId } = await readJsonBody(req);
       if (!dbState.system_settings) dbState.system_settings = {};
+      const currentPricing = dbState.system_settings.cac_pricing || {};
+      const updatedCompanyFee = Number(company_registration_ngn || currentPricing.company_registration_ngn || 75000);
+      const fallbackTiers = [
+        {
+          id: 'sct_1m',
+          name: 'Standard Commercial Tier',
+          shareCapitalNGN: 1000000,
+          totalFeeNGN: updatedCompanyFee,
+          stampDutyNGN: 15000,
+          filingFeeNGN: Math.max(0, updatedCompanyFee - 15000),
+          description: '₦1,000,000 Authorized Capital (SME baseline for logistics, retail & consulting)',
+          isDefault: true
+        },
+        {
+          id: 'sct_2m',
+          name: 'Commercial Wholesale Tier',
+          shareCapitalNGN: 2000000,
+          totalFeeNGN: 95000,
+          stampDutyNGN: 25000,
+          filingFeeNGN: 70000,
+          description: '₦2,000,000 Authorized Capital (Import/export, tech distribution, haulage)'
+        },
+        {
+          id: 'sct_5m',
+          name: 'Enterprise Corporate Tier',
+          shareCapitalNGN: 5000000,
+          totalFeeNGN: 145000,
+          stampDutyNGN: 45000,
+          filingFeeNGN: 100000,
+          description: '₦5,000,000 Authorized Capital (Corporate contracting, manufacturing & maritime clearing)'
+        },
+        {
+          id: 'sct_10m',
+          name: 'Institutional Capital Tier',
+          shareCapitalNGN: 10000000,
+          totalFeeNGN: 225000,
+          stampDutyNGN: 85000,
+          filingFeeNGN: 140000,
+          description: '₦10,000,000 Authorized Capital (Industrial projects, concessions & financial services)'
+        }
+      ];
+
+      let resolvedTiers;
+      if (Array.isArray(share_capital_tiers) && share_capital_tiers.length > 0) {
+        resolvedTiers = share_capital_tiers;
+      } else if (Array.isArray(currentPricing.share_capital_tiers) && currentPricing.share_capital_tiers.length > 0) {
+        resolvedTiers = currentPricing.share_capital_tiers.map(t => {
+          if (t.isDefault || t.id === 'sct_1m') {
+            return { ...t, totalFeeNGN: updatedCompanyFee };
+          }
+          return t;
+        });
+      } else {
+        resolvedTiers = fallbackTiers;
+      }
+
       const updatedPricing = {
-        business_name_ngn: Number(business_name_ngn || 35000),
-        company_registration_ngn: Number(company_registration_ngn || 75000),
+        business_name_ngn: Number(business_name_ngn || currentPricing.business_name_ngn || 35000),
+        company_registration_ngn: updatedCompanyFee,
+        share_capital_tiers: resolvedTiers,
         lastUpdated: Date.now()
       };
       dbState.system_settings.cac_pricing = updatedPricing;
@@ -11901,7 +12000,7 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
         'CAC_PRICING_UPDATED',
         'system_settings',
         'cac_pricing',
-        `Updated CAC pricing: Business Name ₦${updatedPricing.business_name_ngn.toLocaleString()}, Company Registration ₦${updatedPricing.company_registration_ngn.toLocaleString()}`,
+        `Updated CAC pricing: Business Name ₦${updatedPricing.business_name_ngn.toLocaleString()}, Company Base ₦${updatedPricing.company_registration_ngn.toLocaleString()}, Share Capital Tiers (${updatedPricing.share_capital_tiers.length} bands)`,
         req
       );
       persistState();
@@ -11936,6 +12035,8 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
         businessAddress,
         businessDescription,
         partners,
+        shareCapitalTierId,
+        shareCapitalNGN,
         passportPhotoUrl,
         idCardUrl,
         idCardType,
@@ -11980,14 +12081,35 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
         return sendJson(res, pinResult.status || 401, { error: pinResult.error });
       }
 
-      // Determine dynamic fee
-      const pricing = dbState.system_settings?.cac_pricing || {
-        business_name_ngn: 35000,
-        company_registration_ngn: 75000
-      };
-      const serviceFeeNGN = serviceType === 'company_registration'
-        ? Number(pricing.company_registration_ngn || 75000)
-        : Number(pricing.business_name_ngn || 35000);
+      // Determine dynamic fee based on Entity Type & Share Capital Tier
+      const pricing = dbState.system_settings?.cac_pricing || {};
+      const tiers = Array.isArray(pricing.share_capital_tiers) && pricing.share_capital_tiers.length > 0
+        ? pricing.share_capital_tiers
+        : [
+            { id: 'sct_1m', name: 'Standard Commercial Tier', shareCapitalNGN: 1000000, totalFeeNGN: 75000, isDefault: true },
+            { id: 'sct_2m', name: 'Commercial Wholesale Tier', shareCapitalNGN: 2000000, totalFeeNGN: 95000 },
+            { id: 'sct_5m', name: 'Enterprise Corporate Tier', shareCapitalNGN: 5000000, totalFeeNGN: 145000 },
+            { id: 'sct_10m', name: 'Institutional Capital Tier', shareCapitalNGN: 10000000, totalFeeNGN: 225000 }
+          ];
+
+      let serviceFeeNGN = Number(pricing.business_name_ngn || 35000);
+      let matchedTier = null;
+      let selectedCapital = 0;
+
+      if (serviceType === 'company_registration') {
+        if (shareCapitalTierId) {
+          matchedTier = tiers.find(t => t.id === shareCapitalTierId);
+        } else if (shareCapitalNGN) {
+          matchedTier = tiers.find(t => Number(t.shareCapitalNGN) === Number(shareCapitalNGN));
+        }
+        if (!matchedTier) {
+          matchedTier = tiers.find(t => t.isDefault) || tiers[0];
+          serviceFeeNGN = Number(pricing.company_registration_ngn || (matchedTier ? matchedTier.totalFeeNGN : 75000));
+        } else {
+          serviceFeeNGN = Number(matchedTier.totalFeeNGN || pricing.company_registration_ngn || 75000);
+        }
+        selectedCapital = matchedTier ? Number(matchedTier.shareCapitalNGN) : Number(shareCapitalNGN || 1000000);
+      }
 
       // Check NGN wallet balance strictly
       const ngnBalance = Number(user.balances?.NGN || 0);
@@ -12005,7 +12127,7 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
         reference: ref,
         userId: user.uid,
         transactionType: 'CAC_REGISTRATION',
-        description: `CAC ${serviceType === 'company_registration' ? 'Company' : 'Business Name'} Registration: ${primaryName.trim()}`,
+        description: `CAC ${serviceType === 'company_registration' ? `Company (${matchedTier ? matchedTier.name : '₦' + selectedCapital.toLocaleString()})` : 'Business Name'} Registration: ${primaryName.trim()}`,
         postings: [
           { account: `liabilities:customer:${user.uid}:NGN`, currency: 'NGN', debit: serviceFeeNGN, credit: 0 },
           { account: 'revenue:services:cac_registration:ngn', currency: 'NGN', debit: 0, credit: serviceFeeNGN }
@@ -12025,7 +12147,7 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
         status: 'completed',
         reference: ref,
         timestamp: Date.now(),
-        notes: `CAC Registration: ${primaryName.trim()} (${serviceType === 'company_registration' ? 'Incorporated Company' : 'Business Name'})`
+        notes: `CAC Registration: ${primaryName.trim()} (${serviceType === 'company_registration' ? `Incorporated Company - Share Capital ₦${selectedCapital.toLocaleString()}` : 'Business Name'})`
       };
 
       const application = {
@@ -12042,14 +12164,32 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
         commencementDate: commencementDate || new Date().toISOString().split('T')[0],
         businessAddress: businessAddress.trim(),
         businessDescription: (businessDescription || '').trim(),
-        partners: Array.isArray(partners) && partners.length > 0 ? partners : [
+        shareCapitalNGN: selectedCapital,
+        shareCapitalTierId: matchedTier?.id || '',
+        shareCapitalTierName: matchedTier?.name || '',
+        partners: Array.isArray(partners) && partners.length > 0 ? partners.map(p => ({
+          id: p.id || `p_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+          fullName: p.fullName || 'Shareholder',
+          email: p.email || '',
+          phone: p.phone || '',
+          role: p.role || (serviceType === 'company_registration' ? 'Director' : 'Proprietor'),
+          sharesPercent: Number(p.sharesPercent || 0),
+          residentialAddress: p.residentialAddress || businessAddress.trim(),
+          idCardType: p.idCardType || 'NIN',
+          idCardUrl: p.idCardUrl || idCardUrl,
+          signatureUrl: p.signatureUrl || signatureUrl
+        })) : [
           {
             id: `p_${Date.now()}`,
             fullName: user.fullName || 'Chief Babatunde Alade',
             email: user.email || '',
             phone: user.phone || '',
             role: serviceType === 'company_registration' ? 'Director' : 'Proprietor',
-            sharesPercent: 100
+            sharesPercent: 100,
+            residentialAddress: businessAddress.trim(),
+            idCardType: idCardType || 'NIN',
+            idCardUrl: idCardUrl,
+            signatureUrl: signatureUrl
           }
         ],
         passportPhotoUrl,

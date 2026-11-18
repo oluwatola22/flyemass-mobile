@@ -89,7 +89,7 @@
       "role": "client",
       "createdAt": 1791047745841,
       "balances": {
-        "NGN": 169624475,
+        "NGN": 169119475,
         "CNY": 1570278.0699999998,
         "USD": 18595
       },
@@ -98,7 +98,7 @@
       "pinFailedAttempts": 0,
       "pinLockedUntil": 0,
       "kycLevel": "Tier 3 (BVN & CAC Verified)",
-      "updatedAt": 1794983269886,
+      "updatedAt": 1794984596358,
       "adminNotes": "Due diligence complete: Form CAC 1.1 inspected, Nigerian NUBAN BVN match verified, China SAFE corporate quota approved.",
       "hardwareSession": {
         "sessionId": "term_sess_1794253147617",
@@ -44329,6 +44329,144 @@
         }
       ],
       "metadata": {}
+    },
+    "je_1794984466000_514": {
+      "id": "je_1794984466000_514",
+      "reference": "CAC-1794984466000-3493",
+      "timestamp": 1794984466000,
+      "userId": "usr_alade_01",
+      "transactionType": "CAC_REGISTRATION",
+      "description": "CAC Company (Standard Commercial Tier) Registration: Alade Global Haulage & Marine Ltd",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:NGN",
+          "currency": "NGN",
+          "debit": 75000,
+          "credit": 0
+        },
+        {
+          "account": "revenue:services:cac_registration:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 75000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794984544559_991": {
+      "id": "je_1794984544559_991",
+      "reference": "CAC-1794984544559-9243",
+      "timestamp": 1794984544559,
+      "userId": "usr_alade_01",
+      "transactionType": "CAC_REGISTRATION",
+      "description": "CAC Company (Standard Commercial Tier) Registration: Alade Global Haulage & Marine Ltd",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:NGN",
+          "currency": "NGN",
+          "debit": 78000,
+          "credit": 0
+        },
+        {
+          "account": "revenue:services:cac_registration:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 78000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794984570785_968": {
+      "id": "je_1794984570785_968",
+      "reference": "CAC-1794984570785-4842",
+      "timestamp": 1794984570785,
+      "userId": "usr_alade_01",
+      "transactionType": "CAC_REGISTRATION",
+      "description": "CAC Company (Standard Commercial Tier) Registration: Alade Global Haulage & Marine Ltd",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:NGN",
+          "currency": "NGN",
+          "debit": 78000,
+          "credit": 0
+        },
+        {
+          "account": "revenue:services:cac_registration:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 78000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794984571117_501": {
+      "id": "je_1794984571117_501",
+      "reference": "CAC-1794984571117-7508",
+      "timestamp": 1794984571117,
+      "userId": "usr_alade_01",
+      "transactionType": "CAC_REGISTRATION",
+      "description": "CAC Company (Commercial Wholesale Tier) Registration: Trans-Atlantic Energy & Engineering Ltd",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:NGN",
+          "currency": "NGN",
+          "debit": 98000,
+          "credit": 0
+        },
+        {
+          "account": "revenue:services:cac_registration:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 98000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794984596164_110": {
+      "id": "je_1794984596164_110",
+      "reference": "CAC-1794984596164-7874",
+      "timestamp": 1794984596164,
+      "userId": "usr_alade_01",
+      "transactionType": "CAC_REGISTRATION",
+      "description": "CAC Company (Standard Commercial Tier) Registration: Alade Global Haulage & Marine Ltd",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:NGN",
+          "currency": "NGN",
+          "debit": 78000,
+          "credit": 0
+        },
+        {
+          "account": "revenue:services:cac_registration:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 78000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794984596496_190": {
+      "id": "je_1794984596496_190",
+      "reference": "CAC-1794984596496-4523",
+      "timestamp": 1794984596496,
+      "userId": "usr_alade_01",
+      "transactionType": "CAC_REGISTRATION",
+      "description": "CAC Company (Commercial Wholesale Tier) Registration: Trans-Atlantic Energy & Engineering Ltd",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:NGN",
+          "currency": "NGN",
+          "debit": 98000,
+          "credit": 0
+        },
+        {
+          "account": "revenue:services:cac_registration:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 98000
+        }
+      ],
+      "metadata": {}
     }
   },
   "wallets_ledger": {
@@ -67684,6 +67822,84 @@
       "reference": "WD-23102722",
       "timestamp": 1794983278950,
       "notes": "Payout ₦25,000 to Providus Bank (2089140022)"
+    },
+    "CAC-1794984466000-3493": {
+      "id": "CAC-1794984466000-3493",
+      "userId": "usr_alade_01",
+      "type": "CAC_REGISTRATION",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 75000,
+      "fee": 0,
+      "status": "completed",
+      "reference": "CAC-1794984466000-3493",
+      "timestamp": 1794984466001,
+      "notes": "CAC Registration: Alade Global Haulage & Marine Ltd (Incorporated Company - Share Capital ₦1,000,000)"
+    },
+    "CAC-1794984544559-9243": {
+      "id": "CAC-1794984544559-9243",
+      "userId": "usr_alade_01",
+      "type": "CAC_REGISTRATION",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 78000,
+      "fee": 0,
+      "status": "completed",
+      "reference": "CAC-1794984544559-9243",
+      "timestamp": 1794984544559,
+      "notes": "CAC Registration: Alade Global Haulage & Marine Ltd (Incorporated Company - Share Capital ₦1,000,000)"
+    },
+    "CAC-1794984570785-4842": {
+      "id": "CAC-1794984570785-4842",
+      "userId": "usr_alade_01",
+      "type": "CAC_REGISTRATION",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 78000,
+      "fee": 0,
+      "status": "completed",
+      "reference": "CAC-1794984570785-4842",
+      "timestamp": 1794984570785,
+      "notes": "CAC Registration: Alade Global Haulage & Marine Ltd (Incorporated Company - Share Capital ₦1,000,000)"
+    },
+    "CAC-1794984571117-7508": {
+      "id": "CAC-1794984571117-7508",
+      "userId": "usr_alade_01",
+      "type": "CAC_REGISTRATION",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 98000,
+      "fee": 0,
+      "status": "completed",
+      "reference": "CAC-1794984571117-7508",
+      "timestamp": 1794984571118,
+      "notes": "CAC Registration: Trans-Atlantic Energy & Engineering Ltd (Incorporated Company - Share Capital ₦2,000,000)"
+    },
+    "CAC-1794984596164-7874": {
+      "id": "CAC-1794984596164-7874",
+      "userId": "usr_alade_01",
+      "type": "CAC_REGISTRATION",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 78000,
+      "fee": 0,
+      "status": "completed",
+      "reference": "CAC-1794984596164-7874",
+      "timestamp": 1794984596164,
+      "notes": "CAC Registration: Alade Global Haulage & Marine Ltd (Incorporated Company - Share Capital ₦1,000,000)"
+    },
+    "CAC-1794984596496-4523": {
+      "id": "CAC-1794984596496-4523",
+      "userId": "usr_alade_01",
+      "type": "CAC_REGISTRATION",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 98000,
+      "fee": 0,
+      "status": "completed",
+      "reference": "CAC-1794984596496-4523",
+      "timestamp": 1794984596496,
+      "notes": "CAC Registration: Trans-Atlantic Energy & Engineering Ltd (Incorporated Company - Share Capital ₦2,000,000)"
     }
   },
   "shipments": {
@@ -108258,7 +108474,7 @@
       "userId": "usr_alade_01",
       "hotelId": "hotel-gz-westin",
       "hotelName": "The Westin Pazhou Guangzhou",
-      "chineseName": "���州广交���威斯汀酒店",
+      "chineseName": "������广交���威斯汀酒店",
       "hotel": {
         "id": "hotel-gz-westin",
         "name": "The Westin Pazhou Guangzhou",
@@ -118539,7 +118755,37 @@
     "cac_pricing": {
       "business_name_ngn": 36000,
       "company_registration_ngn": 78000,
-      "lastUpdated": 1794983269502
+      "share_capital_tiers": [
+        {
+          "id": "sct_1m",
+          "name": "Standard Commercial Tier",
+          "shareCapitalNGN": 1000000,
+          "totalFeeNGN": 78000,
+          "stampDutyNGN": 15000,
+          "filingFeeNGN": 63000,
+          "description": "₦1,000,000 SME baseline",
+          "isDefault": true
+        },
+        {
+          "id": "sct_2m",
+          "name": "Commercial Wholesale Tier",
+          "shareCapitalNGN": 2000000,
+          "totalFeeNGN": 98000,
+          "stampDutyNGN": 26000,
+          "filingFeeNGN": 72000,
+          "description": "₦2,000,000 Import/export & haulage"
+        },
+        {
+          "id": "sct_5m",
+          "name": "Enterprise Corporate Tier",
+          "shareCapitalNGN": 5000000,
+          "totalFeeNGN": 148000,
+          "stampDutyNGN": 48000,
+          "filingFeeNGN": 100000,
+          "description": "₦5,000,000 Corporate contracting"
+        }
+      ],
+      "lastUpdated": 1794984596431
     },
     "shipping_corridors": [
       {
@@ -118914,6 +119160,477 @@
       "certificatePdfUrl": "https://supabase.flyemass.com/storage/v1/object/public/cac_documents/cac-cert-alade-haulage.pdf",
       "certificateDispatchedAt": 1794983269886,
       "adminNotes": "Incorporation verified by CAC Abuja Registry"
+    },
+    "cac_1794984466000_498": {
+      "id": "cac_1794984466000_498",
+      "reference": "CAC-1794984466000-3493",
+      "userId": "usr_alade_01",
+      "userEmail": "babatunde@aladeholding.ng",
+      "userName": "Chief Babatunde Alade",
+      "userPhone": "+234 803 555 9201",
+      "serviceType": "company_registration",
+      "primaryName": "Alade Global Haulage & Marine Ltd",
+      "alternativeName": "Alade Express Container Lines Ltd",
+      "category": "Transportation and Logistics",
+      "commencementDate": "2026-02-01",
+      "businessAddress": "Plot 10, Commercial Avenue, Apapa Sea Port, Lagos, Nigeria",
+      "businessDescription": "Ocean freight forwarding, multi-modal haulage and customs compliance",
+      "shareCapitalNGN": 1000000,
+      "shareCapitalTierId": "sct_1m",
+      "shareCapitalTierName": "Standard Commercial Tier",
+      "partners": [
+        {
+          "id": "p_dir_1",
+          "fullName": "Chief Babatunde Alade",
+          "email": "babatunde.alade@flyemass.com",
+          "phone": "+234 803 123 4567",
+          "role": "Director",
+          "sharesPercent": 70,
+          "residentialAddress": "Plot 10, Commercial Avenue, Apapa Sea Port, Lagos, Nigeria",
+          "idCardType": "NIN",
+          "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+          "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80"
+        },
+        {
+          "id": "p_dir_2",
+          "fullName": "Folashade Alade",
+          "email": "folashade@flyemass.com",
+          "phone": "+234 803 987 6543",
+          "role": "Director",
+          "sharesPercent": 30,
+          "residentialAddress": "Plot 10, Commercial Avenue, Apapa Sea Port, Lagos, Nigeria",
+          "idCardType": "NIN",
+          "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+          "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80"
+        }
+      ],
+      "passportPhotoUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+      "idCardType": "NIN",
+      "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80",
+      "referenceSignatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80",
+      "additionalDocuments": [],
+      "serviceFeeNGN": 75000,
+      "paymentStatus": "paid",
+      "paymentReference": "CAC-1794984466000-3493",
+      "status": "pending",
+      "thread": [
+        {
+          "id": "msg_1794984466001",
+          "sender": "user",
+          "senderName": "Chief Babatunde Alade",
+          "message": "Official application submitted for CAC Incorporated Company Registration: \"Alade Global Haulage & Marine Ltd\". Payment of ₦75,000 settled via NGN wallet.",
+          "timestamp": 1794984466001
+        }
+      ],
+      "createdAt": 1794984466001,
+      "updatedAt": 1794984466001
+    },
+    "cac_1794984544559_822": {
+      "id": "cac_1794984544559_822",
+      "reference": "CAC-1794984544559-9243",
+      "userId": "usr_alade_01",
+      "userEmail": "babatunde@aladeholding.ng",
+      "userName": "Chief Babatunde Alade",
+      "userPhone": "+234 803 555 9201",
+      "serviceType": "company_registration",
+      "primaryName": "Alade Global Haulage & Marine Ltd",
+      "alternativeName": "Alade Express Container Lines Ltd",
+      "category": "Transportation and Logistics",
+      "commencementDate": "2026-02-01",
+      "businessAddress": "Plot 10, Commercial Avenue, Apapa Sea Port, Lagos, Nigeria",
+      "businessDescription": "Ocean freight forwarding, multi-modal haulage and customs compliance",
+      "shareCapitalNGN": 1000000,
+      "shareCapitalTierId": "sct_1m",
+      "shareCapitalTierName": "Standard Commercial Tier",
+      "partners": [
+        {
+          "id": "p_dir_1",
+          "fullName": "Chief Babatunde Alade",
+          "email": "babatunde.alade@flyemass.com",
+          "phone": "+234 803 123 4567",
+          "role": "Director",
+          "sharesPercent": 70,
+          "residentialAddress": "Plot 10, Commercial Avenue, Apapa Sea Port, Lagos, Nigeria",
+          "idCardType": "NIN",
+          "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+          "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80"
+        },
+        {
+          "id": "p_dir_2",
+          "fullName": "Folashade Alade",
+          "email": "folashade@flyemass.com",
+          "phone": "+234 803 987 6543",
+          "role": "Director",
+          "sharesPercent": 30,
+          "residentialAddress": "Plot 10, Commercial Avenue, Apapa Sea Port, Lagos, Nigeria",
+          "idCardType": "NIN",
+          "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+          "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80"
+        }
+      ],
+      "passportPhotoUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+      "idCardType": "NIN",
+      "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80",
+      "referenceSignatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80",
+      "additionalDocuments": [],
+      "serviceFeeNGN": 78000,
+      "paymentStatus": "paid",
+      "paymentReference": "CAC-1794984544559-9243",
+      "status": "completed",
+      "thread": [
+        {
+          "id": "msg_1794984544560",
+          "sender": "user",
+          "senderName": "Chief Babatunde Alade",
+          "message": "Official application submitted for CAC Incorporated Company Registration: \"Alade Global Haulage & Marine Ltd\". Payment of ₦78,000 settled via NGN wallet.",
+          "timestamp": 1794984544560
+        },
+        {
+          "id": "msg_1794984544625_519",
+          "sender": "admin",
+          "senderName": "CAC Officer Oladipo",
+          "message": "Please provide a clearer NIN slip with legible date of birth and NIN number.",
+          "attachments": [],
+          "timestamp": 1794984544625
+        },
+        {
+          "id": "msg_1794984544687_454",
+          "sender": "user",
+          "senderName": "Chief Babatunde Alade",
+          "message": "High resolution NIN digital verification slip re-uploaded.",
+          "attachments": [],
+          "timestamp": 1794984544687
+        },
+        {
+          "id": "msg_1794984544749",
+          "sender": "admin",
+          "senderName": "Super Admin Babatunde",
+          "message": "CAC Registration Completed! Official Registration / RC Number issued: RC-1928401. Certificate dispatched to customer vault.",
+          "timestamp": 1794984544749
+        }
+      ],
+      "createdAt": 1794984544560,
+      "updatedAt": 1794984544749,
+      "rcNumber": "RC-1928401",
+      "certificatePdfUrl": "https://supabase.flyemass.com/storage/v1/object/public/cac_documents/cac-cert-alade-haulage.pdf",
+      "certificateDispatchedAt": 1794984544749,
+      "adminNotes": "Incorporation verified by CAC Abuja Registry"
+    },
+    "cac_1794984570785_614": {
+      "id": "cac_1794984570785_614",
+      "reference": "CAC-1794984570785-4842",
+      "userId": "usr_alade_01",
+      "userEmail": "babatunde@aladeholding.ng",
+      "userName": "Chief Babatunde Alade",
+      "userPhone": "+234 803 555 9201",
+      "serviceType": "company_registration",
+      "primaryName": "Alade Global Haulage & Marine Ltd",
+      "alternativeName": "Alade Express Container Lines Ltd",
+      "category": "Transportation and Logistics",
+      "commencementDate": "2026-02-01",
+      "businessAddress": "Plot 10, Commercial Avenue, Apapa Sea Port, Lagos, Nigeria",
+      "businessDescription": "Ocean freight forwarding, multi-modal haulage and customs compliance",
+      "shareCapitalNGN": 1000000,
+      "shareCapitalTierId": "sct_1m",
+      "shareCapitalTierName": "Standard Commercial Tier",
+      "partners": [
+        {
+          "id": "p_dir_1",
+          "fullName": "Chief Babatunde Alade",
+          "email": "babatunde.alade@flyemass.com",
+          "phone": "+234 803 123 4567",
+          "role": "Director",
+          "sharesPercent": 70,
+          "residentialAddress": "Plot 10, Commercial Avenue, Apapa Sea Port, Lagos, Nigeria",
+          "idCardType": "NIN",
+          "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+          "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80"
+        },
+        {
+          "id": "p_dir_2",
+          "fullName": "Folashade Alade",
+          "email": "folashade@flyemass.com",
+          "phone": "+234 803 987 6543",
+          "role": "Director",
+          "sharesPercent": 30,
+          "residentialAddress": "Plot 10, Commercial Avenue, Apapa Sea Port, Lagos, Nigeria",
+          "idCardType": "NIN",
+          "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+          "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80"
+        }
+      ],
+      "passportPhotoUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+      "idCardType": "NIN",
+      "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80",
+      "referenceSignatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80",
+      "additionalDocuments": [],
+      "serviceFeeNGN": 78000,
+      "paymentStatus": "paid",
+      "paymentReference": "CAC-1794984570785-4842",
+      "status": "completed",
+      "thread": [
+        {
+          "id": "msg_1794984570785",
+          "sender": "user",
+          "senderName": "Chief Babatunde Alade",
+          "message": "Official application submitted for CAC Incorporated Company Registration: \"Alade Global Haulage & Marine Ltd\". Payment of ₦78,000 settled via NGN wallet.",
+          "timestamp": 1794984570785
+        },
+        {
+          "id": "msg_1794984570852_718",
+          "sender": "admin",
+          "senderName": "CAC Officer Oladipo",
+          "message": "Please provide a clearer NIN slip with legible date of birth and NIN number.",
+          "attachments": [],
+          "timestamp": 1794984570852
+        },
+        {
+          "id": "msg_1794984570915_995",
+          "sender": "user",
+          "senderName": "Chief Babatunde Alade",
+          "message": "High resolution NIN digital verification slip re-uploaded.",
+          "attachments": [],
+          "timestamp": 1794984570915
+        },
+        {
+          "id": "msg_1794984570979",
+          "sender": "admin",
+          "senderName": "Super Admin Babatunde",
+          "message": "CAC Registration Completed! Official Registration / RC Number issued: RC-1928401. Certificate dispatched to customer vault.",
+          "timestamp": 1794984570979
+        }
+      ],
+      "createdAt": 1794984570785,
+      "updatedAt": 1794984570979,
+      "rcNumber": "RC-1928401",
+      "certificatePdfUrl": "https://supabase.flyemass.com/storage/v1/object/public/cac_documents/cac-cert-alade-haulage.pdf",
+      "certificateDispatchedAt": 1794984570979,
+      "adminNotes": "Incorporation verified by CAC Abuja Registry"
+    },
+    "cac_1794984571117_562": {
+      "id": "cac_1794984571117_562",
+      "reference": "CAC-1794984571117-7508",
+      "userId": "usr_alade_01",
+      "userEmail": "babatunde@aladeholding.ng",
+      "userName": "Chief Babatunde Alade",
+      "userPhone": "+234 803 555 9201",
+      "serviceType": "company_registration",
+      "primaryName": "Trans-Atlantic Energy & Engineering Ltd",
+      "alternativeName": "Atlantic Offshore Logistics Ltd",
+      "category": "Oil and Gas",
+      "commencementDate": "2026-03-01",
+      "businessAddress": "Suite 400, Victoria Island Corporate Towers, Lagos",
+      "businessDescription": "Marine engineering, offshore logistics and petroleum product distribution",
+      "shareCapitalNGN": 2000000,
+      "shareCapitalTierId": "sct_2m",
+      "shareCapitalTierName": "Commercial Wholesale Tier",
+      "partners": [
+        {
+          "id": "p_dir_101",
+          "fullName": "Engr. Damilola Alade",
+          "email": "damilola@transatlantic-energy.ng",
+          "phone": "+234 802 334 5566",
+          "role": "Managing Director",
+          "sharesPercent": 60,
+          "residentialAddress": "18 Admiralty Way, Lekki Phase 1, Lagos State",
+          "idCardType": "NIN",
+          "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136",
+          "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e"
+        },
+        {
+          "id": "p_dir_102",
+          "fullName": "Barr. Ngozi Okonjo",
+          "email": "ngozi@transatlantic-energy.ng",
+          "phone": "+234 803 778 9900",
+          "role": "Company Secretary & Director",
+          "sharesPercent": 40,
+          "residentialAddress": "5 Bourdillon Road, Ikoyi, Lagos State",
+          "idCardType": "Driver License",
+          "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136",
+          "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e"
+        }
+      ],
+      "passportPhotoUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb",
+      "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136",
+      "idCardType": "NIN",
+      "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e",
+      "referenceSignatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e",
+      "additionalDocuments": [],
+      "serviceFeeNGN": 98000,
+      "paymentStatus": "paid",
+      "paymentReference": "CAC-1794984571117-7508",
+      "status": "pending",
+      "thread": [
+        {
+          "id": "msg_1794984571118",
+          "sender": "user",
+          "senderName": "Chief Babatunde Alade",
+          "message": "Official application submitted for CAC Incorporated Company Registration: \"Trans-Atlantic Energy & Engineering Ltd\". Payment of ₦98,000 settled via NGN wallet.",
+          "timestamp": 1794984571118
+        }
+      ],
+      "createdAt": 1794984571118,
+      "updatedAt": 1794984571118
+    },
+    "cac_1794984596164_285": {
+      "id": "cac_1794984596164_285",
+      "reference": "CAC-1794984596164-7874",
+      "userId": "usr_alade_01",
+      "userEmail": "babatunde@aladeholding.ng",
+      "userName": "Chief Babatunde Alade",
+      "userPhone": "+234 803 555 9201",
+      "serviceType": "company_registration",
+      "primaryName": "Alade Global Haulage & Marine Ltd",
+      "alternativeName": "Alade Express Container Lines Ltd",
+      "category": "Transportation and Logistics",
+      "commencementDate": "2026-02-01",
+      "businessAddress": "Plot 10, Commercial Avenue, Apapa Sea Port, Lagos, Nigeria",
+      "businessDescription": "Ocean freight forwarding, multi-modal haulage and customs compliance",
+      "shareCapitalNGN": 1000000,
+      "shareCapitalTierId": "sct_1m",
+      "shareCapitalTierName": "Standard Commercial Tier",
+      "partners": [
+        {
+          "id": "p_dir_1",
+          "fullName": "Chief Babatunde Alade",
+          "email": "babatunde.alade@flyemass.com",
+          "phone": "+234 803 123 4567",
+          "role": "Director",
+          "sharesPercent": 70,
+          "residentialAddress": "Plot 10, Commercial Avenue, Apapa Sea Port, Lagos, Nigeria",
+          "idCardType": "NIN",
+          "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+          "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80"
+        },
+        {
+          "id": "p_dir_2",
+          "fullName": "Folashade Alade",
+          "email": "folashade@flyemass.com",
+          "phone": "+234 803 987 6543",
+          "role": "Director",
+          "sharesPercent": 30,
+          "residentialAddress": "Plot 10, Commercial Avenue, Apapa Sea Port, Lagos, Nigeria",
+          "idCardType": "NIN",
+          "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+          "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80"
+        }
+      ],
+      "passportPhotoUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+      "idCardType": "NIN",
+      "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80",
+      "referenceSignatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80",
+      "additionalDocuments": [],
+      "serviceFeeNGN": 78000,
+      "paymentStatus": "paid",
+      "paymentReference": "CAC-1794984596164-7874",
+      "status": "completed",
+      "thread": [
+        {
+          "id": "msg_1794984596164",
+          "sender": "user",
+          "senderName": "Chief Babatunde Alade",
+          "message": "Official application submitted for CAC Incorporated Company Registration: \"Alade Global Haulage & Marine Ltd\". Payment of ₦78,000 settled via NGN wallet.",
+          "timestamp": 1794984596164
+        },
+        {
+          "id": "msg_1794984596230_737",
+          "sender": "admin",
+          "senderName": "CAC Officer Oladipo",
+          "message": "Please provide a clearer NIN slip with legible date of birth and NIN number.",
+          "attachments": [],
+          "timestamp": 1794984596230
+        },
+        {
+          "id": "msg_1794984596291_883",
+          "sender": "user",
+          "senderName": "Chief Babatunde Alade",
+          "message": "High resolution NIN digital verification slip re-uploaded.",
+          "attachments": [],
+          "timestamp": 1794984596291
+        },
+        {
+          "id": "msg_1794984596358",
+          "sender": "admin",
+          "senderName": "Super Admin Babatunde",
+          "message": "CAC Registration Completed! Official Registration / RC Number issued: RC-1928401. Certificate dispatched to customer vault.",
+          "timestamp": 1794984596358
+        }
+      ],
+      "createdAt": 1794984596164,
+      "updatedAt": 1794984596358,
+      "rcNumber": "RC-1928401",
+      "certificatePdfUrl": "https://supabase.flyemass.com/storage/v1/object/public/cac_documents/cac-cert-alade-haulage.pdf",
+      "certificateDispatchedAt": 1794984596358,
+      "adminNotes": "Incorporation verified by CAC Abuja Registry"
+    },
+    "cac_1794984596496_213": {
+      "id": "cac_1794984596496_213",
+      "reference": "CAC-1794984596496-4523",
+      "userId": "usr_alade_01",
+      "userEmail": "babatunde@aladeholding.ng",
+      "userName": "Chief Babatunde Alade",
+      "userPhone": "+234 803 555 9201",
+      "serviceType": "company_registration",
+      "primaryName": "Trans-Atlantic Energy & Engineering Ltd",
+      "alternativeName": "Atlantic Offshore Logistics Ltd",
+      "category": "Oil and Gas",
+      "commencementDate": "2026-03-01",
+      "businessAddress": "Suite 400, Victoria Island Corporate Towers, Lagos",
+      "businessDescription": "Marine engineering, offshore logistics and petroleum product distribution",
+      "shareCapitalNGN": 2000000,
+      "shareCapitalTierId": "sct_2m",
+      "shareCapitalTierName": "Commercial Wholesale Tier",
+      "partners": [
+        {
+          "id": "p_dir_101",
+          "fullName": "Engr. Damilola Alade",
+          "email": "damilola@transatlantic-energy.ng",
+          "phone": "+234 802 334 5566",
+          "role": "Managing Director",
+          "sharesPercent": 60,
+          "residentialAddress": "18 Admiralty Way, Lekki Phase 1, Lagos State",
+          "idCardType": "NIN",
+          "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136",
+          "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e"
+        },
+        {
+          "id": "p_dir_102",
+          "fullName": "Barr. Ngozi Okonjo",
+          "email": "ngozi@transatlantic-energy.ng",
+          "phone": "+234 803 778 9900",
+          "role": "Company Secretary & Director",
+          "sharesPercent": 40,
+          "residentialAddress": "5 Bourdillon Road, Ikoyi, Lagos State",
+          "idCardType": "Driver License",
+          "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136",
+          "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e"
+        }
+      ],
+      "passportPhotoUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb",
+      "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136",
+      "idCardType": "NIN",
+      "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e",
+      "referenceSignatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e",
+      "additionalDocuments": [],
+      "serviceFeeNGN": 98000,
+      "paymentStatus": "paid",
+      "paymentReference": "CAC-1794984596496-4523",
+      "status": "pending",
+      "thread": [
+        {
+          "id": "msg_1794984596496",
+          "sender": "user",
+          "senderName": "Chief Babatunde Alade",
+          "message": "Official application submitted for CAC Incorporated Company Registration: \"Trans-Atlantic Energy & Engineering Ltd\". Payment of ₦98,000 settled via NGN wallet.",
+          "timestamp": 1794984596496
+        }
+      ],
+      "createdAt": 1794984596496,
+      "updatedAt": 1794984596496
     }
   },
   "processed_webhooks": {
@@ -157984,6 +158701,201 @@
       "ipAddress": "127.0.0.1",
       "previousHash": "6453655fa0103a9c3c110a2c80ceb1acc0de5131155b1bec4cabb43b4d1d5b99",
       "hash": "04db3842931e738f657414755a33e86c9099367ebc4c3bbd9269053c09ef204f"
+    },
+    {
+      "id": "log_1794984465866_5388",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_PRICING_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "cac_pricing",
+      "details": "Updated CAC pricing: Business Name ₦36,000, Company Base ₦78,000, Share Capital Tiers (4 bands)",
+      "timestamp": 1794984465866,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "04db3842931e738f657414755a33e86c9099367ebc4c3bbd9269053c09ef204f",
+      "hash": "85be2b0f0b7e03f61eccf1cfefe68fff50c9178fb122cceb0e8dae20e312081c"
+    },
+    {
+      "id": "log_1794984466001_9379",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "CAC_REGISTRATION_SUBMITTED",
+      "targetCollection": "cac_registrations",
+      "targetId": "cac_1794984466000_498",
+      "details": "Submitted CAC registration for Alade Global Haulage & Marine Ltd (CAC-1794984466000-3493)",
+      "timestamp": 1794984466001,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "85be2b0f0b7e03f61eccf1cfefe68fff50c9178fb122cceb0e8dae20e312081c",
+      "hash": "cd046d485e930582fdeb13feb516af6071b16ed1bdb9a08aa48fb5887d4b7ebc"
+    },
+    {
+      "id": "log_1794984544418_2012",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_PRICING_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "cac_pricing",
+      "details": "Updated CAC pricing: Business Name ₦36,000, Company Base ₦78,000, Share Capital Tiers (4 bands)",
+      "timestamp": 1794984544418,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "cd046d485e930582fdeb13feb516af6071b16ed1bdb9a08aa48fb5887d4b7ebc",
+      "hash": "ad711a2812d7298e38d930d0638ec81a9ead8fd09b6a7868ed36fad29adf7966"
+    },
+    {
+      "id": "log_1794984544560_1618",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "CAC_REGISTRATION_SUBMITTED",
+      "targetCollection": "cac_registrations",
+      "targetId": "cac_1794984544559_822",
+      "details": "Submitted CAC registration for Alade Global Haulage & Marine Ltd (CAC-1794984544559-9243)",
+      "timestamp": 1794984544560,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "ad711a2812d7298e38d930d0638ec81a9ead8fd09b6a7868ed36fad29adf7966",
+      "hash": "85173b95af11adc0e9ec38831744648528c29dc66b9b0ea833642eaa2a240b63"
+    },
+    {
+      "id": "log_1794984544749_9776",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_APPLICATION_COMPLETED",
+      "targetCollection": "cac_registrations",
+      "targetId": "cac_1794984544559_822",
+      "details": "Approved CAC filing for Alade Global Haulage & Marine Ltd with RC RC-1928401",
+      "timestamp": 1794984544749,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "85173b95af11adc0e9ec38831744648528c29dc66b9b0ea833642eaa2a240b63",
+      "hash": "64d08533e0d36e45208550e13fa56264f3ee025f9d7b78b2883ba78942c00c29"
+    },
+    {
+      "id": "log_1794984570642_5564",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_PRICING_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "cac_pricing",
+      "details": "Updated CAC pricing: Business Name ₦36,000, Company Base ₦78,000, Share Capital Tiers (4 bands)",
+      "timestamp": 1794984570642,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "64d08533e0d36e45208550e13fa56264f3ee025f9d7b78b2883ba78942c00c29",
+      "hash": "8734a515bfe4e1e6cd8ea02b74fd106dde9bd4924e9900b7a67e1d6b41d18168"
+    },
+    {
+      "id": "log_1794984570785_8935",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "CAC_REGISTRATION_SUBMITTED",
+      "targetCollection": "cac_registrations",
+      "targetId": "cac_1794984570785_614",
+      "details": "Submitted CAC registration for Alade Global Haulage & Marine Ltd (CAC-1794984570785-4842)",
+      "timestamp": 1794984570785,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "8734a515bfe4e1e6cd8ea02b74fd106dde9bd4924e9900b7a67e1d6b41d18168",
+      "hash": "a2b02a944fcc6b5e840845e9e3ba4c319d7c689e9ef396cb4071bf230124fd0a"
+    },
+    {
+      "id": "log_1794984570979_6779",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_APPLICATION_COMPLETED",
+      "targetCollection": "cac_registrations",
+      "targetId": "cac_1794984570785_614",
+      "details": "Approved CAC filing for Alade Global Haulage & Marine Ltd with RC RC-1928401",
+      "timestamp": 1794984570979,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "a2b02a944fcc6b5e840845e9e3ba4c319d7c689e9ef396cb4071bf230124fd0a",
+      "hash": "8dd0f56e6d43bb185e44d1dbde8770bd986004087d9b1924c148d11256ac9cd7"
+    },
+    {
+      "id": "log_1794984571054_692",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_PRICING_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "cac_pricing",
+      "details": "Updated CAC pricing: Business Name ₦36,000, Company Base ₦78,000, Share Capital Tiers (3 bands)",
+      "timestamp": 1794984571054,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "8dd0f56e6d43bb185e44d1dbde8770bd986004087d9b1924c148d11256ac9cd7",
+      "hash": "5f1abc3a0cd160b237e3d5f6e0afb2414ab479faaeb1f3c1d27f11672a4f9a4e"
+    },
+    {
+      "id": "log_1794984571118_5527",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "CAC_REGISTRATION_SUBMITTED",
+      "targetCollection": "cac_registrations",
+      "targetId": "cac_1794984571117_562",
+      "details": "Submitted CAC registration for Trans-Atlantic Energy & Engineering Ltd (CAC-1794984571117-7508)",
+      "timestamp": 1794984571118,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "5f1abc3a0cd160b237e3d5f6e0afb2414ab479faaeb1f3c1d27f11672a4f9a4e",
+      "hash": "4804de9c839a7028dc81e1d611beb9e35d495a6868717ba8c7a9d604c69ecf54"
+    },
+    {
+      "id": "log_1794984596031_8920",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_PRICING_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "cac_pricing",
+      "details": "Updated CAC pricing: Business Name ₦36,000, Company Base ₦78,000, Share Capital Tiers (3 bands)",
+      "timestamp": 1794984596031,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "4804de9c839a7028dc81e1d611beb9e35d495a6868717ba8c7a9d604c69ecf54",
+      "hash": "01c75fdba99194cb11b8dccffad153e47a746a0576a27edc2cf1ef2919a4daac"
+    },
+    {
+      "id": "log_1794984596164_1549",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "CAC_REGISTRATION_SUBMITTED",
+      "targetCollection": "cac_registrations",
+      "targetId": "cac_1794984596164_285",
+      "details": "Submitted CAC registration for Alade Global Haulage & Marine Ltd (CAC-1794984596164-7874)",
+      "timestamp": 1794984596164,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "01c75fdba99194cb11b8dccffad153e47a746a0576a27edc2cf1ef2919a4daac",
+      "hash": "5917d197f89dda8d445f7863464553e1cfd158a3f5375d4b7f240f04d10ab9f0"
+    },
+    {
+      "id": "log_1794984596358_1350",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_APPLICATION_COMPLETED",
+      "targetCollection": "cac_registrations",
+      "targetId": "cac_1794984596164_285",
+      "details": "Approved CAC filing for Alade Global Haulage & Marine Ltd with RC RC-1928401",
+      "timestamp": 1794984596358,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "5917d197f89dda8d445f7863464553e1cfd158a3f5375d4b7f240f04d10ab9f0",
+      "hash": "919a0d8442c7be0d55f69adf60fd4b90e218c37e8ba525695d1604b88b0c5521"
+    },
+    {
+      "id": "log_1794984596431_3285",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_PRICING_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "cac_pricing",
+      "details": "Updated CAC pricing: Business Name ₦36,000, Company Base ₦78,000, Share Capital Tiers (3 bands)",
+      "timestamp": 1794984596431,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "919a0d8442c7be0d55f69adf60fd4b90e218c37e8ba525695d1604b88b0c5521",
+      "hash": "7ef742b33c818bf49d2659aee56f8451f059291d16f59666e980f7f2531abaf9"
+    },
+    {
+      "id": "log_1794984596496_1760",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "CAC_REGISTRATION_SUBMITTED",
+      "targetCollection": "cac_registrations",
+      "targetId": "cac_1794984596496_213",
+      "details": "Submitted CAC registration for Trans-Atlantic Energy & Engineering Ltd (CAC-1794984596496-4523)",
+      "timestamp": 1794984596496,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "7ef742b33c818bf49d2659aee56f8451f059291d16f59666e980f7f2531abaf9",
+      "hash": "f974159213d6bd47aa32aec3405f9407c949d9afa85bc5465feb07a76ec93f72"
     }
   ],
   "manual_payments": {
@@ -162208,6 +163120,114 @@
     "primaryAdminId": "adm-001"
   },
   "notifications": [
+    {
+      "id": "notif_1794984596496_933",
+      "userId": "usr_alade_01",
+      "title": "CAC Application Submitted",
+      "message": "Your filing for \"Trans-Atlantic Energy & Engineering Ltd\" has been received and queued for Corporate Affairs Commission processing.",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794984596496
+    },
+    {
+      "id": "notif_1794984596358_596",
+      "userId": "usr_alade_01",
+      "title": "CAC Certificate Dispatched",
+      "message": "Congratulations! Your business \"Alade Global Haulage & Marine Ltd\" is officially incorporated with RC Number: RC-1928401. Download your certificate in the CAC Hub.",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794984596358
+    },
+    {
+      "id": "notif_1794984596230_945",
+      "userId": "usr_alade_01",
+      "title": "CAC Compliance Action Required",
+      "message": "CAC compliance desk requested information on CAC-1794984596164-7874: \"Please provide a clearer NIN slip with legible date of birth and NIN number....\"",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794984596230
+    },
+    {
+      "id": "notif_1794984596164_911",
+      "userId": "usr_alade_01",
+      "title": "CAC Application Submitted",
+      "message": "Your filing for \"Alade Global Haulage & Marine Ltd\" has been received and queued for Corporate Affairs Commission processing.",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794984596164
+    },
+    {
+      "id": "notif_1794984571118_515",
+      "userId": "usr_alade_01",
+      "title": "CAC Application Submitted",
+      "message": "Your filing for \"Trans-Atlantic Energy & Engineering Ltd\" has been received and queued for Corporate Affairs Commission processing.",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794984571118
+    },
+    {
+      "id": "notif_1794984570979_40",
+      "userId": "usr_alade_01",
+      "title": "CAC Certificate Dispatched",
+      "message": "Congratulations! Your business \"Alade Global Haulage & Marine Ltd\" is officially incorporated with RC Number: RC-1928401. Download your certificate in the CAC Hub.",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794984570979
+    },
+    {
+      "id": "notif_1794984570852_364",
+      "userId": "usr_alade_01",
+      "title": "CAC Compliance Action Required",
+      "message": "CAC compliance desk requested information on CAC-1794984570785-4842: \"Please provide a clearer NIN slip with legible date of birth and NIN number....\"",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794984570852
+    },
+    {
+      "id": "notif_1794984570785_288",
+      "userId": "usr_alade_01",
+      "title": "CAC Application Submitted",
+      "message": "Your filing for \"Alade Global Haulage & Marine Ltd\" has been received and queued for Corporate Affairs Commission processing.",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794984570785
+    },
+    {
+      "id": "notif_1794984544749_945",
+      "userId": "usr_alade_01",
+      "title": "CAC Certificate Dispatched",
+      "message": "Congratulations! Your business \"Alade Global Haulage & Marine Ltd\" is officially incorporated with RC Number: RC-1928401. Download your certificate in the CAC Hub.",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794984544749
+    },
+    {
+      "id": "notif_1794984544625_472",
+      "userId": "usr_alade_01",
+      "title": "CAC Compliance Action Required",
+      "message": "CAC compliance desk requested information on CAC-1794984544559-9243: \"Please provide a clearer NIN slip with legible date of birth and NIN number....\"",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794984544625
+    },
+    {
+      "id": "notif_1794984544560_193",
+      "userId": "usr_alade_01",
+      "title": "CAC Application Submitted",
+      "message": "Your filing for \"Alade Global Haulage & Marine Ltd\" has been received and queued for Corporate Affairs Commission processing.",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794984544560
+    },
+    {
+      "id": "notif_1794984466001_319",
+      "userId": "usr_alade_01",
+      "title": "CAC Application Submitted",
+      "message": "Your filing for \"Alade Global Haulage & Marine Ltd\" has been received and queued for Corporate Affairs Commission processing.",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794984466001
+    },
     {
       "id": "notif_1794983279806",
       "title": "Withdrawal Payout Cleared",

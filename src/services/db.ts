@@ -21,6 +21,7 @@ import {
   DestinationHubSurcharge,
   CacRegistrationDocument,
   CacPricingConfig,
+  CacShareCapitalTier,
   CacServiceType,
   CacPartnerDirector,
   CacThreadMessage,
@@ -40,6 +41,46 @@ import {
   EmailRecipient
 } from './emailTemplates';
 import { supabase } from './supabaseClient';
+
+export const DEFAULT_SHARE_CAPITAL_TIERS: CacShareCapitalTier[] = [
+  {
+    id: 'sct_1m',
+    name: 'Standard Commercial Tier',
+    shareCapitalNGN: 1000000,
+    totalFeeNGN: 75000,
+    stampDutyNGN: 15000,
+    filingFeeNGN: 60000,
+    description: '₦1,000,000 Authorized Capital (SME baseline for logistics, retail & consulting)',
+    isDefault: true
+  },
+  {
+    id: 'sct_2m',
+    name: 'Commercial Wholesale Tier',
+    shareCapitalNGN: 2000000,
+    totalFeeNGN: 95000,
+    stampDutyNGN: 25000,
+    filingFeeNGN: 70000,
+    description: '₦2,000,000 Authorized Capital (Import/export, tech distribution, haulage)'
+  },
+  {
+    id: 'sct_5m',
+    name: 'Enterprise Corporate Tier',
+    shareCapitalNGN: 5000000,
+    totalFeeNGN: 145000,
+    stampDutyNGN: 45000,
+    filingFeeNGN: 100000,
+    description: '₦5,000,000 Authorized Capital (Corporate contracting, manufacturing & maritime clearing)'
+  },
+  {
+    id: 'sct_10m',
+    name: 'Institutional Capital Tier',
+    shareCapitalNGN: 10000000,
+    totalFeeNGN: 225000,
+    stampDutyNGN: 85000,
+    filingFeeNGN: 140000,
+    description: '₦10,000,000 Authorized Capital (Industrial projects, concessions & financial services)'
+  }
+];
 
 export interface DatabaseState {
   users: Record<string, UserDocument>;
@@ -1408,6 +1449,7 @@ export const INITIAL_DATABASE: DatabaseState = {
     cac_pricing: {
       business_name_ngn: 35000,
       company_registration_ngn: 75000,
+      share_capital_tiers: DEFAULT_SHARE_CAPITAL_TIERS,
       lastUpdated: Date.now()
     }
   },
@@ -1630,8 +1672,11 @@ class DatabaseService {
             ...INITIAL_DATABASE.system_settings,
             ...(parsed.system_settings || {}),
             cac_pricing: {
-              ...(INITIAL_DATABASE.system_settings.cac_pricing || { business_name_ngn: 35000, company_registration_ngn: 75000, lastUpdated: Date.now() }),
-              ...(parsed.system_settings?.cac_pricing || {})
+              ...(INITIAL_DATABASE.system_settings.cac_pricing || {}),
+              ...(parsed.system_settings?.cac_pricing || {}),
+              share_capital_tiers: Array.isArray(parsed.system_settings?.cac_pricing?.share_capital_tiers) && parsed.system_settings.cac_pricing.share_capital_tiers.length > 0
+                ? parsed.system_settings.cac_pricing.share_capital_tiers
+                : DEFAULT_SHARE_CAPITAL_TIERS
             }
           }
         };
@@ -6435,6 +6480,7 @@ class DatabaseService {
     return this.state.system_settings?.cac_pricing || {
       business_name_ngn: 35000,
       company_registration_ngn: 75000,
+      share_capital_tiers: DEFAULT_SHARE_CAPITAL_TIERS,
       lastUpdated: Date.now()
     };
   }
@@ -6460,7 +6506,7 @@ class DatabaseService {
     return this.getCacPricing();
   }
 
-  public async updateCacPricing(pricing: { business_name_ngn: number; company_registration_ngn: number }, adminId?: string): Promise<{ success: boolean; pricing?: CacPricingConfig; error?: string }> {
+  public async updateCacPricing(pricing: { business_name_ngn: number; company_registration_ngn: number; share_capital_tiers?: CacShareCapitalTier[] }, adminId?: string): Promise<{ success: boolean; pricing?: CacPricingConfig; error?: string }> {
     try {
       const res = await fetch(`${BACKEND_BASE}/api/admin/cac/pricing`, {
         method: 'POST',
@@ -6486,6 +6532,7 @@ class DatabaseService {
       const updated: CacPricingConfig = {
         business_name_ngn: Number(pricing.business_name_ngn || 35000),
         company_registration_ngn: Number(pricing.company_registration_ngn || 75000),
+        share_capital_tiers: pricing.share_capital_tiers || DEFAULT_SHARE_CAPITAL_TIERS,
         lastUpdated: Date.now()
       };
       this.state.system_settings.cac_pricing = updated;
@@ -6537,6 +6584,8 @@ class DatabaseService {
     businessAddress: string;
     businessDescription?: string;
     partners?: CacPartnerDirector[];
+    shareCapitalTierId?: string;
+    shareCapitalNGN?: number;
     passportPhotoUrl: string;
     idCardUrl: string;
     idCardType?: 'NIN' | 'Driver License' | 'International Passport' | 'Voter Card';

@@ -1381,6 +1381,21 @@ export interface CacPartnerDirector {
   phone: string;
   role: 'Director' | 'Shareholder' | 'Partner' | 'Proprietor' | 'Secretary';
   sharesPercent?: number;
+  residentialAddress?: string;
+  idCardType?: 'NIN' | 'Driver License' | 'International Passport' | 'Voter Card';
+  idCardUrl?: string;
+  signatureUrl?: string;
+}
+
+export interface CacShareCapitalTier {
+  id: string;
+  name: string;
+  shareCapitalNGN: number;
+  totalFeeNGN: number;
+  stampDutyNGN?: number;
+  filingFeeNGN?: number;
+  description?: string;
+  isDefault?: boolean;
 }
 
 export interface CacThreadMessage {
@@ -1395,6 +1410,7 @@ export interface CacThreadMessage {
 export interface CacPricingConfig {
   business_name_ngn: number;
   company_registration_ngn: number;
+  share_capital_tiers: CacShareCapitalTier[];
   lastUpdated: number;
 }
 
@@ -1413,6 +1429,9 @@ export interface CacRegistrationDocument {
   businessAddress: string;
   businessDescription: string;
   partners: CacPartnerDirector[];
+  shareCapitalNGN?: number;
+  shareCapitalTierId?: string;
+  shareCapitalTierName?: string;
   passportPhotoUrl: string;
   idCardUrl: string;
   idCardType: 'NIN' | 'Driver License' | 'International Passport' | 'Voter Card';

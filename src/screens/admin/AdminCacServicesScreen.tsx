@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
-import { db } from '../../services/db';
+import { db, DEFAULT_SHARE_CAPITAL_TIERS } from '../../services/db';
 import {
   CacRegistrationDocument,
   CacPricingConfig,
-  CacApplicationStatus
+  CacApplicationStatus,
+  CacShareCapitalTier
 } from '../../types';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import {
@@ -28,7 +29,16 @@ import {
   User,
   X,
   Sparkles,
-  Award
+  Award,
+  Layers,
+  Plus,
+  Trash2,
+  Edit2,
+  Check,
+  MapPin,
+  Phone,
+  Mail,
+  PenTool
 } from 'lucide-react';
 
 export const AdminCacServicesScreen: React.FC = () => {
@@ -38,6 +48,12 @@ export const AdminCacServicesScreen: React.FC = () => {
   const [pricing, setPricing] = useState<CacPricingConfig>(() => db.getCacPricing());
   const [editBnFee, setEditBnFee] = useState<number>(35000);
   const [editCompanyFee, setEditCompanyFee] = useState<number>(75000);
+  const [shareCapitalTiers, setShareCapitalTiers] = useState<CacShareCapitalTier[]>(() => {
+    const p = db.getCacPricing();
+    return Array.isArray(p.share_capital_tiers) && p.share_capital_tiers.length > 0
+      ? p.share_capital_tiers
+      : DEFAULT_SHARE_CAPITAL_TIERS;
+  });
   const [isUpdatingPricing, setIsUpdatingPricing] = useState(false);
 
   // Applications
@@ -49,6 +65,7 @@ export const AdminCacServicesScreen: React.FC = () => {
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | CacApplicationStatus>('all');
+  const [entityTypeFilter, setEntityTypeFilter] = useState<'all' | 'business_name' | 'company_registration'>('all');
 
   // Inspection Drawer / Processing State
   const [rcNumberInput, setRcNumberInput] = useState('');
@@ -68,6 +85,9 @@ export const AdminCacServicesScreen: React.FC = () => {
       setPricing(p);
       setEditBnFee(p.business_name_ngn);
       setEditCompanyFee(p.company_registration_ngn);
+      if (Array.isArray(p.share_capital_tiers) && p.share_capital_tiers.length > 0) {
+        setShareCapitalTiers(p.share_capital_tiers);
+      }
     });
     db.fetchCacApplications().then(apps => setApplications(apps));
 
@@ -86,27 +106,65 @@ export const AdminCacServicesScreen: React.FC = () => {
   // Sync inputs when selecting an app
   useEffect(() => {
     if (selectedApp) {
-      setRcNumberInput(selectedApp.rcNumber || (selectedApp.serviceType === 'company_registration' ? `RC-${Math.floor(1000000 + Math.random() * 9000000)}` : `BN-${Math.floor(100000 + Math.random() * 900000)}`));
-      setCertUrlInput(selectedApp.certificatePdfUrl || `https://supabase.flyemass.com/storage/v1/object/public/cac_documents/cac-cert-${selectedApp.reference.toLowerCase()}.pdf`);
+      setRcNumberInput(
+        selectedApp.rcNumber ||
+          (selectedApp.serviceType === 'company_registration'
+            ? `RC-${Math.floor(1000000 + Math.random() * 9000000)}`
+            : `BN-${Math.floor(100000 + Math.random() * 900000)}`)
+      );
+      setCertUrlInput(
+        selectedApp.certificatePdfUrl ||
+          `https://supabase.flyemass.com/storage/v1/object/public/cac_documents/cac-cert-${selectedApp.reference.toLowerCase()}.pdf`
+      );
       setAdminNotes(selectedApp.adminNotes || '');
     }
   }, [selectedApp]);
 
-  // Save Dynamic Pricing
+  // Share Capital Tier Inline Editing
+  const handleTierChange = (id: string, field: keyof CacShareCapitalTier, val: any) => {
+    setShareCapitalTiers(prev =>
+      prev.map(t => (t.id === id ? { ...t, [field]: val } : t))
+    );
+  };
+
+  const handleAddShareCapitalTier = () => {
+    const nextAmount = (shareCapitalTiers.length + 1) * 2000000;
+    const newTier: CacShareCapitalTier = {
+      id: `sct_${Date.now()}`,
+      name: `Custom Tier (₦${(nextAmount / 1000000).toFixed(0)}M)`,
+      shareCapitalNGN: nextAmount,
+      totalFeeNGN: 110000,
+      stampDutyNGN: 35000,
+      filingFeeNGN: 75000,
+      description: `₦${nextAmount.toLocaleString()} Authorized Share Capital band`
+    };
+    setShareCapitalTiers([...shareCapitalTiers, newTier]);
+  };
+
+  const handleRemoveTier = (id: string) => {
+    if (shareCapitalTiers.length <= 1) {
+      showToast('At least one share capital tier must remain configured', 'error');
+      return;
+    }
+    setShareCapitalTiers(shareCapitalTiers.filter(t => t.id !== id));
+  };
+
+  // Save Dynamic Pricing & Share Capital Matrix
   const handleSavePricing = async () => {
     setIsUpdatingPricing(true);
     try {
       const res = await db.updateCacPricing(
         {
           business_name_ngn: Number(editBnFee),
-          company_registration_ngn: Number(editCompanyFee)
+          company_registration_ngn: Number(editCompanyFee),
+          share_capital_tiers: shareCapitalTiers
         },
         adminUser?.name || 'Super Admin'
       );
       if (res.success) {
-        showToast('CAC dynamic statutory pricing updated and published to mobile storefront!', 'success');
+        showToast('CAC dynamic statutory pricing and Share Capital Matrix published to mobile app!', 'success');
       } else {
-        showToast(res.error || 'Failed to update pricing', 'error');
+        showToast(res.error || 'Failed to update pricing matrix', 'error');
       }
     } catch (err: any) {
       showToast(err.message || 'Pricing update failed', 'error');
@@ -140,7 +198,7 @@ export const AdminCacServicesScreen: React.FC = () => {
       if (res.success && res.application) {
         setSelectedApp(res.application);
         showToast(
-          `CAC Registration for "${res.application.primaryName}" completed! Profile tagged with RC ${rcNumberInput.trim()}`,
+          `CAC Registration for "${res.application.primaryName}" completed! Profile tagged with ${rcNumberInput.trim()}`,
           'success'
         );
       } else {
@@ -207,13 +265,16 @@ export const AdminCacServicesScreen: React.FC = () => {
     const actionReq = applications.filter(a => a.status === 'action_required').length;
     const inReview = applications.filter(a => a.status === 'in_review').length;
     const completed = applications.filter(a => a.status === 'completed').length;
-    return { total, pending, actionReq, inReview, completed };
+    const companyCount = applications.filter(a => a.serviceType === 'company_registration').length;
+    const bnCount = applications.filter(a => a.serviceType === 'business_name').length;
+    return { total, pending, actionReq, inReview, completed, companyCount, bnCount };
   }, [applications]);
 
   // Filtered List
   const filteredApps = useMemo(() => {
     return applications.filter(app => {
       const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+      const matchesType = entityTypeFilter === 'all' || app.serviceType === entityTypeFilter;
       const q = searchQuery.toLowerCase();
       const matchesSearch =
         !q ||
@@ -222,9 +283,9 @@ export const AdminCacServicesScreen: React.FC = () => {
         app.userName.toLowerCase().includes(q) ||
         (app.rcNumber && app.rcNumber.toLowerCase().includes(q)) ||
         app.category.toLowerCase().includes(q);
-      return matchesStatus && matchesSearch;
+      return matchesStatus && matchesType && matchesSearch;
     });
-  }, [applications, statusFilter, searchQuery]);
+  }, [applications, statusFilter, entityTypeFilter, searchQuery]);
 
   return (
     <AdminLayout activeTab="services-cac">
@@ -237,11 +298,11 @@ export const AdminCacServicesScreen: React.FC = () => {
                 <Building2 className="w-5 h-5" />
               </span>
               <h1 className="text-xl font-bold text-white tracking-tight">
-                Corporate Affairs Commission (CAC) Registration Console
+                CAC Corporate Affairs Management & Share Capital Console
               </h1>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Statutory Business Name & Incorporated Company (LTD) filings, dynamic CAMA fee management & certificate delivery
+              Authoritative Business Name & Company Formation, Dynamic Share Capital Tiering & Statutory Certificate Dispatch
             </p>
           </div>
 
@@ -249,7 +310,7 @@ export const AdminCacServicesScreen: React.FC = () => {
             onClick={() => {
               db.fetchCacApplications();
               db.fetchCacPricing();
-              showToast('Refreshed CAC application desk', 'success');
+              showToast('Refreshed CAC application desk and rate book', 'success');
             }}
             className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:text-white flex items-center gap-2 self-start active:scale-95 transition-all"
           >
@@ -258,22 +319,23 @@ export const AdminCacServicesScreen: React.FC = () => {
           </button>
         </div>
 
-        {/* Dynamic Pricing Management Card */}
-        <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-4">
-          <div className="flex items-center justify-between">
+        {/* Dynamic Pricing & Share Capital Matrix Control Card */}
+        <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-xl space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
             <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-emerald-400" />
-              <h2 className="text-sm font-bold text-white">Dynamic Statutory Pricing Control (NGN)</h2>
+              <Layers className="w-4 h-4 text-emerald-400" />
+              <h2 className="text-sm font-bold text-white">Dynamic Share Capital Matrix & Statutory Pricing Control</h2>
             </div>
-            <span className="text-[11px] text-slate-400">
-              Last updated: {new Date(pricing.lastUpdated || Date.now()).toLocaleDateString()}
+            <span className="text-[11px] text-slate-400 font-mono">
+              Live CAMA 2020 Rate Engine • Real-time Mobile Sync
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <div>
+          {/* Base Rates */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Business Name Registration Fee (NGN)
+                Business Name Statutory Fee (NGN)
               </label>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">
@@ -285,14 +347,14 @@ export const AdminCacServicesScreen: React.FC = () => {
                   step="500"
                   value={editBnFee}
                   onChange={e => setEditBnFee(Number(e.target.value))}
-                  className="w-full pl-8 pr-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm font-mono text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full pl-8 pr-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm font-mono text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
             </div>
 
-            <div>
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Incorporated Company Registration Fee (NGN)
+                Company Base Formation Baseline (NGN)
               </label>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">
@@ -304,49 +366,187 @@ export const AdminCacServicesScreen: React.FC = () => {
                   step="1000"
                   value={editCompanyFee}
                   onChange={e => setEditCompanyFee(Number(e.target.value))}
-                  className="w-full pl-8 pr-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm font-mono text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full pl-8 pr-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm font-mono text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
             </div>
+          </div>
 
-            <button
-              onClick={handleSavePricing}
-              disabled={isUpdatingPricing}
-              className="py-2.5 px-5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold text-xs tracking-wide shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              {isUpdatingPricing ? 'Publishing...' : 'Publish Dynamic Fees to Storefront'}
-            </button>
+          {/* Share Capital Matrix Table */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-white uppercase tracking-wider">
+                Incorporated Company Share Capital Tiers ({shareCapitalTiers.length} Bands)
+              </span>
+              <button
+                type="button"
+                onClick={handleAddShareCapitalTier}
+                className="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold hover:bg-emerald-500/20 active:scale-95 transition-all flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add Share Capital Tier
+              </button>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 overflow-hidden bg-slate-950">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900/90 text-slate-400 uppercase font-semibold border-b border-slate-800">
+                    <tr>
+                      <th className="py-2.5 px-3">Tier Name</th>
+                      <th className="py-2.5 px-3">Authorized Capital (NGN)</th>
+                      <th className="py-2.5 px-3">Total Filing Fee (NGN)</th>
+                      <th className="py-2.5 px-3">Stamp Duty</th>
+                      <th className="py-2.5 px-3">Description</th>
+                      <th className="py-2.5 px-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 font-mono">
+                    {shareCapitalTiers.map(tier => (
+                      <tr key={tier.id} className="hover:bg-slate-900/40">
+                        <td className="py-2.5 px-3 font-sans">
+                          <input
+                            type="text"
+                            value={tier.name}
+                            onChange={e => handleTierChange(tier.id, 'name', e.target.value)}
+                            className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-white text-xs w-full max-w-[200px]"
+                          />
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <div className="flex items-center gap-1 text-emerald-400">
+                            <span>₦</span>
+                            <input
+                              type="number"
+                              step="500000"
+                              value={tier.shareCapitalNGN}
+                              onChange={e => handleTierChange(tier.id, 'shareCapitalNGN', Number(e.target.value))}
+                              className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-emerald-400 text-xs w-28 font-mono"
+                            />
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <div className="flex items-center gap-1 text-white font-bold">
+                            <span>₦</span>
+                            <input
+                              type="number"
+                              step="1000"
+                              value={tier.totalFeeNGN}
+                              onChange={e => handleTierChange(tier.id, 'totalFeeNGN', Number(e.target.value))}
+                              className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-white text-xs w-24 font-mono font-bold"
+                            />
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-400">
+                          <div className="flex items-center gap-1">
+                            <span>₦</span>
+                            <input
+                              type="number"
+                              step="500"
+                              value={tier.stampDutyNGN || 0}
+                              onChange={e => handleTierChange(tier.id, 'stampDutyNGN', Number(e.target.value))}
+                              className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 text-xs w-20 font-mono"
+                            />
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-3 font-sans">
+                          <input
+                            type="text"
+                            value={tier.description || ''}
+                            onChange={e => handleTierChange(tier.id, 'description', e.target.value)}
+                            placeholder="Band description..."
+                            className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-slate-300 text-xs w-full min-w-[200px]"
+                          />
+                        </td>
+                        <td className="py-2.5 px-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTier(tier.id)}
+                            className="p-1 rounded text-rose-400 hover:text-rose-300 hover:bg-slate-800"
+                            title="Remove tier"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={handleSavePricing}
+                disabled={isUpdatingPricing}
+                className="py-2.5 px-6 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold text-xs tracking-wide shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                {isUpdatingPricing ? 'Publishing Matrix...' : 'Publish Pricing & Share Capital Matrix to Storefront'}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Metrics Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
             <span className="text-[11px] font-semibold text-slate-400 uppercase">Total Filings</span>
             <div className="text-xl font-bold text-white mt-1 num-tabular">{metrics.total}</div>
+          </div>
+          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+            <span className="text-[11px] font-semibold text-indigo-400 uppercase">Companies (LTD)</span>
+            <div className="text-xl font-bold text-indigo-400 mt-1 num-tabular">{metrics.companyCount}</div>
+          </div>
+          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+            <span className="text-[11px] font-semibold text-emerald-400 uppercase">Business Names</span>
+            <div className="text-xl font-bold text-emerald-400 mt-1 num-tabular">{metrics.bnCount}</div>
           </div>
           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
             <span className="text-[11px] font-semibold text-amber-400 uppercase">Pending Intake</span>
             <div className="text-xl font-bold text-amber-400 mt-1 num-tabular">{metrics.pending}</div>
           </div>
           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <span className="text-[11px] font-semibold text-indigo-400 uppercase">Under Review</span>
-            <div className="text-xl font-bold text-indigo-400 mt-1 num-tabular">{metrics.inReview}</div>
-          </div>
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <span className="text-[11px] font-semibold text-rose-400 uppercase">Action Required</span>
+            <span className="text-[11px] font-semibold text-rose-400 uppercase">Action Req</span>
             <div className="text-xl font-bold text-rose-400 mt-1 num-tabular">{metrics.actionReq}</div>
           </div>
           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <span className="text-[11px] font-semibold text-emerald-400 uppercase">Incorporated / Done</span>
-            <div className="text-xl font-bold text-emerald-400 mt-1 num-tabular">{metrics.completed}</div>
+            <span className="text-[11px] font-semibold text-teal-400 uppercase">Incorporated</span>
+            <div className="text-xl font-bold text-teal-400 mt-1 num-tabular">{metrics.completed}</div>
           </div>
         </div>
 
-        {/* Filter & Search Bar */}
+        {/* Filters and Queue Controls */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 rounded-2xl bg-slate-900/80 border border-slate-800">
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            {/* Entity Type Toggle */}
+            <div className="flex p-0.5 rounded-xl bg-slate-950 border border-slate-800 shrink-0">
+              <button
+                onClick={() => setEntityTypeFilter('all')}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
+                  entityTypeFilter === 'all' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                All Types
+              </button>
+              <button
+                onClick={() => setEntityTypeFilter('company_registration')}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
+                  entityTypeFilter === 'company_registration' ? 'bg-slate-800 text-emerald-400' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Companies (LTD)
+              </button>
+              <button
+                onClick={() => setEntityTypeFilter('business_name')}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
+                  entityTypeFilter === 'business_name' ? 'bg-slate-800 text-emerald-400' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Business Names
+              </button>
+            </div>
+
+            {/* Status Tabs */}
             {(['all', 'pending', 'in_review', 'action_required', 'completed'] as const).map(tab => (
               <button
                 key={tab}
@@ -357,7 +557,7 @@ export const AdminCacServicesScreen: React.FC = () => {
                     : 'text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
               >
-                {tab === 'all' ? 'All Applications' : tab.replace('_', ' ').toUpperCase()}
+                {tab === 'all' ? 'All Status' : tab.replace('_', ' ').toUpperCase()}
               </button>
             ))}
           </div>
@@ -374,16 +574,17 @@ export const AdminCacServicesScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Applications Master Table */}
+        {/* Master Submissions Queue Table */}
         <div className="rounded-3xl bg-slate-900/60 border border-slate-800 overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-950/80 text-slate-400 uppercase font-semibold border-b border-slate-800">
                 <tr>
                   <th className="py-3.5 px-4">Entity & Reference</th>
-                  <th className="py-3.5 px-4">Entity Type</th>
-                  <th className="py-3.5 px-4">Applicant</th>
-                  <th className="py-3.5 px-4">Industry Category</th>
+                  <th className="py-3.5 px-4">Classification</th>
+                  <th className="py-3.5 px-4">Share Capital</th>
+                  <th className="py-3.5 px-4">Applicant & Contact</th>
+                  <th className="py-3.5 px-4">Industry</th>
                   <th className="py-3.5 px-4">Fee Settled</th>
                   <th className="py-3.5 px-4">Status</th>
                   <th className="py-3.5 px-4 text-right">Actions</th>
@@ -392,7 +593,7 @@ export const AdminCacServicesScreen: React.FC = () => {
               <tbody className="divide-y divide-slate-800/60">
                 {filteredApps.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-slate-500">
+                    <td colSpan={8} className="py-12 text-center text-slate-500">
                       No CAC registration filings match this filter
                     </td>
                   </tr>
@@ -414,12 +615,28 @@ export const AdminCacServicesScreen: React.FC = () => {
                       </td>
                       <td className="py-3.5 px-4">
                         <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 font-medium">
-                          {app.serviceType === 'company_registration' ? 'Incorporated Company' : 'Business Name'}
+                          {app.serviceType === 'company_registration' ? 'Company (LTD)' : 'Business Name'}
                         </span>
                       </td>
                       <td className="py-3.5 px-4">
+                        {app.shareCapitalNGN ? (
+                          <div>
+                            <span className="font-mono font-bold text-emerald-400 text-xs">
+                              ₦{(app.shareCapitalNGN / 1000000).toFixed(0)}M Capital
+                            </span>
+                            {app.shareCapitalTierName && (
+                              <div className="text-[10px] text-slate-400 truncate max-w-[130px]">
+                                {app.shareCapitalTierName}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-slate-500 font-mono">N/A (Sole Prop)</span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4">
                         <div className="font-semibold text-slate-200">{app.userName}</div>
-                        <div className="text-slate-400 text-[11px]">{app.userPhone}</div>
+                        <div className="text-slate-400 text-[11px] font-mono">{app.userPhone}</div>
                       </td>
                       <td className="py-3.5 px-4 text-slate-300">{app.category}</td>
                       <td className="py-3.5 px-4 font-mono font-bold text-emerald-400">
@@ -461,11 +678,11 @@ export const AdminCacServicesScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Inspection & Processing Drawer / Modal */}
+      {/* Inspection & Compliance Processing Drawer */}
       {selectedApp && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-end animate-fadeIn">
           <div className="w-full max-w-2xl h-full bg-slate-900 border-l border-slate-800 flex flex-col shadow-2xl overflow-hidden">
-            {/* Drawer Top Header */}
+            {/* Drawer Header */}
             <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
               <div>
                 <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest">
@@ -519,11 +736,11 @@ export const AdminCacServicesScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* Business Identity Specs */}
+              {/* Entity Specifications & Share Capital Card */}
               <div className="space-y-3">
                 <h3 className="font-bold text-white uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                   <Building2 className="w-3.5 h-3.5 text-emerald-400" />
-                  Business & Filing Details
+                  Business & Share Capital Details
                 </h3>
 
                 <div className="grid grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-950 border border-slate-800">
@@ -536,13 +753,19 @@ export const AdminCacServicesScreen: React.FC = () => {
                     <span className="text-slate-300">{selectedApp.alternativeName || 'None'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[11px]">Entity Type</span>
+                    <span className="text-slate-400 block text-[11px]">Entity Classification</span>
                     <span className="text-emerald-400 font-semibold">
                       {selectedApp.serviceType === 'company_registration' ? 'Incorporated Company (LTD)' : 'Business Name'}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[11px]">CAC Category</span>
+                    <span className="text-slate-400 block text-[11px]">Share Capital Band</span>
+                    <span className="text-emerald-400 font-mono font-bold">
+                      {selectedApp.shareCapitalNGN ? `₦${selectedApp.shareCapitalNGN.toLocaleString()}` : 'Sole Proprietorship'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Industry Category</span>
                     <span className="text-slate-300">{selectedApp.category}</span>
                   </div>
                   <div>
@@ -550,8 +773,12 @@ export const AdminCacServicesScreen: React.FC = () => {
                     <span className="text-slate-300 font-mono">{selectedApp.commencementDate}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[11px]">Statutory Fee Settled</span>
+                    <span className="text-slate-400 block text-[11px]">Filing Fee Settled</span>
                     <span className="text-emerald-400 font-mono font-bold">₦{selectedApp.serviceFeeNGN?.toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Payment Reference</span>
+                    <span className="text-slate-300 font-mono">{selectedApp.paymentReference}</span>
                   </div>
                   <div className="col-span-2 pt-2 border-t border-slate-900">
                     <span className="text-slate-400 block text-[11px]">Business Operating Address</span>
@@ -566,31 +793,78 @@ export const AdminCacServicesScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* Partners / Directors Table */}
+              {/* Comprehensive Directors / Shareholders / Partners Inspection */}
               <div className="space-y-3">
                 <h3 className="font-bold text-white uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                   <User className="w-3.5 h-3.5 text-emerald-400" />
-                  Partners & Directors ({selectedApp.partners?.length || 1})
+                  Directors, Shareholders & Witnesses ({selectedApp.partners?.length || 1})
                 </h3>
 
-                <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                <div className="space-y-3">
                   {(selectedApp.partners || []).map((p, idx) => (
                     <div
                       key={p.id || idx}
-                      className="p-2.5 rounded-xl bg-slate-900 border border-slate-800/80 flex items-center justify-between"
+                      className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5"
                     >
-                      <div>
-                        <div className="font-semibold text-white">{p.fullName}</div>
-                        <div className="text-[11px] text-slate-400">{p.email} • {p.phone}</div>
-                      </div>
-                      <div className="text-right">
-                        <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[10px] font-bold">
-                          {p.role}
-                        </span>
+                      <div className="flex items-center justify-between border-b border-slate-900 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-[10px] font-bold">
+                            {idx + 1}
+                          </span>
+                          <span className="font-bold text-white text-xs">{p.fullName}</span>
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">
+                            {p.role}
+                          </span>
+                        </div>
                         {p.sharesPercent !== undefined && (
-                          <div className="text-[10px] text-slate-400 mt-0.5 font-mono">
-                            {p.sharesPercent}% shares
-                          </div>
+                          <span className="font-mono text-emerald-400 font-bold text-xs">
+                            {p.sharesPercent}% Equity
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px]">
+                        <div>
+                          <span className="text-slate-500 block">Phone:</span>
+                          <span className="text-slate-300 font-mono">{p.phone}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 block">Email:</span>
+                          <span className="text-slate-300">{p.email}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-slate-500 block">Residential Address:</span>
+                          <span className="text-slate-300">{p.residentialAddress || 'Same as operating address'}</span>
+                        </div>
+                      </div>
+
+                      {/* Attached ID & Signature Preview */}
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-900">
+                        {p.idCardUrl && (
+                          <a
+                            href={p.idCardUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center gap-2"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            <span className="text-[10px] text-slate-300 truncate">
+                              {p.idCardType || 'ID Card'} Preview ➔
+                            </span>
+                          </a>
+                        )}
+                        {p.signatureUrl && (
+                          <a
+                            href={p.signatureUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center gap-2"
+                          >
+                            <PenTool className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                            <span className="text-[10px] text-slate-300 truncate">
+                              Signature Preview ➔
+                            </span>
+                          </a>
                         )}
                       </div>
                     </div>
@@ -598,11 +872,11 @@ export const AdminCacServicesScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* Statutory Documents Inspection Gallery */}
+              {/* Uploaded Documents Inspection */}
               <div className="space-y-3">
                 <h3 className="font-bold text-white uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                   <FileText className="w-3.5 h-3.5 text-emerald-400" />
-                  Uploaded Statutory Documents
+                  Statutory Upload Gallery
                 </h3>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -671,7 +945,7 @@ export const AdminCacServicesScreen: React.FC = () => {
                     </a>
                   </div>
 
-                  {/* Reference Signature */}
+                  {/* Reference Signature for Companies */}
                   {selectedApp.serviceType === 'company_registration' && (
                     <div className="p-3 rounded-2xl bg-slate-950 border border-amber-500/20 space-y-2">
                       <div className="flex justify-between items-center">
@@ -704,7 +978,7 @@ export const AdminCacServicesScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* Two-Way Compliance Communication Thread */}
+              {/* Two-Way Compliance Messaging Thread */}
               <div className="space-y-3 pt-2 border-t border-slate-800">
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-white uppercase tracking-wider text-[11px] flex items-center gap-1.5">
