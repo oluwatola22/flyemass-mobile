@@ -345,14 +345,6 @@ export const AgentServiceScreen: React.FC = () => {
   // User Balances
   const userBalances = db.getUser(uid)?.balances || { USD: 42890.50, NGN: 28450200, CNY: 184250 };
 
-  // Copy helper
-  const handleCopy = (text: string, label: string) => {
-    if (navigator?.clipboard?.writeText) {
-      navigator.clipboard.writeText(text);
-      showToast(`${label} copied to clipboard`, 'success');
-    }
-  };
-
   // China On-Ground Hubs Data
   const CHINA_HUBS = [
     {
@@ -414,35 +406,36 @@ export const AgentServiceScreen: React.FC = () => {
 
         <div className="p-4 space-y-4 max-w-lg mx-auto">
           {/* Easy Return Navigation Bar */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <button
               type="button"
               onClick={handleBackToHub}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white px-3 py-2 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer group shadow-sm"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white px-3 py-2 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer group shadow-sm shrink-0"
             >
-              <ArrowLeft className="w-4 h-4 text-emerald-400 group-hover:-translate-x-1 transition-transform" />
-              <span>Back to China Agents & Sourcing</span>
+              <ArrowLeft className="w-3.5 h-3.5 text-emerald-400 group-hover:-translate-x-0.5 transition-transform shrink-0" />
+              <span>Back to Agent Hub</span>
             </button>
-            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 shrink-0 whitespace-nowrap font-mono">
               Escrow Protected
             </span>
           </div>
 
           {/* Sourcing Hero Banner */}
-          <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                  <Search className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-white">Product Sourcing & Purchasing</h2>
-                  <p className="text-xs text-slate-400">Direct factory price negotiation & sample consolidation</p>
-                </div>
+          <div className="p-4 sm:p-5 rounded-3xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
+                <Search className="w-5 h-5" />
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold font-mono">
-                {settings.sourcingCommissionPercent}% Fee
-              </span>
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold font-mono whitespace-nowrap">
+                    {settings.sourcingCommissionPercent}% Fee
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-mono">Min. ¥{settings.minSourcingCommissionCNY} CNY</span>
+                </div>
+                <h2 className="text-sm sm:text-base font-bold text-white leading-snug">Product Sourcing & Purchasing</h2>
+                <p className="text-xs text-slate-400 leading-relaxed">Direct factory price negotiation & sample consolidation across 1688 and Taobao</p>
+              </div>
             </div>
 
             {/* Stepper Indicator */}
@@ -457,7 +450,7 @@ export const AgentServiceScreen: React.FC = () => {
                 }`}
               >
                 <span className="text-[10px] text-emerald-400 block uppercase font-mono">Step 1</span>
-                <span>Specifications & Target</span>
+                <span className="truncate block font-medium">Specifications & Target</span>
               </button>
               <button
                 type="button"
@@ -472,7 +465,7 @@ export const AgentServiceScreen: React.FC = () => {
                 }`}
               >
                 <span className="text-[10px] text-emerald-400 block uppercase font-mono">Step 2</span>
-                <span>Quotation & Review</span>
+                <span className="truncate block font-medium">Quotation & Review</span>
               </button>
             </div>
           </div>
@@ -482,7 +475,7 @@ export const AgentServiceScreen: React.FC = () => {
             <div className="space-y-4 text-xs">
               <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3.5 shadow-lg">
                 <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <Package className="w-4 h-4 text-emerald-400" />
+                  <Package className="w-4 h-4 text-emerald-400 shrink-0" />
                   <span>Item Identification</span>
                 </h3>
 
@@ -494,7 +487,7 @@ export const AgentServiceScreen: React.FC = () => {
                     type="text"
                     value={srcProductName}
                     onChange={(e) => setSrcProductName(e.target.value)}
-                    placeholder="e.g. Wireless ANC Bluetooth Headphones with Custom Box"
+                    placeholder="e.g. Wireless ANC Headphones with Custom Box"
                     className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
                     required
                   />
@@ -502,7 +495,7 @@ export const AgentServiceScreen: React.FC = () => {
 
                 <div>
                   <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
-                    1688 / Taobao / Alibaba / Pinduoduo Link (Optional)
+                    1688 / Taobao / Alibaba Link (Optional)
                   </label>
                   <input
                     type="url"
@@ -511,9 +504,9 @@ export const AgentServiceScreen: React.FC = () => {
                     placeholder="https://detail.1688.com/offer/..."
                     className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 font-mono text-[11px]"
                   />
-                  <div className="flex items-center gap-1.5 mt-1.5">
+                  <div className="flex items-center gap-1.5 mt-1.5 overflow-x-auto no-scrollbar">
                     {['1688', 'Taobao', 'Alibaba', 'Pinduoduo'].map(plat => (
-                      <span key={plat} className="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400 font-medium">
+                      <span key={plat} className="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400 font-medium whitespace-nowrap">
                         {plat}
                       </span>
                     ))}
@@ -528,7 +521,7 @@ export const AgentServiceScreen: React.FC = () => {
                       value={srcQuantity}
                       onChange={(e) => setSrcQuantity(e.target.value)}
                       min="1"
-                      className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500 text-xs"
+                      className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       required
                     />
                   </div>
@@ -540,7 +533,7 @@ export const AgentServiceScreen: React.FC = () => {
                       onChange={(e) => setSrcTargetUnitCNY(e.target.value)}
                       min="0.1"
                       step="0.1"
-                      className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-emerald-400 font-mono font-bold outline-none focus:border-emerald-500 text-xs"
+                      className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-emerald-400 font-mono font-bold outline-none focus:border-emerald-500 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       required
                     />
                   </div>
@@ -550,7 +543,7 @@ export const AgentServiceScreen: React.FC = () => {
               {/* Specifications & Photos */}
               <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3.5 shadow-lg">
                 <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <FileText className="w-4 h-4 text-emerald-400" />
+                  <FileText className="w-4 h-4 text-emerald-400 shrink-0" />
                   <span>Customization & Details</span>
                 </h3>
 
@@ -563,7 +556,7 @@ export const AgentServiceScreen: React.FC = () => {
                     value={srcSpecs}
                     onChange={(e) => setSrcSpecs(e.target.value)}
                     placeholder="Specify materials, colorways, logo engraving, or individual blister packaging..."
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs resize-none"
+                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs resize-none leading-relaxed"
                   />
                 </div>
 
@@ -578,7 +571,7 @@ export const AgentServiceScreen: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setSrcPhotos(prev => prev.filter((_, idx) => idx !== i))}
-                          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600/90 text-white flex items-center justify-center opacity-90 hover:opacity-100"
+                          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600/90 text-white flex items-center justify-center opacity-90 hover:opacity-100 cursor-pointer"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -589,7 +582,7 @@ export const AgentServiceScreen: React.FC = () => {
                         <Camera className="w-5 h-5 text-slate-500 mb-1" />
                         <input
                           type="text"
-                          placeholder="Paste image URL"
+                          placeholder="Paste URL & Enter"
                           value={srcNewPhotoUrl}
                           onChange={(e) => setSrcNewPhotoUrl(e.target.value)}
                           onKeyDown={(e) => {
@@ -634,7 +627,7 @@ export const AgentServiceScreen: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleBackToHub}
-                  className="w-1/3 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs border border-slate-800 transition-all text-center"
+                  className="w-1/3 h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs border border-slate-800 transition-all flex items-center justify-center text-center cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -648,10 +641,10 @@ export const AgentServiceScreen: React.FC = () => {
                     setSourcingStep(2);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="w-2/3 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-2/3 h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <span>Proceed to Quotation Review</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 shrink-0" />
                 </button>
               </div>
             </div>
@@ -662,32 +655,32 @@ export const AgentServiceScreen: React.FC = () => {
             <div className="space-y-4 text-xs">
               <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3 shadow-lg">
                 <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
                   <span>Sourcing Mission Specification</span>
                 </h3>
 
-                <div className="space-y-2 p-3 rounded-2xl bg-slate-950 border border-slate-800">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Target Item:</span>
-                    <strong className="text-white text-right max-w-[200px] truncate">{srcProductName}</strong>
+                <div className="space-y-2 p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-slate-400 shrink-0">Target Item:</span>
+                    <strong className="text-white text-right truncate max-w-[200px]">{srcProductName}</strong>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Order Quantity:</span>
-                    <strong className="text-white font-mono">{qty.toLocaleString()} units</strong>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-slate-400 shrink-0">Order Quantity:</span>
+                    <strong className="text-white font-mono text-right">{qty.toLocaleString()} units</strong>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Target Unit Price:</span>
-                    <strong className="text-white font-mono">¥{unitCNY} CNY / unit</strong>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-slate-400 shrink-0">Target Unit Price:</span>
+                    <strong className="text-white font-mono text-right">¥{unitCNY} CNY / unit</strong>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Hub Assignment:</span>
-                    <strong className="text-emerald-400">Guangzhou Central Procurement Desk</strong>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-slate-400 shrink-0">Hub Assignment:</span>
+                    <strong className="text-emerald-400 text-right">Guangzhou Central Procurement Desk</strong>
                   </div>
                 </div>
 
                 <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs space-y-1">
                   <div className="flex items-center gap-1.5 font-bold">
-                    <Lock className="w-3.5 h-3.5" />
+                    <Lock className="w-3.5 h-3.5 shrink-0" />
                     <span>Flyemass Sourcing Protection Protocol</span>
                   </div>
                   <p className="text-[11px] text-slate-300 leading-relaxed">
@@ -700,7 +693,7 @@ export const AgentServiceScreen: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSourcingStep(1)}
-                  className="w-1/3 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs border border-slate-800 transition-all text-center"
+                  className="w-1/3 h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs border border-slate-800 transition-all flex items-center justify-center text-center cursor-pointer"
                 >
                   Back to Step 1
                 </button>
@@ -708,14 +701,14 @@ export const AgentServiceScreen: React.FC = () => {
                   type="button"
                   onClick={handleSourcingSubmit}
                   disabled={isSubmittingSourcing}
-                  className="w-2/3 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="w-2/3 h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {isSubmittingSourcing ? (
                     <span>Submitting Sourcing Request...</span>
                   ) : (
                     <>
-                      <Check className="w-4 h-4" />
-                      <span>Confirm & Submit Sourcing Request</span>
+                      <Check className="w-4 h-4 shrink-0" />
+                      <span className="whitespace-nowrap">Confirm & Submit Sourcing Request</span>
                     </>
                   )}
                 </button>
@@ -760,48 +753,49 @@ export const AgentServiceScreen: React.FC = () => {
 
         <div className="p-4 space-y-4 max-w-lg mx-auto">
           {/* Easy Return Navigation Bar */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <button
               type="button"
               onClick={handleBackToHub}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white px-3 py-2 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer group shadow-sm"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white px-3 py-2 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer group shadow-sm shrink-0"
             >
-              <ArrowLeft className="w-4 h-4 text-emerald-400 group-hover:-translate-x-1 transition-transform" />
-              <span>Back to China Agents & Sourcing</span>
+              <ArrowLeft className="w-3.5 h-3.5 text-emerald-400 group-hover:-translate-x-0.5 transition-transform shrink-0" />
+              <span>Back to Agent Hub</span>
             </button>
-            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 shrink-0 whitespace-nowrap font-mono">
               Escrow Protected
             </span>
           </div>
 
           {/* Service Banner */}
-          <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                  {activeWizard === 'factory_audit' && <ShieldCheck className="w-6 h-6" />}
-                  {activeWizard === 'canton_fair_escort' && <Users className="w-6 h-6" />}
-                  {activeWizard === 'supplier_verification' && <Building className="w-6 h-6" />}
-                  {activeWizard === 'quality_control' && <ClipboardList className="w-6 h-6" />}
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-white">{serviceTitles[activeWizard]}</h2>
-                  <p className="text-xs text-slate-400">
-                    {activeWizard === 'factory_audit' && 'Comprehensive physical factory inspection & machinery audit'}
-                    {activeWizard === 'canton_fair_escort' && 'Bilingual trade escort & catalog negotiation at Pazhou Complex'}
-                    {activeWizard === 'supplier_verification' && 'Official National Enterprise Credit & license verification'}
-                    {activeWizard === 'quality_control' && 'AQL sampling, carton drop test & detailed QC report'}
-                  </p>
-                </div>
+          <div className="p-4 sm:p-5 rounded-3xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
+                {activeWizard === 'factory_audit' && <ShieldCheck className="w-5 h-5" />}
+                {activeWizard === 'canton_fair_escort' && <Users className="w-5 h-5" />}
+                {activeWizard === 'supplier_verification' && <Building className="w-5 h-5" />}
+                {activeWizard === 'quality_control' && <ClipboardList className="w-5 h-5" />}
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold font-mono shrink-0">
-                ${currentFeeUSD} USD
-              </span>
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold font-mono whitespace-nowrap">
+                    ${currentFeeUSD} USD Fixed
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-semibold font-mono">100% Escrow</span>
+                </div>
+                <h2 className="text-sm sm:text-base font-bold text-white leading-snug">{serviceTitles[activeWizard]}</h2>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {activeWizard === 'factory_audit' && 'Comprehensive physical factory inspection, machine review & capacity audit'}
+                  {activeWizard === 'canton_fair_escort' && 'Bilingual trade escort & catalog negotiation at Guangzhou Pazhou Complex'}
+                  {activeWizard === 'supplier_verification' && 'Official National Enterprise Credit & business license validation'}
+                  {activeWizard === 'quality_control' && 'AQL sampling, carton drop test & detailed photographic QC report'}
+                </p>
+              </div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800/80 flex items-center justify-between text-xs">
-              <span className="text-slate-400 font-medium">Turnaround SLA: 24–48 Hours</span>
-              <span className="text-emerald-400 font-semibold">100% Escrow Protected</span>
+            <div className="p-2.5 rounded-2xl bg-slate-950 border border-slate-800/80 flex items-center justify-between text-xs">
+              <span className="text-slate-400 text-[11px] whitespace-nowrap">Turnaround SLA: 24–48 Hours</span>
+              <span className="text-emerald-400 font-semibold text-[11px] whitespace-nowrap">Inspection Report Delivered</span>
             </div>
           </div>
 
@@ -810,8 +804,8 @@ export const AgentServiceScreen: React.FC = () => {
             {/* Section 1: Product & Specifications */}
             <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3.5 shadow-lg">
               <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <Package className="w-4 h-4 text-emerald-400" />
-                <span>Product Specifications & Details</span>
+                <Package className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Product Specifications & Scope</span>
               </h3>
 
               <div>
@@ -837,7 +831,7 @@ export const AgentServiceScreen: React.FC = () => {
                   value={inspProductSpecs}
                   onChange={(e) => setInspProductSpecs(e.target.value)}
                   placeholder="e.g. 51.2V 100Ah LiFePO4 cells with CE & UN38.3 report"
-                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs resize-none"
+                  className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs resize-none leading-relaxed"
                   required
                 />
               </div>
@@ -852,7 +846,7 @@ export const AgentServiceScreen: React.FC = () => {
                     value={inspTargetQuantity}
                     onChange={(e) => setInspTargetQuantity(e.target.value)}
                     min="1"
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 font-mono text-xs"
+                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 font-mono text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     required
                   />
                 </div>
@@ -892,7 +886,7 @@ export const AgentServiceScreen: React.FC = () => {
             {/* Section 2: Factory & Supplier Logistics */}
             <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3.5 shadow-lg">
               <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <Building className="w-4 h-4 text-emerald-400" />
+                <Building className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>Supplier / Factory Location</span>
               </h3>
 
@@ -918,7 +912,7 @@ export const AgentServiceScreen: React.FC = () => {
                   type="text"
                   value={inspAddress}
                   onChange={(e) => setInspAddress(e.target.value)}
-                  placeholder="e.g. Building 4, Science & Technology Park, Nanshan, Shenzhen"
+                  placeholder="e.g. Building 4, Science & Technology Park, Nanshan"
                   className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
                   required
                 />
@@ -968,21 +962,21 @@ export const AgentServiceScreen: React.FC = () => {
             {/* Section 3: Inspection Checklist */}
             <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3.5 shadow-lg">
               <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <ClipboardList className="w-4 h-4 text-emerald-400" />
+                <ClipboardList className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>Inspection Scope & Checklist</span>
               </h3>
 
               <div className="space-y-2">
                 {inspRequirements.map((req, i) => (
-                  <div key={i} className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs">
-                    <div className="flex items-center gap-2">
+                  <div key={i} className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs gap-2">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
                       <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                      <span className="text-slate-300">{req}</span>
+                      <span className="text-slate-300 leading-snug">{req}</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setInspRequirements(prev => prev.filter((_, idx) => idx !== i))}
-                      className="text-slate-500 hover:text-rose-400 p-1"
+                      className="text-slate-500 hover:text-rose-400 p-1 shrink-0"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -993,7 +987,7 @@ export const AgentServiceScreen: React.FC = () => {
               <div className="flex items-center gap-2">
                 <input
                   type="text"
-                  placeholder="Add custom inspection test or requirement..."
+                  placeholder="Add custom inspection test..."
                   value={newRequirement}
                   onChange={(e) => setNewRequirement(e.target.value)}
                   onKeyDown={(e) => {
@@ -1013,7 +1007,7 @@ export const AgentServiceScreen: React.FC = () => {
                       setNewRequirement('');
                     }
                   }}
-                  className="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold"
+                  className="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold shrink-0"
                 >
                   Add
                 </button>
@@ -1023,7 +1017,7 @@ export const AgentServiceScreen: React.FC = () => {
             {/* Section 4: Settlement & Wallet Selection */}
             <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3.5 shadow-lg">
               <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <Wallet className="w-4 h-4 text-emerald-400" />
+                <Wallet className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>Settlement & Escrow Guarantee</span>
               </h3>
 
@@ -1111,21 +1105,21 @@ export const AgentServiceScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={handleBackToHub}
-                className="w-1/3 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs border border-slate-800 transition-all text-center"
+                className="w-1/3 h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs border border-slate-800 transition-all flex items-center justify-center text-center cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmittingInspection}
-                className="w-2/3 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="w-2/3 h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 {isSubmittingInspection ? (
                   <span>Dispatching Mission...</span>
                 ) : (
                   <>
-                    <Check className="w-4 h-4" />
-                    <span>Authorize On-Ground Assignment</span>
+                    <Check className="w-4 h-4 shrink-0" />
+                    <span className="whitespace-nowrap">Authorize Assignment</span>
                   </>
                 )}
               </button>
@@ -1149,44 +1143,44 @@ export const AgentServiceScreen: React.FC = () => {
 
         <div className="p-4 space-y-4 max-w-lg mx-auto">
           {/* Easy Return Navigation Bar */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <button
               type="button"
               onClick={() => setPaymentModalRfq(null)}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white px-3 py-2 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer group shadow-sm"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white px-3 py-2 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer group shadow-sm shrink-0"
             >
-              <ArrowLeft className="w-4 h-4 text-emerald-400 group-hover:-translate-x-1 transition-transform" />
-              <span>Back to My Agent Requests</span>
+              <ArrowLeft className="w-3.5 h-3.5 text-emerald-400 group-hover:-translate-x-0.5 transition-transform shrink-0" />
+              <span>Back to My Requests</span>
             </button>
-            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
+            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 shrink-0 whitespace-nowrap font-mono">
               Quotation Sent
             </span>
           </div>
 
           <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3 shadow-lg">
-            <div className="flex justify-between text-xs">
+            <div className="flex justify-between items-center text-xs">
               <span className="text-slate-400">Request Ref:</span>
               <span className="font-mono font-bold text-emerald-400">{paymentModalRfq.reference || paymentModalRfq.id}</span>
             </div>
-            <div className="flex justify-between text-xs">
+            <div className="flex justify-between items-center text-xs">
               <span className="text-slate-400">Assignment:</span>
               <span className="font-bold text-white max-w-[200px] truncate text-right">{paymentModalRfq.productName}</span>
             </div>
 
             {paymentModalRfq.productCostCNY && (
-              <div className="flex justify-between pt-1 border-t border-slate-800 text-xs">
+              <div className="flex justify-between items-center pt-1 border-t border-slate-800 text-xs">
                 <span className="text-slate-400">Factory Product Cost:</span>
                 <span className="font-mono text-white">¥{paymentModalRfq.productCostCNY.toLocaleString()} CNY</span>
               </div>
             )}
             {paymentModalRfq.sourcingCommissionCNY && (
-              <div className="flex justify-between text-xs">
+              <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400">Sourcing Commission ({paymentModalRfq.sourcingCommissionPercent}%):</span>
                 <span className="font-mono text-white">¥{paymentModalRfq.sourcingCommissionCNY.toLocaleString()} CNY</span>
               </div>
             )}
             {paymentModalRfq.chinaShippingCNY && (
-              <div className="flex justify-between text-xs">
+              <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400">China Domestic Shipping:</span>
                 <span className="font-mono text-white">¥{paymentModalRfq.chinaShippingCNY.toLocaleString()} CNY</span>
               </div>
@@ -1279,7 +1273,7 @@ export const AgentServiceScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => setPaymentModalRfq(null)}
-              className="w-1/3 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs border border-slate-800 transition-all text-center"
+              className="w-1/3 h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs border border-slate-800 transition-all flex items-center justify-center text-center cursor-pointer"
             >
               Cancel
             </button>
@@ -1287,7 +1281,7 @@ export const AgentServiceScreen: React.FC = () => {
               type="button"
               onClick={handleConfirmPayment}
               disabled={isProcessingPayment || pinInput.length !== 6}
-              className={`w-2/3 py-3.5 rounded-2xl font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-1.5 ${
+              className={`w-2/3 h-12 rounded-2xl font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-1.5 ${
                 pinInput.length === 6 && !isProcessingPayment
                   ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20 cursor-pointer'
                   : 'bg-slate-800 text-slate-500 cursor-not-allowed'
@@ -1295,7 +1289,7 @@ export const AgentServiceScreen: React.FC = () => {
             >
               {isProcessingPayment ? <span>Authorizing Payment...</span> : (
                 <>
-                  <Check className="w-4 h-4" />
+                  <Check className="w-4 h-4 shrink-0" />
                   <span>Approve & Pay</span>
                 </>
               )}
@@ -1319,34 +1313,34 @@ export const AgentServiceScreen: React.FC = () => {
 
         <div className="p-4 space-y-4 max-w-lg mx-auto">
           {/* Easy Return Navigation Bar */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <button
               type="button"
               onClick={() => setViewDetailRfq(null)}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white px-3 py-2 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer group shadow-sm"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white px-3 py-2 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer group shadow-sm shrink-0"
             >
-              <ArrowLeft className="w-4 h-4 text-emerald-400 group-hover:-translate-x-1 transition-transform" />
-              <span>Back to My Agent Requests</span>
+              <ArrowLeft className="w-3.5 h-3.5 text-emerald-400 group-hover:-translate-x-0.5 transition-transform shrink-0" />
+              <span>Back to My Requests</span>
             </button>
-            <span className="text-[10px] font-mono font-bold text-emerald-400 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+            <span className="text-[10px] font-mono font-bold text-emerald-400 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 shrink-0 whitespace-nowrap">
               {viewDetailRfq.reference || viewDetailRfq.id}
             </span>
           </div>
 
           <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
-            <h2 className="text-base font-bold text-white">{viewDetailRfq.productName}</h2>
+            <h2 className="text-base font-bold text-white leading-snug">{viewDetailRfq.productName}</h2>
 
             <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
               <div className="flex justify-between items-center">
                 <span className="text-slate-400">Current Status:</span>
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase">
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase whitespace-nowrap">
                   {viewDetailRfq.status.replace('_', ' ')}
                 </span>
               </div>
               {viewDetailRfq.paymentStatus && (
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400">Escrow Security:</span>
-                  <span className="font-mono text-emerald-400 font-bold uppercase">{viewDetailRfq.paymentStatus}</span>
+                  <span className="font-mono text-emerald-400 font-bold uppercase whitespace-nowrap">{viewDetailRfq.paymentStatus}</span>
                 </div>
               )}
               {viewDetailRfq.assignedAgent && (
@@ -1366,7 +1360,7 @@ export const AgentServiceScreen: React.FC = () => {
             {viewDetailRfq.specifications && (
               <div className="space-y-1 text-xs">
                 <span className="text-[11px] font-bold uppercase text-slate-400">Specifications:</span>
-                <p className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-slate-300">
+                <p className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-300 leading-relaxed">
                   {viewDetailRfq.specifications}
                 </p>
               </div>
@@ -1375,7 +1369,7 @@ export const AgentServiceScreen: React.FC = () => {
             {(viewDetailRfq.supplierFindings || viewDetailRfq.businessRegistrationFindings || viewDetailRfq.factoryAuditFindings || viewDetailRfq.qualityControlFindings) && (
               <div className="space-y-1 text-xs">
                 <span className="text-[11px] font-bold uppercase text-emerald-400">Ground Agent Findings:</span>
-                <div className="p-3 rounded-2xl bg-emerald-950/20 border border-emerald-900/30 text-slate-300 space-y-1">
+                <div className="p-3 rounded-2xl bg-emerald-950/20 border border-emerald-900/30 text-xs text-slate-300 space-y-1 leading-relaxed">
                   {viewDetailRfq.supplierFindings && <p>{viewDetailRfq.supplierFindings}</p>}
                   {viewDetailRfq.businessRegistrationFindings && <p><strong>Registration:</strong> {viewDetailRfq.businessRegistrationFindings}</p>}
                   {viewDetailRfq.factoryAuditFindings && <p><strong>Factory Audit:</strong> {viewDetailRfq.factoryAuditFindings}</p>}
@@ -1393,13 +1387,13 @@ export const AgentServiceScreen: React.FC = () => {
                 ]).map((tl, i) => (
                   <div key={i} className="relative pl-3 text-xs">
                     <div className="absolute -left-[17px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-4 ring-slate-900" />
-                    <div className="flex items-center justify-between">
-                      <strong className="text-white capitalize">{tl.status.replace('_', ' ')}</strong>
-                      <span className="text-[10px] text-slate-500 font-mono">
+                    <div className="flex items-center justify-between gap-2">
+                      <strong className="text-white capitalize truncate">{tl.status.replace('_', ' ')}</strong>
+                      <span className="text-[10px] text-slate-500 font-mono shrink-0 whitespace-nowrap">
                         {new Date(tl.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-0.5">{tl.notes}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">{tl.notes}</p>
                   </div>
                 ))}
               </div>
@@ -1422,27 +1416,27 @@ export const AgentServiceScreen: React.FC = () => {
         {/* ========================================================================= */}
         {/* LUXURY STATUS CARD: ON-GROUND CHINA DESK BEACON */}
         {/* ========================================================================= */}
-        <div className="relative rounded-3xl bg-slate-900 border border-slate-800 p-5 shadow-2xl overflow-hidden">
+        <div className="relative rounded-3xl bg-slate-900 border border-slate-800 p-4 sm:p-5 shadow-2xl overflow-hidden">
           {/* Subtle luxury ambient backlight */}
           <div className="absolute top-0 right-0 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none -ml-10 -mb-10" />
 
           <div className="relative z-10 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[11px] font-semibold text-emerald-400 tracking-wide uppercase">
+            <div className="flex items-center justify-between gap-2">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 shrink-0">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span className="text-[10px] font-bold text-emerald-400 tracking-wide uppercase whitespace-nowrap font-mono">
                   China Ground Ops Live
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="font-medium text-slate-300">Guangzhou • Shenzhen • Yiwu</span>
+              <div className="flex items-center gap-1 text-[11px] text-slate-400 shrink-0 whitespace-nowrap">
+                <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="font-medium text-slate-300">GZ • SZ • Yiwu Hubs</span>
               </div>
             </div>
 
             <div>
-              <h2 className="text-xl font-bold tracking-tight text-white">
+              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white leading-snug">
                 Bilingual On-Ground Agents & Escrow
               </h2>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
@@ -1450,18 +1444,18 @@ export const AgentServiceScreen: React.FC = () => {
               </p>
             </div>
 
-            <div className="pt-2 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-center">
-              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80">
-                <span className="text-[10px] text-slate-400 block uppercase font-medium">Active Agents</span>
-                <span className="text-sm font-bold text-white font-mono mt-0.5 block">41 On-Ground</span>
+            <div className="pt-2 border-t border-slate-800/80 grid grid-cols-3 gap-1.5 text-center">
+              <div className="p-2 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col justify-center min-h-[58px]">
+                <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-tight whitespace-nowrap">Active Team</span>
+                <span className="text-xs font-bold text-white font-mono mt-0.5 block whitespace-nowrap">41 Officers</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80">
-                <span className="text-[10px] text-slate-400 block uppercase font-medium">Escrow Security</span>
-                <span className="text-sm font-bold text-emerald-400 font-mono mt-0.5 block">100% Protected</span>
+              <div className="p-2 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col justify-center min-h-[58px]">
+                <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-tight whitespace-nowrap">Escrow</span>
+                <span className="text-xs font-bold text-emerald-400 font-mono mt-0.5 block whitespace-nowrap">100% Safe</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80">
-                <span className="text-[10px] text-slate-400 block uppercase font-medium">Turnaround</span>
-                <span className="text-sm font-bold text-amber-400 font-mono mt-0.5 block">24–48 Hours</span>
+              <div className="p-2 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-col justify-center min-h-[58px]">
+                <span className="text-[9px] text-slate-400 block uppercase font-bold tracking-tight whitespace-nowrap">Turnaround</span>
+                <span className="text-xs font-bold text-amber-400 font-mono mt-0.5 block whitespace-nowrap">24–48h SLA</span>
               </div>
             </div>
           </div>
@@ -1474,50 +1468,64 @@ export const AgentServiceScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveTab('overview')}
-            className={`py-2.5 px-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-1 rounded-xl text-center transition-all ${
               activeTab === 'overview'
-                ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Compass className="w-3.5 h-3.5" />
-            <span>Services & Sourcing</span>
+            <div className="flex flex-col items-center justify-center gap-0.5">
+              <Compass className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[11px] font-bold tracking-tight leading-tight whitespace-nowrap">
+                Services & Sourcing
+              </span>
+            </div>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('my_requests')}
-            className={`py-2.5 px-2 rounded-xl text-xs font-semibold transition-all relative flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-1 rounded-xl text-center transition-all relative ${
               activeTab === 'my_requests'
-                ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Layers className="w-3.5 h-3.5" />
-            <span>My Agent Requests</span>
-            {myRequests.length > 0 && (
-              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                activeTab === 'my_requests' ? 'bg-slate-950 text-emerald-400' : 'bg-slate-800 text-slate-300'
-              }`}>
-                {myRequests.length}
+            <div className="flex flex-col items-center justify-center gap-0.5">
+              <div className="flex items-center gap-1">
+                <Layers className="w-3.5 h-3.5 shrink-0" />
+                {myRequests.length > 0 && (
+                  <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-bold font-mono ${
+                    activeTab === 'my_requests' ? 'bg-slate-950 text-emerald-400' : 'bg-slate-800 text-slate-300'
+                  }`}>
+                    {myRequests.length}
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] font-bold tracking-tight leading-tight whitespace-nowrap">
+                My Agent Requests
               </span>
-            )}
+            </div>
             {actionNeededCount > 0 && (
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping absolute top-2 right-2" />
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping absolute top-1.5 right-1.5" />
             )}
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('desks')}
-            className={`py-2.5 px-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+            className={`py-2 px-1 rounded-xl text-center transition-all ${
               activeTab === 'desks'
-                ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Building className="w-3.5 h-3.5" />
-            <span>China Desks</span>
+            <div className="flex flex-col items-center justify-center gap-0.5">
+              <Building className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[11px] font-bold tracking-tight leading-tight whitespace-nowrap">
+                China Desks
+              </span>
+            </div>
           </button>
         </div>
 
@@ -1527,57 +1535,61 @@ export const AgentServiceScreen: React.FC = () => {
         {activeTab === 'overview' && (
           <div className="space-y-4 animate-in fade-in duration-200">
             {/* Quick Status KPI Summary */}
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-1.5">
               <button
                 type="button"
                 onClick={() => { setActiveTab('my_requests'); setFilterStatus('pending_review'); }}
-                className="p-3 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-center transition-all group"
+                title="Pending Review"
+                className="py-2.5 px-1.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-center transition-all group flex flex-col justify-between min-h-[78px]"
               >
-                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block">Pending Review</span>
-                <span className="text-base font-bold text-white font-mono mt-0.5 block group-hover:text-emerald-400">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight block">Pending</span>
+                <span className="text-base font-bold text-white font-mono block group-hover:text-emerald-400 my-0.5">
                   {pendingReviewCount}
                 </span>
-                <span className="text-[9px] text-slate-500 block">Reviewing</span>
+                <span className="text-[9px] text-slate-500 block truncate w-full">Reviewing</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => { setActiveTab('my_requests'); setFilterStatus('quotation_sent'); }}
-                className={`p-3 rounded-2xl border text-center transition-all group ${
+                title="Quotation Sent"
+                className={`py-2.5 px-1.5 rounded-2xl border text-center transition-all group flex flex-col justify-between min-h-[78px] ${
                   quotationSentCount > 0
                     ? 'bg-amber-500/10 border-amber-500/30'
                     : 'bg-slate-900 border-slate-800'
                 }`}
               >
-                <span className="text-[10px] text-amber-400 uppercase font-semibold tracking-wider block">Quotation Sent</span>
-                <span className="text-base font-bold text-amber-400 font-mono mt-0.5 block">
+                <span className="text-[10px] text-amber-400 font-bold uppercase tracking-tight block">Quoted</span>
+                <span className="text-base font-bold text-amber-400 font-mono block my-0.5">
                   {quotationSentCount}
                 </span>
-                <span className="text-[9px] text-amber-300/80 block">Payable</span>
+                <span className="text-[9px] text-amber-300/80 block truncate w-full">Payable</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => { setActiveTab('my_requests'); setFilterStatus('paid_active'); }}
-                className="p-3 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-center transition-all group"
+                title="Paid & Active"
+                className="py-2.5 px-1.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-center transition-all group flex flex-col justify-between min-h-[78px]"
               >
-                <span className="text-[10px] text-indigo-400 uppercase font-semibold tracking-wider block">Paid & Active</span>
-                <span className="text-base font-bold text-indigo-400 font-mono mt-0.5 block">
+                <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-tight block">Active</span>
+                <span className="text-base font-bold text-indigo-400 font-mono block my-0.5">
                   {paidActiveCount}
                 </span>
-                <span className="text-[9px] text-slate-400 block">Ground Ops</span>
+                <span className="text-[9px] text-slate-400 block truncate w-full">Ground Ops</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => { setActiveTab('my_requests'); setFilterStatus('completed'); }}
-                className="p-3 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-center transition-all group"
+                title="Completed"
+                className="py-2.5 px-1.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-center transition-all group flex flex-col justify-between min-h-[78px]"
               >
-                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block">Completed</span>
-                <span className="text-base font-bold text-white font-mono mt-0.5 block group-hover:text-emerald-400">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight block">Done</span>
+                <span className="text-base font-bold text-white font-mono block group-hover:text-emerald-400 my-0.5">
                   {completedCount}
                 </span>
-                <span className="text-[9px] text-slate-500 block">Reports</span>
+                <span className="text-[9px] text-slate-500 block truncate w-full">Reports</span>
               </button>
             </div>
 
@@ -1587,7 +1599,7 @@ export const AgentServiceScreen: React.FC = () => {
                 <h3 className="text-sm font-bold text-white">Select Ground Assignment</h3>
                 <p className="text-[11px] text-slate-400">Direct execution by local bilingual trade officers</p>
               </div>
-              <span className="text-[10px] font-semibold text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+              <span className="text-[10px] font-semibold text-emerald-400 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 whitespace-nowrap shrink-0">
                 Escrow Protected
               </span>
             </div>
@@ -1597,31 +1609,30 @@ export const AgentServiceScreen: React.FC = () => {
               onClick={() => handleOpenService('sourcing')}
               className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-emerald-500/40 cursor-pointer transition-all shadow-xl group space-y-3"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform shrink-0">
-                    <Search className="w-5 h-5" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">
-                        Product Sourcing & Purchasing
-                      </h4>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold">
-                        {settings.sourcingCommissionPercent}% Fee
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      Source directly on 1688, Taobao, Alibaba, or Pinduoduo. We negotiate direct manufacturer pricing, purchase samples, and coordinate China freight.
-                    </p>
-                  </div>
+              <div className="flex items-start gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform shrink-0 mt-0.5">
+                  <Search className="w-5 h-5" />
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold font-mono whitespace-nowrap">
+                      {settings.sourcingCommissionPercent}% Fee
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Min. ¥{settings.minSourcingCommissionCNY}</span>
+                  </div>
+                  <h4 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors leading-snug">
+                    Product Sourcing & Purchasing
+                  </h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Source directly on 1688, Taobao, Alibaba, or Pinduoduo. We negotiate direct manufacturer pricing, purchase samples, and coordinate China freight.
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
               </div>
 
-              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">Min. commission: ¥{settings.minSourcingCommissionCNY} CNY</span>
-                <span className="font-semibold text-emerald-400 flex items-center gap-1">
+              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs gap-2">
+                <span className="text-slate-400 text-[11px] truncate flex-1 min-w-0">Min. commission: ¥{settings.minSourcingCommissionCNY} CNY</span>
+                <span className="font-semibold text-emerald-400 flex items-center gap-1 shrink-0 whitespace-nowrap">
                   <span>Start Sourcing Wizard</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </span>
@@ -1633,31 +1644,30 @@ export const AgentServiceScreen: React.FC = () => {
               onClick={() => handleOpenService('factory_audit')}
               className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-amber-500/40 cursor-pointer transition-all shadow-xl group space-y-3"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform shrink-0">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
-                        Physical Factory Audit
-                      </h4>
-                      <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold">
-                        ${settings.factoryAuditUSD} USD Fixed
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      On-the-ground visit to factory workshops. Inspect production machinery, verify manufacturing capacity, worker conditions, and real output capability.
-                    </p>
-                  </div>
+              <div className="flex items-start gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform shrink-0 mt-0.5">
+                  <ShieldCheck className="w-5 h-5" />
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold font-mono whitespace-nowrap">
+                      ${settings.factoryAuditUSD} USD Fixed
+                    </span>
+                    <span className="text-[10px] text-amber-400 font-mono whitespace-nowrap">Full Audit</span>
+                  </div>
+                  <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors leading-snug">
+                    Physical Factory Audit
+                  </h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    On-the-ground visit to factory workshops. Inspect production machinery, verify manufacturing capacity, worker conditions, and real output capability.
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
               </div>
 
-              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">Deliverable: Comprehensive PDF Audit Report + HD Video</span>
-                <span className="font-semibold text-amber-400 flex items-center gap-1">
+              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs gap-2">
+                <span className="text-slate-400 text-[11px] truncate flex-1 min-w-0">Deliverable: Full PDF Audit Report</span>
+                <span className="font-semibold text-amber-400 flex items-center gap-1 shrink-0 whitespace-nowrap">
                   <span>Book Factory Audit</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </span>
@@ -1669,31 +1679,30 @@ export const AgentServiceScreen: React.FC = () => {
               onClick={() => handleOpenService('canton_fair_escort')}
               className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-amber-500/40 cursor-pointer transition-all shadow-xl group space-y-3"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform shrink-0">
-                    <Users className="w-5 h-5" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
-                        Canton Fair Escort & Trade Guide
-                      </h4>
-                      <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold">
-                        ${settings.cantonFairEscortUSD || 200} USD / Day
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      Bilingual ground agent escort at Canton Fair (Guangzhou Pazhou Complex). Live English-Chinese translation, booth negotiation, catalog compilation, and supplier vetting.
-                    </p>
-                  </div>
+              <div className="flex items-start gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform shrink-0 mt-0.5">
+                  <Users className="w-5 h-5" />
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold font-mono whitespace-nowrap">
+                      ${settings.cantonFairEscortUSD || 200} USD / Day
+                    </span>
+                    <span className="text-[10px] text-amber-400 font-mono">Pazhou Escort</span>
+                  </div>
+                  <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors leading-snug">
+                    Canton Fair Escort & Trade Guide
+                  </h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Bilingual ground agent escort at Canton Fair (Guangzhou Pazhou Complex). Live English-Chinese translation, booth negotiation, catalog compilation, and supplier vetting.
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
               </div>
 
-              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">Deliverable: Verified Booth Reports & Supplier Dossier</span>
-                <span className="font-semibold text-amber-400 flex items-center gap-1">
+              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs gap-2">
+                <span className="text-slate-400 text-[11px] truncate flex-1 min-w-0">Deliverable: Verified Booth Reports & Dossier</span>
+                <span className="font-semibold text-amber-400 flex items-center gap-1 shrink-0 whitespace-nowrap">
                   <span>Book Fair Escort</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </span>
@@ -1705,31 +1714,30 @@ export const AgentServiceScreen: React.FC = () => {
               onClick={() => handleOpenService('supplier_verification')}
               className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-indigo-500/40 cursor-pointer transition-all shadow-xl group space-y-3"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition-transform shrink-0">
-                    <Building className="w-5 h-5" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">
-                        Supplier Legitimacy Verification
-                      </h4>
-                      <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold">
-                        ${settings.supplierVerificationUSD} USD Fixed
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      National Enterprise Credit Information check, Unified Social Credit Code verification, business license validation, and physical office check.
-                    </p>
-                  </div>
+              <div className="flex items-start gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition-transform shrink-0 mt-0.5">
+                  <Building className="w-5 h-5" />
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold font-mono whitespace-nowrap">
+                      ${settings.supplierVerificationUSD} USD Fixed
+                    </span>
+                    <span className="text-[10px] text-indigo-400 font-mono">Gov Credit Check</span>
+                  </div>
+                  <h4 className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors leading-snug">
+                    Supplier Legitimacy Verification
+                  </h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    National Enterprise Credit Information check, Unified Social Credit Code verification, business license validation, and physical office check.
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
               </div>
 
-              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">Deliverable: Official Verification Certificate</span>
-                <span className="font-semibold text-indigo-400 flex items-center gap-1">
+              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs gap-2">
+                <span className="text-slate-400 text-[11px] truncate flex-1 min-w-0">Deliverable: Official Verification Certificate</span>
+                <span className="font-semibold text-indigo-400 flex items-center gap-1 shrink-0 whitespace-nowrap">
                   <span>Verify Supplier</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </span>
@@ -1741,31 +1749,30 @@ export const AgentServiceScreen: React.FC = () => {
               onClick={() => handleOpenService('quality_control')}
               className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-teal-500/40 cursor-pointer transition-all shadow-xl group space-y-3"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 group-hover:scale-105 transition-transform shrink-0">
-                    <ClipboardList className="w-5 h-5" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">
-                        Pre-Shipment Quality Control (QC)
-                      </h4>
-                      <span className="px-2 py-0.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[10px] font-bold">
-                        ${settings.qualityControlUSD} USD Fixed
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      AQL Level II standard sampling inspection at factory warehouse prior to dispatch. Barcode scan, dimensions, weight, packaging drop test, and defects count.
-                    </p>
-                  </div>
+              <div className="flex items-start gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 group-hover:scale-105 transition-transform shrink-0 mt-0.5">
+                  <ClipboardList className="w-5 h-5" />
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-teal-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[10px] font-bold font-mono whitespace-nowrap">
+                      ${settings.qualityControlUSD} USD Fixed
+                    </span>
+                    <span className="text-[10px] text-teal-400 font-mono">AQL Sampling</span>
+                  </div>
+                  <h4 className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors leading-snug">
+                    Pre-Shipment Quality Control (QC)
+                  </h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    AQL Level II standard sampling inspection at factory warehouse prior to dispatch. Barcode scan, dimensions, weight, packaging drop test, and defects count.
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-teal-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
               </div>
 
-              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">Deliverable: AQL Passed / Failed Certificate & Photos</span>
-                <span className="font-semibold text-teal-400 flex items-center gap-1">
+              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs gap-2">
+                <span className="text-slate-400 text-[11px] truncate flex-1 min-w-0">Deliverable: AQL Inspection Certificate</span>
+                <span className="font-semibold text-teal-400 flex items-center gap-1 shrink-0 whitespace-nowrap">
                   <span>Book QC Inspection</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </span>
@@ -1780,7 +1787,7 @@ export const AgentServiceScreen: React.FC = () => {
         {activeTab === 'my_requests' && (
           <div className="space-y-4 animate-in fade-in duration-200">
             {/* Filter Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 px-0.5">
               {[
                 { id: 'all', label: 'All Requests' },
                 { id: 'pending_review', label: 'Pending Review' },
@@ -1792,7 +1799,7 @@ export const AgentServiceScreen: React.FC = () => {
                   key={f.id}
                   type="button"
                   onClick={() => setFilterStatus(f.id as any)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
                     filterStatus === f.id
                       ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
                       : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
@@ -1804,21 +1811,24 @@ export const AgentServiceScreen: React.FC = () => {
             </div>
 
             {/* City Filter Pills */}
-            <div className="flex items-center justify-between px-1">
-              <span className="text-[11px] text-slate-400">Filter by China City Desk:</span>
-              <div className="flex items-center gap-1">
+            <div className="space-y-1.5 px-0.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-slate-400 font-medium">Filter by Regional Desk:</span>
+                <span className="text-[10px] text-slate-500 font-mono">Showing {filteredRequests.length}</span>
+              </div>
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
                 {(['all', 'Guangzhou', 'Shenzhen', 'Yiwu', 'Foshan'] as const).map(city => (
                   <button
                     key={city}
                     type="button"
                     onClick={() => setSelectedCityDesk(city)}
-                    className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition-all ${
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all whitespace-nowrap shrink-0 ${
                       selectedCityDesk === city
                         ? 'bg-slate-800 text-emerald-400 border border-emerald-500/40'
-                        : 'text-slate-500 hover:text-slate-300'
+                        : 'bg-slate-900/60 border border-slate-800 text-slate-400 hover:text-slate-300'
                     }`}
                   >
-                    {city === 'all' ? 'All' : city}
+                    {city === 'all' ? 'All Desks' : `${city} Desk`}
                   </button>
                 ))}
               </div>
@@ -1864,42 +1874,42 @@ export const AgentServiceScreen: React.FC = () => {
                       className="p-4 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all shadow-xl space-y-3.5 group"
                     >
                       {/* Top Header Strip */}
-                      <div className="flex items-start justify-between">
-                        <div>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-[11px] font-bold text-emerald-400">
+                            <span className="font-mono text-[11px] font-bold text-emerald-400 shrink-0">
                               {rfq.reference || rfq.id}
                             </span>
                             <span className="text-[10px] text-slate-500">•</span>
-                            <span className="text-[10px] text-slate-400 font-medium">
+                            <span className="text-[10px] text-slate-400 font-medium shrink-0">
                               {new Date(rfq.createdAt).toLocaleDateString()}
                             </span>
                           </div>
-                          <h4 className="text-sm font-bold text-white mt-0.5 group-hover:text-emerald-400 transition-colors">
+                          <h4 className="text-sm font-bold text-white mt-0.5 group-hover:text-emerald-400 transition-colors truncate">
                             {rfq.productName}
                           </h4>
-                          <span className="text-[11px] text-slate-400">{rfq.serviceType}</span>
+                          <span className="text-[11px] text-slate-400 truncate block">{rfq.serviceType}</span>
                         </div>
 
                         {/* Status Badge */}
-                        <div>
+                        <div className="shrink-0">
                           {isPending && (
-                            <span className="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-bold">
+                            <span className="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-bold whitespace-nowrap block">
                               Pending Review
                             </span>
                           )}
                           {isAwaitingQuotePayment && (
-                            <span className="px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-bold animate-pulse">
+                            <span className="px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-bold animate-pulse whitespace-nowrap block">
                               Quotation Sent
                             </span>
                           )}
                           {isPaidActive && (
-                            <span className="px-2.5 py-1 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 text-[10px] font-bold">
+                            <span className="px-2.5 py-1 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 text-[10px] font-bold whitespace-nowrap block">
                               Paid & Active
                             </span>
                           )}
                           {isDone && (
-                            <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
+                            <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold whitespace-nowrap block">
                               Completed
                             </span>
                           )}
@@ -1908,18 +1918,18 @@ export const AgentServiceScreen: React.FC = () => {
 
                       {/* Visual Milestone Progression Bar */}
                       <div className="pt-1 pb-1">
-                        <div className="flex items-center justify-between text-[10px] mb-1.5 font-medium">
-                          <span className={stageIndex >= 0 ? 'text-emerald-400 font-semibold' : 'text-slate-500'}>
+                        <div className="grid grid-cols-4 gap-1 text-[9px] mb-1.5 text-center font-mono">
+                          <span className={stageIndex >= 0 ? 'text-emerald-400 font-bold truncate' : 'text-slate-500 truncate'}>
                             1. Logged
                           </span>
-                          <span className={stageIndex >= 1 ? 'text-emerald-400 font-semibold' : 'text-slate-500'}>
-                            2. Agent Assigned
+                          <span className={stageIndex >= 1 ? 'text-emerald-400 font-bold truncate' : 'text-slate-500 truncate'}>
+                            2. Assigned
                           </span>
-                          <span className={stageIndex >= 2 ? 'text-indigo-400 font-semibold' : 'text-slate-500'}>
-                            3. Field Visit
+                          <span className={stageIndex >= 2 ? (isDone ? 'text-emerald-400 font-bold truncate' : 'text-indigo-400 font-bold truncate') : 'text-slate-500 truncate'}>
+                            3. Field Ops
                           </span>
-                          <span className={stageIndex >= 3 ? 'text-emerald-400 font-bold' : 'text-slate-500'}>
-                            4. Report Ready
+                          <span className={stageIndex >= 3 ? 'text-emerald-400 font-bold truncate' : 'text-slate-500 truncate'}>
+                            4. Complete
                           </span>
                         </div>
                         <div className="grid grid-cols-4 gap-1.5">
@@ -1956,11 +1966,11 @@ export const AgentServiceScreen: React.FC = () => {
                         )}
                         {rfq.assignedAgent && (
                           <div className="flex items-center justify-between text-slate-400 pt-1 border-t border-slate-800/80">
-                            <span className="flex items-center gap-1 text-emerald-400">
-                              <UserCheck className="w-3.5 h-3.5" />
+                            <span className="flex items-center gap-1.5 text-emerald-400">
+                              <UserCheck className="w-3.5 h-3.5 shrink-0" />
                               <span>Officer:</span>
                             </span>
-                            <span className="font-semibold text-white">{rfq.assignedAgent}</span>
+                            <span className="font-semibold text-white ml-2">{rfq.assignedAgent}</span>
                           </div>
                         )}
                       </div>
@@ -1968,19 +1978,19 @@ export const AgentServiceScreen: React.FC = () => {
                       {/* QUOTATION ACTION BANNER (When Quote is Payable) */}
                       {isAwaitingQuotePayment && (
                         <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2.5">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-1.5">
                               <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
                               <span className="text-xs font-bold text-amber-400">Official Quotation Formulated</span>
                             </div>
-                            <span className="font-mono font-bold text-sm text-white">
+                            <span className="font-mono font-bold text-sm text-white shrink-0">
                               {rfq.totalPayableCNY 
                                 ? `¥${rfq.totalPayableCNY.toLocaleString()} CNY` 
                                 : `$${rfq.quoteAmountUSD} USD`}
                             </span>
                           </div>
 
-                          <p className="text-[11px] text-slate-300">
+                          <p className="text-[11px] text-slate-300 leading-relaxed">
                             Our China Desk has audited factory pricing and finalized logistics. Authorize escrow release to dispatch on-ground agent.
                           </p>
 
@@ -1997,15 +2007,15 @@ export const AgentServiceScreen: React.FC = () => {
 
                       {/* COMPLETED REPORT DOWNLOAD BANNER */}
                       {isDone && (
-                        <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                            <span className="text-emerald-300 font-semibold">Inspection Dossier & PDF Ready</span>
+                        <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-xs gap-2">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                            <span className="text-emerald-300 font-semibold truncate">Inspection Dossier & PDF Ready</span>
                           </div>
                           <button
                             type="button"
                             onClick={() => setViewDetailRfq(rfq)}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-[11px] transition-all"
+                            className="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-[11px] transition-all shrink-0"
                           >
                             View Report
                           </button>
@@ -2051,16 +2061,16 @@ export const AgentServiceScreen: React.FC = () => {
                   key={hub.city}
                   className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl"
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-white text-sm">{hub.city} Desk</span>
-                        <span className="text-xs text-emerald-400 font-mono font-medium">{hub.nameZh}</span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-white text-sm whitespace-nowrap">{hub.city} Desk</span>
+                        <span className="text-xs text-emerald-400 font-mono font-medium whitespace-nowrap">{hub.nameZh}</span>
                       </div>
-                      <h4 className="text-xs font-semibold text-slate-300 mt-0.5">{hub.hubTitle}</h4>
+                      <h4 className="text-xs font-semibold text-slate-300 mt-0.5 truncate">{hub.hubTitle}</h4>
                     </div>
 
-                    <div className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+                    <div className="shrink-0 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold whitespace-nowrap font-mono">
                       {hub.agentsCount} Officers On-Duty
                     </div>
                   </div>
@@ -2068,15 +2078,15 @@ export const AgentServiceScreen: React.FC = () => {
                   <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs">
                     <div className="flex items-start gap-2 text-slate-400">
                       <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
-                      <span>{hub.address}</span>
+                      <span className="leading-snug">{hub.address}</span>
                     </div>
                     <div className="flex items-center gap-2 text-slate-400">
                       <Award className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                      <span><strong>Coverage:</strong> {hub.focus}</span>
+                      <span className="leading-snug"><strong>Coverage:</strong> {hub.focus}</span>
                     </div>
-                    <div className="flex items-center justify-between pt-1 border-t border-slate-800 text-[11px]">
-                      <span className="text-slate-400">Officer Lead: <strong className="text-white">{hub.leadAgent}</strong></span>
-                      <span className="text-emerald-400 font-medium">★ {hub.rating}</span>
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-800 text-[11px] gap-2">
+                      <span className="text-slate-400 truncate">Officer Lead: <strong className="text-white">{hub.leadAgent}</strong></span>
+                      <span className="text-emerald-400 font-medium whitespace-nowrap shrink-0">★ {hub.rating}</span>
                     </div>
                   </div>
 
@@ -2086,7 +2096,7 @@ export const AgentServiceScreen: React.FC = () => {
                       setInspCity(hub.city as any);
                       handleOpenService('factory_audit');
                     }}
-                    className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all"
+                    className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                   >
                     <span>Dispatch Agent in {hub.city}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -2112,7 +2122,7 @@ export const AgentServiceScreen: React.FC = () => {
                   {submittedRfq.reference || submittedRfq.id}
                 </span>
                 <h3 className="text-base font-bold text-white mt-0.5">Sourcing Request Submitted!</h3>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                   Your request for <strong>{submittedRfq.productName}</strong> ({submittedRfq.targetQuantity} units) has been assigned to our China sourcing desk.
                 </p>
               </div>
@@ -2154,7 +2164,7 @@ export const AgentServiceScreen: React.FC = () => {
                     setSourcingStep(1);
                     handleOpenService('sourcing');
                   }}
-                  className="w-full py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs transition-all"
+                  className="w-full py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs transition-all cursor-pointer"
                 >
                   Submit Another Request
                 </button>

@@ -118,17 +118,17 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title, onBack }) => {
       <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80 px-4 py-3 safe-top flex items-center justify-between shrink-0">
         <button
           onClick={onBack || goBack}
-          className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white p-1 rounded-lg active:scale-95 transition-all cursor-pointer"
+          className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white p-1 rounded-lg active:scale-95 transition-all cursor-pointer shrink-0"
         >
-          <ChevronLeft className="w-5 h-5 text-emerald-400" />
+          <ChevronLeft className="w-5 h-5 text-emerald-400 shrink-0" />
           <span>{t('action.back', 'Back')}</span>
         </button>
 
-        <h2 className="text-base font-semibold text-white tracking-tight truncate max-w-[200px]">
+        <h2 className="text-sm sm:text-base font-bold text-white tracking-tight truncate flex-1 text-center px-2 min-w-0">
           {displayTitle}
         </h2>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {currentRoute === 'wallets' && (
             <button
               onClick={toggleBalancePrivacy}
@@ -179,8 +179,8 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title, onBack }) => {
             className="relative cursor-pointer group"
           >
             <img
-              src={userProfile.avatar}
-              alt={userProfile.name}
+              src={userProfile?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'}
+              alt={userProfile?.name || 'User Profile'}
               className="w-10 h-10 rounded-full object-cover ring-2 ring-emerald-500/40 group-hover:ring-emerald-400 transition-all"
             />
             <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-slate-950 flex items-center justify-center">
