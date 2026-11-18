@@ -25,20 +25,26 @@ import {
   AlertCircle,
   Trash2,
   Truck,
-  DollarSign,
-  Layers,
-  Eye,
-  FileCheck,
   Building,
-  RefreshCw
+  RefreshCw,
+  Phone,
+  MessageSquare,
+  ShieldAlert,
+  Award,
+  Layers,
+  ChevronDown,
+  Copy,
+  SlidersHorizontal,
+  Compass
 } from 'lucide-react';
 
 export const AgentServiceScreen: React.FC = () => {
   const { showToast, navigate, activeUserId, userProfile } = useApp();
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState<'overview' | 'my_requests'>('overview');
+  // Navigation & Filtering
+  const [activeTab, setActiveTab] = useState<'overview' | 'my_requests' | 'desks'>('overview');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending_review' | 'quotation_sent' | 'paid_active' | 'completed' | 'action_needed' | 'active'>('all');
+  const [selectedCityDesk, setSelectedCityDesk] = useState<'all' | 'Guangzhou' | 'Shenzhen' | 'Yiwu' | 'Foshan'>('all');
 
   // Requests State
   const [requests, setRequests] = useState<AgentRequestDocument[]>(() => db.getAgentRequests());
@@ -47,14 +53,15 @@ export const AgentServiceScreen: React.FC = () => {
     minSourcingCommissionCNY: 500,
     supplierVerificationUSD: 150,
     factoryAuditUSD: 250,
-    qualityControlUSD: 200
+    qualityControlUSD: 200,
+    cantonFairEscortUSD: 200
   });
 
-  // Modal States
+  // Modal & Sheet States
   const [activeWizard, setActiveWizard] = useState<AgentServiceKind | null>(null);
   const [sourcingStep, setSourcingStep] = useState<1 | 2>(1);
   const [paymentModalRfq, setPaymentModalRfq] = useState<AgentRequestDocument | null>(null);
-  const [selectedWallet, setSelectedWallet] = useState<'USD' | 'NGN' | 'CNY'>('USD');
+  const [selectedWallet, setSelectedWallet] = useState<'USD' | 'NGN' | 'CNY'>('CNY');
   const [pinInput, setPinInput] = useState('');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [viewDetailRfq, setViewDetailRfq] = useState<AgentRequestDocument | null>(null);
@@ -72,7 +79,7 @@ export const AgentServiceScreen: React.FC = () => {
   const [srcNewPhotoUrl, setSrcNewPhotoUrl] = useState('');
   const [isSubmittingSourcing, setIsSubmittingSourcing] = useState(false);
 
-  // Inspection & Ground Booking Form State (Verification / Audit / QC / Canton Fair Escort)
+  // Inspection & Ground Booking Form State
   const [inspProductName, setInspProductName] = useState('Industrial Machinery & High-Capacity Lithium Cells');
   const [inspProductSpecs, setInspProductSpecs] = useState('51.2V 100Ah LiFePO4 cells, laser welded busbars, UN38.3 & CE certification');
   const [inspTargetQuantity, setInspTargetQuantity] = useState('100');
@@ -82,7 +89,7 @@ export const AgentServiceScreen: React.FC = () => {
   const [inspAddress, setInspAddress] = useState('Building 4, Science & Technology Park, Nanshan, Shenzhen');
   const [inspContact, setInspContact] = useState('Manager Li / +86 138 2008 7711');
   const [inspWechat, setInspWechat] = useState('sz_micro_li');
-  const [inspDate, setInspDate] = useState('2026-11-15');
+  const [inspDate, setInspDate] = useState('2026-11-20');
   const [inspPaymentMethod, setInspPaymentMethod] = useState<'wallet' | 'quote_first'>('wallet');
   const [inspWalletCurrency, setInspWalletCurrency] = useState<'NGN' | 'CNY'>('NGN');
   const [inspPin, setInspPin] = useState('');
@@ -94,7 +101,7 @@ export const AgentServiceScreen: React.FC = () => {
   const [newRequirement, setNewRequirement] = useState('');
   const [isSubmittingInspection, setIsSubmittingInspection] = useState(false);
 
-  // Subscribe to DB & load settings
+  // Subscribe to DB & load settings with stabilization equality check
   useEffect(() => {
     db.getAgentSettings().then(setSettings).catch(() => {});
     return db.subscribe(() => {
@@ -124,6 +131,7 @@ export const AgentServiceScreen: React.FC = () => {
 
   // Filtered requests list
   const filteredRequests = myRequests.filter(r => {
+    if (selectedCityDesk !== 'all' && r.supplierCity !== selectedCityDesk) return false;
     if (filterStatus === 'pending_review') return r.status === 'pending_review' || r.status === 'submitted' || r.status === 'pending_quote';
     if (filterStatus === 'quotation_sent' || filterStatus === 'action_needed') return r.status === 'awaiting_payment' || r.status === 'quote_ready' || r.status === 'quotation_sent';
     if (filterStatus === 'paid_active' || filterStatus === 'active') return r.status === 'in_progress' || r.status === 'paid_active' || r.status === 'approved';
@@ -156,7 +164,7 @@ export const AgentServiceScreen: React.FC = () => {
     try {
       const res = await db.createAgentRequest({
         serviceKind: 'sourcing',
-        serviceType: 'Product Sourcing & Procurement',
+        serviceType: 'Product Sourcing & Purchasing',
         productName: srcProductName,
         productUrl: srcProductUrl,
         category: 'Tech & Industrial Products',
@@ -197,7 +205,7 @@ export const AgentServiceScreen: React.FC = () => {
       : (settings.qualityControlUSD || 200);
 
     const titleMap: Record<AgentServiceKind, string> = {
-      sourcing: 'Product Sourcing',
+      sourcing: 'Product Sourcing & Purchasing',
       supplier_verification: 'Supplier Legitimacy Verification',
       factory_audit: 'Physical Factory Audit',
       quality_control: 'Pre-Shipment Quality Control (QC)',
@@ -278,7 +286,7 @@ export const AgentServiceScreen: React.FC = () => {
     setIsProcessingPayment(true);
 
     try {
-      const res = await db.acceptAgentQuote(paymentModalRfq.id, pinInput, selectedWallet, uid);
+      await db.acceptAgentQuote(paymentModalRfq.id, pinInput, selectedWallet, uid);
       showToast(`Quotation approved and paid! Status marked as Paid & Active.`, 'success');
       setPaymentModalRfq(null);
       setPinInput('');
@@ -295,333 +303,430 @@ export const AgentServiceScreen: React.FC = () => {
   // Get Wallet Balance
   const userBalances = db.getUser(uid)?.balances || { USD: 42890.50, NGN: 28450200, CNY: 184250 };
 
+  // Copy helper
+  const handleCopy = (text: string, label: string) => {
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text);
+      showToast(`${label} copied to clipboard`, 'success');
+    }
+  };
+
+  // China On-Ground Hubs Data
+  const CHINA_HUBS = [
+    {
+      city: 'Guangzhou',
+      nameZh: '广州总指挥部',
+      hubTitle: 'Pazhou & Baiyun Trade Desk',
+      address: 'Tower B, Poly World Trade Center, Pazhou, Haizhu District',
+      focus: 'Canton Fair Escorts, Factory Sourcing, Apparel, Audio & Air Logistics',
+      agentsCount: 14,
+      leadAgent: 'Zhang Wei (Lead Sourcing Specialist)',
+      languages: 'Mandarin, Cantonese, English',
+      rating: 4.98
+    },
+    {
+      city: 'Shenzhen',
+      nameZh: '深圳前海专区',
+      hubTitle: 'Huaqiangbei & Bao\'an Tech Desk',
+      address: 'SEG Plaza Tower, Huaqiang North, Futian District, Shenzhen',
+      focus: 'Electronics, Lithium Batteries, CNC Precision & High-Tech Hardware',
+      agentsCount: 11,
+      leadAgent: 'Lin Feng (Senior QA Engineer)',
+      languages: 'Mandarin, Cantonese, English',
+      rating: 4.96
+    },
+    {
+      city: 'Yiwu',
+      nameZh: '义乌小商品总局',
+      hubTitle: 'Futian International Market Hub',
+      address: 'District 4, Yiwu International Trade City, Chouzhou North Rd',
+      focus: 'Small Commodities, Hardware, FMCG, Home Essentials & Container Consolidation',
+      agentsCount: 9,
+      leadAgent: 'Liu Bo (Senior Trade Agent)',
+      languages: 'Mandarin, English',
+      rating: 4.95
+    },
+    {
+      city: 'Foshan',
+      nameZh: '佛山工业中心',
+      hubTitle: 'Lecong Furniture & Ceramics Desk',
+      address: 'Louvre International Furniture Exhibition Center, Shunde',
+      focus: 'Luxury Furniture, Building Materials, Sanitaryware & Factory Audits',
+      agentsCount: 7,
+      leadAgent: 'Chen Xia (Industrial Inspector)',
+      languages: 'Mandarin, Cantonese, English',
+      rating: 4.97
+    }
+  ];
+
   return (
-    <div className="min-h-full pb-28 bg-slate-950 text-white">
+    <div className="min-h-full pb-32 bg-slate-950 text-white">
       <Header title="China Agents & Sourcing" />
 
-      <div className="p-4 space-y-4">
-        {/* Navigation Switcher */}
-        <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-slate-900 border border-slate-800 text-xs font-semibold">
+      <div className="p-4 space-y-4 max-w-lg mx-auto">
+        
+        {/* ========================================================================= */}
+        {/* LUXURY STATUS CARD: ON-GROUND CHINA DESK BEACON */}
+        {/* ========================================================================= */}
+        <div className="relative rounded-3xl bg-slate-900 border border-slate-800 p-5 shadow-2xl overflow-hidden">
+          {/* Subtle luxury ambient backlight */}
+          <div className="absolute top-0 right-0 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none -ml-10 -mb-10" />
+
+          <div className="relative z-10 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[11px] font-semibold text-emerald-400 tracking-wide uppercase">
+                  China Ground Ops Live
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="font-medium text-slate-300">Guangzhou • Shenzhen • Yiwu</span>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-bold tracking-tight text-white">
+                Bilingual On-Ground Agents & Escrow
+              </h2>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                Direct factory inspections, 1688 wholesale price negotiations, and physical quality audits across mainland China manufacturing corridors.
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-center">
+              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80">
+                <span className="text-[10px] text-slate-400 block uppercase font-medium">Active Agents</span>
+                <span className="text-sm font-bold text-white font-mono mt-0.5 block">41 On-Ground</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80">
+                <span className="text-[10px] text-slate-400 block uppercase font-medium">Escrow Security</span>
+                <span className="text-sm font-bold text-emerald-400 font-mono mt-0.5 block">100% Protected</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80">
+                <span className="text-[10px] text-slate-400 block uppercase font-medium">Turnaround</span>
+                <span className="text-sm font-bold text-amber-400 font-mono mt-0.5 block">24–48 Hours</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* NATIVE SEGMENTED NAVIGATION CONTROLS */}
+        {/* ========================================================================= */}
+        <div className="p-1 rounded-2xl bg-slate-900 border border-slate-800 grid grid-cols-3 gap-1 shadow-inner">
           <button
+            type="button"
             onClick={() => setActiveTab('overview')}
-            className={`py-2.5 rounded-xl font-bold transition-all ${
+            className={`py-2.5 px-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'overview'
-                ? 'bg-emerald-500 text-slate-950 shadow-md'
+                ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            Services & Sourcing
+            <Compass className="w-3.5 h-3.5" />
+            <span>Services & Sourcing</span>
           </button>
+
           <button
+            type="button"
             onClick={() => setActiveTab('my_requests')}
-            className={`py-2.5 rounded-xl font-bold transition-all relative ${
+            className={`py-2.5 px-2 rounded-xl text-xs font-semibold transition-all relative flex items-center justify-center gap-1.5 ${
               activeTab === 'my_requests'
-                ? 'bg-emerald-500 text-slate-950 shadow-md'
+                ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <span>My Agent Requests ({myRequests.length})</span>
-            {actionNeededCount > 0 && (
-              <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-extrabold animate-pulse">
-                {actionNeededCount}
+            <Layers className="w-3.5 h-3.5" />
+            <span>My Agent Requests</span>
+            {myRequests.length > 0 && (
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                activeTab === 'my_requests' ? 'bg-slate-950 text-emerald-400' : 'bg-slate-800 text-slate-300'
+              }`}>
+                {myRequests.length}
               </span>
             )}
+            {actionNeededCount > 0 && (
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping absolute top-2 right-2" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('desks')}
+            className={`py-2.5 px-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+              activeTab === 'desks'
+                ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Building className="w-3.5 h-3.5" />
+            <span>China Desks</span>
           </button>
         </div>
 
-        {/* ===================== TAB 1: OVERVIEW DASHBOARD ===================== */}
+        {/* ========================================================================= */}
+        {/* TAB 1: SERVICES & SOURCING CATALOG */}
+        {/* ========================================================================= */}
         {activeTab === 'overview' && (
-          <div className="space-y-4 animate-in fade-in">
-            {/* Metric Counter Chips */}
+          <div className="space-y-4 animate-in fade-in duration-200">
+            {/* Quick Status KPI Summary */}
             <div className="grid grid-cols-4 gap-2">
-              <div 
+              <button
+                type="button"
                 onClick={() => { setActiveTab('my_requests'); setFilterStatus('pending_review'); }}
-                className="p-3 rounded-2xl bg-slate-900 border border-slate-800 cursor-pointer hover:border-slate-700 transition-all text-center"
+                className="p-3 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-center transition-all group"
               >
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Pending</span>
-                <span className="text-lg font-black text-white font-mono mt-0.5 block">{pendingReviewCount}</span>
-                <span className="text-[9px] text-slate-400 font-medium">Reviewing</span>
-              </div>
-              <div 
+                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block">Pending</span>
+                <span className="text-base font-bold text-white font-mono mt-0.5 block group-hover:text-emerald-400">
+                  {pendingReviewCount}
+                </span>
+                <span className="text-[9px] text-slate-500 block">Reviewing</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => { setActiveTab('my_requests'); setFilterStatus('quotation_sent'); }}
-                className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 cursor-pointer hover:border-amber-500/50 transition-all text-center"
+                className={`p-3 rounded-2xl border text-center transition-all group ${
+                  quotationSentCount > 0
+                    ? 'bg-amber-500/10 border-amber-500/30'
+                    : 'bg-slate-900 border-slate-800'
+                }`}
               >
-                <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">Quoted</span>
-                <span className="text-lg font-black text-amber-400 font-mono mt-0.5 block">{quotationSentCount}</span>
-                <span className="text-[9px] text-amber-300 font-medium">Payable</span>
-              </div>
-              <div 
+                <span className="text-[10px] text-amber-400 uppercase font-semibold tracking-wider block">Quoted</span>
+                <span className="text-base font-bold text-amber-400 font-mono mt-0.5 block">
+                  {quotationSentCount}
+                </span>
+                <span className="text-[9px] text-amber-300/80 block">Payable</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => { setActiveTab('my_requests'); setFilterStatus('paid_active'); }}
-                className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 cursor-pointer hover:border-indigo-500/50 transition-all text-center"
+                className="p-3 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-center transition-all group"
               >
-                <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block">Active</span>
-                <span className="text-lg font-black text-indigo-400 font-mono mt-0.5 block">{paidActiveCount}</span>
-                <span className="text-[9px] text-emerald-400 font-medium">Ground Ops</span>
-              </div>
-              <div 
+                <span className="text-[10px] text-indigo-400 uppercase font-semibold tracking-wider block">Active</span>
+                <span className="text-base font-bold text-indigo-400 font-mono mt-0.5 block">
+                  {paidActiveCount}
+                </span>
+                <span className="text-[9px] text-slate-400 block">Ground Ops</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => { setActiveTab('my_requests'); setFilterStatus('completed'); }}
-                className="p-3 rounded-2xl bg-slate-900 border border-slate-800 cursor-pointer hover:border-slate-700 transition-all text-center"
+                className="p-3 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-center transition-all group"
               >
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Done</span>
-                <span className="text-lg font-black text-white font-mono mt-0.5 block">{completedCount}</span>
-                <span className="text-[9px] text-slate-400 font-medium">Reports</span>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block">Done</span>
+                <span className="text-base font-bold text-white font-mono mt-0.5 block group-hover:text-emerald-400">
+                  {completedCount}
+                </span>
+                <span className="text-[9px] text-slate-500 block">Reports</span>
+              </button>
+            </div>
+
+            {/* Service Cards Header */}
+            <div className="flex items-center justify-between px-1 pt-1">
+              <div>
+                <h3 className="text-sm font-bold text-white">Select Ground Assignment</h3>
+                <p className="text-[11px] text-slate-400">Direct execution by local bilingual trade officers</p>
+              </div>
+              <span className="text-[10px] font-semibold text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                Escrow Protected
+              </span>
+            </div>
+
+            {/* SERVICE CARD 1: PRODUCT SOURCING & PURCHASING */}
+            <div 
+              onClick={() => { setActiveWizard('sourcing'); setSourcingStep(1); }}
+              className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-emerald-500/40 cursor-pointer transition-all shadow-xl group space-y-3"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform shrink-0">
+                    <Search className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">
+                        Product Sourcing & Purchasing
+                      </h4>
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+                        {settings.sourcingCommissionPercent}% Fee
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Source directly on 1688, Taobao, Alibaba, or Pinduoduo. We negotiate direct manufacturer pricing, purchase samples, and coordinate China freight.
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+              </div>
+
+              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <span className="text-slate-400 font-medium">Min. commission: ¥{settings.minSourcingCommissionCNY} CNY</span>
+                <span className="font-semibold text-emerald-400 flex items-center gap-1">
+                  <span>Start Sourcing Wizard</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </span>
               </div>
             </div>
 
-            {/* Banner: Bilingual Ground Presence */}
-            <div className="p-4 rounded-3xl bg-gradient-to-r from-emerald-950/70 via-slate-900 to-slate-900 border border-emerald-900/40 relative overflow-hidden">
-              <div className="relative z-10 space-y-1.5">
-                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold">
-                  <Sparkles className="w-3 h-3" />
-                  <span>FlyeMass China Ground Operations (广州 • 深圳 • 义乌)</span>
+            {/* SERVICE CARD 2: PHYSICAL FACTORY AUDIT */}
+            <div 
+              onClick={() => setActiveWizard('factory_audit')}
+              className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-amber-500/40 cursor-pointer transition-all shadow-xl group space-y-3"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform shrink-0">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
+                        Physical Factory Audit
+                      </h4>
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold">
+                        ${settings.factoryAuditUSD} USD Fixed
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      On-the-ground visit to factory workshops. Inspect production machinery, verify manufacturing capacity, worker conditions, and real output capability.
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-sm font-black text-white">Full-Stack Trade Agents & Sourcing Escrow</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Our bilingual ground team inspects factories, negotiates wholesale pricing on 1688 & Taobao, and safeguards payments in multi-currency escrow until quality sign-off.
-                </p>
+                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+              </div>
+
+              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <span className="text-slate-400 font-medium">Deliverable: Comprehensive PDF Audit Report + HD Video</span>
+                <span className="font-semibold text-amber-400 flex items-center gap-1">
+                  <span>Book Factory Audit</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </span>
               </div>
             </div>
 
-            {/* 4 Interactive Service Cards */}
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between px-1">
-                <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">Select Agent Service</span>
-                <span className="text-[10px] text-emerald-400 font-semibold">100% Escrow Protected</span>
+            {/* SERVICE CARD 3: CANTON FAIR ESCORT & TRADE GUIDE */}
+            <div 
+              onClick={() => setActiveWizard('canton_fair_escort')}
+              className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-amber-500/40 cursor-pointer transition-all shadow-xl group space-y-3"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform shrink-0">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
+                        Canton Fair Escort & Trade Guide
+                      </h4>
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold">
+                        ${settings.cantonFairEscortUSD || 200} USD / Day
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Bilingual ground agent escort at Canton Fair (Guangzhou Pazhou Complex). Live English-Chinese translation, booth negotiation, catalog compilation, and supplier vetting.
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
               </div>
 
-              {/* Service 1: Product Sourcing */}
-              <div 
-                onClick={() => { setActiveWizard('sourcing'); setSourcingStep(1); }}
-                className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 cursor-pointer transition-all shadow-lg group"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-all">
-                      <Search className="w-5 h-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors">
-                          Product Sourcing & Purchasing
-                        </h4>
-                        <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[9px] font-bold">
-                          {settings.sourcingCommissionPercent}% Fee
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400 leading-snug">
-                        Find products on 1688, Taobao, Alibaba, or Pinduoduo. We negotiate direct manufacturer pricing, purchase samples, and coordinate China freight.
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-2" />
-                </div>
-                <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                  <span className="text-slate-500">Min. commission: ¥{settings.minSourcingCommissionCNY} CNY</span>
-                  <span className="font-semibold text-emerald-400 flex items-center gap-1">
-                    <span>Start Sourcing Wizard</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </div>
-
-              {/* Service 2: Supplier Verification */}
-              <div 
-                onClick={() => setActiveWizard('supplier_verification')}
-                className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 cursor-pointer transition-all shadow-lg group"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition-all">
-                      <Building className="w-5 h-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">
-                          Supplier Legitimacy Verification
-                        </h4>
-                        <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 text-[9px] font-bold">
-                          ${settings.supplierVerificationUSD} USD Fixed
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400 leading-snug">
-                        National Enterprise Credit Information check, Unified Social Credit Code verification, business license validation, and physical office check.
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-2" />
-                </div>
-                <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                  <span className="text-slate-500">Deliverable: Official Verification Certificate</span>
-                  <span className="font-semibold text-indigo-400 flex items-center gap-1">
-                    <span>Verify Supplier</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </div>
-
-              {/* Service 3: Factory Audit */}
-              <div 
-                onClick={() => setActiveWizard('factory_audit')}
-                className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 cursor-pointer transition-all shadow-lg group"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-all">
-                      <ShieldCheck className="w-5 h-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
-                          On-Site Factory Audit
-                        </h4>
-                        <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[9px] font-bold">
-                          ${settings.factoryAuditUSD} USD Fixed
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400 leading-snug">
-                        On-the-ground visit to factory workshops. Inspect production machinery, verify manufacturing capacity, worker conditions, and real output capability.
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-2" />
-                </div>
-                <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                  <span className="text-slate-500">Deliverable: Comprehensive PDF Audit Report + HD Video</span>
-                  <span className="font-semibold text-amber-400 flex items-center gap-1">
-                    <span>Book Factory Audit</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </div>
-
-              {/* Service 4: Quality Control */}
-              <div 
-                onClick={() => setActiveWizard('quality_control')}
-                className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 cursor-pointer transition-all shadow-lg group"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 group-hover:scale-105 transition-all">
-                      <ClipboardList className="w-5 h-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">
-                          Quality Control & AQL Pre-Shipment
-                        </h4>
-                        <span className="px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-400 text-[9px] font-bold">
-                          ${settings.qualityControlUSD} USD Fixed
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400 leading-snug">
-                        ANSI/ASQ Z1.4 (ISO 2859-1) AQL sampling inspection before final dispatch. Defect tolerance check, carton drop tests, barcode and label verification.
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-teal-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-2" />
-                </div>
-                <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                  <span className="text-slate-500">Deliverable: AQL Inspection Certificate & Defect Log</span>
-                  <span className="font-semibold text-teal-400 flex items-center gap-1">
-                    <span>Book QC Inspection</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </div>
-
-              {/* Service 5: Canton Fair Escort & Trade Guide */}
-              <div 
-                onClick={() => setActiveWizard('canton_fair_escort')}
-                className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-amber-500/50 cursor-pointer transition-all shadow-lg group"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-all">
-                      <Users className="w-5 h-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
-                          Canton Fair Escort & Trade Guide
-                        </h4>
-                        <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[9px] font-bold">
-                          ${settings.cantonFairEscortUSD || 200} USD / Day
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400 leading-snug">
-                        Bilingual ground agent escort at Canton Fair (Guangzhou Pazhou Complex). Live English-Chinese translation, booth negotiation, catalog compilation, and supplier vetting.
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-2" />
-                </div>
-                <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                  <span className="text-slate-500">Deliverable: Verified Booth Reports & Supplier Dossier</span>
-                  <span className="font-semibold text-amber-400 flex items-center gap-1">
-                    <span>Book Fair Escort</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
+              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <span className="text-slate-400 font-medium">Deliverable: Verified Booth Reports & Supplier Dossier</span>
+                <span className="font-semibold text-amber-400 flex items-center gap-1">
+                  <span>Book Fair Escort</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </span>
               </div>
             </div>
 
-            {/* Recent Requests Preview */}
-            {myRequests.length > 0 && (
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">Recent Activity</span>
-                  <button 
-                    onClick={() => setActiveTab('my_requests')}
-                    className="text-xs text-emerald-400 font-bold hover:underline"
-                  >
-                    View All ({myRequests.length})
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  {myRequests.slice(0, 3).map(rfq => (
-                    <div 
-                      key={rfq.id}
-                      onClick={() => setViewDetailRfq(rfq)}
-                      className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 cursor-pointer flex items-center justify-between transition-all"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-[11px] font-bold text-emerald-400">{rfq.reference || rfq.id}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
-                            rfq.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300' :
-                            rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' ? 'bg-amber-500/20 text-amber-300' :
-                            rfq.status === 'in_progress' ? 'bg-indigo-500/20 text-indigo-300' :
-                            'bg-slate-800 text-slate-300'
-                          }`}>
-                            {rfq.status.replace('_', ' ')}
-                          </span>
-                        </div>
-                        <h5 className="text-xs font-bold text-white line-clamp-1">{rfq.productName}</h5>
-                        <p className="text-[10px] text-slate-400">{rfq.serviceType} • {rfq.supplierCity || 'Guangzhou'}</p>
-                      </div>
-                      <div className="text-right">
-                        {rfq.quoteAmountUSD ? (
-                          <span className="text-xs font-bold text-emerald-400 font-mono block">
-                            ${rfq.quoteAmountUSD}
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-slate-500 block">Pending Quote</span>
-                        )}
-                        <ChevronRight className="w-4 h-4 text-slate-600 inline-block mt-1" />
-                      </div>
+            {/* SERVICE CARD 4: SUPPLIER LEGITIMACY VERIFICATION */}
+            <div 
+              onClick={() => setActiveWizard('supplier_verification')}
+              className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-indigo-500/40 cursor-pointer transition-all shadow-xl group space-y-3"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition-transform shrink-0">
+                    <Building className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">
+                        Supplier Legitimacy Verification
+                      </h4>
+                      <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold">
+                        ${settings.supplierVerificationUSD} USD Fixed
+                      </span>
                     </div>
-                  ))}
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      National Enterprise Credit Information check, Unified Social Credit Code verification, business license validation, and physical office check.
+                    </p>
+                  </div>
                 </div>
+                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
               </div>
-            )}
+
+              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <span className="text-slate-400 font-medium">Deliverable: Official Verification Certificate</span>
+                <span className="font-semibold text-indigo-400 flex items-center gap-1">
+                  <span>Verify Supplier</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </div>
+            </div>
+
+            {/* SERVICE CARD 5: PRE-SHIPMENT QUALITY CONTROL */}
+            <div 
+              onClick={() => setActiveWizard('quality_control')}
+              className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-teal-500/40 cursor-pointer transition-all shadow-xl group space-y-3"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 group-hover:scale-105 transition-transform shrink-0">
+                    <ClipboardList className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">
+                        Pre-Shipment Quality Control (QC)
+                      </h4>
+                      <span className="px-2 py-0.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[10px] font-bold">
+                        ${settings.qualityControlUSD} USD Fixed
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      ANSI/ASQ Z1.4 (ISO 2859-1) AQL sampling inspection before final dispatch. Defect tolerance check, carton drop tests, barcode and label verification.
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-teal-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+              </div>
+
+              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <span className="text-slate-400 font-medium">Deliverable: AQL Inspection Certificate & Defect Log</span>
+                <span className="font-semibold text-teal-400 flex items-center gap-1">
+                  <span>Book QC Inspection</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* ===================== TAB 2: MY REQUESTS MANAGEMENT ===================== */}
+        {/* ========================================================================= */}
+        {/* TAB 2: MY AGENT REQUESTS & ACTIVE MISSIONS */}
+        {/* ========================================================================= */}
         {activeTab === 'my_requests' && (
-          <div className="space-y-4 animate-in fade-in">
+          <div className="space-y-4 animate-in fade-in duration-200">
             {/* Filter Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
               {[
                 { id: 'all', label: `All (${myRequests.length})` },
                 { id: 'pending_review', label: `Pending Review (${pendingReviewCount})` },
@@ -631,10 +736,11 @@ export const AgentServiceScreen: React.FC = () => {
               ].map(f => (
                 <button
                   key={f.id}
+                  type="button"
                   onClick={() => setFilterStatus(f.id as any)}
-                  className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                     filterStatus === f.id || (f.id === 'quotation_sent' && filterStatus === 'action_needed') || (f.id === 'paid_active' && filterStatus === 'active')
-                      ? 'bg-emerald-500 text-slate-950 shadow-md'
+                      ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20'
                       : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
                   }`}
                 >
@@ -643,169 +749,253 @@ export const AgentServiceScreen: React.FC = () => {
               ))}
             </div>
 
+            {/* City Filter Chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] text-slate-400">
+              <span className="text-slate-500 font-medium mr-1">City Hub:</span>
+              {['all', 'Guangzhou', 'Shenzhen', 'Yiwu', 'Foshan'].map((city) => (
+                <button
+                  key={city}
+                  type="button"
+                  onClick={() => setSelectedCityDesk(city as any)}
+                  className={`px-2.5 py-1 rounded-lg border transition-all capitalize ${
+                    selectedCityDesk === city
+                      ? 'bg-white/10 border-white/30 text-white font-bold'
+                      : 'bg-transparent border-slate-800 text-slate-500 hover:text-slate-300'
+                  }`}
+                >
+                  {city}
+                </button>
+              ))}
+            </div>
+
             {/* Requests List */}
             {filteredRequests.length === 0 ? (
               <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 text-center space-y-3">
-                <FileText className="w-10 h-10 text-slate-600 mx-auto" />
-                <h4 className="text-sm font-bold text-white">No requests in this category</h4>
-                <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                  Submit a product sourcing or inspection assignment to start working with our China operations team.
-                </p>
+                <div className="w-12 h-12 rounded-2xl bg-slate-800 text-slate-500 flex items-center justify-center mx-auto">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">No requests found</h4>
+                  <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
+                    Submit a product sourcing inquiry or book a physical factory audit to begin working with our on-ground team.
+                  </p>
+                </div>
                 <button
+                  type="button"
                   onClick={() => { setActiveTab('overview'); setActiveWizard('sourcing'); }}
-                  className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs"
+                  className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs inline-flex items-center gap-1.5 transition-all shadow-md shadow-emerald-500/20"
                 >
-                  Start New Sourcing Request
+                  <span>Start New Sourcing Request</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
               <div className="space-y-3">
-                {filteredRequests.map(rfq => (
-                  <div
-                    key={rfq.id}
-                    className="p-4 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all space-y-3 shadow-lg"
-                  >
-                    {/* Header */}
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold text-emerald-400">{rfq.reference || rfq.id}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
-                            rfq.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-                            rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' || rfq.status === 'quotation_sent' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
-                            rfq.status === 'in_progress' || rfq.status === 'paid_active' || rfq.status === 'approved' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' :
-                            'bg-slate-800 text-slate-300'
-                          }`}>
-                            {rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' || rfq.status === 'quotation_sent' 
-                              ? 'Quotation Sent' 
-                              : (rfq.status === 'in_progress' || rfq.status === 'paid_active' || rfq.status === 'approved')
-                              ? 'Paid & Active'
-                              : (rfq.status === 'pending_review' || rfq.status === 'submitted' || rfq.status === 'pending_quote')
-                              ? 'Pending Review'
-                              : rfq.status.replace('_', ' ')}
-                          </span>
-                        </div>
-                        <h4 className="text-sm font-bold text-white pt-1">{rfq.productName}</h4>
-                        <p className="text-xs text-slate-400">{rfq.serviceType} • {rfq.supplierCity || 'Guangzhou'}</p>
-                      </div>
+                {filteredRequests.map(rfq => {
+                  const isAwaitingPayment = rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' || rfq.status === 'quotation_sent';
+                  const isPaidActive = rfq.status === 'in_progress' || rfq.status === 'paid_active' || rfq.status === 'approved';
+                  const isCompleted = rfq.status === 'completed';
 
-                      <div className="text-right">
-                        <span className="text-[10px] text-slate-500 block font-mono">
-                          {new Date(rfq.createdAt).toLocaleDateString()}
+                  return (
+                    <div
+                      key={rfq.id}
+                      className="p-4 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all space-y-3 shadow-lg"
+                    >
+                      {/* Top Header Row */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(rfq.reference || rfq.id, 'Reference')}
+                            className="font-mono text-xs font-bold text-emerald-400 flex items-center gap-1 hover:underline"
+                          >
+                            <span>{rfq.reference || rfq.id}</span>
+                            <Copy className="w-3 h-3 text-slate-500" />
+                          </button>
+                          <span className="text-[10px] text-slate-500">•</span>
+                          <span className="text-xs text-slate-400 font-medium">{rfq.supplierCity || 'Guangzhou'}</span>
+                        </div>
+
+                        {/* Status Tag */}
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          isCompleted
+                            ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+                            : isAwaitingPayment
+                            ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 animate-pulse'
+                            : isPaidActive
+                            ? 'bg-indigo-500/15 border border-indigo-500/30 text-indigo-400'
+                            : 'bg-slate-800 border border-slate-700 text-slate-300'
+                        }`}>
+                          {rfq.status.replace('_', ' ')}
                         </span>
-                        {rfq.targetQuantity && (
-                          <span className="text-[11px] text-slate-300 font-mono block mt-1">
-                            {rfq.targetQuantity} units
+                      </div>
+
+                      {/* Title & Service Details */}
+                      <div>
+                        <h4 className="text-sm font-bold text-white line-clamp-1">{rfq.productName}</h4>
+                        <p className="text-xs text-slate-400 mt-0.5">{rfq.serviceType}</p>
+                      </div>
+
+                      {/* Visual Milestone Stepper */}
+                      <div className="py-2 px-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5">
+                        <div className="flex items-center justify-between text-[10px] font-semibold text-slate-400">
+                          <span className="text-emerald-400 font-bold">1. Logged</span>
+                          <span className={rfq.assignedAgent || isPaidActive || isCompleted ? 'text-emerald-400 font-bold' : 'text-slate-600'}>
+                            2. Agent Assigned
                           </span>
-                        )}
+                          <span className={isPaidActive || isCompleted ? 'text-indigo-400 font-bold' : 'text-slate-600'}>
+                            3. Field Visit
+                          </span>
+                          <span className={isCompleted ? 'text-emerald-400 font-bold' : 'text-slate-600'}>
+                            4. Report Ready
+                          </span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden flex">
+                          <div className="bg-emerald-500 h-full w-1/4" />
+                          <div className={`h-full w-1/4 transition-all ${rfq.assignedAgent || isPaidActive || isCompleted ? 'bg-emerald-500' : 'bg-transparent'}`} />
+                          <div className={`h-full w-1/4 transition-all ${isPaidActive || isCompleted ? 'bg-indigo-500' : 'bg-transparent'}`} />
+                          <div className={`h-full w-1/4 transition-all ${isCompleted ? 'bg-emerald-400' : 'bg-transparent'}`} />
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Linked Cargo Shipment Pill (Phase 10 Feature) */}
-                    {rfq.linkedShipmentCode && (
-                      <div className="p-2.5 rounded-2xl bg-indigo-950/60 border border-indigo-800/60 flex items-center justify-between text-xs">
+                      {/* Price / Quote Summary */}
+                      <div className="flex items-center justify-between pt-1 text-xs">
+                        <div>
+                          <span className="text-[10px] text-slate-500 uppercase font-semibold block">Escrow / Fee</span>
+                          <span className="text-sm font-bold text-white font-mono">
+                            {rfq.totalPayableCNY 
+                              ? `¥${rfq.totalPayableCNY.toLocaleString()} CNY`
+                              : rfq.quoteAmountUSD
+                              ? `$${rfq.quoteAmountUSD} USD`
+                              : rfq.serviceFeeUSD
+                              ? `$${rfq.serviceFeeUSD} USD`
+                              : 'Pending Quote'}
+                          </span>
+                        </div>
+
+                        {/* Action Buttons */}
                         <div className="flex items-center gap-2">
-                          <Truck className="w-4 h-4 text-indigo-400" />
-                          <div>
-                            <span className="text-[10px] text-indigo-300 font-bold block uppercase">Linked Cargo Waybill</span>
-                            <span className="font-mono font-bold text-white">{rfq.linkedShipmentCode} ({rfq.linkedTrackingCode})</span>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setViewDetailRfq(rfq)}
+                            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs transition-all"
+                          >
+                            Dossier
+                          </button>
+
+                          {isAwaitingPayment && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPaymentModalRfq(rfq);
+                                setPinInput('');
+                              }}
+                              className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/20 transition-all flex items-center gap-1 cursor-pointer"
+                            >
+                              <span>Review & Pay Quotation</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
-                        <button
-                          onClick={() => navigate('track')}
-                          className="px-2.5 py-1 rounded-xl bg-indigo-500 text-white font-bold text-[10px] hover:bg-indigo-400 transition-all flex items-center gap-1"
-                        >
-                          <span>Track Cargo</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </button>
                       </div>
-                    )}
-
-                    {/* Quotation Breakdown if Quoted */}
-                    {rfq.quoteAmountUSD && (
-                      <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-slate-400">Total Payable:</span>
-                          <div className="text-right">
-                            <span className="font-mono font-bold text-emerald-400 text-sm">
-                              {rfq.totalPayableCNY ? `¥${rfq.totalPayableCNY.toLocaleString()} CNY` : `$${rfq.quoteAmountUSD} USD`}
-                            </span>
-                            <span className="text-[10px] text-slate-400 block">
-                              ≈ ${rfq.quoteAmountUSD} USD / ₦{(rfq.quoteAmountNGN || rfq.quoteAmountUSD * 1485).toLocaleString()} NGN
-                            </span>
-                          </div>
-                        </div>
-
-                        {rfq.adminNotes && (
-                          <p className="text-[11px] text-slate-400 italic pt-1 border-t border-slate-800/80">
-                            "{rfq.adminNotes}"
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Action Bar */}
-                    <div className="flex items-center gap-2 pt-1">
-                      {/* Action Needed: Review & Pay Quotation */}
-                      {(rfq.status === 'awaiting_payment' || rfq.status === 'quote_ready' || rfq.status === 'quotation_sent') && (
-                        <button
-                          onClick={() => {
-                            setPaymentModalRfq(rfq);
-                            setPinInput('');
-                          }}
-                          className="flex-1 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                          <Lock className="w-3.5 h-3.5" />
-                          <span>Review & Pay Quotation ({rfq.totalPayableCNY ? `¥${rfq.totalPayableCNY.toLocaleString()} RMB` : `$${rfq.quoteAmountUSD} USD`})</span>
-                        </button>
-                      )}
-
-                      {/* Detail View Button */}
-                      <button
-                        onClick={() => setViewDetailRfq(rfq)}
-                        className="px-3.5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all flex items-center gap-1"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Details & Timeline</span>
-                      </button>
-
-                      {/* Download PDF if Completed */}
-                      {rfq.status === 'completed' && rfq.inspectionReportUrl && (
-                        <a
-                          href={rfq.inspectionReportUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-3.5 py-2.5 rounded-2xl bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-xs font-bold transition-all flex items-center gap-1"
-                        >
-                          <FileCheck className="w-3.5 h-3.5" />
-                          <span>Inspection Report</span>
-                        </a>
-                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
         )}
+
+        {/* ========================================================================= */}
+        {/* TAB 3: CHINA ON-GROUND NETWORK DESKS */}
+        {/* ========================================================================= */}
+        {activeTab === 'desks' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-2">
+              <div className="flex items-center gap-2">
+                <Building className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-sm font-bold text-white">FlyeMass Mainland Operations Hubs</h3>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Direct regional offices with full-time bilingual trade officers, certified factory inspectors, and warehouse loading docks.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {CHINA_HUBS.map((hub) => (
+                <div
+                  key={hub.city}
+                  className="p-4 rounded-3xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all space-y-3"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-white text-sm">{hub.city} Desk</span>
+                        <span className="text-xs text-emerald-400 font-mono font-medium">{hub.nameZh}</span>
+                      </div>
+                      <h4 className="text-xs font-semibold text-slate-300 mt-0.5">{hub.hubTitle}</h4>
+                    </div>
+
+                    <div className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold">
+                      {hub.agentsCount} Officers On-Duty
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs">
+                    <div className="flex items-start gap-2 text-slate-400">
+                      <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
+                      <span>{hub.address}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <Award className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span><strong>Coverage:</strong> {hub.focus}</span>
+                    </div>
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-800 text-[11px]">
+                      <span className="text-slate-400">Officer Lead: <strong className="text-white">{hub.leadAgent}</strong></span>
+                      <span className="text-emerald-400 font-medium">★ {hub.rating}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInspCity(hub.city as any);
+                      setActiveWizard('factory_audit');
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <span>Dispatch Agent in {hub.city}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
 
-      {/* ===================== MODAL 1: PRODUCT SOURCING WIZARD ===================== */}
+      {/* ========================================================================= */}
+      {/* MODAL 1: PRODUCT SOURCING WIZARD */}
+      {/* ========================================================================= */}
       {activeWizard === 'sourcing' && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-lg bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
-            {/* Modal Header */}
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-lg bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
+            
+            {/* Sheet Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div>
-                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Step {sourcingStep} of 2</span>
-                <h3 className="text-base font-black text-white">
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                  Step {sourcingStep} of 2
+                </span>
+                <h3 className="text-base font-bold text-white">
                   {sourcingStep === 1 ? 'Product Sourcing Details' : 'Quotation & Fee Review'}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveWizard(null)}
-                className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white"
+                className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -814,22 +1004,24 @@ export const AgentServiceScreen: React.FC = () => {
             {/* STEP 1: Details */}
             {sourcingStep === 1 && (
               <div className="space-y-3.5 text-xs">
-                {/* Product Name */}
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Product Title / Description</label>
+                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                    Product Title / Description
+                  </label>
                   <input
                     type="text"
                     value={srcProductName}
                     onChange={(e) => setSrcProductName(e.target.value)}
                     placeholder="e.g. Wireless ANC Bluetooth Headphones with Custom Box"
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500"
+                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
                     required
                   />
                 </div>
 
-                {/* Product URL */}
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">1688 / Taobao / Alibaba / Pinduoduo Link</label>
+                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                    1688 / Taobao / Alibaba / Pinduoduo Link
+                  </label>
                   <input
                     type="url"
                     value={srcProductUrl}
@@ -839,14 +1031,13 @@ export const AgentServiceScreen: React.FC = () => {
                   />
                   <div className="flex items-center gap-1.5 mt-1.5">
                     {['1688', 'Taobao', 'Alibaba', 'Pinduoduo'].map(plat => (
-                      <span key={plat} className="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400 font-semibold">
-                        {plat} Supported
+                      <span key={plat} className="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400 font-medium">
+                        {plat}
                       </span>
                     ))}
                   </div>
                 </div>
 
-                {/* Qty & Target Unit CNY */}
                 <div className="grid grid-cols-2 gap-2.5">
                   <div>
                     <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Target Quantity</label>
@@ -855,7 +1046,7 @@ export const AgentServiceScreen: React.FC = () => {
                       value={srcQuantity}
                       onChange={(e) => setSrcQuantity(e.target.value)}
                       min="1"
-                      className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500"
+                      className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500 text-xs"
                       required
                     />
                   </div>
@@ -867,13 +1058,12 @@ export const AgentServiceScreen: React.FC = () => {
                       onChange={(e) => setSrcTargetUnitCNY(e.target.value)}
                       min="0.1"
                       step="0.1"
-                      className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500"
+                      className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500 text-xs"
                       required
                     />
                   </div>
                 </div>
 
-                {/* Live Estimated Conversions */}
                 <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-1 text-slate-400">
                   <div className="flex items-center justify-between">
                     <span>Estimated Product Subtotal:</span>
@@ -887,7 +1077,6 @@ export const AgentServiceScreen: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Specifications */}
                 <div>
                   <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Specifications & Packaging</label>
                   <textarea
@@ -895,11 +1084,11 @@ export const AgentServiceScreen: React.FC = () => {
                     onChange={(e) => setSrcSpecs(e.target.value)}
                     rows={2}
                     placeholder="Color, materials, custom logo requirements, gift box packaging..."
-                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500"
+                    className="w-full p-3 rounded-2xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
                   />
                 </div>
 
-                {/* Photos & Uploader */}
+                {/* Photos */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="text-[11px] font-bold text-slate-300 uppercase block">
@@ -908,7 +1097,6 @@ export const AgentServiceScreen: React.FC = () => {
                     <span className="text-[10px] text-slate-500 font-medium">Max 4 photos</span>
                   </div>
 
-                  {/* Thumbnail gallery */}
                   <div className="flex flex-wrap gap-2 mb-2">
                     {srcPhotos.map((photo, i) => (
                       <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden border border-slate-700 group">
@@ -925,56 +1113,30 @@ export const AgentServiceScreen: React.FC = () => {
                   </div>
 
                   {srcPhotos.length < 4 && (
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={srcNewPhotoUrl}
-                          onChange={(e) => setSrcNewPhotoUrl(e.target.value)}
-                          placeholder="Paste reference photo URL"
-                          className="flex-1 p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-[11px] outline-none focus:border-emerald-500"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (srcNewPhotoUrl.trim() && srcPhotos.length < 4) {
-                              setSrcPhotos([...srcPhotos, srcNewPhotoUrl.trim()]);
-                              setSrcNewPhotoUrl('');
-                            }
-                          }}
-                          className="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold"
-                        >
-                          Add URL
-                        </button>
-                      </div>
-
-                      {/* File upload from device */}
-                      <label className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-slate-950 border border-dashed border-slate-700 hover:border-emerald-500 text-slate-400 hover:text-white cursor-pointer transition-all text-[11px] font-semibold">
-                        <Camera className="w-4 h-4 text-emerald-400" />
-                        <span>Upload photo from device (agent-uploads)</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file && srcPhotos.length < 4) {
-                              const reader = new FileReader();
-                              reader.onload = (ev) => {
-                                if (ev.target?.result && srcPhotos.length < 4) {
-                                  setSrcPhotos(prev => [...prev, ev.target!.result as string]);
-                                }
-                              };
-                              reader.readAsDataURL(file);
-                            }
-                          }}
-                        />
-                      </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={srcNewPhotoUrl}
+                        onChange={(e) => setSrcNewPhotoUrl(e.target.value)}
+                        placeholder="Paste image URL (https://...)"
+                        className="flex-1 p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (srcNewPhotoUrl.trim()) {
+                            setSrcPhotos([...srcPhotos, srcNewPhotoUrl.trim()]);
+                            setSrcNewPhotoUrl('');
+                          }
+                        }}
+                        className="px-3 py-2 rounded-xl bg-slate-800 text-white font-bold text-xs"
+                      >
+                        Add
+                      </button>
                     </div>
                   )}
                 </div>
 
-                {/* Continue to Step 2 */}
                 <button
                   type="button"
                   onClick={() => {
@@ -984,9 +1146,9 @@ export const AgentServiceScreen: React.FC = () => {
                     }
                     setSourcingStep(2);
                   }}
-                  className="w-full mt-2 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                  className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <span>Review Fee Breakdown</span>
+                  <span>Continue to Sourcing Escrow Review</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -995,71 +1157,25 @@ export const AgentServiceScreen: React.FC = () => {
             {/* STEP 2: Review & Submit */}
             {sourcingStep === 2 && (
               <div className="space-y-4 text-xs">
-                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider border-b border-slate-800 pb-2">
-                    Request Summary
-                  </h4>
-
+                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
                   <div className="flex justify-between">
                     <span className="text-slate-400">Product:</span>
-                    <strong className="text-white text-right max-w-[200px] truncate">{srcProductName}</strong>
+                    <span className="font-bold text-white text-right max-w-[200px] truncate">{srcProductName}</span>
                   </div>
-
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Quantity:</span>
+                    <span className="text-slate-400">Target Quantity:</span>
                     <span className="font-mono text-white">{qty} units</span>
                   </div>
-
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Target Unit:</span>
-                    <span className="font-mono text-white">¥{unitCNY} CNY</span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Product Subtotal:</span>
+                    <span className="text-slate-400">Estimated Goods Cost:</span>
                     <span className="font-mono text-white">¥{totalProductCNY.toLocaleString()} CNY</span>
                   </div>
-
-                  <div className="flex justify-between text-emerald-400">
-                    <span>Sourcing Commission ({commissionPercent}%):</span>
-                    <span className="font-mono font-bold">¥{estimatedCommissionCNY.toLocaleString()} CNY</span>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Sourcing Commission ({commissionPercent}%):</span>
+                    <span className="font-mono text-emerald-400">¥{estimatedCommissionCNY.toLocaleString()} CNY</span>
                   </div>
-
-                  {totalProductCNY * (commissionPercent / 100) < minCommission && (
-                    <div className="text-[10px] text-slate-500 font-mono text-right">
-                      * Includes minimum commission threshold (¥{minCommission} CNY)
-                    </div>
-                  )}
-
-                  {srcSpecs && (
-                    <div className="pt-2 border-t border-slate-800 flex justify-between">
-                      <span className="text-slate-400">Specifications:</span>
-                      <span className="text-white text-right max-w-[200px] truncate">{srcSpecs}</span>
-                    </div>
-                  )}
-
-                  {srcProductUrl && (
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Reference Link:</span>
-                      <a href={srcProductUrl} target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline text-right max-w-[200px] truncate">
-                        {srcProductUrl}
-                      </a>
-                    </div>
-                  )}
-
-                  {srcPhotos.length > 0 && (
-                    <div className="pt-2 border-t border-slate-800">
-                      <span className="text-slate-400 block mb-1.5 font-bold uppercase text-[10px]">Reference Photos ({srcPhotos.length}):</span>
-                      <div className="flex gap-2">
-                        {srcPhotos.map((p, idx) => (
-                          <img key={idx} src={p} alt={`Preview ${idx + 1}`} className="w-12 h-12 rounded-xl object-cover border border-slate-800" />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   <div className="pt-2 border-t border-slate-800 flex justify-between items-center">
-                    <span className="font-bold text-white uppercase text-[11px]">Estimated Sourcing Escrow:</span>
+                    <span className="font-bold text-white uppercase text-[11px]">Total Estimated Escrow:</span>
                     <div className="text-right">
                       <span className="font-mono font-black text-emerald-400 text-sm block">
                         ¥{estimatedTotalCNY.toLocaleString()} CNY
@@ -1071,24 +1187,13 @@ export const AgentServiceScreen: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Explicit Prominent Notice (Phase 2 Requirement) */}
-                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300 space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-amber-400">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>Notice: No Wallet Debit at Submission</span>
+                <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-slate-300 space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-emerald-400">
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>FlyeMass Trade Escrow Guarantee</span>
                   </div>
-                  <p className="text-slate-300 leading-relaxed">
-                    This estimate is not a final quote and no wallet debit occurs at submission. FlyeMass sourcing agents in Guangzhou will inspect the Chinese market and formulate an official binding quotation with verified factory pricing.
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-indigo-950/40 border border-indigo-900/40 text-[11px] text-indigo-300 space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold">
-                    <ShieldCheck className="w-4 h-4 text-indigo-400" />
-                    <span>FlyeMass China Ground Guarantee</span>
-                  </div>
-                  <p className="text-slate-400">
-                    Your request will be assigned to a bilingual ground sourcing manager in Guangzhou. Once quotation is verified, payment will be held in secure multi-currency escrow until dispatch.
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Submitting this RFQ sends it directly to our Guangzhou sourcing desk. An official manufacturer quotation will be prepared within 24 hours. No wallet deduction occurs until you review and approve the final quote.
                   </p>
                 </div>
 
@@ -1096,7 +1201,7 @@ export const AgentServiceScreen: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setSourcingStep(1)}
-                    className="w-1/3 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs"
+                    className="w-1/3 py-3 rounded-2xl bg-slate-800 text-slate-300 hover:text-white font-bold text-xs transition-all"
                   >
                     Back
                   </button>
@@ -1104,38 +1209,36 @@ export const AgentServiceScreen: React.FC = () => {
                     type="button"
                     onClick={handleSourcingSubmit}
                     disabled={isSubmittingSourcing}
-                    className="w-2/3 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                    className="flex-1 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
-                    {isSubmittingSourcing ? (
-                      <span>Submitting...</span>
-                    ) : (
+                    {isSubmittingSourcing ? <span>Submitting RFQ...</span> : (
                       <>
                         <Check className="w-4 h-4" />
-                        <span>Confirm & Submit Sourcing</span>
+                        <span>Submit Sourcing Request</span>
                       </>
                     )}
                   </button>
                 </div>
               </div>
             )}
+
           </div>
         </div>
       )}
 
-      {/* ===================== MODAL 2: INSPECTION WIZARD (VERIFICATION / AUDIT / QC) ===================== */}
+      {/* ========================================================================= */}
+      {/* MODAL 2: INSPECTION & GROUND BOOKING WIZARD */}
+      {/* ========================================================================= */}
       {activeWizard && activeWizard !== 'sourcing' && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md animate-in fade-in">
-          <form 
-            onSubmit={handleInspectionSubmit} 
-            className="w-full max-w-lg bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto space-y-4"
-          >
-            {/* Header */}
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-lg bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
+            
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div>
-                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
-                  Ground Service Booking
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                  Ground Mission Dispatch
                 </span>
-                <h3 className="text-base font-black text-white">
+                <h3 className="text-base font-bold text-white">
                   {activeWizard === 'supplier_verification' && 'Supplier Legitimacy Verification'}
                   {activeWizard === 'factory_audit' && 'Physical Factory Inspection & Audit'}
                   {activeWizard === 'quality_control' && 'Pre-Shipment AQL Quality Control'}
@@ -1151,74 +1254,71 @@ export const AgentServiceScreen: React.FC = () => {
               </button>
             </div>
 
-            <div className="space-y-3.5 text-xs">
-              {/* Product Specifications & Target Quantity */}
-              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
-                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
-                  Product Specifications & Target Volume
-                </span>
+            <form onSubmit={handleInspectionSubmit} className="space-y-3.5 text-xs">
+              
+              {/* Product Specifications */}
+              <div>
+                <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                  Product Specifications & Scope
+                </label>
+                <input
+                  type="text"
+                  value={inspProductSpecs}
+                  onChange={(e) => setInspProductSpecs(e.target.value)}
+                  placeholder="e.g. 51.2V 100Ah LiFePO4 cells with CE & UN38.3 report"
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
+                  required
+                />
+              </div>
 
+              {/* Target Quantity & Canton Fair Booth */}
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
-                    Product Name / Hardware Commodity
+                    Target Quantity
                   </label>
                   <input
-                    type="text"
-                    value={inspProductName}
-                    onChange={(e) => setInspProductName(e.target.value)}
-                    placeholder="e.g. 5kW Hybrid Inverters / Lithium Batteries / Industrial Extrusions"
-                    className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
+                    type="number"
+                    value={inspTargetQuantity}
+                    onChange={(e) => setInspTargetQuantity(e.target.value)}
+                    min="1"
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white outline-none focus:border-emerald-500 font-mono text-xs"
                     required
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="col-span-2">
-                    <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
-                      Product Specifications
-                    </label>
-                    <input
-                      type="text"
-                      value={inspProductSpecs}
-                      onChange={(e) => setInspProductSpecs(e.target.value)}
-                      placeholder="Materials, voltage, packaging, CE/UN38.3 standard"
-                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none focus:border-emerald-500 text-xs"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
-                      Target Quantity
-                    </label>
-                    <input
-                      type="number"
-                      value={inspTargetQuantity}
-                      onChange={(e) => setInspTargetQuantity(e.target.value)}
-                      placeholder="100"
-                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white font-mono font-bold outline-none focus:border-emerald-500 text-xs"
-                      required
-                    />
-                  </div>
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Hub City</label>
+                  <select
+                    value={inspCity}
+                    onChange={(e) => setInspCity(e.target.value as any)}
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white outline-none text-xs"
+                  >
+                    <option value="Guangzhou">Guangzhou (广州)</option>
+                    <option value="Shenzhen">Shenzhen (深圳)</option>
+                    <option value="Yiwu">Yiwu (义乌)</option>
+                    <option value="Foshan">Foshan (佛山)</option>
+                  </select>
                 </div>
-
-                {activeWizard === 'canton_fair_escort' && (
-                  <div>
-                    <label className="text-[11px] font-bold text-amber-400 uppercase block mb-1">
-                      Canton Fair Booth Number / Complex Hall
-                    </label>
-                    <input
-                      type="text"
-                      value={inspCantonFairBooth}
-                      onChange={(e) => setInspCantonFairBooth(e.target.value)}
-                      placeholder="e.g. Area B, Hall 11.2, Booth C38-42"
-                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none focus:border-amber-500 text-xs font-mono"
-                      required
-                    />
-                  </div>
-                )}
               </div>
 
-              {/* Supplier / Factory Details */}
+              {activeWizard === 'canton_fair_escort' && (
+                <div>
+                  <label className="text-[11px] font-bold text-amber-400 uppercase block mb-1">
+                    Canton Fair Booth Number / Complex Hall
+                  </label>
+                  <input
+                    type="text"
+                    value={inspCantonFairBooth}
+                    onChange={(e) => setInspCantonFairBooth(e.target.value)}
+                    placeholder="e.g. Area B, Hall 11.2, Booth C38-42"
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-amber-500/40 text-white outline-none focus:border-amber-500 text-xs font-mono"
+                    required
+                  />
+                </div>
+              )}
+
+              {/* Supplier & Location Information */}
               <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                   Supplier & Location Information
@@ -1237,36 +1337,10 @@ export const AgentServiceScreen: React.FC = () => {
                   />
                 </div>
 
-                {/* City Hub */}
-                <div className="grid grid-cols-2 gap-2.5">
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Hub City</label>
-                    <select
-                      value={inspCity}
-                      onChange={(e) => setInspCity(e.target.value as any)}
-                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none text-xs"
-                    >
-                      <option value="Guangzhou">Guangzhou (广州)</option>
-                      <option value="Shenzhen">Shenzhen (深圳)</option>
-                      <option value="Yiwu">Yiwu (义乌)</option>
-                      <option value="Foshan">Foshan (佛山)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Scheduled Date</label>
-                    <input
-                      type="date"
-                      value={inspDate}
-                      onChange={(e) => setInspDate(e.target.value)}
-                      className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none text-xs"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Factory Address */}
                 <div>
-                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Factory / Office Address in China</label>
+                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">
+                    Factory / Office Address in China
+                  </label>
                   <input
                     type="text"
                     value={inspAddress}
@@ -1277,7 +1351,6 @@ export const AgentServiceScreen: React.FC = () => {
                   />
                 </div>
 
-                {/* Contact Person & WeChat */}
                 <div className="grid grid-cols-2 gap-2.5">
                   <div>
                     <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Contact Person & Phone</label>
@@ -1300,9 +1373,20 @@ export const AgentServiceScreen: React.FC = () => {
                     />
                   </div>
                 </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Scheduled Date</label>
+                  <input
+                    type="date"
+                    value={inspDate}
+                    onChange={(e) => setInspDate(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white outline-none text-xs"
+                    required
+                  />
+                </div>
               </div>
 
-              {/* Inspection Checklist */}
+              {/* Requirements Checklist */}
               <div>
                 <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1">Requirements Checklist</label>
                 <div className="space-y-1.5 mb-2">
@@ -1342,7 +1426,7 @@ export const AgentServiceScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* Fixed Fee Preview & Multi-Wallet Payment Option */}
+              {/* Payment Mode & Debit Vault */}
               {(() => {
                 const currentFeeUSD = activeWizard === 'supplier_verification' 
                   ? (settings.supplierVerificationUSD || 150)
@@ -1355,9 +1439,6 @@ export const AgentServiceScreen: React.FC = () => {
                 const feeInSelectedCurr = inspWalletCurrency === 'CNY'
                   ? Math.round(currentFeeUSD * usdRate)
                   : Math.round(currentFeeUSD * 1485);
-
-                const currentBal = (userBalances as any)?.[inspWalletCurrency] || 0;
-                const hasSufficient = currentBal >= feeInSelectedCurr;
 
                 return (
                   <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
@@ -1376,8 +1457,7 @@ export const AgentServiceScreen: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Payment Mode Selector */}
-                    <div className="pt-2 border-t border-slate-800/80 space-y-2">
+                    <div className="pt-2 border-t border-slate-800 space-y-2">
                       <span className="text-[11px] font-bold text-slate-300 uppercase block">Payment Method</span>
                       <div className="grid grid-cols-2 gap-2">
                         <button
@@ -1406,7 +1486,6 @@ export const AgentServiceScreen: React.FC = () => {
                         </button>
                       </div>
 
-                      {/* If Wallet Payment: Currency & PIN */}
                       {inspPaymentMethod === 'wallet' && (
                         <div className="space-y-2.5 pt-2">
                           <div>
@@ -1450,16 +1529,10 @@ export const AgentServiceScreen: React.FC = () => {
                               value={inspPin}
                               onChange={(e) => setInspPin(e.target.value.replace(/\D/g, ''))}
                               placeholder="••••••"
-                              className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-center text-white tracking-widest text-lg font-mono outline-none focus:border-emerald-500"
-                              required={inspPaymentMethod === 'wallet'}
+                              className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-center font-mono text-base tracking-[0.4em] text-white outline-none focus:border-emerald-500"
+                              required
                             />
                           </div>
-
-                          {!hasSufficient && (
-                            <p className="text-[11px] text-rose-400 font-medium">
-                              ⚠️ Insufficient {inspWalletCurrency} balance. Please fund your wallet or select another currency.
-                            </p>
-                          )}
                         </div>
                       )}
                     </div>
@@ -1470,28 +1543,32 @@ export const AgentServiceScreen: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmittingInspection}
-                className="w-full mt-2 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
-                {isSubmittingInspection ? <span>Processing Booking...</span> : (
+                {isSubmittingInspection ? <span>Dispatching Mission...</span> : (
                   <>
                     <Check className="w-4 h-4" />
-                    <span>{inspPaymentMethod === 'wallet' ? 'Pay Booking Fee & Confirm Assignment' : 'Submit Ground Assignment for Review'}</span>
+                    <span>Authorize On-Ground Assignment</span>
                   </>
                 )}
               </button>
-            </div>
-          </form>
+            </form>
+
+          </div>
         </div>
       )}
 
-      {/* ===================== MODAL 3: QUOTATION REVIEW & MULTI-WALLET PAYMENT ===================== */}
+      {/* ========================================================================= */}
+      {/* MODAL 3: QUOTATION REVIEW & PAY ESCROW */}
+      {/* ========================================================================= */}
       {paymentModalRfq && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-lg bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
+            
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div>
-                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Official Quotation</span>
-                <h3 className="text-sm font-black text-white">Authorize Escrow Payment</h3>
+                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">Quotation Review</span>
+                <h3 className="text-base font-bold text-white">Approve & Pay Escrow</h3>
               </div>
               <button
                 type="button"
@@ -1502,7 +1579,6 @@ export const AgentServiceScreen: React.FC = () => {
               </button>
             </div>
 
-            {/* Breakdown Card */}
             <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-slate-400">Request Ref:</span>
@@ -1513,9 +1589,8 @@ export const AgentServiceScreen: React.FC = () => {
                 <span className="font-bold text-white max-w-[200px] truncate text-right">{paymentModalRfq.productName}</span>
               </div>
 
-              {/* Sourcing details if available */}
               {paymentModalRfq.productCostCNY && (
-                <div className="flex justify-between pt-1 border-t border-slate-800/80">
+                <div className="flex justify-between pt-1 border-t border-slate-800">
                   <span className="text-slate-400">Factory Product Cost:</span>
                   <span className="font-mono text-white">¥{paymentModalRfq.productCostCNY.toLocaleString()} CNY</span>
                 </div>
@@ -1533,32 +1608,31 @@ export const AgentServiceScreen: React.FC = () => {
                 </div>
               )}
 
-              {/* Total Payable */}
               <div className="pt-2 border-t border-slate-800 flex justify-between items-center">
                 <span className="font-bold text-white uppercase text-[11px]">Total Escrow Amount:</span>
                 <div className="text-right">
-                  <span className="font-mono font-black text-emerald-400 text-base block">
+                  <span className="font-mono font-black text-emerald-400 text-sm block">
                     {paymentModalRfq.totalPayableCNY 
                       ? `¥${paymentModalRfq.totalPayableCNY.toLocaleString()} CNY` 
                       : `$${paymentModalRfq.quoteAmountUSD} USD`}
                   </span>
                   <span className="text-[10px] text-slate-400 font-mono">
-                    ≈ ${paymentModalRfq.quoteAmountUSD} USD / ₦{(paymentModalRfq.quoteAmountNGN || paymentModalRfq.quoteAmountUSD * 1485).toLocaleString()} NGN
+                    ≈ ${paymentModalRfq.quoteAmountUSD} USD / ₦{(paymentModalRfq.quoteAmountNGN || (paymentModalRfq.quoteAmountUSD || 0) * 1485).toLocaleString()} NGN
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Wallet Selection */}
+            {/* Wallet Selector (Multi-Currency NGN, USD, CNY) */}
             <div>
               <label className="text-[11px] font-bold text-slate-300 uppercase block mb-1.5">
                 Select Wallet Currency
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'USD', balance: userBalances.USD, label: 'USD Wallet' },
-                  { id: 'CNY', balance: userBalances.CNY, label: 'CNY Wallet' },
-                  { id: 'NGN', balance: userBalances.NGN, label: 'NGN Wallet' }
+                  { id: 'CNY', balance: userBalances.CNY, label: 'CNY / RMB' },
+                  { id: 'NGN', balance: userBalances.NGN, label: 'NGN Wallet' },
+                  { id: 'USD', balance: userBalances.USD, label: 'USD Wallet' }
                 ].map(w => (
                   <button
                     key={w.id}
@@ -1566,12 +1640,12 @@ export const AgentServiceScreen: React.FC = () => {
                     onClick={() => setSelectedWallet(w.id as any)}
                     className={`p-2.5 rounded-2xl border text-left transition-all ${
                       selectedWallet === w.id
-                        ? 'bg-slate-800 border-emerald-500 shadow-md'
+                        ? 'bg-slate-900 border-emerald-500 ring-1 ring-emerald-500/30'
                         : 'bg-slate-950 border-slate-800 text-slate-400'
                     }`}
                   >
                     <span className="text-[10px] font-bold text-slate-300 block">{w.label}</span>
-                    <span className="font-mono text-xs font-black text-white block mt-0.5">
+                    <span className="font-mono text-xs font-bold text-white block mt-0.5">
                       {w.id === 'USD' ? `$${w.balance.toLocaleString()}` : w.id === 'CNY' ? `¥${w.balance.toLocaleString()}` : `₦${w.balance.toLocaleString()}`}
                     </span>
                   </button>
@@ -1579,9 +1653,9 @@ export const AgentServiceScreen: React.FC = () => {
               </div>
             </div>
 
-            {/* 6-Digit PIN Verification Pad */}
+            {/* 6-Digit PIN Pad */}
             <div className="space-y-2">
-              <label className="text-[11px] font-bold text-slate-300 uppercase block">
+              <label className="text-[11px] font-bold text-slate-300 uppercase block text-center">
                 Enter 6-Digit Transaction PIN
               </label>
               <div className="flex justify-center gap-2">
@@ -1599,8 +1673,7 @@ export const AgentServiceScreen: React.FC = () => {
                 ))}
               </div>
 
-              {/* Keypad */}
-              <div className="grid grid-cols-3 gap-1.5 pt-2">
+              <div className="grid grid-cols-3 gap-1.5 pt-2 max-w-xs mx-auto">
                 {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'].map(k => (
                   <button
                     key={k}
@@ -1610,7 +1683,7 @@ export const AgentServiceScreen: React.FC = () => {
                       else if (k === '⌫') setPinInput(prev => prev.slice(0, -1));
                       else if (pinInput.length < 6) setPinInput(prev => prev + k);
                     }}
-                    className="py-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-sm border border-slate-800/80 active:scale-95 transition-all"
+                    className="py-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-sm border border-slate-800 active:scale-95 transition-all"
                   >
                     {k}
                   </button>
@@ -1618,14 +1691,13 @@ export const AgentServiceScreen: React.FC = () => {
               </div>
             </div>
 
-            {/* Authorize Button */}
             <button
               type="button"
               onClick={handleConfirmPayment}
               disabled={isProcessingPayment || pinInput.length !== 6}
               className={`w-full py-3.5 rounded-2xl font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-1.5 ${
                 pinInput.length === 6 && !isProcessingPayment
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 shadow-emerald-500/20 active:scale-95 cursor-pointer'
+                  ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20 cursor-pointer'
                   : 'bg-slate-800 text-slate-500 cursor-not-allowed'
               }`}
             >
@@ -1636,18 +1708,22 @@ export const AgentServiceScreen: React.FC = () => {
                 </>
               )}
             </button>
+
           </div>
         </div>
       )}
 
-      {/* ===================== MODAL 4: REQUEST DETAILS & TIMELINE DRAWER ===================== */}
+      {/* ========================================================================= */}
+      {/* MODAL 4: REQUEST DETAIL & TIMELINE DRAWER */}
+      {/* ========================================================================= */}
       {viewDetailRfq && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-lg bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-lg bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
+            
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div>
-                <span className="font-mono text-xs font-bold text-emerald-400">{viewDetailRfq.reference || viewDetailRfq.id}</span>
-                <h3 className="text-base font-black text-white">{viewDetailRfq.productName}</h3>
+                <span className="font-mono text-xs font-bold text-emerald-400 block">{viewDetailRfq.reference || viewDetailRfq.id}</span>
+                <h3 className="text-base font-bold text-white">{viewDetailRfq.productName}</h3>
               </div>
               <button
                 type="button"
@@ -1658,7 +1734,6 @@ export const AgentServiceScreen: React.FC = () => {
               </button>
             </div>
 
-            {/* Status & Escrow Info */}
             <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
               <div className="flex justify-between items-center">
                 <span className="text-slate-400">Current Status:</span>
@@ -1672,10 +1747,10 @@ export const AgentServiceScreen: React.FC = () => {
                   <span className="font-mono text-emerald-400 font-bold uppercase">{viewDetailRfq.paymentStatus}</span>
                 </div>
               )}
-              {viewDetailRfq.paymentReference && (
+              {viewDetailRfq.assignedAgent && (
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Payment Reference:</span>
-                  <span className="font-mono text-white">{viewDetailRfq.paymentReference}</span>
+                  <span className="text-slate-400">Assigned Ground Agent:</span>
+                  <span className="font-bold text-white">{viewDetailRfq.assignedAgent}</span>
                 </div>
               )}
               {viewDetailRfq.linkedShipmentCode && (
@@ -1686,7 +1761,6 @@ export const AgentServiceScreen: React.FC = () => {
               )}
             </div>
 
-            {/* Product Specifications / Supplier Info */}
             {viewDetailRfq.specifications && (
               <div className="space-y-1">
                 <span className="text-[11px] font-bold uppercase text-slate-400">Specifications:</span>
@@ -1696,11 +1770,10 @@ export const AgentServiceScreen: React.FC = () => {
               </div>
             )}
 
-            {/* China Ground Operations Findings if any */}
             {(viewDetailRfq.supplierFindings || viewDetailRfq.businessRegistrationFindings || viewDetailRfq.factoryAuditFindings || viewDetailRfq.qualityControlFindings) && (
               <div className="space-y-1">
                 <span className="text-[11px] font-bold uppercase text-emerald-400">Ground Agent Findings:</span>
-                <div className="p-3 rounded-2xl bg-emerald-950/20 border border-emerald-900/40 text-xs text-slate-300 space-y-1">
+                <div className="p-3 rounded-2xl bg-emerald-950/20 border border-emerald-900/30 text-xs text-slate-300 space-y-1">
                   {viewDetailRfq.supplierFindings && <p>{viewDetailRfq.supplierFindings}</p>}
                   {viewDetailRfq.businessRegistrationFindings && <p><strong>Registration:</strong> {viewDetailRfq.businessRegistrationFindings}</p>}
                   {viewDetailRfq.factoryAuditFindings && <p><strong>Factory Audit:</strong> {viewDetailRfq.factoryAuditFindings}</p>}
@@ -1729,15 +1802,18 @@ export const AgentServiceScreen: React.FC = () => {
                 ))}
               </div>
             </div>
+
           </div>
         </div>
       )}
 
-      {/* ===================== MODAL 5: SUBMISSION CONFIRMATION MODAL ===================== */}
+      {/* ========================================================================= */}
+      {/* MODAL 5: SUBMISSION CONFIRMATION MODAL */}
+      {/* ========================================================================= */}
       {submittedRfq && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
           <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-8 h-8" />
             </div>
 
@@ -1745,13 +1821,13 @@ export const AgentServiceScreen: React.FC = () => {
               <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider font-mono">
                 {submittedRfq.reference || submittedRfq.id}
               </span>
-              <h3 className="text-base font-black text-white mt-0.5">Sourcing Request Submitted!</h3>
+              <h3 className="text-base font-bold text-white mt-0.5">Sourcing Request Submitted!</h3>
               <p className="text-xs text-slate-400 mt-1">
                 Your request for <strong>{submittedRfq.productName}</strong> ({submittedRfq.targetQuantity} units) has been assigned to our China sourcing desk.
               </p>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400 leading-relaxed text-left space-y-1">
+            <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400 text-left space-y-1">
               <div className="flex justify-between">
                 <span>Target Unit:</span>
                 <span className="font-mono text-white">¥{submittedRfq.targetUnitCNY} CNY</span>
@@ -1773,7 +1849,7 @@ export const AgentServiceScreen: React.FC = () => {
                   setActiveTab('my_requests');
                   setFilterStatus('all');
                 }}
-                className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5"
+                className="w-full py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>Open My Requests</span>
                 <ArrowRight className="w-4 h-4" />
@@ -1796,6 +1872,7 @@ export const AgentServiceScreen: React.FC = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };
