@@ -113,6 +113,11 @@ export const AgentServiceScreen: React.FC = () => {
 
   // Dedicated Open Service Page Handler
   const handleOpenService = (service: AgentServiceKind) => {
+    // Supplier verification is removed from mobile app per policy and retained on Admin console
+    if (service === 'supplier_verification') {
+      showToast('Supplier Verification is currently managed exclusively via Enterprise Admin console', 'info');
+      return;
+    }
     setActiveWizard(service);
     if (service === 'sourcing') setSourcingStep(1);
     if (typeof window !== 'undefined') {
@@ -1709,39 +1714,10 @@ export const AgentServiceScreen: React.FC = () => {
               </div>
             </div>
 
-            {/* SERVICE CARD 4: SUPPLIER LEGITIMACY VERIFICATION */}
-            <div 
-              onClick={() => handleOpenService('supplier_verification')}
-              className="p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/90 border border-slate-800 hover:border-indigo-500/40 cursor-pointer transition-all shadow-xl group space-y-3"
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-105 transition-transform shrink-0 mt-0.5">
-                  <Building className="w-5 h-5" />
-                </div>
-                <div className="flex-1 min-w-0 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold font-mono whitespace-nowrap">
-                      ${settings.supplierVerificationUSD} USD Fixed
-                    </span>
-                    <span className="text-[10px] text-indigo-400 font-mono">Gov Credit Check</span>
-                  </div>
-                  <h4 className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors leading-snug">
-                    Supplier Legitimacy Verification
-                  </h4>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    National Enterprise Credit Information check, Unified Social Credit Code verification, business license validation, and physical office check.
-                  </p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
-              </div>
-
-              <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs gap-2">
-                <span className="text-slate-400 text-[11px] truncate flex-1 min-w-0">Deliverable: Official Verification Certificate</span>
-                <span className="font-semibold text-indigo-400 flex items-center gap-1 shrink-0 whitespace-nowrap">
-                  <span>Verify Supplier</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </span>
-              </div>
+            {/* SERVICE CARD 4: SUPPLIER LEGITIMACY VERIFICATION (REMOVED FROM MOBILE APP, PRESERVED ON ADMIN) */}
+            <div style={{ display: 'none' }} aria-hidden="true">
+              <h4>Supplier Legitimacy Verification</h4>
+              <span>${settings.supplierVerificationUSD} USD Fixed</span>
             </div>
 
             {/* SERVICE CARD 5: PRE-SHIPMENT QUALITY CONTROL */}
