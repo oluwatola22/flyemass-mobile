@@ -14,13 +14,28 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS'
 };
 
-const PROVIDUS_WEBHOOK_SECRET = Deno.env.get('PROVIDUS_WEBHOOK_SECRET') || 'sec_providus_flyemass_live_2026';
+const PROVIDUS_CLIENT_ID = Deno.env.get('PROVIDUS_CLIENT_ID') || 'dGVzdF9Qcm92aWR1cw==';
+const PROVIDUS_CLIENT_SECRET = Deno.env.get('PROVIDUS_CLIENT_SECRET') || '29A492021F4B709A8D1152C3EF4D32DC5A7092723ECAC4C511781003584B48873CCBFEBDEAE89CF22ED1CB1A836213549BC6638A3B563CA7FC009BEB3BC30CF8';
+const PROVIDUS_WEBHOOK_SECRET = Deno.env.get('PROVIDUS_WEBHOOK_SECRET') || PROVIDUS_CLIENT_SECRET;
 
 /**
- * Verify HMAC-SHA512 or HMAC-SHA256 signature
+ * Generate Providus X-Auth-Signature: SHA512(ClientId:ClientSecret)
+ */
+async function generateProvidusAuthSignature(clientId: string, clientSecret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(`${clientId}:${clientSecret}`);
+  const hashBuffer = await crypto.subtle.digest('SHA-512', data);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Verify HMAC-SHA512 or HMAC-SHA256 signature or SHA512(ClientId:ClientSecret)
  */
 async function verifyHmacSignature(rawBody: string, signature: string, secret: string): Promise<boolean> {
   try {
+    const authSig = await generateProvidusAuthSignature(PROVIDUS_CLIENT_ID, PROVIDUS_CLIENT_SECRET);
+    if (signature.toLowerCase() === authSig.toLowerCase()) return true;
+
     const encoder = new TextEncoder();
     const keyData = encoder.encode(secret);
     
@@ -48,6 +63,19 @@ async function verifyHmacSignature(rawBody: string, signature: string, secret: s
     const hex256 = Array.from(new Uint8Array(sig256Bytes)).map(b => b.toString(16).padStart(2, '0')).join('');
     if (hex256.toLowerCase() === signature.toLowerCase()) return true;
 
+    // Check legacy secret fallback
+    const legacyKeyData = encoder.encode('sec_providus_flyemass_live_2026');
+    const keyLegacy = await crypto.subtle.importKey(
+      'raw',
+      legacyKeyData,
+      { name: 'HMAC', hash: 'SHA-512' },
+      false,
+      ['verify', 'sign']
+    );
+    const sigLegacyBytes = await crypto.subtle.sign('HMAC', keyLegacy, encoder.encode(rawBody));
+    const hexLegacy = Array.from(new Uint8Array(sigLegacyBytes)).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (hexLegacy.toLowerCase() === signature.toLowerCase()) return true;
+
     return false;
   } catch (err) {
     return false;
@@ -72,14 +100,32 @@ Deno.serve(async (req: Request) => {
                       req.headers.get('x-providus-signature') ||
                       req.headers.get('X-Auth-Signature');
 
+    // Extract Providus settlement details
+    const sessionId = payload.sessionId || payload.session_id || `SES-${Date.now()}`;
+    const accountNumber = payload.accountNumber || payload.account_number || '';
+    const tranRemarks = payload.tranRemarks || payload.tran_remarks || `Providus Settlement ${sessionId}`;
+    const transactionAmount = Number(payload.transactionAmount || payload.amount || 0);
+    const settledAmount = Number(payload.settledAmount !== undefined ? payload.settledAmount : transactionAmount);
+    const feeAmount = Number(payload.feeAmount || payload.fee_amount || 0);
+    const vatAmount = Number(payload.vatAmount || payload.vat_amount || 0);
+    const currency = String(payload.currency || 'NGN').toUpperCase();
+    const initiationTranRef = payload.initiationTranRef || payload.initiation_tran_ref || '';
+    const settlementId = payload.settlementId || payload.settlement_id || `SETTLE-${Date.now()}`;
+    const sourceAccountNumber = payload.sourceAccountNumber || payload.source_account_number || '';
+    const sourceAccountName = payload.sourceAccountName || payload.source_account_name || '';
+    const sourceBankName = payload.sourceBankName || payload.source_bank_name || '';
+    const channelId = payload.channelId || payload.channel_id || 'NIP';
+    const tranDateTime = payload.tranDateTime || payload.transactionDateTime || new Date().toISOString();
+
     // Cryptographic signature check (when signature header is supplied)
     if (signature) {
       const isValid = await verifyHmacSignature(rawBody, signature, PROVIDUS_WEBHOOK_SECRET);
       if (!isValid) {
         return new Response(JSON.stringify({
           requestSuccessful: false,
-          responseCode: '02',
-          responseMessage: 'Invalid HMAC signature verification'
+          sessionId,
+          responseMessage: 'rejected transaction',
+          responseCode: '02'
         }), {
           status: 401,
           headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }
@@ -87,51 +133,24 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    let payload: any = {};
-    try {
-      payload = JSON.parse(rawBody);
-    } catch {
-      return new Response(JSON.stringify({ error: 'Malformed JSON payload' }), {
-        status: 400,
-        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Extract Providus settlement details
-    const sessionId = payload.sessionId || payload.session_id || `SES-${Date.now()}`;
-    const accountNumber = payload.accountNumber || payload.account_number || '';
-    const transactionAmount = Number(payload.transactionAmount || payload.settledAmount || payload.amount || 0);
-    const initiationTranRef = payload.initiationTranRef || payload.settlementId || payload.tranRemarks || `PROV-${sessionId}`;
-    const channelId = payload.channelId || 'NIP';
-
-    if (!transactionAmount || transactionAmount <= 0) {
+    if (!settledAmount || settledAmount <= 0 || currency !== 'NGN') {
       return new Response(JSON.stringify({
         requestSuccessful: false,
-        responseCode: '03',
-        responseMessage: 'Invalid transaction amount'
+        sessionId,
+        responseMessage: 'rejected transaction',
+        responseCode: '02'
       }), {
-        status: 400,
+        status: 200,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }
       });
     }
 
-    const settlementResult = {
-      sessionId,
-      accountNumber,
-      amount: transactionAmount,
-      reference: initiationTranRef,
-      channelId,
-      status: 'SUCCESS',
-      timestamp: Date.now()
-    };
-
-    // Return standard Providus Bank success acknowledgement
+    // Return strict Providus Bank success acknowledgement
     return new Response(JSON.stringify({
       requestSuccessful: true,
       sessionId,
-      responseMessage: 'Settlement confirmed & wallet credited',
-      responseCode: '00',
-      data: settlementResult
+      responseMessage: 'success',
+      responseCode: '00'
     }), {
       status: 200,
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }
@@ -140,8 +159,9 @@ Deno.serve(async (req: Request) => {
   } catch (error: any) {
     return new Response(JSON.stringify({
       requestSuccessful: false,
-      responseCode: '99',
-      responseMessage: error.message || 'System error processing Providus notification'
+      sessionId: '',
+      responseMessage: 'system failure, retry',
+      responseCode: '03'
     }), {
       status: 500,
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }

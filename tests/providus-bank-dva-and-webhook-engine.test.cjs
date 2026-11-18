@@ -4,7 +4,11 @@ const path = require('path');
 const http = require('http');
 const crypto = require('crypto');
 
-const PROVIDUS_WEBHOOK_SECRET = 'sec_providus_flyemass_live_2026';
+// Official Providus Bank Test Configuration
+const PROVIDUS_BASE_URL = 'http://102.209.190.54:8088/appdevapi/api/';
+const PROVIDUS_CLIENT_ID = 'dGVzdF9Qcm92aWR1cw==';
+const PROVIDUS_CLIENT_SECRET = '29A492021F4B709A8D1152C3EF4D32DC5A7092723ECAC4C511781003584B48873CCBFEBDEAE89CF22ED1CB1A836213549BC6638A3B563CA7FC009BEB3BC30CF8';
+const PROVIDUS_AUTH_SIGNATURE = crypto.createHash('sha512').update(`${PROVIDUS_CLIENT_ID}:${PROVIDUS_CLIENT_SECRET}`).digest('hex');
 
 function request(method, pathUrl, body = null, headers = {}) {
   return new Promise((resolve, reject) => {
@@ -56,19 +60,21 @@ async function runTests() {
   const walletsSrc = fs.readFileSync(path.join(root, 'src/screens/wallets/WalletsScreen.tsx'), 'utf8');
   const edgeDvaSrc = fs.readFileSync(path.join(root, 'supabase/functions/providus-create-dva/index.ts'), 'utf8');
   const edgeWhkSrc = fs.readFileSync(path.join(root, 'supabase/functions/providus-webhook/index.ts'), 'utf8');
+  const syncServerSrc = fs.readFileSync(path.join(root, 'sync-server.cjs'), 'utf8');
 
   // -----------------------------------------------------------------
-  // 1. Supabase Edge Functions & Static Verification
+  // 1. Providus API Configuration & Authentication
   // -----------------------------------------------------------------
-  console.log('[Test 1] Verifying Supabase Edge Functions architecture...');
-  assert(edgeDvaSrc.includes('providus-create-dva'), 'Edge function providus-create-dva must exist');
-  assert(edgeDvaSrc.includes('Access-Control-Allow-Origin'), 'providus-create-dva must have CORS');
-  assert(edgeDvaSrc.includes('CreateDynamicAccountNumber') || edgeDvaSrc.includes('generateProvidusNuban'), 'Must support Providus DVA generation');
+  console.log('[Test 1] Verifying Providus API Configuration & Authentication Rules...');
+  assert(syncServerSrc.includes('dGVzdF9Qcm92aWR1cw=='), 'sync-server.cjs must include official Providus test Client-Id');
+  assert(syncServerSrc.includes('29A492021F4B709A8D1152C3EF4D32DC5A7092723ECAC4C511781003584B48873CCBFEBDEAE89CF22ED1CB1A836213549BC6638A3B563CA7FC009BEB3BC30CF8'), 'sync-server.cjs must include official Providus ClientSecret');
+  assert(syncServerSrc.includes('http://102.209.190.54:8088/appdevapi/api/'), 'sync-server.cjs must configure Providus Base URL');
+  assert(syncServerSrc.includes('getProvidusAuthSignature'), 'sync-server.cjs must generate dynamic SHA512(ClientId:ClientSecret) signature');
 
-  assert(edgeWhkSrc.includes('providus-webhook'), 'Edge function providus-webhook must exist');
-  assert(edgeWhkSrc.includes('verifyHmacSignature'), 'providus-webhook must implement HMAC signature verification');
-  assert(edgeWhkSrc.includes('requestSuccessful') && edgeWhkSrc.includes('responseCode'), 'Must return Providus response specification');
-  console.log('✓ Supabase Edge Functions providus-create-dva & providus-webhook verified');
+  assert(edgeDvaSrc.includes('dGVzdF9Qcm92aWR1cw=='), 'providus-create-dva must include official Client-Id');
+  assert(edgeDvaSrc.includes('generateProvidusAuthSignature'), 'providus-create-dva must compute SHA-512 signature');
+  assert(edgeWhkSrc.includes('dGVzdF9Qcm92aWR1cw=='), 'providus-webhook must include official Client-Id');
+  console.log('✓ Providus test credentials, Base URL, and SHA512 signature engine verified');
 
   // -----------------------------------------------------------------
   // 2. Dynamic Virtual Account (DVA) Generation
@@ -96,53 +102,88 @@ async function runTests() {
   console.log(`✓ Providus DVA successfully created: Account ${accountNumber} (${bankName}) Ref: ${initiationTranRef}`);
 
   // -----------------------------------------------------------------
-  // 3. Webhook Cryptographic Signature Verification
+  // 3. Webhook Receiver: Payload Parsing, Idempotency & Standard Response Codes
   // -----------------------------------------------------------------
-  console.log('\n[Test 3] Verifying HMAC Cryptographic Signature & Replay Protection...');
+  console.log('\n[Test 3] Verifying Webhook Payload Parsing, Signature & Response Contracts...');
+
   const testSessionId = `SES-PROV-${Date.now()}`;
   const validWebhookPayload = {
     sessionId: testSessionId,
     accountNumber: accountNumber,
+    tranRemarks: `TRF/NIP/GTBANK TO PROVIDUS/${initiationTranRef}`,
     transactionAmount: 250000,
     settledAmount: 250000,
-    settlementId: `SETTLE-${Date.now()}`,
-    initiationTranRef: initiationTranRef,
+    feeAmount: 50,
+    vatAmount: 3.75,
     currency: 'NGN',
-    tranRemarks: `TRF/NIP/GTBANK TO PROVIDUS/${initiationTranRef}`,
-    transactionDateTime: new Date().toISOString()
+    initiationTranRef: initiationTranRef,
+    settlementId: `SETTLE-${Date.now()}`,
+    sourceAccountNumber: '0123456789',
+    sourceAccountName: 'Chief Babatunde Alade',
+    sourceBankName: 'Guaranty Trust Bank',
+    channelId: 'NIP',
+    tranDateTime: new Date().toISOString()
   };
 
   const rawJson = JSON.stringify(validWebhookPayload);
 
-  // 3a. Rejection of Forged / Invalid Signature
+  // 3a. Rejection of Forged Signature (Response Code: "02", rejected transaction)
   const invalidSigRes = await request('POST', '/api/webhooks/providus', rawJson, {
-    'x-auth-signature': 'forged_fake_signature_hash_1234567890abcdef'
+    'x-auth-signature': 'invalid_forged_hash_1234567890abcdef'
   });
-  assert.strictEqual(invalidSigRes.status, 401, 'Forged HMAC signature must be rejected with 401');
-  console.log('✓ Forged HMAC signature successfully rejected (401 Unauthorized)');
+  assert.strictEqual(invalidSigRes.status, 401, 'Forged signature must be rejected with 401');
+  assert.strictEqual(invalidSigRes.data.responseCode, '02', 'Rejection responseCode must be 02');
+  assert.strictEqual(invalidSigRes.data.responseMessage, 'rejected transaction', 'Rejection message must be "rejected transaction"');
+  console.log('✓ 3a. Invalid signature rejected: responseCode "02" (rejected transaction)');
 
-  // 3b. Acceptance of Valid HMAC-SHA512 Signature
-  const validSignature512 = crypto.createHmac('sha512', PROVIDUS_WEBHOOK_SECRET).update(rawJson).digest('hex');
-
+  // 3b. Acceptance of Valid SHA512 Auth Signature (Response Code: "00", success)
   // Capture user opening balance before webhook
   const stateBefore = (await request('GET', '/api/db/state')).data.state;
   const openingBalance = stateBefore.users['usr_alade_01'].balances.NGN || 0;
 
   const validSigRes = await request('POST', '/api/webhooks/providus', rawJson, {
-    'x-auth-signature': validSignature512
+    'x-auth-signature': PROVIDUS_AUTH_SIGNATURE
   });
-  assert.strictEqual(validSigRes.status, 200, 'Valid Providus webhook must return 200 OK');
-  assert(validSigRes.data.requestSuccessful, 'Providus response format: requestSuccessful must be true');
-  assert.strictEqual(validSigRes.data.responseCode, '00', 'Providus responseCode must be 00');
-  console.log('✓ Valid HMAC-SHA512 signature verified and acknowledged with Providus 00 response');
 
-  // 3c. Replay / Duplicate Webhook Idempotency Check
+  assert.strictEqual(validSigRes.status, 200, 'Valid Providus webhook must return 200 OK');
+  assert.strictEqual(validSigRes.data.requestSuccessful, true, 'requestSuccessful must be true');
+  assert.strictEqual(validSigRes.data.sessionId, testSessionId, 'Must echo matching sessionId');
+  assert.strictEqual(validSigRes.data.responseCode, '00', 'Success responseCode must be 00');
+  assert.strictEqual(validSigRes.data.responseMessage, 'success', 'Success responseMessage must be "success"');
+  console.log('✓ 3b. Valid settlement acknowledged: responseCode "00" (success)');
+
+  // 3c. Duplicate / Idempotency Guard (Response Code: "01", duplicate transaction)
   const duplicateRes = await request('POST', '/api/webhooks/providus', rawJson, {
-    'x-auth-signature': validSignature512
+    'x-auth-signature': PROVIDUS_AUTH_SIGNATURE
   });
-  assert.strictEqual(duplicateRes.status, 200, 'Duplicate webhook must be handled gracefully');
-  assert(duplicateRes.data.already_processed, 'Duplicate webhook must be flagged as already_processed');
-  console.log('✓ Replay attack protection & duplicate webhook idempotency verified');
+  assert.strictEqual(duplicateRes.status, 200, 'Duplicate webhook must return 200 OK');
+  assert.strictEqual(duplicateRes.data.requestSuccessful, true, 'Duplicate requestSuccessful must be true');
+  assert.strictEqual(duplicateRes.data.sessionId, testSessionId, 'Duplicate must echo sessionId');
+  assert.strictEqual(duplicateRes.data.responseCode, '01', 'Duplicate responseCode must be 01');
+  assert.strictEqual(duplicateRes.data.responseMessage, 'duplicate transaction', 'Duplicate responseMessage must be "duplicate transaction"');
+  console.log('✓ 3c. Replay duplicate protected: responseCode "01" (duplicate transaction)');
+
+  // 3d. Non-positive amount / Invalid details (Response Code: "02", rejected transaction)
+  const rejectedPayload = {
+    sessionId: `SES-REJ-${Date.now()}`,
+    accountNumber: accountNumber,
+    tranRemarks: 'Invalid transaction',
+    transactionAmount: -5000,
+    settledAmount: 0,
+    feeAmount: 0,
+    vatAmount: 0,
+    currency: 'NGN',
+    initiationTranRef: `REJ-${Date.now()}`,
+    settlementId: `SETTLE-REJ-${Date.now()}`,
+    channelId: 'NIP',
+    tranDateTime: new Date().toISOString()
+  };
+  const rejRes = await request('POST', '/api/webhooks/providus', rejectedPayload, {
+    'x-auth-signature': PROVIDUS_AUTH_SIGNATURE
+  });
+  assert.strictEqual(rejRes.data.responseCode, '02', 'Invalid amount must return responseCode "02"');
+  assert.strictEqual(rejRes.data.responseMessage, 'rejected transaction', 'Invalid amount must return "rejected transaction"');
+  console.log('✓ 3d. Malformed/Zero amount rejected: responseCode "02" (rejected transaction)');
 
   // -----------------------------------------------------------------
   // 4. Atomic General Ledger Credit Verification
@@ -167,7 +208,9 @@ async function runTests() {
   const settledDva = stateAfter.providus_virtual_accounts?.[initiationTranRef] || stateAfter.providus_virtual_accounts?.[accountNumber];
   assert(settledDva, 'DVA record must exist in state');
   assert.strictEqual(settledDva.status, 'settled', 'DVA status must transition to settled');
-  console.log('✓ Atomic ledger credit, double-entry postings, and DVA settlement confirmed');
+  assert.strictEqual(settledDva.sourceBankName, 'Guaranty Trust Bank', 'Must store source bank name');
+  assert.strictEqual(settledDva.sourceAccountName, 'Chief Babatunde Alade', 'Must store source account name');
+  console.log('✓ Atomic ledger credit, metadata persistence, and DVA settlement confirmed');
 
   // -----------------------------------------------------------------
   // 5. Mobile App UI Verification: FundWalletModal & Realtime Listeners
