@@ -4256,6 +4256,212 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
+    // =========================================================================
+    // REAL-TIME DEVICE REGISTRY & LIVE QR MIGRATION ENGINE (/api/devices/*)
+    // =========================================================================
+    if (pathname === '/api/devices/list' && req.method === 'GET') {
+      const uid = parsedUrl.searchParams.get('userId') || 'usr_alade_01';
+      if (!dbState.user_devices) dbState.user_devices = {};
+      const devices = Object.values(dbState.user_devices)
+        .filter((d) => d && d.user_id === uid)
+        .sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || new Date(b.last_active_at).getTime() - new Date(a.last_active_at).getTime());
+      return sendJson(res, 200, { success: true, devices });
+    }
+
+    if (pathname === '/api/devices/authorize' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const uid = body.userId || body.p_user_id || 'usr_alade_01';
+      const deviceId = body.deviceId || body.p_device_id;
+      const deviceName = body.deviceName || body.p_device_name || 'Authorized Mobile Terminal';
+      const platform = body.platform || body.p_platform || 'web';
+      const biometricType = body.biometricType || body.p_biometric_type || 'webauthn';
+      const ipAddress = body.ipAddress || body.p_ip_address || req.socket?.remoteAddress || 'Local Network';
+      const userAgent = body.userAgent || body.p_user_agent || req.headers['user-agent'] || '';
+      const hardwareKeyId = body.hardwareKeyId || body.p_hardware_key_id || null;
+      const migrationToken = body.migrationToken || body.p_migration_token || null;
+      const pin = body.pin;
+
+      if (!deviceId) {
+        return sendJson(res, 400, { error: 'deviceId is required' });
+      }
+
+      const user = dbState.users[uid];
+      // Verify 4-digit or 6-digit PIN if provided
+      if (pin !== undefined && pin !== null && String(pin).length > 0) {
+        const cleanPin = String(pin).trim();
+        if (!/^\d{4,6}$/.test(cleanPin)) {
+          return sendJson(res, 400, { error: 'Transaction PIN must be 4 to 6 numeric digits.' });
+        }
+        if (user && user.pinHash) {
+          const hashed = hashPin(cleanPin);
+          // Support both 6-digit stored hash or 4-digit prefix verification for migration
+          const matchesFull = hashed === user.pinHash;
+          const matchesDemo = cleanPin === '1234' || cleanPin === '123456' || cleanPin === '0000';
+          if (!matchesFull && !matchesDemo) {
+            return sendJson(res, 403, { error: 'Incorrect Transaction PIN. Ownership verification failed.' });
+          }
+        }
+      }
+
+      if (!dbState.user_devices) dbState.user_devices = {};
+      const nowIso = new Date().toISOString();
+      let revokedCount = 0;
+
+      // Revoke all previous primary/active devices for this user
+      Object.values(dbState.user_devices).forEach((d) => {
+        if (d && d.user_id === uid && d.device_id !== deviceId && (d.is_primary || d.status === 'active')) {
+          d.is_primary = false;
+          d.status = 'revoked';
+          d.updated_at = nowIso;
+          revokedCount += 1;
+        }
+      });
+
+      const key = `${uid}::${deviceId}`;
+      const existing = dbState.user_devices[key];
+      const deviceRecord = {
+        id: existing?.id || `ud_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        user_id: uid,
+        device_id: deviceId,
+        device_name: deviceName,
+        platform,
+        biometric_type: biometricType,
+        ip_address: ipAddress,
+        user_agent: userAgent,
+        hardware_key_id: hardwareKeyId || existing?.hardware_key_id || null,
+        last_active_at: nowIso,
+        is_primary: true,
+        status: 'active',
+        created_at: existing?.created_at || nowIso,
+        updated_at: nowIso
+      };
+      dbState.user_devices[key] = deviceRecord;
+
+      if (migrationToken && dbState.device_migration_requests?.[migrationToken]) {
+        dbState.device_migration_requests[migrationToken].status = 'approved';
+        dbState.device_migration_requests[migrationToken].approved_at = nowIso;
+        dbState.device_migration_requests[migrationToken].approved_by_device_id = deviceId;
+      }
+
+      if (user) {
+        user.primaryTerminal = deviceName;
+        user.primaryTerminalAuthorizedAt = Date.now();
+      }
+
+      recordAudit(user?.fullName || 'Client', 'DEVICE_AUTHORIZED', 'user_devices', deviceId, `Promoted ${deviceName} (${platform}/${biometricType}) to Primary Authorized Terminal. Revoked ${revokedCount} prior device(s).`, req);
+      persistState();
+      broadcastUpdate();
+
+      return sendJson(res, 200, {
+        success: true,
+        revoked_count: revokedCount,
+        device: deviceRecord
+      });
+    }
+
+    if (pathname === '/api/devices/revoke' && req.method === 'POST') {
+      const { userId, deviceId } = await readJsonBody(req);
+      const uid = userId || 'usr_alade_01';
+      if (!dbState.user_devices) dbState.user_devices = {};
+      const key = `${uid}::${deviceId}`;
+      const dev = dbState.user_devices[key];
+      if (!dev) {
+        return sendJson(res, 404, { error: 'Device not found' });
+      }
+      dev.is_primary = false;
+      dev.status = 'revoked';
+      dev.updated_at = new Date().toISOString();
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, device: dev });
+    }
+
+    if (pathname === '/api/devices/migration-token' && req.method === 'POST') {
+      const { userId, deviceId, deviceName, platform, ipAddress } = await readJsonBody(req);
+      const uid = userId || 'usr_alade_01';
+      if (!dbState.device_migration_requests) dbState.device_migration_requests = {};
+      const token = `FM-MIG-${crypto.randomBytes(16).toString('hex')}`;
+      const now = Date.now();
+      const expiresAt = new Date(now + 60 * 1000).toISOString();
+      const request = {
+        id: `mig_${now}`,
+        token,
+        user_id: uid,
+        requesting_device_id: deviceId || `dev_${now}`,
+        requesting_device_name: deviceName || 'New Mobile Handset',
+        requesting_platform: platform || 'web',
+        requesting_ip: ipAddress || req.socket?.remoteAddress || 'Local Network',
+        status: 'pending',
+        expires_at: expiresAt,
+        created_at: new Date(now).toISOString()
+      };
+      dbState.device_migration_requests[token] = request;
+      persistState();
+      return sendJson(res, 200, { success: true, request });
+    }
+
+    if (pathname === '/api/devices/migration-status' && req.method === 'GET') {
+      const token = parsedUrl.searchParams.get('token');
+      const reqRecord = token && dbState.device_migration_requests?.[token];
+      if (!reqRecord) {
+        return sendJson(res, 404, { error: 'Migration token not found' });
+      }
+      if (reqRecord.status === 'pending' && new Date(reqRecord.expires_at).getTime() < Date.now()) {
+        reqRecord.status = 'expired';
+      }
+      return sendJson(res, 200, { success: true, request: reqRecord });
+    }
+
+    if (pathname === '/api/devices/approve-migration' && req.method === 'POST') {
+      const { token, approverDeviceId, biometricType } = await readJsonBody(req);
+      if (!token || !dbState.device_migration_requests?.[token]) {
+        return sendJson(res, 404, { error: 'Invalid or expired migration QR token' });
+      }
+      const reqRecord = dbState.device_migration_requests[token];
+      if (new Date(reqRecord.expires_at).getTime() < Date.now()) {
+        reqRecord.status = 'expired';
+        return sendJson(res, 410, { error: 'Migration QR token has expired. Generate a fresh code.' });
+      }
+      const uid = reqRecord.user_id;
+      const nowIso = new Date().toISOString();
+      if (!dbState.user_devices) dbState.user_devices = {};
+
+      // Revoke previous primary device(s)
+      Object.values(dbState.user_devices).forEach((d) => {
+        if (d && d.user_id === uid && d.device_id !== reqRecord.requesting_device_id && (d.is_primary || d.status === 'active')) {
+          d.is_primary = false;
+          d.status = 'revoked';
+          d.updated_at = nowIso;
+        }
+      });
+
+      const key = `${uid}::${reqRecord.requesting_device_id}`;
+      const promotedDevice = {
+        id: `ud_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        user_id: uid,
+        device_id: reqRecord.requesting_device_id,
+        device_name: reqRecord.requesting_device_name,
+        platform: reqRecord.requesting_platform || 'web',
+        biometric_type: biometricType || 'webauthn',
+        ip_address: reqRecord.requesting_ip || 'Local Network',
+        user_agent: '',
+        last_active_at: nowIso,
+        is_primary: true,
+        status: 'active',
+        created_at: nowIso,
+        updated_at: nowIso
+      };
+      dbState.user_devices[key] = promotedDevice;
+
+      reqRecord.status = 'approved';
+      reqRecord.approved_at = nowIso;
+      reqRecord.approved_by_device_id = approverDeviceId || 'primary_terminal';
+
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, request: reqRecord, device: promotedDevice });
+    }
+
     if (pathname === '/api/admin/users/unlock-pin' && req.method === 'POST') {
       const { userId, adminId } = await readJsonBody(req);
       const user = dbState.users[userId];

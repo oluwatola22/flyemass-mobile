@@ -8,6 +8,7 @@ import { QuickActionSheet } from '../ui/QuickActionSheet';
 import { CurrencySwapModal } from '../wallet/CurrencySwapModal';
 import { FundWalletModal } from '../wallet/FundWalletModal';
 import { Toast } from '../ui/Toast';
+import { subscribeToDeviceRevocation } from '../../services/deviceRegistry';
 import { 
   Wifi, 
   WifiOff,
@@ -134,8 +135,25 @@ export const MobileShell: React.FC = () => {
     toggleFrameMockup, 
     themeMode, 
     toggleTheme,
-    showToast 
+    showToast,
+    isAuthenticated,
+    activeUserId,
+    logout
   } = useApp();
+
+  // Supabase Realtime Forced Logout Listener when a new Primary Authorized Terminal supersedes this device
+  useEffect(() => {
+    if (!isAuthenticated || !activeUserId) return;
+    const unsubscribe = subscribeToDeviceRevocation(activeUserId, (reason) => {
+      showToast(reason, 'info');
+      if (typeof logout === 'function') {
+        logout();
+      } else {
+        navigate('login');
+      }
+    });
+    return () => unsubscribe();
+  }, [isAuthenticated, activeUserId, logout, navigate, showToast]);
 
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [currentTime, setCurrentTime] = useState<string>(() => {

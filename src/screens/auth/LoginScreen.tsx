@@ -1,27 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import {
+  detectBiometricCapabilities,
+  authenticateWithBiometrics,
+  isBiometricLoginEnabled,
+  BiometricCapabilities
+} from '../../services/biometricAuth';
 import { 
   ShieldCheck, 
   Mail, 
   Lock, 
   Fingerprint, 
+  ScanFace,
   ArrowRight, 
   ChevronLeft, 
   Eye, 
   EyeOff, 
-  SmartphoneNfc 
+  SmartphoneNfc,
+  RefreshCw
 } from 'lucide-react';
 
 export const LoginScreen: React.FC = () => {
-  const { login, navigate } = useApp();
+  const { login, navigate, showToast, activeUserId } = useApp();
   const [identifier, setIdentifier] = useState('babatunde@aladeholding.ng');
   const [password, setPassword] = useState('SecretTrade2026!');
   const [showPassword, setShowPassword] = useState(false);
+  const [isBioLoggingIn, setIsBioLoggingIn] = useState(false);
+  const [bioCaps, setBioCaps] = useState<BiometricCapabilities>({
+    isAvailable: true,
+    isNative: false,
+    biometryType: 'fingerprint',
+    platform: 'web',
+    label: 'Fingerprint',
+    actionLabel: 'Authenticate with Fingerprint',
+    shortLabel: 'Fingerprint'
+  });
+
+  useEffect(() => {
+    detectBiometricCapabilities().then(setBioCaps).catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await login(identifier, password);
   };
+
+  const handleBiometricLogin = async () => {
+    const uid = activeUserId || 'usr_alade_01';
+    if (!isBiometricLoginEnabled(uid)) {
+      showToast(`Enable "${bioCaps.label} Login & Swap Approval" in Profile → Security first, or sign in with password.`, 'info');
+      return;
+    }
+    setIsBioLoggingIn(true);
+    try {
+      const res = await authenticateWithBiometrics(`Sign in to FlyeMass with ${bioCaps.label}`);
+      if (!res.verified) {
+        showToast(res.error || `${bioCaps.label} verification cancelled`, 'error');
+        return;
+      }
+      await login(identifier, password);
+      showToast(`Unlocked with ${bioCaps.label}`, 'success');
+    } catch (e: any) {
+      showToast(e?.message || 'Biometric sign-in failed', 'error');
+    } finally {
+      setIsBioLoggingIn(false);
+    }
+  };
+
+  const BiometricIcon = bioCaps.biometryType === 'face_id' ? ScanFace : Fingerprint;
 
   return (
     <div className="min-h-full flex flex-col justify-between p-6 bg-slate-950 text-white">
@@ -126,12 +172,13 @@ export const LoginScreen: React.FC = () => {
 
           <div className="flex items-center justify-center gap-3">
             <button
-              onClick={() => login(identifier, password)}
+              onClick={handleBiometricLogin}
+              disabled={isBioLoggingIn}
               type="button"
-              className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/40 text-xs font-semibold text-slate-200 active:scale-95 transition-all shadow-md"
+              className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/40 text-xs font-semibold text-slate-200 active:scale-95 transition-all shadow-md disabled:opacity-50 cursor-pointer"
             >
-              <Fingerprint className="w-4 h-4 text-emerald-400" />
-              <span>Face ID / Touch ID</span>
+              {isBioLoggingIn ? <RefreshCw className="w-4 h-4 text-emerald-400 animate-spin" /> : <BiometricIcon className="w-4 h-4 text-emerald-400" />}
+              <span>{isBioLoggingIn ? 'Verifying...' : bioCaps.label}</span>
             </button>
 
             <button

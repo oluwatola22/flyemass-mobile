@@ -1,26 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { PinPad } from '../../components/ui/PinPad';
 import { db } from '../../services/db';
+import {
+  detectBiometricCapabilities,
+  enrollDeviceBiometrics,
+  isBiometricLoginEnabled,
+  setBiometricLoginEnabled,
+  getOrCreateDeviceId,
+  BiometricCapabilities
+} from '../../services/biometricAuth';
+import {
+  fetchUserDevices,
+  revokeDeviceSession,
+  UserDeviceRecord
+} from '../../services/deviceRegistry';
 import { 
   ShieldCheck, 
   Lock, 
   Fingerprint, 
+  ScanFace,
   Smartphone, 
   Laptop, 
-  CheckCircle2, 
-  AlertTriangle,
   Trash2,
   KeyRound,
   RotateCcw,
   Mail,
-  X
+  X,
+  SmartphoneNfc,
+  ChevronRight
 } from 'lucide-react';
 
 export const SecurityScreen: React.FC = () => {
-  const { userPin, setUserPin, showToast, goBack, activeUserId, userProfile } = useApp();
-  const [biometricEnabled, setBiometricEnabled] = useState(true);
+  const { setUserPin, showToast, navigate, activeUserId, userProfile } = useApp();
+  const uid = activeUserId || 'usr_alade_01';
+  const currentDeviceId = getOrCreateDeviceId();
+
+  const [biometricEnabled, setBiometricEnabled] = useState<boolean>(() => isBiometricLoginEnabled(uid));
+  const [isTogglingBio, setIsTogglingBio] = useState(false);
+  const [bioCaps, setBioCaps] = useState<BiometricCapabilities>({
+    isAvailable: true,
+    isNative: false,
+    biometryType: 'fingerprint',
+    platform: 'web',
+    label: 'Fingerprint',
+    actionLabel: 'Authenticate with Fingerprint',
+    shortLabel: 'Fingerprint'
+  });
   
   // Modal State
   const [pinModalMode, setPinModalMode] = useState<'update' | 'reset' | 'create' | null>(null);
@@ -30,10 +57,60 @@ export const SecurityScreen: React.FC = () => {
   const [otpCode, setOtpCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [trustedDevices, setTrustedDevices] = useState([
-    { id: 'dev-1', name: 'iPhone 16 Pro Max (This Device)', location: 'Ikeja, Lagos, Nigeria', active: true, icon: Smartphone },
-    { id: 'dev-2', name: 'MacBook Pro 16" (M4 Max)', location: 'Tianhe, Guangzhou, China', active: false, icon: Laptop }
-  ]);
+  // Real active devices from Supabase `public.user_devices`
+  const [trustedDevices, setTrustedDevices] = useState<UserDeviceRecord[]>([]);
+  const [loadingDevices, setLoadingDevices] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadSecurityData = async () => {
+      setLoadingDevices(true);
+      try {
+        const [caps, devices] = await Promise.all([
+          detectBiometricCapabilities(),
+          fetchUserDevices(uid)
+        ]);
+        if (!mounted) return;
+        setBioCaps(caps);
+        setTrustedDevices(devices);
+        setBiometricEnabled(isBiometricLoginEnabled(uid));
+      } catch {
+        // ignore
+      } finally {
+        if (mounted) setLoadingDevices(false);
+      }
+    };
+    loadSecurityData();
+    return () => {
+      mounted = false;
+    };
+  }, [uid]);
+
+  const handleToggleBiometric = async () => {
+    if (isTogglingBio) return;
+    if (biometricEnabled) {
+      setBiometricLoginEnabled(uid, false);
+      setBiometricEnabled(false);
+      showToast(`${bioCaps.label} login & transaction approval disabled`, 'info');
+      return;
+    }
+
+    setIsTogglingBio(true);
+    try {
+      const res = await enrollDeviceBiometrics(uid, userProfile?.name || userProfile?.email || 'FlyeMass Client');
+      if (!res.verified) {
+        showToast(res.error || `${bioCaps.label} verification cancelled`, 'error');
+        return;
+      }
+      setBiometricLoginEnabled(uid, true);
+      setBiometricEnabled(true);
+      showToast(`${bioCaps.label} enabled for Login, FX Swaps & Withdrawals!`, 'success');
+    } catch (e: any) {
+      showToast(e?.message || 'Unable to enable biometric authentication', 'error');
+    } finally {
+      setIsTogglingBio(false);
+    }
+  };
 
   const handleOpenModal = (mode: 'update' | 'reset' | 'create') => {
     setPinModalMode(mode);
@@ -117,10 +194,16 @@ export const SecurityScreen: React.FC = () => {
     }
   };
 
-  const handleRevokeDevice = (id: string) => {
-    setTrustedDevices((prev) => prev.filter((d) => d.id !== id));
-    showToast('Device session revoked', 'info');
+  const handleRevokeDevice = async (deviceId: string) => {
+    await revokeDeviceSession(uid, deviceId);
+    setTrustedDevices((prev) =>
+      prev.map((d) => (d.device_id === deviceId ? { ...d, status: 'revoked', is_primary: false } : d))
+    );
+    showToast('Device session revoked and forced logout dispatched.', 'info');
   };
+
+  const BiometricIcon = bioCaps.biometryType === 'face_id' ? ScanFace : Fingerprint;
+  const activeDevices = trustedDevices.filter((d) => d.status === 'active');
 
   return (
     <div className="min-h-full pb-24 bg-slate-950 text-white">
@@ -172,23 +255,25 @@ export const SecurityScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Biometric Toggle Card */}
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
-              <Fingerprint className="w-4 h-4" />
+        {/* Biometric Login & Swap/Withdrawal Approval Toggle Card */}
+        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+              <BiometricIcon className="w-4 h-4" />
             </div>
-            <div>
-              <h4 className="text-xs font-bold text-white">Biometric Fast Authorization</h4>
-              <p className="text-[10px] text-slate-400">Face ID & Touch ID for rapid checkouts</p>
+            <div className="min-w-0">
+              <h4 className="text-xs font-bold text-white">Enable Biometric Login & Swap Approval</h4>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                Use {bioCaps.label} to unlock FlyeMass and authorize currency swaps or withdrawals alongside your PIN
+              </p>
             </div>
           </div>
           <button
-            onClick={() => {
-              setBiometricEnabled(!biometricEnabled);
-              showToast(biometricEnabled ? 'Biometrics disabled' : 'Biometrics enabled', 'info');
-            }}
-            className={`w-12 h-6 rounded-full transition-colors relative p-0.5 ${
+            type="button"
+            disabled={isTogglingBio}
+            onClick={handleToggleBiometric}
+            aria-label="Enable Biometric Login & Swap Approval"
+            className={`w-12 h-6 rounded-full transition-colors relative p-0.5 shrink-0 cursor-pointer disabled:opacity-60 ${
               biometricEnabled ? 'bg-emerald-500' : 'bg-slate-800'
             }`}
           >
@@ -200,47 +285,88 @@ export const SecurityScreen: React.FC = () => {
           </button>
         </div>
 
-        {/* Trusted Devices Sessions */}
+        {/* Switch / Authorize New Device Quick Action */}
+        <button
+          type="button"
+          onClick={() => navigate('switch-device')}
+          className="w-full p-4 rounded-3xl bg-slate-900 hover:bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 flex items-center justify-between transition-all cursor-pointer"
+        >
+          <div className="flex items-center gap-3 text-left">
+            <div className="w-9 h-9 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center shrink-0">
+              <SmartphoneNfc className="w-4 h-4" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-white">Authorize New Device / QR Sync</h4>
+              <p className="text-[10px] text-slate-400">Migrate hardware session with {bioCaps.label} or 60s QR code</p>
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
+        </button>
+
+        {/* Real-Time Trusted Devices Sessions from Supabase `public.user_devices` */}
         <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-3">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
-            Authorized Enterprise Devices ({trustedDevices.length})
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+              Authorized Devices ({activeDevices.length})
+            </span>
+            <span className="text-[10px] font-mono text-emerald-400">Live Registry</span>
+          </div>
 
           <div className="space-y-2">
-            {trustedDevices.map((dev) => {
-              const Icon = dev.icon;
-              return (
-                <div
-                  key={dev.id}
-                  className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300">
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <h5 className="text-xs font-bold text-white">{dev.name}</h5>
-                        {dev.active && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        )}
-                      </div>
-                      <p className="text-[10px] text-slate-400">{dev.location}</p>
-                    </div>
-                  </div>
-
-                  {!dev.active && (
-                    <button
-                      onClick={() => handleRevokeDevice(dev.id)}
-                      className="text-slate-500 hover:text-rose-400 p-1"
-                      title="Revoke Session"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
+            {loadingDevices ? (
+              <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 animate-pulse flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-slate-800" />
+                <div className="space-y-1.5 flex-1">
+                  <div className="h-3 w-32 bg-slate-800 rounded" />
+                  <div className="h-2.5 w-44 bg-slate-800/70 rounded" />
                 </div>
-              );
-            })}
+              </div>
+            ) : activeDevices.length === 0 ? (
+              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 text-center text-xs text-slate-400">
+                No active devices registered yet.
+              </div>
+            ) : (
+              activeDevices.map((dev) => {
+                const isMobile = dev.platform === 'ios' || dev.platform === 'android';
+                const Icon = isMobile ? Smartphone : Laptop;
+                const isThisDevice = dev.device_id === currentDeviceId;
+                return (
+                  <div
+                    key={dev.id || dev.device_id}
+                    className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 flex items-center justify-between gap-2"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-slate-800 flex items-center justify-center text-emerald-400 shrink-0">
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <h5 className="text-xs font-bold text-white truncate">
+                            {dev.device_name}{isThisDevice ? ' (This Device)' : ''}
+                          </h5>
+                          {dev.is_primary && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-[10px] text-slate-400 truncate font-mono">
+                          {dev.is_primary ? 'Primary' : 'Active'} • IP: {dev.ip_address || 'Live Session'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {!isThisDevice && (
+                      <button
+                        onClick={() => handleRevokeDevice(dev.device_id)}
+                        className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-500/10 transition-colors shrink-0 cursor-pointer"
+                        title="Revoke Session"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>

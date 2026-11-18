@@ -1,5 +1,11 @@
-import React, { useState } from 'react';
-import { Delete, ShieldCheck, Fingerprint, Lock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Delete, ShieldCheck, Fingerprint, ScanFace, Lock, RefreshCw } from 'lucide-react';
+import {
+  detectBiometricCapabilities,
+  authenticateWithBiometrics,
+  isBiometricLoginEnabled,
+  BiometricCapabilities
+} from '../../services/biometricAuth';
 
 interface PinPadProps {
   title?: string;
@@ -9,6 +15,7 @@ interface PinPadProps {
   expectedPin?: string;
   isSetup?: boolean;
   length?: number;
+  userId?: string;
 }
 
 export const PinPad: React.FC<PinPadProps> = ({
@@ -18,10 +25,25 @@ export const PinPad: React.FC<PinPadProps> = ({
   onCancel,
   expectedPin,
   isSetup = false,
-  length = 6
+  length = 6,
+  userId = 'usr_alade_01'
 }) => {
   const [pin, setPin] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [isBioChecking, setIsBioChecking] = useState<boolean>(false);
+  const [bioCaps, setBioCaps] = useState<BiometricCapabilities>({
+    isAvailable: false,
+    isNative: false,
+    biometryType: 'fingerprint',
+    platform: 'web',
+    label: 'Fingerprint',
+    actionLabel: 'Authenticate with Fingerprint',
+    shortLabel: 'Fingerprint'
+  });
+
+  useEffect(() => {
+    detectBiometricCapabilities().then(setBioCaps).catch(() => {});
+  }, []);
 
   const handleKeyPress = (num: string) => {
     if (pin.length < length) {
@@ -49,14 +71,32 @@ export const PinPad: React.FC<PinPadProps> = ({
     }
   };
 
-  const handleBiometric = () => {
-    // In production biometric requires hardware WebAuthn / Biometric API prompt
-    if (typeof window !== 'undefined' && (window as any).PublicKeyCredential) {
-      setError('Biometric hardware prompt required. Please enter your 6-digit PIN.');
-    } else {
-      setError('Biometric sensor not enrolled on this terminal. Enter 6-digit PIN.');
+  const handleBiometric = async () => {
+    if (isSetup) {
+      setError('Please type your numerical PIN to complete PIN setup.');
+      return;
+    }
+    if (!isBiometricLoginEnabled(userId)) {
+      setError(`Enable "${bioCaps.label} Login & Swap Approval" in Profile → Security first.`);
+      return;
+    }
+    setIsBioChecking(true);
+    setError(null);
+    try {
+      const result = await authenticateWithBiometrics(`Authorize FlyeMass transaction via ${bioCaps.label}`);
+      if (result.verified) {
+        onComplete(expectedPin || '123456');
+      } else {
+        setError(result.error || `${bioCaps.label} verification cancelled. Enter your PIN.`);
+      }
+    } catch (e: any) {
+      setError(e?.message || 'Biometric verification failed. Please enter your PIN.');
+    } finally {
+      setIsBioChecking(false);
     }
   };
+
+  const BiometricIcon = bioCaps.biometryType === 'face_id' ? ScanFace : Fingerprint;
 
   const dotIndices = Array.from({ length }, (_, i) => i);
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -119,12 +159,13 @@ export const PinPad: React.FC<PinPadProps> = ({
         {/* Biometrics button */}
         <button
           onClick={handleBiometric}
+          disabled={isBioChecking}
           type="button"
-          aria-label="Biometric Authentication"
-          className="h-14 rounded-2xl bg-slate-900/40 border border-slate-800/80 hover:border-emerald-500/40 active:scale-95 transition-all flex items-center justify-center text-emerald-400"
-          title="Authenticate via Biometrics (FaceID / Fingerprint)"
+          aria-label={`Authenticate with ${bioCaps.label}`}
+          className="h-14 rounded-2xl bg-slate-900/40 border border-slate-800/80 hover:border-emerald-500/40 active:scale-95 transition-all flex items-center justify-center text-emerald-400 disabled:opacity-50"
+          title={`Authenticate via ${bioCaps.label}`}
         >
-          <Fingerprint className="w-6 h-6" />
+          {isBioChecking ? <RefreshCw className="w-5 h-5 animate-spin" /> : <BiometricIcon className="w-6 h-6" />}
         </button>
 
         {/* Digit 0 */}
