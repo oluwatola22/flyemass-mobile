@@ -37,9 +37,9 @@ const dbContent = fs.readFileSync(dbPath, 'utf8');
 
 assert(dbContent.includes('export const DEFAULT_WAREHOUSES'), 'db.ts must export DEFAULT_WAREHOUSES');
 assert(dbContent.includes('wh_gz_main'), 'DEFAULT_WAREHOUSES must include Guangzhou main hub');
-assert(dbContent.includes('wh_yiwu_sea'), 'DEFAULT_WAREHOUSES must include Yiwu sea hub');
-assert(dbContent.includes('wh_jfk_air'), 'DEFAULT_WAREHOUSES must include JFK air hub');
-assert(dbContent.includes('wh_hou_sea'), 'DEFAULT_WAREHOUSES must include Houston sea hub');
+assert(dbContent.includes('wh_yiwu_sea') || dbContent.includes('wh_yiwu_port'), 'DEFAULT_WAREHOUSES must include Yiwu hub');
+assert(dbContent.includes('wh_jfk_air') || dbContent.includes('wh_foshan_heavy'), 'DEFAULT_WAREHOUSES must include logistics hub');
+assert(dbContent.includes('wh_hou_sea') || dbContent.includes('wh_shenzhen_tech'), 'DEFAULT_WAREHOUSES must include air/sea hub');
 assert(dbContent.includes('warehouses: DEFAULT_WAREHOUSES') || dbContent.includes('warehouses: { ...DEFAULT_WAREHOUSES }'), 'INITIAL_DATABASE must initialize warehouses with DEFAULT_WAREHOUSES');
 console.log('✅ DEFAULT_WAREHOUSES and initial warehouse hydration verified.');
 

@@ -89,12 +89,12 @@
       "role": "client",
       "createdAt": 1791047745841,
       "balances": {
-        "NGN": 166855625,
+        "NGN": 167830575,
         "CNY": 1570278.0699999998,
-        "USD": 18615
+        "USD": 18595
       },
-      "pinHash": "441dd8069d12eaccbd481c8cb8fdacc3f19560a133012a494c1d8f51b42b8793",
-      "pinSalt": "3462390dbd9ca9153ed0d0f7f58d6497",
+      "pinHash": "5cbd494b41e2facafaf3e4dd50933b2559d33e3a76f41dc7d6253e8fbd7cb229",
+      "pinSalt": "a50897dc0fb93acea760d03b5ead2237",
       "pinFailedAttempts": 0,
       "pinLockedUntil": 0,
       "kycLevel": "Tier 3 (BVN & CAC Verified)",
@@ -127,8 +127,8 @@
         "NGN": 0,
         "CNY": 520000
       },
-      "pinHash": "c16dc2622cae17ad1dc13b3a94ef19f0ac5d08308c5bd8941b26ea46eef78e6a",
-      "pinSalt": "54853c80a79df7b7fd156b4403a86af4",
+      "pinHash": "6effe9f8cf63c247666514cca94b57652389fd20ee7be9775fe95f75108799e4",
+      "pinSalt": "d90c1dcd3b94dff3694a5dc8cab709f6",
       "pinFailedAttempts": 0,
       "pinLockedUntil": 0,
       "flyeTag": "FM-USR-5036",
@@ -44007,6 +44007,127 @@
         }
       ],
       "metadata": {}
+    },
+    "je_1794981593937_972": {
+      "id": "je_1794981593937_972",
+      "reference": "FLYE-FUND-1794981593936",
+      "timestamp": 1794981593937,
+      "userId": "usr_alade_01",
+      "transactionType": "FUND",
+      "description": "Deposit via Test Funding",
+      "postings": [
+        {
+          "account": "assets:bank:clearing:ngn",
+          "currency": "NGN",
+          "debit": 1000000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 1000000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794981594384_664": {
+      "id": "je_1794981594384_664",
+      "reference": "WD-71614262",
+      "timestamp": 1794981594384,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_RESERVED",
+      "description": "Withdrawal payout to Providus Bank (2089140022)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 25050,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:pending_withdrawals:wth_1794981594384",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 25000
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 50
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794981594834_421": {
+      "id": "je_1794981594834_421",
+      "reference": "NIP-PROV-1794981594833",
+      "timestamp": 1794981594834,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_CLEARED",
+      "description": "NIBSS disbursement completed for 2089140022 via Providus NIP Instant Switch",
+      "postings": [
+        {
+          "account": "liabilities:pending_withdrawals:wth_1794981594384",
+          "currency": "NGN",
+          "debit": 25000,
+          "credit": 0
+        },
+        {
+          "account": "assets:nigeria:nibss_clearing:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 25000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794981597810_569": {
+      "id": "je_1794981597810_569",
+      "reference": "SUB-VIP-597810",
+      "timestamp": 1794981597810,
+      "userId": "usr_alade_01",
+      "transactionType": "SUPPLIER_SUB",
+      "description": "30-Day VIP Supplier Contacts Pass (USD 10)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:USD",
+          "currency": "USD",
+          "debit": 10,
+          "credit": 0
+        },
+        {
+          "account": "revenue:fees:vip_supplier_directory",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 10
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794981597879_107": {
+      "id": "je_1794981597879_107",
+      "reference": "SUB-VIP-597879",
+      "timestamp": 1794981597879,
+      "userId": "usr_alade_01",
+      "transactionType": "SUPPLIER_SUB",
+      "description": "30-Day VIP Supplier Contacts Pass (USD 10)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:USD",
+          "currency": "USD",
+          "debit": 10,
+          "credit": 0
+        },
+        {
+          "account": "revenue:fees:vip_supplier_directory",
+          "currency": "USD",
+          "debit": 0,
+          "credit": 10
+        }
+      ],
+      "metadata": {}
     }
   },
   "wallets_ledger": {
@@ -67216,6 +67337,66 @@
       "reference": "SUB-VIP-892963",
       "timestamp": 1794980892963,
       "notes": "30-Day VIP Supplier Directory Pass Renewal (+30d extended to 10/13/2029)"
+    },
+    "ldg_1794981593937_724": {
+      "id": "ldg_1794981593937_724",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 1000000,
+      "fee": 0,
+      "openingBalance": 166855625,
+      "closingBalance": 167855625,
+      "status": "completed",
+      "reference": "FLYE-FUND-1794981593936",
+      "timestamp": 1794981593937,
+      "notes": "Wallet credited with ₦1,000,000 via Test Funding"
+    },
+    "ldg_1794981594385": {
+      "id": "ldg_1794981594385",
+      "userId": "usr_alade_01",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 25000,
+      "fee": 50,
+      "openingBalance": 167855625,
+      "closingBalance": 167830575,
+      "status": "pending",
+      "reference": "WD-71614262",
+      "timestamp": 1794981594385,
+      "notes": "Payout ₦25,000 to Providus Bank (2089140022)"
+    },
+    "ldg_1794981597810": {
+      "id": "ldg_1794981597810",
+      "userId": "usr_alade_01",
+      "type": "SUPPLIER_SUB",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 10,
+      "fee": 0,
+      "openingBalance": 18615,
+      "closingBalance": 18605,
+      "status": "completed",
+      "reference": "SUB-VIP-597810",
+      "timestamp": 1794981597810,
+      "notes": "30-Day VIP Supplier Directory Pass Renewal (+30d extended to 11/12/2029)"
+    },
+    "ldg_1794981597879": {
+      "id": "ldg_1794981597879",
+      "userId": "usr_alade_01",
+      "type": "SUPPLIER_SUB",
+      "sourceCurrency": "USD",
+      "targetCurrency": "USD",
+      "amount": 10,
+      "fee": 0,
+      "openingBalance": 18605,
+      "closingBalance": 18595,
+      "status": "completed",
+      "reference": "SUB-VIP-597879",
+      "timestamp": 1794981597879,
+      "notes": "30-Day VIP Supplier Directory Pass Renewal (+30d extended to 12/12/2029)"
     }
   },
   "shipments": {
@@ -85826,6 +86007,37 @@
       "receiptUrl": "https://storage.flyemass.com/receipts/prov_transfer_slip.png",
       "adminNotes": "Settled via Providus Bank NIP switch",
       "completedAt": 1794980890544
+    },
+    "wth_1794981594384": {
+      "id": "wth_1794981594384",
+      "userId": "usr_alade_01",
+      "customerName": "Chief Babatunde Alade",
+      "customerEmail": "babatunde@aladeholding.ng",
+      "customerPhone": "+234 803 555 9201",
+      "channel": "naira_bank",
+      "currency": "NGN",
+      "bankName": "Providus Bank",
+      "bankCode": "101",
+      "accountNumber": "2089140022",
+      "accountName": "CHIEF BABATUNDE ALADE",
+      "amountNGN": 25000,
+      "feeNGN": 50,
+      "totalDebit": 25050,
+      "note": "Naira test withdrawal",
+      "status": "successful",
+      "reference": "WD-71614262",
+      "transferReference": "NIP-PROV-1794981594833",
+      "createdAt": 1794981594385,
+      "processingStartedAt": 1794981594757,
+      "reviewer": "adm-001",
+      "completed": true,
+      "payoutMode": "gateway",
+      "gatewayProvider": "Providus NIP Instant Switch",
+      "gatewaySessionId": "NIP-PROV-1794981594833",
+      "paymentProofUrl": "https://storage.flyemass.com/receipts/prov_transfer_slip.png",
+      "receiptUrl": "https://storage.flyemass.com/receipts/prov_transfer_slip.png",
+      "adminNotes": "Settled via Providus Bank NIP switch",
+      "completedAt": 1794981594834
     }
   },
   "agent_requests": {
@@ -90991,12 +91203,12 @@
       "type": "directory_30d",
       "currency": "USD",
       "amountPaid": 10,
-      "purchasedAt": 1794980892963,
-      "activeUntil": 1886650774716,
+      "purchasedAt": 1794981597879,
+      "activeUntil": 1891834774716,
       "status": "active",
-      "reference": "SUB-VIP-892963",
+      "reference": "SUB-VIP-597879",
       "autoRenew": false,
-      "renewalCount": 35,
+      "renewalCount": 37,
       "emailReceiptSent": true
     },
     "sub_sup_1_alade": {
@@ -92138,6 +92350,28 @@
       "active": false,
       "createdAt": 1794980893200,
       "updatedAt": 1794980893271
+    },
+    "sup_1794981598145": {
+      "name": "Foshan Precision Aluminium Extrusions Ltd",
+      "chineseName": "佛山精密铝型材实业有限公司",
+      "city": "Foshan (Dali)",
+      "category": "Machinery",
+      "wechatId": "dali_aluminum_oem",
+      "phone": "+86 757 8555 4321",
+      "whatsapp": "+86 138 8555 4321",
+      "businessAddress": "Dali Non-Ferrous Metals Industrial Zone, Foshan, China",
+      "minOrderValue": "¥8,000",
+      "verifiedYears": 10,
+      "tags": [
+        "Gold Supplier",
+        "Factory Direct",
+        "10+ Years"
+      ],
+      "id": "sup_1794981598145",
+      "inspectionPassed": true,
+      "active": false,
+      "createdAt": 1794981598145,
+      "updatedAt": 1794981598234
     }
   },
   "shop_orders": {
@@ -117813,6 +118047,27 @@
       ],
       "createdAt": 1794980893053,
       "updatedAt": 1794980893053
+    },
+    "tkt_1794981597976": {
+      "id": "tkt_1794981597976",
+      "ticketNumber": "FM-1175",
+      "userId": "usr_alade_01",
+      "userName": "Chief Babatunde Alade",
+      "subject": "Supplier Verification: Shenzhen Kingzone Microelectronics Ltd",
+      "category": "Supplier Escrow",
+      "status": "open",
+      "priority": "High",
+      "messages": [
+        {
+          "senderId": "usr_alade_01",
+          "senderName": "Chief Babatunde Alade",
+          "text": "Hello FlyeMass, please help verify supplier Shenzhen Kingzone Microelectronics Ltd in Electronics before I make payment. I would like assistance with supplier verification, transaction coordination, and warehouse inspection.",
+          "isAdmin": false,
+          "timestamp": "09:59 PM"
+        }
+      ],
+      "createdAt": 1794981597976,
+      "updatedAt": 1794981597976
     }
   },
   "banners": [
@@ -117929,7 +118184,7 @@
       "ngn": 15000,
       "usd": 10,
       "cny": 70,
-      "updatedAt": 1794980892413,
+      "updatedAt": 1794981597257,
       "updatedBy": "Chief Babatunde Alade (Super Admin)"
     },
     "shipping_corridors": [
@@ -156723,6 +156978,214 @@
       "ipAddress": "127.0.0.1",
       "previousHash": "dc318142631ea90d0578a4881f02b7aadcb17ff382ba5636799e1b3212875341",
       "hash": "7564780ec8ca830fa6d535dea0d29edfa498948415821eb2a01fdb9ce763b4be"
+    },
+    {
+      "id": "log_1794981593870_1152",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "PIN_UPDATED",
+      "targetCollection": "users",
+      "targetId": "usr_alade_01",
+      "details": "Established new 6-digit cryptographic PIN",
+      "timestamp": 1794981593870,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "7564780ec8ca830fa6d535dea0d29edfa498948415821eb2a01fdb9ce763b4be",
+      "hash": "cd0b6434aca34ef569633296c4af17a7e17f7c030d6d5099ecab5f568019a415"
+    },
+    {
+      "id": "log_1794981593937_519",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WALLET_FUNDED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1794981593937_724",
+      "details": "Credited NGN 1000000 via Test Funding",
+      "timestamp": 1794981593937,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "cd0b6434aca34ef569633296c4af17a7e17f7c030d6d5099ecab5f568019a415",
+      "hash": "c0b7a711683deff87b45c0145029bd97d274082c3f407e040c22b29516a97f9a"
+    },
+    {
+      "id": "log_1794981594385_5591",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WITHDRAWAL_INITIATED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1794981594384",
+      "details": "Initiated withdrawal of ₦25000 to Providus Bank",
+      "timestamp": 1794981594385,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "c0b7a711683deff87b45c0145029bd97d274082c3f407e040c22b29516a97f9a",
+      "hash": "0e97ceac4b6295940b7662a13dc067139d28fff14aa05fc7d052c58543d7c316"
+    },
+    {
+      "id": "log_1794981594757_3966",
+      "adminId": "sys",
+      "adminName": "adm-001",
+      "action": "WITHDRAWAL_PROCESSING",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1794981594384",
+      "details": "Status updated to processing",
+      "timestamp": 1794981594757,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "0e97ceac4b6295940b7662a13dc067139d28fff14aa05fc7d052c58543d7c316",
+      "hash": "704099fe5afe4babf0cd182cbddd28c57b84c5fee85ca5a66dfb4453473dba60"
+    },
+    {
+      "id": "log_1794981594834_190",
+      "adminId": "sys",
+      "adminName": "Treasury Desk",
+      "action": "WITHDRAWAL_DISBURSED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1794981594384",
+      "details": "Disbursed ₦25000 via NIBSS (Ref: NIP-PROV-1794981594833)",
+      "timestamp": 1794981594834,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "704099fe5afe4babf0cd182cbddd28c57b84c5fee85ca5a66dfb4453473dba60",
+      "hash": "a352366e50ce593120a3fca70db2f1015d4a838e1fcc585fca0be9643d83bc9b"
+    },
+    {
+      "id": "log_1794981596648_9238",
+      "adminId": "sys",
+      "adminName": "Super Admin Test",
+      "action": "BANNER_CREATED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794981596648",
+      "details": "Created shop banner: \"Apple iPad Pro M4 Ultra Thin\"",
+      "timestamp": 1794981596648,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "a352366e50ce593120a3fca70db2f1015d4a838e1fcc585fca0be9643d83bc9b",
+      "hash": "786c75894b35997a9438974ffae0133dd8ad822d9c145962fefa7b61005b0ebc"
+    },
+    {
+      "id": "log_1794981596722_6606",
+      "adminId": "sys",
+      "adminName": "Admin Staff",
+      "action": "BANNER_TOGGLED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794981596648",
+      "details": "Set banner active status: false",
+      "timestamp": 1794981596722,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "786c75894b35997a9438974ffae0133dd8ad822d9c145962fefa7b61005b0ebc",
+      "hash": "74c77923bd94de59b8d11a9967a26366e470e3ca205ead36f41ed36db1748ce5"
+    },
+    {
+      "id": "log_1794981596797_7316",
+      "adminId": "sys",
+      "adminName": "Admin Staff",
+      "action": "BANNER_DELETED",
+      "targetCollection": "banners",
+      "targetId": "ban_1794981596648",
+      "details": "Removed home banner ban_1794981596648",
+      "timestamp": 1794981596797,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "74c77923bd94de59b8d11a9967a26366e470e3ca205ead36f41ed36db1748ce5",
+      "hash": "31b022a90322a86ec8ef256e28379ecc88a03d4304dff0fe367558e880f95d14"
+    },
+    {
+      "id": "log_1794981597107_1995",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "PIN_UPDATED",
+      "targetCollection": "users",
+      "targetId": "usr_alade_01",
+      "details": "Established new 6-digit cryptographic PIN",
+      "timestamp": 1794981597107,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "31b022a90322a86ec8ef256e28379ecc88a03d4304dff0fe367558e880f95d14",
+      "hash": "76eea0ddff4e2dc76039efc841db5e4b6fb61416cca03a470709c536c20eaa75"
+    },
+    {
+      "id": "log_1794981597184_1955",
+      "adminId": "sys",
+      "adminName": "Chen Wei",
+      "action": "PIN_UPDATED",
+      "targetCollection": "users",
+      "targetId": "usr_chen_agent",
+      "details": "Established new 6-digit cryptographic PIN",
+      "timestamp": 1794981597184,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "76eea0ddff4e2dc76039efc841db5e4b6fb61416cca03a470709c536c20eaa75",
+      "hash": "c90bdc36e898e61b5cde783ce02f7a45290b5fa511ff515f81f8c2c9fd89f4fe"
+    },
+    {
+      "id": "log_1794981597257_6027",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade (Super Admin)",
+      "action": "SUPPLIER_PRICES_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "supplier_directory_prices",
+      "details": "Updated 30-day VIP fees: ₦15,000 NGN / $10 USD / ¥70 CNY",
+      "timestamp": 1794981597257,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "c90bdc36e898e61b5cde783ce02f7a45290b5fa511ff515f81f8c2c9fd89f4fe",
+      "hash": "2a5cc06dbe9ee34089872e71a905f48248a62a4ee75a5eabf8f18548ac5bb640"
+    },
+    {
+      "id": "log_1794981597810_9360",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_SUB_PURCHASED",
+      "targetCollection": "supplier_subscriptions",
+      "targetId": "sub_vip_usr_alade_01",
+      "details": "Purchased 30-day VIP pass for 10 USD (Ref: SUB-VIP-597810)",
+      "timestamp": 1794981597810,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "2a5cc06dbe9ee34089872e71a905f48248a62a4ee75a5eabf8f18548ac5bb640",
+      "hash": "43428da61b6894eb0576c59e4a4945cb802d1653b93b1726e13997e6632a3191"
+    },
+    {
+      "id": "log_1794981597879_3353",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "SUPPLIER_SUB_PURCHASED",
+      "targetCollection": "supplier_subscriptions",
+      "targetId": "sub_vip_usr_alade_01",
+      "details": "Purchased 30-day VIP pass for 10 USD (Ref: SUB-VIP-597879)",
+      "timestamp": 1794981597879,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "43428da61b6894eb0576c59e4a4945cb802d1653b93b1726e13997e6632a3191",
+      "hash": "7af0e9b892b7e0e925d662cbaf6fbc86282899ee510aaaed3cb3389343991591"
+    },
+    {
+      "id": "log_1794981597976_7938",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "TICKET_CREATED",
+      "targetCollection": "support_tickets",
+      "targetId": "tkt_1794981597976",
+      "details": "Opened ticket #FM-1175: Supplier Verification: Shenzhen Kingzone Microelectronics Ltd",
+      "timestamp": 1794981597976,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "7af0e9b892b7e0e925d662cbaf6fbc86282899ee510aaaed3cb3389343991591",
+      "hash": "d2368e25021c18a0ef7f7b837775cb48081157e1ab0a562b5dad7da33faeecba"
+    },
+    {
+      "id": "log_1794981598145_9318",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade (Super Admin)",
+      "action": "SUPPLIER_REGISTERED",
+      "targetCollection": "suppliers",
+      "targetId": "sup_1794981598145",
+      "details": "Registered supplier: Foshan Precision Aluminium Extrusions Ltd (Foshan (Dali)) in category Machinery",
+      "timestamp": 1794981598145,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "d2368e25021c18a0ef7f7b837775cb48081157e1ab0a562b5dad7da33faeecba",
+      "hash": "01a6529595133c7fbf26d8d8bbc275f44fffd85ce6326b1b0a124988163f82e2"
+    },
+    {
+      "id": "log_1794981598234_7464",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "SUPPLIER_STATUS_TOGGLED",
+      "targetCollection": "suppliers",
+      "targetId": "sup_1794981598145",
+      "details": "Deactivated supplier: Foshan Precision Aluminium Extrusions Ltd",
+      "timestamp": 1794981598234,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "01a6529595133c7fbf26d8d8bbc275f44fffd85ce6326b1b0a124988163f82e2",
+      "hash": "ba03a37bf7000c6099492126d89b5d0802a977c98aaa70da6c43511e60a012ec"
     }
   ],
   "manual_payments": {
@@ -157137,6 +157600,23 @@
       "status": "approved",
       "createdAt": 1794980889613,
       "updatedAt": 1794980889613,
+      "adminNotes": "Instant clearing via Test Funding"
+    },
+    "req_1794981593937_661": {
+      "id": "req_1794981593937_661",
+      "userId": "usr_alade_01",
+      "customerName": "Chief Babatunde Alade",
+      "customerEmail": "babatunde@aladeholding.ng",
+      "currency": "NGN",
+      "amount": 1000000,
+      "paymentMethod": "Test Funding",
+      "senderName": "Chief Babatunde Alade",
+      "originatingBank": "Test Funding",
+      "destinationBank": "Providus Bank",
+      "reference": "FLYE-FUND-1794981593936",
+      "status": "approved",
+      "createdAt": 1794981593937,
+      "updatedAt": 1794981593937,
       "adminNotes": "Instant clearing via Test Funding"
     }
   },
@@ -160715,9 +161195,9 @@
         "completedAt": 1794980832473
       },
       "balances": {
-        "NGN": 166855625,
+        "NGN": 167830575,
         "CNY": 1570278.0699999998,
-        "USD": 18615
+        "USD": 18595
       }
     },
     "wd_test_1794980890100": {
@@ -160753,9 +161233,47 @@
         "completedAt": 1794980890544
       },
       "balances": {
-        "NGN": 166855625,
+        "NGN": 167830575,
         "CNY": 1570278.0699999998,
-        "USD": 18615
+        "USD": 18595
+      }
+    },
+    "wd_test_1794981594383": {
+      "withdrawal": {
+        "id": "wth_1794981594384",
+        "userId": "usr_alade_01",
+        "customerName": "Chief Babatunde Alade",
+        "customerEmail": "babatunde@aladeholding.ng",
+        "customerPhone": "+234 803 555 9201",
+        "channel": "naira_bank",
+        "currency": "NGN",
+        "bankName": "Providus Bank",
+        "bankCode": "101",
+        "accountNumber": "2089140022",
+        "accountName": "CHIEF BABATUNDE ALADE",
+        "amountNGN": 25000,
+        "feeNGN": 50,
+        "totalDebit": 25050,
+        "note": "Naira test withdrawal",
+        "status": "successful",
+        "reference": "WD-71614262",
+        "transferReference": "NIP-PROV-1794981594833",
+        "createdAt": 1794981594385,
+        "processingStartedAt": 1794981594757,
+        "reviewer": "adm-001",
+        "completed": true,
+        "payoutMode": "gateway",
+        "gatewayProvider": "Providus NIP Instant Switch",
+        "gatewaySessionId": "NIP-PROV-1794981594833",
+        "paymentProofUrl": "https://storage.flyemass.com/receipts/prov_transfer_slip.png",
+        "receiptUrl": "https://storage.flyemass.com/receipts/prov_transfer_slip.png",
+        "adminNotes": "Settled via Providus Bank NIP switch",
+        "completedAt": 1794981594834
+      },
+      "balances": {
+        "NGN": 167830575,
+        "CNY": 1570278.0699999998,
+        "USD": 18595
       }
     }
   },
@@ -160782,6 +161300,79 @@
     "primaryAdminId": "adm-001"
   },
   "notifications": [
+    {
+      "id": "notif_1794981598052_wmf",
+      "userId": "usr_alade_01",
+      "title": "[Ticket FM-1175] Status Update: Open - Under AI Concierge Review",
+      "message": "Support Ticket FM-1175 Status Update: Open - Under AI Concierge Review. Subject: Supplier Verification: Shenzhen Kingzone Microelectronics Ltd. Latest: Hello Fl",
+      "type": "info",
+      "timestamp": 1794981598052,
+      "read": false,
+      "linkRoute": "support"
+    },
+    {
+      "id": "notif_1794981597879",
+      "userId": "usr_alade_01",
+      "title": "VIP Directory Pass Renewed!",
+      "message": "Your 30-Day VIP pass is active until 12/12/2029. Contacts & verified factory cards are unlocked. Renews manually.",
+      "type": "success",
+      "timestamp": 1794981597879,
+      "read": false,
+      "linkRoute": "suppliers"
+    },
+    {
+      "id": "notif_1794981597810",
+      "userId": "usr_alade_01",
+      "title": "VIP Directory Pass Renewed!",
+      "message": "Your 30-Day VIP pass is active until 11/12/2029. Contacts & verified factory cards are unlocked. Renews manually.",
+      "type": "success",
+      "timestamp": 1794981597810,
+      "read": false,
+      "linkRoute": "suppliers"
+    },
+    {
+      "id": "notif_1794981594834",
+      "title": "Withdrawal Payout Cleared",
+      "message": "₦25,000 has been sent to Providus Bank (2089140022). Ref: NIP-PROV-1794981594833.",
+      "time": "Just now",
+      "timestamp": 1794981594834,
+      "read": false,
+      "type": "withdrawal",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794981594757",
+      "title": "Withdrawal Processing",
+      "message": "Your withdrawal of ₦25,000 (Ref: WD-71614262) is being processed via NIBSS.",
+      "time": "Just now",
+      "timestamp": 1794981594757,
+      "read": false,
+      "type": "withdrawal",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794981594385",
+      "title": "Withdrawal Request Submitted",
+      "message": "₦25,000 withdrawal to Providus Bank queued for processing (Ref: WD-71614262).",
+      "time": "Just now",
+      "timestamp": 1794981594385,
+      "read": false,
+      "type": "withdrawal",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794981594004_hy6",
+      "userId": "usr_alade_01",
+      "title": "Deposit Confirmed: NGN 1,000,000.00 Credited to Your Wallet",
+      "message": "Deposit Confirmed: ₦1,000,000.00 NGN credited via Test Funding. Reference: FLYE-FUND-1794981593936. Settlement Time: Nov 18, 2026, 6:59 AM.",
+      "type": "success",
+      "timestamp": 1794981594004,
+      "read": false,
+      "linkRoute": "wallets"
+    },
     {
       "id": "notif_1794980893127_vhp",
       "userId": "usr_alade_01",
@@ -173024,6 +173615,14 @@
       "directManager": "General Export Manager",
       "factoryAddress": "Dali Non-Ferrous Metals Industrial Zone, Foshan, China",
       "description": ""
+    },
+    "sup_1794981598145": {
+      "wechatId": "dali_aluminum_oem",
+      "phone": "+86 757 8555 4321",
+      "whatsapp": "+86 138 8555 4321",
+      "directManager": "General Export Manager",
+      "factoryAddress": "Dali Non-Ferrous Metals Industrial Zone, Foshan, China",
+      "description": ""
     }
   },
   "email_receipts": {
@@ -174428,6 +175027,80 @@
       },
       "deliveredAt": 1794980893127,
       "timestamp": 1794980893127,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_wallet_funding_1794981594004_ctv8": {
+      "id": "eml_wallet_funding_1794981594004_ctv8",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "Deposit Confirmed: NGN 1,000,000.00 Credited to Your Wallet",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>Deposit Confirmed: NGN 1,000,000.00 Credited to Your Wallet</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-emerald\">Deposit Successful • Instant Credit</div>\n        <h1 class=\"title\">Deposit Confirmed: NGN 1,000,000.00 Credited to Your Wallet</h1>\n        \n        <p class=\"lead\">\n          Your wallet funding request has completed successfully. Funds have been posted to your FlyeMass multi-currency ledger with 0.00% zero-slippage guarantee.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Funding Channel:</span>\n            <span class=\"data-value\">Test Funding</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Amount Credited:</span>\n            <span class=\"data-value\" style=\"color: #10b981; font-size: 15px;\">₦1,000,000.00 NGN</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Transaction Reference:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">FLYE-FUND-1794981593936</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Settlement Time:</span>\n            <span class=\"data-value\">Nov 18, 2026, 6:59 AM</span>\n          </div>\n          \n          <div class=\"data-row\">\n            <span class=\"data-label\">New NGN Balance:</span>\n            <span class=\"data-value\" style=\"color: #38bdf8;\">₦167,855,625.00</span>\n          </div>\n        </div>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/wallets\" class=\"btn\" target=\"_blank\">View Multi-Currency Wallets</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Deposit Confirmed: ₦1,000,000.00 NGN credited via Test Funding. Reference: FLYE-FUND-1794981593936. Settlement Time: Nov 18, 2026, 6:59 AM.",
+      "eventType": "WALLET_FUNDING",
+      "payload": {
+        "currency": "NGN",
+        "amount": 1000000,
+        "channel": "Test Funding",
+        "reference": "FLYE-FUND-1794981593936",
+        "newBalance": 167855625
+      },
+      "deliveredAt": 1794981594004,
+      "timestamp": 1794981594004,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "supplier-subscription-SUB-VIP-597810": {
+      "id": "supplier-subscription-SUB-VIP-597810",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "reference": "SUB-VIP-597810",
+      "currency": "USD",
+      "amount": 10,
+      "startDate": 1794981597810,
+      "expirationDate": 1889242774716,
+      "durationDays": 30,
+      "manualRenewalNotice": "Your VIP Supplier Contacts subscription renews manually. FlyeMass will never automatically debit your wallet when your subscription expires.",
+      "tradeSafetyNotice": "You are free to negotiate prices directly with suppliers. However, before making any payment or finalizing deals, please contact FlyeMass Customer Service. Our team can assist with supplier verification, transaction coordination, and overseas warehouse inspection before shipping to your destination country.",
+      "deliveredAt": 1794981597810,
+      "status": "sent"
+    },
+    "supplier-subscription-SUB-VIP-597879": {
+      "id": "supplier-subscription-SUB-VIP-597879",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "reference": "SUB-VIP-597879",
+      "currency": "USD",
+      "amount": 10,
+      "startDate": 1794981597879,
+      "expirationDate": 1891834774716,
+      "durationDays": 30,
+      "manualRenewalNotice": "Your VIP Supplier Contacts subscription renews manually. FlyeMass will never automatically debit your wallet when your subscription expires.",
+      "tradeSafetyNotice": "You are free to negotiate prices directly with suppliers. However, before making any payment or finalizing deals, please contact FlyeMass Customer Service. Our team can assist with supplier verification, transaction coordination, and overseas warehouse inspection before shipping to your destination country.",
+      "deliveredAt": 1794981597879,
+      "status": "sent"
+    },
+    "eml_support_ticket_1794981598052_2c3w": {
+      "id": "eml_support_ticket_1794981598052_2c3w",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "[Ticket FM-1175] Status Update: Open - Under AI Concierge Review",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>[Ticket FM-1175] Status Update: Open - Under AI Concierge Review</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-indigo\">Trade Concierge Desk • Open - Under AI Concierge Review</div>\n        <h1 class=\"title\">[Ticket FM-1175] Status Update: Open - Under AI Concierge Review</h1>\n        \n        <p class=\"lead\">\n          Your support inquiry <strong>FM-1175</strong> has an active update from the FlyeMass Trade Concierge desk.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Ticket ID:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">FM-1175</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Subject:</span>\n            <span class=\"data-value\">Supplier Verification: Shenzhen Kingzone Microelectronics Ltd</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Current Status:</span>\n            <span class=\"data-value\" style=\"color: #38bdf8;\">Open - Under AI Concierge Review</span>\n          </div>\n          \n          <div class=\"data-row\">\n            <span class=\"data-label\">Assigned Trade Officer:</span>\n            <span class=\"data-value\">Chen Wei / Trade AI</span>\n          </div>\n          \n          <div style=\"margin-top: 12px; padding-top: 12px; border-top: 1px solid #0f172a;\">\n            <span style=\"font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;\">Latest Update:</span>\n            <p style=\"font-size: 12px; color: #e2e8f0; line-height: 1.5; margin: 6px 0 0 0;\">\"Hello FlyeMass, please help verify supplier Shenzhen Kingzone Microelectronics Ltd in Electronics before I make payment. I would like assistance with supplier verification, transaction coordination, and warehouse inspection.\"</p>\n          </div>\n        </div>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/profile/support-chat?ticketId=FM-1175\" class=\"btn\" target=\"_blank\">Open Live Concierge Chat</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Support Ticket FM-1175 Status Update: Open - Under AI Concierge Review. Subject: Supplier Verification: Shenzhen Kingzone Microelectronics Ltd. Latest: Hello FlyeMass, please help verify supplier Shenzhen Kingzone Microelectronics Ltd in Electronics before I make payment. I would like assistance with supplier verification, transaction coordination, and warehouse inspection.",
+      "eventType": "SUPPORT_TICKET",
+      "payload": {
+        "ticketNumber": "FM-1175",
+        "subject": "Supplier Verification: Shenzhen Kingzone Microelectronics Ltd",
+        "status": "Open - Under AI Concierge Review",
+        "assignedAgent": "Chen Wei / Trade AI",
+        "latestMessageSnippet": "Hello FlyeMass, please help verify supplier Shenzhen Kingzone Microelectronics Ltd in Electronics before I make payment. I would like assistance with supplier verification, transaction coordination, and warehouse inspection."
+      },
+      "deliveredAt": 1794981598052,
+      "timestamp": 1794981598052,
       "status": "delivered",
       "provider": "in_memory_vault"
     }
