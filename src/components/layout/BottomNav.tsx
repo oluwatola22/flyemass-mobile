@@ -48,7 +48,7 @@ export const BottomNav: React.FC = () => {
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80" />
             )}
           </div>
-          <span className="text-[10px] mt-1">{t('nav.home', 'Home')}</span>
+          <span className="text-xs font-medium mt-1">{t('nav.home', 'Home')}</span>
         </button>
 
         {/* Wallets */}
@@ -67,7 +67,7 @@ export const BottomNav: React.FC = () => {
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80" />
             )}
           </div>
-          <span className="text-[10px] mt-1">{t('nav.wallets', 'Wallets')}</span>
+          <span className="text-xs font-medium mt-1">{t('nav.wallets', 'Wallets')}</span>
         </button>
 
         {/* Center Quick Action Button */}
@@ -95,7 +95,7 @@ export const BottomNav: React.FC = () => {
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80" />
             )}
           </div>
-          <span className="text-[10px] mt-1">{t('nav.cargo', 'Cargo')}</span>
+          <span className="text-xs font-medium mt-1">{t('nav.cargo', 'Cargo')}</span>
         </button>
 
         {/* Shop */}
@@ -111,7 +111,7 @@ export const BottomNav: React.FC = () => {
           <div className="relative">
             <ShoppingBag className="w-5 h-5 transition-transform duration-200" />
             {cartCount > 0 && (
-              <span className="absolute -top-1.5 -right-2 bg-emerald-500 text-slate-950 font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-slate-950">
+              <span className="absolute -top-1.5 -right-2 bg-emerald-500 text-slate-950 font-bold text-xs min-w-4 h-4 px-1 rounded-full flex items-center justify-center border-2 border-slate-950">
                 {cartCount}
               </span>
             )}
@@ -119,7 +119,7 @@ export const BottomNav: React.FC = () => {
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80" />
             )}
           </div>
-          <span className="text-[10px] mt-1">{t('nav.shop', 'Shop')}</span>
+          <span className="text-xs font-medium mt-1">{t('nav.shop', 'Shop')}</span>
         </button>
 
         {/* Profile */}
@@ -138,7 +138,7 @@ export const BottomNav: React.FC = () => {
               <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80" />
             )}
           </div>
-          <span className="text-[10px] mt-1">{t('nav.profile', 'Profile')}</span>
+          <span className="text-xs font-medium mt-1">{t('nav.profile', 'Profile')}</span>
         </button>
       </div>
     </div>

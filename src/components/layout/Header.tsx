@@ -123,7 +123,7 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title }) => {
           <span>{t('action.back', 'Back')}</span>
         </button>
 
-        <h2 className="text-sm font-bold text-white tracking-wide truncate max-w-[200px]">
+        <h2 className="text-base font-semibold text-white tracking-tight truncate max-w-[200px]">
           {displayTitle}
         </h2>
 
@@ -150,7 +150,7 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title }) => {
           >
             <ShoppingBag className={`w-3.5 h-3.5 ${cartCount > 0 ? 'text-emerald-400' : 'text-slate-300'}`} />
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-emerald-500 text-slate-950 font-black text-[8px] min-w-[14px] h-3.5 px-0.5 rounded-full flex items-center justify-center border border-slate-950 shadow-sm">
+              <span className="absolute -top-1 -right-1 bg-emerald-500 text-slate-950 font-bold text-xs min-w-4 h-4 px-1 rounded-full flex items-center justify-center border border-slate-950 shadow-sm">
                 {cartCount}
               </span>
             )}
@@ -195,8 +195,8 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title }) => {
               </span>
             </div>
             <div className="flex items-center gap-1 mt-0.5">
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-semibold text-emerald-400">
-                <ShieldCheck className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-medium text-emerald-400">
+                <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Tier 3 Verified Exporter</span>
               </span>
             </div>

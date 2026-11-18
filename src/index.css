@@ -2,7 +2,7 @@
 
 @layer base {
   :root {
-    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Plus Jakarta Sans', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
   }
 
@@ -150,6 +150,125 @@ main,
 }
 .safe-bottom {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
+}
+
+/* ==========================================================================
+   ENTERPRISE MOBILE APP TYPOGRAPHY SYSTEM (INTER SANS-SERIF)
+   Standardized to Revolut / Wise / Monzo tier-1 global mobile fintech specifications.
+   Strict 9-level typographic hierarchy with proportional leading & tracking.
+   ========================================================================== */
+
+/* 1. Wallet Balances & Major Financial Figures: 28–32px, font-weight 600 (Semi-bold), tabular nums */
+.mobile-balance-figure,
+.text-financial-figure {
+  font-family: var(--font-sans);
+  font-size: 1.875rem !important; /* 30px (28–32px standard) */
+  line-height: 2.25rem !important; /* 36px line-height */
+  font-weight: 600 !important;
+  letter-spacing: -0.025em !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* 2. Main Page Headings: 24–28px, font-weight 600 */
+.mobile-main-heading,
+.mobile-heading-1 {
+  font-family: var(--font-sans);
+  font-size: 1.625rem !important; /* 26px (24–28px standard) */
+  line-height: 2rem !important; /* 32px line-height */
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* 3. Section Headings: 18–20px, font-weight 600 */
+.mobile-section-heading,
+.mobile-heading-2 {
+  font-family: var(--font-sans);
+  font-size: 1.1875rem !important; /* 19px (18–20px standard) */
+  line-height: 1.625rem !important; /* 26px line-height */
+  font-weight: 600 !important;
+  letter-spacing: -0.015em !important;
+}
+
+/* 4. Card Headings: 16–18px, font-weight 600 */
+.mobile-card-heading,
+.mobile-heading-3 {
+  font-family: var(--font-sans);
+  font-size: 1.0625rem !important; /* 17px (16–18px standard) */
+  line-height: 1.5rem !important; /* 24px line-height */
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* 5. Body Text: 14–16px, font-weight 400 (Regular) */
+.mobile-body-text,
+.mobile-body {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem !important; /* 15px (14–16px standard) */
+  line-height: 1.5rem !important; /* 24px line-height */
+  font-weight: 400 !important;
+  letter-spacing: -0.005em !important;
+}
+
+/* 6. Secondary Text: 13–14px, font-weight 400 */
+.mobile-secondary-text,
+.mobile-secondary {
+  font-family: var(--font-sans);
+  font-size: 0.84375rem !important; /* 13.5px (13–14px standard) */
+  line-height: 1.375rem !important; /* 22px line-height */
+  font-weight: 400 !important;
+  letter-spacing: 0em !important;
+}
+
+/* 7. Buttons: 14–16px, font-weight 600 */
+.mobile-button,
+.mobile-btn {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem !important; /* 15px (14–16px standard) */
+  line-height: 1.25rem !important; /* 20px line-height */
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* 8. Labels: 12–13px, font-weight 500 (Medium) */
+.mobile-label,
+.mobile-field-label {
+  font-family: var(--font-sans);
+  font-size: 0.78125rem !important; /* 12.5px (12–13px standard) */
+  line-height: 1.125rem !important; /* 18px line-height */
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* 9. Small Captions: 12px minimum (no text elements below 12px to ensure full readability) */
+.mobile-caption,
+.mobile-small-caption {
+  font-family: var(--font-sans);
+  font-size: 0.75rem !important; /* 12px minimum */
+  line-height: 1.125rem !important; /* 18px line-height */
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Global Mobile App Rule: Strictly clamp all sub-12px micro utilities to 12px minimum */
+body:not(.admin-enterprise-theme) .text-\[7px\],
+body:not(.admin-enterprise-theme) .text-\[8px\],
+body:not(.admin-enterprise-theme) .text-\[9px\],
+body:not(.admin-enterprise-theme) .text-\[10px\],
+body:not(.admin-enterprise-theme) .text-\[11px\] {
+  font-size: 0.75rem !important; /* 12px minimum */
+  line-height: 1.125rem !important; /* 18px proportional line-height to eliminate clipping */
+}
+
+/* Prevent awkward clipping and text wrapping across financial cards, waybills, and buttons */
+.truncate-safe {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.text-nowrap-safe {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ==========================================================================

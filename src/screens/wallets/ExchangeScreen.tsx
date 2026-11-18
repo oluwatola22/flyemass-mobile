@@ -258,8 +258,8 @@ export const ExchangeScreen: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
             <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Configured Treasury Rate</span>
-              <p className="text-xs font-black text-white num-tabular font-mono">
+              <span className="text-xs text-slate-400 uppercase font-medium tracking-wider">Configured Treasury Rate</span>
+              <p className="text-xs font-semibold text-white num-tabular font-mono">
                 1 {fromCurrency} = {rate.toFixed(4)} {toCurrency}
               </p>
             </div>
@@ -270,7 +270,7 @@ export const ExchangeScreen: React.FC = () => {
             onClick={() => { fx.refresh(); fetchRates(); setCountdown(45); }}
             data-testid="exchange-refresh-rates"
             title="Refresh live rates"
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800/80 border border-slate-700 text-amber-400 text-xs font-bold num-tabular font-mono cursor-pointer hover:border-amber-500/40"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800/80 border border-slate-700 text-amber-400 text-xs font-semibold num-tabular font-mono cursor-pointer hover:border-amber-500/40"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${fx.loading ? 'animate-spin' : ''}`} />
             <span>{countdown}s · Refresh</span>
@@ -279,21 +279,21 @@ export const ExchangeScreen: React.FC = () => {
 
         {/* Quick 1-Click Popular Corridor Presets */}
         <div className="space-y-1.5">
-          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block px-1">
+          <span className="text-xs uppercase font-medium text-slate-400 tracking-wider block px-1">
             Bilateral Currency Swaps
           </span>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => { setFromCurrency('NGN'); setToCurrency('CNY'); }}
-              className={`p-3 rounded-2xl text-left border text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+              className={`p-3 rounded-2xl text-left border text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
                 fromCurrency === 'NGN' && toCurrency === 'CNY'
                   ? 'bg-amber-500/20 border-amber-500 text-white shadow-sm'
                   : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
               }`}
             >
               <span>🇳🇬 Naira &rarr; 🇨🇳 RMB</span>
-              <span className="text-[10px] font-mono text-amber-400">Trade Pay</span>
+              <span className="text-xs font-mono text-amber-400 font-medium">Trade Pay</span>
             </button>
 
             <button
@@ -316,8 +316,8 @@ export const ExchangeScreen: React.FC = () => {
           {/* Top: You Pay */}
           <div className="p-4 rounded-3xl bg-slate-900/90 border border-slate-800 focus-within:border-emerald-500/60 transition-all shadow-lg">
             <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-              <span className="font-bold uppercase tracking-wider text-[11px] text-slate-300">You Pay (Debit Source)</span>
-              <span className="num-tabular text-[11px] font-mono">
+              <span className="font-medium uppercase tracking-wider text-xs text-slate-300">You Pay (Debit Source)</span>
+              <span className="num-tabular text-xs font-mono">
                 Available: {fromWallet?.symbol}{(fromWallet?.balance ?? 0).toLocaleString()} {fromCurrency}
               </span>
             </div>
@@ -328,7 +328,7 @@ export const ExchangeScreen: React.FC = () => {
                 value={fromAmount}
                 onChange={(e) => setFromAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full bg-transparent text-2xl font-black text-white outline-none num-tabular font-mono"
+                className="w-full bg-transparent text-3xl font-semibold text-white outline-none num-tabular font-mono tracking-tight"
               />
 
               {/* Currency Dropdown */}
@@ -342,7 +342,7 @@ export const ExchangeScreen: React.FC = () => {
                       setToCurrency(nextFrom === 'NGN' ? 'CNY' : 'NGN');
                     }
                   }}
-                  className="appearance-none bg-slate-800 border border-slate-700 rounded-2xl px-3.5 py-2 text-xs font-bold text-white pr-7 cursor-pointer outline-none hover:bg-slate-750"
+                  className="appearance-none bg-slate-800 border border-slate-700 rounded-2xl px-3.5 py-2 text-xs font-semibold text-white pr-7 cursor-pointer outline-none hover:bg-slate-750"
                 >
                   <option value="NGN">🇳🇬 NGN</option>
                   <option value="CNY">🇨🇳 CNY (RMB)</option>
@@ -360,7 +360,7 @@ export const ExchangeScreen: React.FC = () => {
                   onClick={() => {
                     if (fromWallet) setFromAmount(Math.floor(fromWallet.balance * fraction).toString());
                   }}
-                  className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-bold text-slate-300 hover:text-white cursor-pointer transition-colors"
+                  className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 hover:text-white cursor-pointer transition-colors"
                 >
                   {fraction === 1.0 ? '100% Max' : `${fraction * 100}%`}
                 </button>
@@ -383,14 +383,14 @@ export const ExchangeScreen: React.FC = () => {
           {/* Bottom: You Receive */}
           <div className="p-4 rounded-3xl bg-slate-900/90 border border-slate-800 focus-within:border-emerald-500/60 transition-all shadow-lg">
             <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-              <span className="font-bold uppercase tracking-wider text-[11px] text-slate-300">You Receive (Credit Target)</span>
-              <span className="num-tabular text-[11px] font-mono">
+              <span className="font-medium uppercase tracking-wider text-xs text-slate-300">You Receive (Credit Target)</span>
+              <span className="num-tabular text-xs font-mono">
                 Vault: {toWallet?.symbol}{(toWallet?.balance ?? 0).toLocaleString()} {toCurrency}
               </span>
             </div>
 
             <div className="flex items-center justify-between gap-3">
-              <span className="text-2xl font-black text-emerald-400 num-tabular font-mono truncate">
+              <span className="text-3xl font-semibold text-emerald-400 num-tabular font-mono tracking-tight truncate">
                 {calculatedTo.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
 

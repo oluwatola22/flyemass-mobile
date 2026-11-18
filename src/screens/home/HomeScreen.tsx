@@ -129,13 +129,13 @@ export const HomeScreen: React.FC = () => {
         {/* Clean Financial Live FX Badge */}
         <div 
           onClick={() => openSwapModal()}
-          className="px-3 py-1 text-[10px] uppercase font-bold text-emerald-400 bg-slate-900/95 z-10 flex items-center gap-2 border-r border-slate-800 shrink-0 cursor-pointer hover:bg-slate-800/80 transition-all"
+          className="px-3 py-1 text-xs uppercase font-medium text-emerald-400 bg-slate-900/95 z-10 flex items-center gap-2 border-r border-slate-800 shrink-0 cursor-pointer hover:bg-slate-800/80 transition-all"
           title="Open FX Swap"
         >
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
           <div className="flex flex-col text-left">
-            <span className="font-extrabold text-[10px] text-white tracking-wider">LIVE FX</span>
-            <span className="text-[9px] font-mono text-emerald-400 font-bold">WHOLESALE</span>
+            <span className="font-semibold text-xs text-white tracking-wider">LIVE FX</span>
+            <span className="text-xs font-mono text-emerald-400 font-medium">WHOLESALE</span>
           </div>
         </div>
         
@@ -175,7 +175,7 @@ export const HomeScreen: React.FC = () => {
         {/* Multi-Currency Balance Carousel */}
         <div>
           <div className="flex items-center justify-between mb-2.5 px-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-medium uppercase tracking-wider text-slate-400">
               {t('wallets.multi_currency_vaults', 'Multi-Currency Vaults')}
             </span>
             <div className="flex gap-1.5">
@@ -183,9 +183,9 @@ export const HomeScreen: React.FC = () => {
                 <button
                   key={w?.currency || idx}
                   onClick={() => setActiveCardIndex(idx)}
-                  className={`text-[11px] font-bold px-2 py-0.5 rounded-lg transition-all ${
+                  className={`text-xs font-medium px-2.5 py-0.5 rounded-lg transition-all ${
                     activeCardIndex === idx
-                      ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                      ? 'bg-emerald-500 text-slate-950 shadow-sm font-semibold'
                       : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
                   }`}
                 >
@@ -205,35 +205,35 @@ export const HomeScreen: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">{currentWallet?.flag ?? '🇳🇬'}</span>
                   <div>
-                    <h3 className="text-sm font-bold text-white">{currentWallet?.name ?? 'Multi-Currency Wallet'}</h3>
-                    <p className="text-[10px] text-slate-400">{currentWallet?.bankName ?? 'FlyeMass Clearing Vault'}</p>
+                    <h3 className="text-base font-semibold text-white tracking-tight leading-snug">{currentWallet?.name ?? 'Multi-Currency Wallet'}</h3>
+                    <p className="text-xs text-slate-400">{currentWallet?.bankName ?? 'FlyeMass Clearing Vault'}</p>
                   </div>
                 </div>
               </div>
 
-              <span className="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-[10px] font-bold text-emerald-400">
+              <span className="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-xs font-semibold text-emerald-400">
                 {t('wallets.active', 'ACTIVE')}
               </span>
             </div>
 
-            {/* Big Balance Display */}
+            {/* Big Balance Display (28-32px, font-weight 600 Semi-bold, tight tabular numerals) */}
             <div className="mt-5 relative z-10">
               <span className="text-xs text-slate-400 font-medium">{t('wallets.available_balance', 'Available Balance')}</span>
               <div className="flex items-baseline gap-1 mt-1">
-                <span className="text-2xl font-bold text-emerald-400">{currentWallet?.symbol ?? '₦'}</span>
-                <span className="text-3xl font-extrabold text-white tracking-tight num-tabular">
+                <span className="text-2xl font-semibold text-emerald-400">{currentWallet?.symbol ?? '₦'}</span>
+                <span className="text-3xl font-semibold text-white tracking-tight num-tabular">
                   {isBalanceHidden
                     ? '••••••••'
                     : currentWallet?.currency === 'NGN'
                     ? (currentWallet?.balance ?? 0).toLocaleString('en-NG', { maximumFractionDigits: 2 })
                     : (currentWallet?.balance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
-                <span className="text-xs text-slate-400 font-semibold ml-1">
+                <span className="text-xs text-slate-400 font-medium ml-1">
                   {currentWallet?.currency ?? 'NGN'}
                 </span>
               </div>
 
-              <p className="text-[11px] text-slate-400 mt-1 num-tabular">
+              <p className="text-xs text-slate-400 mt-1 num-tabular">
                 ≈ {isBalanceHidden 
                   ? '••••' 
                   : currentWallet?.currency === 'CNY'
@@ -247,7 +247,7 @@ export const HomeScreen: React.FC = () => {
         {/* Quick Action Matrix */}
         <div>
           <div className="flex items-center justify-between mb-3 px-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-medium uppercase tracking-wider text-slate-400">
               {t('wallets.instant_actions', 'Instant Actions')}
             </span>
             <button 
@@ -270,13 +270,13 @@ export const HomeScreen: React.FC = () => {
                   onMouseEnter={() => (act as any).route && prefetchRoute((act as any).route)}
                   className="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 active:scale-95 transition-all flex flex-col items-center text-center group cursor-pointer touch-manipulation"
                 >
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${act.color} border flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform shadow-md`}>
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${act.color} border flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md`}>
                     <Icon className="w-4 h-4" />
                   </div>
-                  <span className="text-[11px] font-bold text-slate-100 group-hover:text-emerald-400 transition-colors truncate w-full">
+                  <span className="text-xs font-semibold text-slate-100 group-hover:text-emerald-400 transition-colors truncate w-full">
                     {act.title}
                   </span>
-                  <span className="text-[9px] text-slate-400 mt-0.5 line-clamp-1 truncate w-full">
+                  <span className="text-xs text-slate-400 mt-0.5 line-clamp-1 truncate w-full">
                     {act.desc}
                   </span>
                 </button>
@@ -317,27 +317,27 @@ export const HomeScreen: React.FC = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-white">{activeShipment.trackingNumber}</span>
-                      <span className="px-1.5 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 font-bold text-[9px] uppercase">
+                      <span className="text-xs font-semibold text-white">{activeShipment.trackingNumber}</span>
+                      <span className="px-1.5 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 font-semibold text-xs uppercase">
                         {activeShipment.type.toUpperCase()} EXPRESS
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-0.5 truncate max-w-[200px]">
+                    <p className="text-xs text-slate-400 mt-0.5 truncate max-w-[200px]">
                       {activeShipment.title}
                     </p>
                   </div>
                 </div>
 
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-400">ETA Arrival</span>
-                  <p className="text-xs font-bold text-emerald-400">{activeShipment.eta}</p>
+                  <span className="text-xs text-slate-400">ETA Arrival</span>
+                  <p className="text-xs font-semibold text-emerald-400">{activeShipment.eta}</p>
                 </div>
               </div>
 
               {/* Progress Line */}
               <div className="mt-4 pt-3 border-t border-slate-800/80">
-                <div className="flex items-center justify-between mb-1.5 text-[10px]">
-                  <span className="font-semibold text-slate-300">
+                <div className="flex items-center justify-between mb-1.5 text-xs">
+                  <span className="font-medium text-slate-300">
                     Waypoint: <span className="text-emerald-400">{activeShipment.status}</span>
                   </span>
                   <span className="text-slate-400 num-tabular font-mono">
@@ -356,8 +356,8 @@ export const HomeScreen: React.FC = () => {
                             : 'bg-slate-800'
                         }`}
                       />
-                      <span className={`text-[8px] block truncate text-center ${
-                        stepIdx <= (activeShipment.currentStep || 0) ? 'text-slate-300 font-bold' : 'text-slate-600'
+                      <span className={`text-xs block truncate text-center ${
+                        stepIdx <= (activeShipment.currentStep || 0) ? 'text-slate-300 font-medium' : 'text-slate-600'
                       }`}>
                         {label}
                       </span>
@@ -373,10 +373,10 @@ export const HomeScreen: React.FC = () => {
         {banners.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center justify-between px-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-medium uppercase tracking-wider text-slate-400">
                 China Trade Campaigns
               </span>
-              <span className="text-[10px] text-emerald-400 font-bold">
+              <span className="text-xs text-emerald-400 font-semibold">
                 {banners.length} Active Offers
               </span>
             </div>

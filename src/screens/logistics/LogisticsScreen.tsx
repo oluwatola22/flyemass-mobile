@@ -186,14 +186,14 @@ export const LogisticsScreen: React.FC = () => {
       <Header title="Logistics & Shipping" />
 
       {/* Global Freight Network Status Ribbon */}
-      <div className="bg-slate-900/90 border-b border-slate-800/80 px-4 py-2 flex items-center justify-between text-[11px] backdrop-blur-md">
+      <div className="bg-slate-900/90 border-b border-slate-800/80 px-4 py-2 flex items-center justify-between text-xs backdrop-blur-md">
         <div className="flex items-center gap-2 overflow-hidden">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-          <span className="text-slate-300 font-semibold truncate">
-            Air Express (CAN ➔ LOS) & Regular: <span className="text-emerald-400">Daily Departures</span> • Direct Air Customs Clearance
+          <span className="text-slate-300 font-medium truncate">
+            Air Express (CAN ➔ LOS) & Regular: <span className="text-emerald-400 font-semibold">Daily Departures</span> • Direct Air Customs Clearance
           </span>
         </div>
-        <span className="text-[10px] text-slate-400 font-mono shrink-0 hidden sm:inline-block">
+        <span className="text-xs text-slate-400 font-mono shrink-0 hidden sm:inline-block">
           Air Freight Network Active • Single-Window Customs Active
         </span>
       </div>
@@ -213,7 +213,7 @@ export const LogisticsScreen: React.FC = () => {
           </div>
           <button
             type="submit"
-            className="px-4 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shrink-0 active:scale-95 transition-all shadow-md shadow-emerald-500/20 cursor-pointer flex items-center gap-1.5"
+            className="px-4 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs shrink-0 active:scale-95 transition-all shadow-md shadow-emerald-500/20 cursor-pointer flex items-center gap-1.5"
           >
             <span>Track</span>
             <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
@@ -232,10 +232,10 @@ export const LogisticsScreen: React.FC = () => {
               </div>
               <ArrowUpRight className="w-4 h-4 text-emerald-400 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
             </div>
-            <h4 className="text-xs font-black text-white group-hover:text-emerald-300 transition-colors">
+            <h4 className="text-sm font-semibold text-white group-hover:text-emerald-300 transition-colors">
               Register a Shipment
             </h4>
-            <p className="text-[10px] text-slate-400 mt-0.5 leading-snug">
+            <p className="text-xs text-slate-400 mt-0.5 leading-snug">
               Pre-alert parcels from 1688, Taobao & China factories
             </p>
           </div>
@@ -250,10 +250,10 @@ export const LogisticsScreen: React.FC = () => {
               </div>
               <ArrowUpRight className="w-4 h-4 text-cyan-400 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
             </div>
-            <h4 className="text-xs font-black text-white group-hover:text-cyan-300 transition-colors">
+            <h4 className="text-sm font-semibold text-white group-hover:text-cyan-300 transition-colors">
               Track a Shipment
             </h4>
-            <p className="text-[10px] text-slate-400 mt-0.5 leading-snug">
+            <p className="text-xs text-slate-400 mt-0.5 leading-snug">
               Live flight checkpoints, customs status & photo proofs
             </p>
           </div>
@@ -262,34 +262,34 @@ export const LogisticsScreen: React.FC = () => {
         {/* Customer Unique Shipping Mark Card (Standard Global Barcode Format) - Your Personal Shipping Mark • Auto-Link Enabled */}
         <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-indigo-950/90 via-slate-900 to-slate-950 border border-indigo-500/40 shadow-2xl space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-black uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>YOUR PERSONAL SHIPPING MARK</span>
             </span>
-            <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-black shadow-sm">
+            <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-semibold shadow-sm">
               {uniqueUserId}
             </span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-slate-950 border border-emerald-500/30 shadow-inner flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-1 min-w-0">
-              <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider block font-sans">
+              <span className="text-xs font-medium text-slate-300 uppercase tracking-wider block font-sans">
                 OFFICIAL CARRIER & CARTON MARKING:
               </span>
-              <p className="font-mono text-sm sm:text-base font-black text-emerald-400 select-all tracking-tight break-all">
+              <p className="font-mono text-sm sm:text-base font-semibold text-emerald-400 select-all tracking-tight break-all">
                 {customerShippingMark}
               </p>
             </div>
             <button
               type="button"
               onClick={() => handleCopy(customerShippingMark, 'mark', 'Shipping Mark copied to clipboard!')}
-              className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/25 active:scale-95 transition-all shrink-0 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/25 active:scale-95 transition-all shrink-0 cursor-pointer"
             >
               {copiedId === 'mark' ? <CheckCheck className="w-4 h-4 stroke-[3]" /> : <Copy className="w-4 h-4 stroke-[2.5]" />}
               <span>{copiedId === 'mark' ? 'Copied!' : 'Copy Full Mark'}</span>
             </button>
           </div>
-          <p className="text-[11px] text-slate-200 leading-relaxed font-medium">
+          <p className="text-xs text-slate-200 leading-relaxed font-normal">
             Instruct your 1688, Taobao, or factory suppliers to write this exact mark on all cartons and waybills. Once delivered to our warehouse dock, admin scans this code to instantly attach incoming parcels to your dashboard.
           </p>
         </div>

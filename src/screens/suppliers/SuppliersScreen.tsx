@@ -644,10 +644,10 @@ export const SuppliersScreen: React.FC = () => {
             </div>
 
             <div className="space-y-1.5 max-w-md mx-auto">
-              <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-extrabold text-[10px] tracking-wider uppercase inline-block">
+              <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-semibold text-xs tracking-wider uppercase inline-block">
                 {isExpiredState ? 'VIP Pass Expired' : 'China Direct Factory Pass Required'}
               </span>
-              <h2 className="text-xl font-black text-white tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight">
                 {isExpiredState 
                   ? 'Renew Your VIP Supplier Directory Pass' 
                   : 'Unlock Verified Chinese Direct Manufacturers'}
@@ -935,14 +935,14 @@ export const SuppliersScreen: React.FC = () => {
 
                       <div className="space-y-1 min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <h3 className="text-sm sm:text-base font-black text-white tracking-tight leading-snug">
+                          <h3 className="text-base font-semibold text-white tracking-tight leading-snug">
                             {supplier.name}
                           </h3>
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[9px] font-black uppercase tracking-wider shrink-0">
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold uppercase tracking-wider shrink-0">
                             ✓ {supplier.badge || 'Verified Business'}
                           </span>
                           {supplier.businessCardUrl && (
-                            <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[9px] font-bold shrink-0">
+                            <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-medium shrink-0">
                               🪪 Official Business Card
                             </span>
                           )}
@@ -954,7 +954,7 @@ export const SuppliersScreen: React.FC = () => {
                           </p>
                         )}
 
-                        <p className="text-[11px] text-slate-400 flex items-center gap-1.5 pt-0.5">
+                        <p className="text-xs text-slate-400 flex items-center gap-1.5 pt-0.5">
                           <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                           <span className="truncate">{supplier.city} • {supplier.businessAddress || 'Guangdong Industrial Zone, China'}</span>
                         </p>

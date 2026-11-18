@@ -111,15 +111,15 @@ export const ProfileScreen: React.FC = () => {
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <h3 className="text-sm font-extrabold text-white truncate">{userProfile.name}</h3>
+                <h3 className="text-base font-semibold text-white truncate">{userProfile.name}</h3>
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               </div>
-              <p className="text-[11px] text-slate-400 truncate">{userProfile.company}</p>
+              <p className="text-sm text-slate-400 truncate">{userProfile.company}</p>
               <div className="flex items-center gap-1.5 mt-1">
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[9px] font-bold">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium">
                   {userProfile.tier}
                 </span>
-                <span className="text-[10px] text-slate-500 font-mono">{userProfile.rcNumber}</span>
+                <span className="text-xs text-slate-500 font-mono">{userProfile.rcNumber}</span>
               </div>
             </div>
 
@@ -139,12 +139,12 @@ export const ProfileScreen: React.FC = () => {
 
           <div className="mt-4 pt-3 border-t border-slate-800/80 grid grid-cols-2 gap-2 text-xs">
             <div>
-              <span className="text-[10px] text-slate-500 block">Unique User ID / FlyeTag</span>
-              <span className="font-mono font-bold text-emerald-400">{uniqueUserId}</span>
+              <span className="text-xs text-slate-500 block">Unique User ID / FlyeTag</span>
+              <span className="font-mono font-semibold text-emerald-400">{uniqueUserId}</span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-500 block">Contact Phone</span>
-              <span className="font-mono font-bold text-slate-200">{userProfile.phone}</span>
+              <span className="text-xs text-slate-500 block">Contact Phone</span>
+              <span className="font-mono font-semibold text-slate-200">{userProfile.phone}</span>
             </div>
           </div>
         </div>
@@ -152,19 +152,19 @@ export const ProfileScreen: React.FC = () => {
         {/* Unique User ID / FlyeTag & Official Shipping Mark Card */}
         <div className="p-4 rounded-3xl bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-950 border border-indigo-500/30 shadow-xl space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               Unique Shipping ID / FlyeTag
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-bold">
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-semibold">
               Official Shipping Mark
             </span>
           </div>
 
           <div className="p-3 rounded-2xl bg-slate-950/90 border border-slate-800 flex items-center justify-between gap-2">
             <div className="overflow-hidden">
-              <span className="text-[9px] text-slate-400 block font-sans">UNIQUE ID (MARK ON ALL CARTONS):</span>
-              <p className="font-mono text-sm font-black text-emerald-400 tracking-wider truncate">
+              <span className="text-xs text-slate-400 block font-sans">UNIQUE ID (MARK ON ALL CARTONS):</span>
+              <p className="font-mono text-sm font-semibold text-emerald-400 tracking-wider truncate">
                 {uniqueUserId}
               </p>
             </div>
@@ -175,13 +175,13 @@ export const ProfileScreen: React.FC = () => {
                 setTimeout(() => setCopiedTag(false), 2000);
                 showToast(`Unique Shipping ID copied: ${uniqueUserId}`, 'success');
               }}
-              className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-1.5 hover:bg-emerald-500/25 active:scale-95 transition-all shrink-0 cursor-pointer shadow-sm"
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-semibold text-xs flex items-center gap-1.5 hover:bg-emerald-500/25 active:scale-95 transition-all shrink-0 cursor-pointer shadow-sm"
             >
               {copiedTag ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copiedTag ? 'Copied' : 'Copy ID'}</span>
             </button>
           </div>
-          <p className="text-[10px] text-slate-400 leading-tight">
+          <p className="text-xs text-slate-400 leading-tight">
             Use this automated ID on all warehouse shipments. China dock personnel scan this ID to instantly route packages to your FlyeMass account.
           </p>
         </div>

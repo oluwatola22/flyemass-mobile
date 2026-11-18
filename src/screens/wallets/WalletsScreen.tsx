@@ -178,10 +178,10 @@ export const WalletsScreen: React.FC = () => {
         <div className="space-y-3">
           {/* Subtle Heading with 1 of 2 Indicator (No bulky buttons, no "Swipe" text) */}
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <h2 className="text-xs font-medium uppercase tracking-wider text-slate-400">
               {t('wallets.multi_currency_vaults', 'Currency Vaults')}
             </h2>
-            <span className="text-[11px] text-slate-500 font-mono font-medium">
+            <span className="text-xs text-slate-500 font-mono font-medium">
               {activeWalletIndex + 1} of 2
             </span>
           </div>
@@ -204,27 +204,27 @@ export const WalletsScreen: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <span className="text-3xl shrink-0 drop-shadow-md">🇳🇬</span>
                       <div>
-                        <h3 className="text-base font-extrabold text-white tracking-tight leading-snug">
+                        <h3 className="text-base font-semibold text-white tracking-tight leading-snug">
                           Nigerian Naira Wallet
                         </h3>
-                        <span className="text-xs font-bold text-emerald-400 font-mono">NGN</span>
+                        <span className="text-xs font-medium text-emerald-400 font-mono">NGN</span>
                       </div>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold font-mono uppercase tracking-wider">
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-medium font-mono uppercase tracking-wider">
                       Primary Rail
                     </span>
                   </div>
 
-                  {/* Available Balance */}
+                  {/* Available Balance (28-32px, font-weight 600 Semi-bold, tight tabular numerals) */}
                   <div className="pt-2 relative z-10">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
+                    <span className="text-xs font-medium uppercase tracking-wider text-slate-400 block">
                       {t('wallets.available_balance', 'Available Balance')}
                     </span>
                     <div className="flex items-baseline gap-1.5 mt-1.5">
-                      <span className="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight num-tabular">
+                      <span className="text-3xl font-semibold text-white font-mono tracking-tight num-tabular">
                         {isBalanceHidden ? '••••••••' : `₦${ngnWallet.balance.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                       </span>
-                      <span className="text-xs font-bold text-slate-400">NGN</span>
+                      <span className="text-xs font-medium text-slate-400">NGN</span>
                     </div>
                     <p className="text-xs text-slate-400 mt-1.5 font-mono num-tabular">
                       ≈ {isBalanceHidden ? '••••' : `¥${((ngnWallet.balance / rateCnyNgn)).toLocaleString('en-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} RMB`}
@@ -243,27 +243,27 @@ export const WalletsScreen: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <span className="text-3xl shrink-0 drop-shadow-md">🇨🇳</span>
                       <div>
-                        <h3 className="text-base font-extrabold text-white tracking-tight leading-snug">
+                        <h3 className="text-base font-semibold text-white tracking-tight leading-snug">
                           Chinese Yuan Wallet
                         </h3>
-                        <span className="text-xs font-bold text-amber-400 font-mono">CNY / RMB</span>
+                        <span className="text-xs font-medium text-amber-400 font-mono">CNY / RMB</span>
                       </div>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-bold font-mono uppercase tracking-wider">
+                    <span className="px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-medium font-mono uppercase tracking-wider">
                       China Trade
                     </span>
                   </div>
 
-                  {/* Available Balance */}
+                  {/* Available Balance (28-32px, font-weight 600 Semi-bold, tight tabular numerals) */}
                   <div className="pt-2 relative z-10">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
+                    <span className="text-xs font-medium uppercase tracking-wider text-slate-400 block">
                       {t('wallets.available_balance', 'Available Balance')}
                     </span>
                     <div className="flex items-baseline gap-1.5 mt-1.5">
-                      <span className="text-2xl sm:text-3xl font-black text-amber-400 font-mono tracking-tight num-tabular">
+                      <span className="text-3xl font-semibold text-amber-400 font-mono tracking-tight num-tabular">
                         {isBalanceHidden ? '••••••••' : `¥${cnyWallet.balance.toLocaleString('en-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                       </span>
-                      <span className="text-xs font-bold text-amber-300/80">CNY</span>
+                      <span className="text-xs font-medium text-amber-300/80">CNY</span>
                     </div>
                     <p className="text-xs text-slate-400 mt-1.5 font-mono num-tabular">
                       ≈ {isBalanceHidden ? '••••' : `₦${(cnyWallet.balance * rateCnyNgn).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NGN`}
@@ -305,10 +305,10 @@ export const WalletsScreen: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md">
               <ArrowDownLeft className="w-4 h-4" />
             </div>
-            <span className="text-[11px] font-bold text-slate-100 group-hover:text-emerald-400 transition-colors truncate w-full">
+            <span className="text-xs font-semibold text-slate-100 group-hover:text-emerald-400 transition-colors truncate w-full">
               Fund
             </span>
-            <span className="text-[9px] text-slate-400 mt-0.5 line-clamp-1 truncate w-full">
+            <span className="text-xs text-slate-400 mt-0.5 line-clamp-1 truncate w-full">
               Deposit
             </span>
           </button>
@@ -320,10 +320,10 @@ export const WalletsScreen: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-blue-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md">
               <Send className="w-4 h-4" />
             </div>
-            <span className="text-[11px] font-bold text-slate-100 group-hover:text-indigo-400 transition-colors truncate w-full">
+            <span className="text-xs font-semibold text-slate-100 group-hover:text-indigo-400 transition-colors truncate w-full">
               Pay
             </span>
-            <span className="text-[9px] text-slate-400 mt-0.5 line-clamp-1 truncate w-full">
+            <span className="text-xs text-slate-400 mt-0.5 line-clamp-1 truncate w-full">
               Supplier
             </span>
           </button>
@@ -336,10 +336,10 @@ export const WalletsScreen: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md">
               <ArrowLeftRight className="w-4 h-4" />
             </div>
-            <span className="text-[11px] font-bold text-amber-300 group-hover:text-amber-400 transition-colors truncate w-full">
+            <span className="text-xs font-semibold text-amber-300 group-hover:text-amber-400 transition-colors truncate w-full">
               FX Swap
             </span>
-            <span className="text-[9px] text-slate-400 mt-0.5 line-clamp-1 truncate w-full">
+            <span className="text-xs text-slate-400 mt-0.5 line-clamp-1 truncate w-full">
               Instant
             </span>
           </button>
@@ -351,10 +351,10 @@ export const WalletsScreen: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500/20 to-cyan-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md">
               <ArrowUpRight className="w-4 h-4" />
             </div>
-            <span className="text-[11px] font-bold text-slate-100 group-hover:text-cyan-400 transition-colors truncate w-full">
+            <span className="text-xs font-semibold text-slate-100 group-hover:text-cyan-400 transition-colors truncate w-full">
               Withdraw
             </span>
-            <span className="text-[9px] text-slate-400 mt-0.5 line-clamp-1 truncate w-full">
+            <span className="text-xs text-slate-400 mt-0.5 line-clamp-1 truncate w-full">
               NUBAN
             </span>
           </button>

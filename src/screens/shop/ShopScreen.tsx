@@ -338,9 +338,9 @@ export const ShopScreen: React.FC = () => {
                   key={curr}
                   type="button"
                   onClick={() => setShopCurrency(curr)}
-                  className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                     shopCurrency === curr
-                      ? 'bg-emerald-500 text-slate-950 shadow-md font-extrabold'
+                      ? 'bg-emerald-500 text-slate-950 shadow-md font-bold'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -357,9 +357,9 @@ export const ShopScreen: React.FC = () => {
               className="px-2 py-2 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 flex items-center justify-center gap-1 active:scale-95 transition-all text-xs"
             >
               <Heart className={`w-3.5 h-3.5 ${savedProductIds.length > 0 ? 'text-rose-400 fill-rose-400' : 'text-slate-400'}`} />
-              <span className="font-bold text-slate-300 text-[11px]">Wishlist</span>
+              <span className="font-semibold text-slate-300 text-xs">Wishlist</span>
               {savedProductIds.length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-rose-500/20 text-rose-400 font-extrabold text-[9px] flex items-center justify-center">
+                <span className="min-w-4 h-4 px-1 rounded-full bg-rose-500/20 text-rose-400 font-bold text-xs flex items-center justify-center">
                   {savedProductIds.length}
                 </span>
               )}
@@ -370,9 +370,9 @@ export const ShopScreen: React.FC = () => {
               className="px-2 py-2 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 flex items-center justify-center gap-1 active:scale-95 transition-all text-xs"
             >
               <ArrowLeftRight className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="font-bold text-slate-300 text-[11px]">Compare</span>
+              <span className="font-semibold text-slate-300 text-xs">Compare</span>
               {compareProductIds.length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 font-extrabold text-[9px] flex items-center justify-center">
+                <span className="min-w-4 h-4 px-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-xs flex items-center justify-center">
                   {compareProductIds.length}
                 </span>
               )}
@@ -383,8 +383,8 @@ export const ShopScreen: React.FC = () => {
               className="px-2 py-2 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 flex items-center justify-center gap-1 active:scale-95 transition-all text-xs"
             >
               <Package className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="font-bold text-slate-300 text-[11px]">Orders</span>
-              <span className="w-4 h-4 rounded-full bg-cyan-500/20 text-cyan-400 font-extrabold text-[9px] flex items-center justify-center">
+              <span className="font-semibold text-slate-300 text-xs">Orders</span>
+              <span className="min-w-4 h-4 px-1 rounded-full bg-cyan-500/20 text-cyan-400 font-bold text-xs flex items-center justify-center">
                 {shopOrders.length}
               </span>
             </button>
@@ -394,9 +394,9 @@ export const ShopScreen: React.FC = () => {
               className="px-2 py-2 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 flex items-center justify-center gap-1 active:scale-95 transition-all text-xs"
             >
               <ShoppingBag className={`w-3.5 h-3.5 ${cartCount > 0 ? 'text-emerald-400' : 'text-slate-400'}`} />
-              <span className="font-bold text-slate-300 text-[11px]">Cart</span>
+              <span className="font-semibold text-slate-300 text-xs">Cart</span>
               {cartCount > 0 && (
-                <span className="w-4 h-4 rounded-full bg-emerald-500 text-slate-950 font-extrabold text-[9px] flex items-center justify-center">
+                <span className="min-w-4 h-4 px-1 rounded-full bg-emerald-500 text-slate-950 font-bold text-xs flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
@@ -679,7 +679,7 @@ export const ShopScreen: React.FC = () => {
                     />
 
                     {/* Condition Pill (Top Left) */}
-                    <span className={`absolute top-2 left-2 text-[8px] font-extrabold px-1.5 py-0.5 rounded-md border backdrop-blur-md ${
+                    <span className={`absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-md border backdrop-blur-md ${
                       condition === 'Brand New'
                         ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/40'
                         : 'bg-indigo-950/90 text-indigo-300 border-indigo-500/40'
@@ -688,7 +688,7 @@ export const ShopScreen: React.FC = () => {
                     </span>
 
                     {/* Stock Pill (Bottom Left) */}
-                    <span className={`absolute bottom-2 left-2 text-[8px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-md ${
+                    <span className={`absolute bottom-2 left-2 text-xs font-medium px-2 py-0.5 rounded-md backdrop-blur-md ${
                       stock > 5 
                         ? 'bg-slate-900/90 text-slate-300 border border-slate-700' 
                         : stock > 0 
@@ -738,31 +738,31 @@ export const ShopScreen: React.FC = () => {
                   <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
                     <div>
                       {/* Rating */}
-                      <div className="flex items-center gap-1 text-[10px] text-amber-400 font-semibold mb-1">
+                      <div className="flex items-center gap-1 text-xs text-amber-400 font-medium mb-1">
                         <Star className="w-3 h-3 fill-amber-400" />
                         <span>{product.rating}</span>
                         <span className="text-slate-500">({product.reviewsCount})</span>
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors line-clamp-2 leading-tight">
+                      <h3 className="text-sm font-semibold text-white group-hover:text-emerald-400 transition-colors line-clamp-2 leading-tight">
                         {product.title}
                       </h3>
 
                       {/* Brand & Storage Specifications Badge */}
                       <div className="flex items-center gap-1 flex-wrap mt-1">
-                        <span className="text-[9px] font-extrabold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                        <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
                           {product.brand || 'Apple'}
                         </span>
                         {(product.storage || product.storageOptions?.[0]) && (
-                          <span className="text-[9px] font-bold text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
+                          <span className="text-xs font-medium text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
                             {product.storage || product.storageOptions?.[0]}
                           </span>
                         )}
                       </div>
 
                       {/* Chip / Storage spec subtitle */}
-                      <p className="text-[10px] text-slate-400 line-clamp-1 mt-1">
+                      <p className="text-xs text-slate-400 line-clamp-1 mt-1">
                         {product.technicalSpecs?.chip ? product.technicalSpecs.chip.split('(')[0] : product.subtitle}
                       </p>
                     </div>
@@ -771,12 +771,12 @@ export const ShopScreen: React.FC = () => {
                     <div className="pt-2 border-t border-slate-800/80 space-y-2">
                       <div>
                         <div className="flex items-baseline gap-1">
-                          <span className="text-sm font-extrabold text-white num-tabular">
+                          <span className="text-base font-semibold text-white num-tabular">
                             {formatPrice(product, shopCurrency)}
                           </span>
-                          <span className="text-[10px] text-emerald-400 font-bold">{shopCurrency}</span>
+                          <span className="text-xs text-emerald-400 font-semibold">{shopCurrency}</span>
                         </div>
-                        <p className="text-[9px] text-slate-500 font-mono num-tabular">
+                        <p className="text-xs text-slate-500 font-mono num-tabular">
                           ≈ {getSecondaryPrice(product, shopCurrency)}
                         </p>
                       </div>
