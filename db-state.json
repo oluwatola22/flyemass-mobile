@@ -89,8 +89,8 @@
       "role": "client",
       "createdAt": 1791047745841,
       "balances": {
-        "NGN": 169119475,
-        "CNY": 1570278.0699999998,
+        "NGN": 169324475,
+        "CNY": 1584278.07,
         "USD": 18595
       },
       "pinHash": "2be703d3cc374d1c823eefe8967f0b3228afcc99e31220f22b99595aaa1af681",
@@ -44467,6 +44467,300 @@
         }
       ],
       "metadata": {}
+    },
+    "je_1794986254808_935": {
+      "id": "je_1794986254808_935",
+      "reference": "ADJ-ADMIN-CNY-254807",
+      "timestamp": 1794986254808,
+      "userId": "usr_alade_01",
+      "transactionType": "MANUAL_CREDIT_ADJUSTMENT",
+      "description": "Manual admin credit adjustment by adm-001: Credit RMB for conversion test",
+      "postings": [
+        {
+          "account": "equity:admin_adjustments:cny",
+          "currency": "CNY",
+          "debit": 5000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 5000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794986254905_696": {
+      "id": "je_1794986254905_696",
+      "reference": "SW-20261117-8E4C7A7F",
+      "timestamp": 1794986254905,
+      "userId": "usr_alade_01",
+      "transactionType": "FX_SWAP",
+      "description": "CNY_TO_NGN 1000 CNY -> 215000 NGN @ 215 (buy)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 1000,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 1000
+        },
+        {
+          "account": "revenue:fx_fees:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:ngn",
+          "currency": "NGN",
+          "debit": 215000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 215000
+        }
+      ],
+      "metadata": {
+        "rate_id": "fxr_e34de9a1de51",
+        "direction": "CNY_TO_NGN",
+        "fee_minor": 0
+      }
+    },
+    "je_1794986280784_974": {
+      "id": "je_1794986280784_974",
+      "reference": "ADJ-ADMIN-CNY-280784",
+      "timestamp": 1794986280784,
+      "userId": "usr_alade_01",
+      "transactionType": "MANUAL_CREDIT_ADJUSTMENT",
+      "description": "Manual admin credit adjustment by adm-001: Credit RMB for conversion test",
+      "postings": [
+        {
+          "account": "equity:admin_adjustments:cny",
+          "currency": "CNY",
+          "debit": 5000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 5000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794986280868_400": {
+      "id": "je_1794986280868_400",
+      "reference": "SW-20261117-61FC01B7",
+      "timestamp": 1794986280868,
+      "userId": "usr_alade_01",
+      "transactionType": "FX_SWAP",
+      "description": "CNY_TO_NGN 1000 CNY -> 215000 NGN @ 215 (buy)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 1000,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 1000
+        },
+        {
+          "account": "revenue:fx_fees:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:ngn",
+          "currency": "NGN",
+          "debit": 215000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 215000
+        }
+      ],
+      "metadata": {
+        "rate_id": "fxr_5154bdd28217",
+        "direction": "CNY_TO_NGN",
+        "fee_minor": 0
+      }
+    },
+    "je_1794986281020_632": {
+      "id": "je_1794986281020_632",
+      "reference": "SW-20261117-A034DBD1",
+      "timestamp": 1794986281020,
+      "userId": "usr_alade_01",
+      "transactionType": "FX_SWAP",
+      "description": "NGN_TO_CNY 220000 NGN -> 1000 CNY @ 220 (sell)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 220000,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 220000
+        },
+        {
+          "account": "revenue:fx_fees:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:cny",
+          "currency": "CNY",
+          "debit": 1000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 1000
+        }
+      ],
+      "metadata": {
+        "rate_id": "fxr_5154bdd28217",
+        "direction": "NGN_TO_CNY",
+        "fee_minor": 0
+      }
+    },
+    "je_1794986790157_222": {
+      "id": "je_1794986790157_222",
+      "reference": "ADJ-ADMIN-CNY-790157",
+      "timestamp": 1794986790157,
+      "userId": "usr_alade_01",
+      "transactionType": "MANUAL_CREDIT_ADJUSTMENT",
+      "description": "Manual admin credit adjustment by adm-001: Credit RMB for conversion test",
+      "postings": [
+        {
+          "account": "equity:admin_adjustments:cny",
+          "currency": "CNY",
+          "debit": 5000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 5000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794986790235_231": {
+      "id": "je_1794986790235_231",
+      "reference": "SW-20261117-070662BF",
+      "timestamp": 1794986790235,
+      "userId": "usr_alade_01",
+      "transactionType": "FX_SWAP",
+      "description": "CNY_TO_NGN 1000 CNY -> 215000 NGN @ 215 (buy)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 1000,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 1000
+        },
+        {
+          "account": "revenue:fx_fees:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:ngn",
+          "currency": "NGN",
+          "debit": 215000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 215000
+        }
+      ],
+      "metadata": {
+        "rate_id": "fxr_4be39f0eb0f5",
+        "direction": "CNY_TO_NGN",
+        "fee_minor": 0
+      }
+    },
+    "je_1794986790386_736": {
+      "id": "je_1794986790386_736",
+      "reference": "SW-20261117-4B005F37",
+      "timestamp": 1794986790386,
+      "userId": "usr_alade_01",
+      "transactionType": "FX_SWAP",
+      "description": "NGN_TO_CNY 220000 NGN -> 1000 CNY @ 220 (sell)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 220000,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 220000
+        },
+        {
+          "account": "revenue:fx_fees:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 0
+        },
+        {
+          "account": "treasury:fx_clearing:cny",
+          "currency": "CNY",
+          "debit": 1000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:cny",
+          "currency": "CNY",
+          "debit": 0,
+          "credit": 1000
+        }
+      ],
+      "metadata": {
+        "rate_id": "fxr_4be39f0eb0f5",
+        "direction": "NGN_TO_CNY",
+        "fee_minor": 0
+      }
     }
   },
   "wallets_ledger": {
@@ -67900,6 +68194,286 @@
       "reference": "CAC-1794984596496-4523",
       "timestamp": 1794984596496,
       "notes": "CAC Registration: Trans-Atlantic Energy & Engineering Ltd (Incorporated Company - Share Capital ₦2,000,000)"
+    },
+    "ldg_1794986254807": {
+      "id": "ldg_1794986254807",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "CNY",
+      "amount": 5000,
+      "fee": 0,
+      "openingBalance": 1570278.0699999998,
+      "closingBalance": 1575278.0699999998,
+      "status": "completed",
+      "reference": "ADJ-ADMIN-CNY-254807",
+      "timestamp": 1794986254808,
+      "notes": "Manual CREDIT by Admin (adm-001): Credit RMB for conversion test"
+    },
+    "ldg_1794986254906_76e9b5_d": {
+      "userId": "usr_alade_01",
+      "type": "FX_SWAP",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "NGN",
+      "rate": 215,
+      "status": "completed",
+      "reference": "SW-20261117-8E4C7A7F",
+      "swapReference": "SW-20261117-8E4C7A7F",
+      "timestamp": 1794986254906,
+      "direction": "CNY_TO_NGN",
+      "rateId": "fxr_e34de9a1de51",
+      "id": "ldg_1794986254906_76e9b5_d",
+      "leg": "debit",
+      "currency": "CNY",
+      "amount": 1000,
+      "convertedAmount": 215000,
+      "fee": 0,
+      "openingBalance": 1575278.07,
+      "closingBalance": 1574278.07,
+      "pairedEntryId": "ldg_1794986254906_69e081_c",
+      "notes": "FX swap CNY→NGN: debited 1000 CNY (fee 0) @ 215"
+    },
+    "ldg_1794986254906_69e081_c": {
+      "userId": "usr_alade_01",
+      "type": "FX_SWAP",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "NGN",
+      "rate": 215,
+      "status": "completed",
+      "reference": "SW-20261117-8E4C7A7F",
+      "swapReference": "SW-20261117-8E4C7A7F",
+      "timestamp": 1794986254906,
+      "direction": "CNY_TO_NGN",
+      "rateId": "fxr_e34de9a1de51",
+      "id": "ldg_1794986254906_69e081_c",
+      "leg": "credit",
+      "currency": "NGN",
+      "hiddenInHistory": true,
+      "amount": 215000,
+      "convertedAmount": 215000,
+      "fee": 0,
+      "openingBalance": 169119475,
+      "closingBalance": 169334475,
+      "pairedEntryId": "ldg_1794986254906_76e9b5_d",
+      "notes": "FX swap CNY→NGN: credited 215000 NGN @ 215"
+    },
+    "ldg_1794986280784": {
+      "id": "ldg_1794986280784",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "CNY",
+      "amount": 5000,
+      "fee": 0,
+      "openingBalance": 1574278.07,
+      "closingBalance": 1579278.07,
+      "status": "completed",
+      "reference": "ADJ-ADMIN-CNY-280784",
+      "timestamp": 1794986280785,
+      "notes": "Manual CREDIT by Admin (adm-001): Credit RMB for conversion test"
+    },
+    "ldg_1794986280868_848a9f_d": {
+      "userId": "usr_alade_01",
+      "type": "FX_SWAP",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "NGN",
+      "rate": 215,
+      "status": "completed",
+      "reference": "SW-20261117-61FC01B7",
+      "swapReference": "SW-20261117-61FC01B7",
+      "timestamp": 1794986280868,
+      "direction": "CNY_TO_NGN",
+      "rateId": "fxr_5154bdd28217",
+      "id": "ldg_1794986280868_848a9f_d",
+      "leg": "debit",
+      "currency": "CNY",
+      "amount": 1000,
+      "convertedAmount": 215000,
+      "fee": 0,
+      "openingBalance": 1579278.07,
+      "closingBalance": 1578278.07,
+      "pairedEntryId": "ldg_1794986280868_bec8c8_c",
+      "notes": "FX swap CNY→NGN: debited 1000 CNY (fee 0) @ 215"
+    },
+    "ldg_1794986280868_bec8c8_c": {
+      "userId": "usr_alade_01",
+      "type": "FX_SWAP",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "NGN",
+      "rate": 215,
+      "status": "completed",
+      "reference": "SW-20261117-61FC01B7",
+      "swapReference": "SW-20261117-61FC01B7",
+      "timestamp": 1794986280868,
+      "direction": "CNY_TO_NGN",
+      "rateId": "fxr_5154bdd28217",
+      "id": "ldg_1794986280868_bec8c8_c",
+      "leg": "credit",
+      "currency": "NGN",
+      "hiddenInHistory": true,
+      "amount": 215000,
+      "convertedAmount": 215000,
+      "fee": 0,
+      "openingBalance": 169334475,
+      "closingBalance": 169549475,
+      "pairedEntryId": "ldg_1794986280868_848a9f_d",
+      "notes": "FX swap CNY→NGN: credited 215000 NGN @ 215"
+    },
+    "ldg_1794986281020_df7ca7_d": {
+      "userId": "usr_alade_01",
+      "type": "FX_SWAP",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "CNY",
+      "rate": 220,
+      "status": "completed",
+      "reference": "SW-20261117-A034DBD1",
+      "swapReference": "SW-20261117-A034DBD1",
+      "timestamp": 1794986281020,
+      "direction": "NGN_TO_CNY",
+      "rateId": "fxr_5154bdd28217",
+      "id": "ldg_1794986281020_df7ca7_d",
+      "leg": "debit",
+      "currency": "NGN",
+      "amount": 220000,
+      "convertedAmount": 1000,
+      "fee": 0,
+      "openingBalance": 169549475,
+      "closingBalance": 169329475,
+      "pairedEntryId": "ldg_1794986281020_ca8a13_c",
+      "notes": "FX swap NGN→CNY: debited 220000 NGN (fee 0) @ 220"
+    },
+    "ldg_1794986281020_ca8a13_c": {
+      "userId": "usr_alade_01",
+      "type": "FX_SWAP",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "CNY",
+      "rate": 220,
+      "status": "completed",
+      "reference": "SW-20261117-A034DBD1",
+      "swapReference": "SW-20261117-A034DBD1",
+      "timestamp": 1794986281020,
+      "direction": "NGN_TO_CNY",
+      "rateId": "fxr_5154bdd28217",
+      "id": "ldg_1794986281020_ca8a13_c",
+      "leg": "credit",
+      "currency": "CNY",
+      "hiddenInHistory": true,
+      "amount": 1000,
+      "convertedAmount": 1000,
+      "fee": 0,
+      "openingBalance": 1578278.07,
+      "closingBalance": 1579278.07,
+      "pairedEntryId": "ldg_1794986281020_df7ca7_d",
+      "notes": "FX swap NGN→CNY: credited 1000 CNY @ 220"
+    },
+    "ldg_1794986790157": {
+      "id": "ldg_1794986790157",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "CNY",
+      "amount": 5000,
+      "fee": 0,
+      "openingBalance": 1579278.07,
+      "closingBalance": 1584278.07,
+      "status": "completed",
+      "reference": "ADJ-ADMIN-CNY-790157",
+      "timestamp": 1794986790157,
+      "notes": "Manual CREDIT by Admin (adm-001): Credit RMB for conversion test"
+    },
+    "ldg_1794986790235_50037d_d": {
+      "userId": "usr_alade_01",
+      "type": "FX_SWAP",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "NGN",
+      "rate": 215,
+      "status": "completed",
+      "reference": "SW-20261117-070662BF",
+      "swapReference": "SW-20261117-070662BF",
+      "timestamp": 1794986790235,
+      "direction": "CNY_TO_NGN",
+      "rateId": "fxr_4be39f0eb0f5",
+      "id": "ldg_1794986790235_50037d_d",
+      "leg": "debit",
+      "currency": "CNY",
+      "amount": 1000,
+      "convertedAmount": 215000,
+      "fee": 0,
+      "openingBalance": 1584278.07,
+      "closingBalance": 1583278.07,
+      "pairedEntryId": "ldg_1794986790235_7cd86e_c",
+      "notes": "FX swap CNY→NGN: debited 1000 CNY (fee 0) @ 215"
+    },
+    "ldg_1794986790235_7cd86e_c": {
+      "userId": "usr_alade_01",
+      "type": "FX_SWAP",
+      "sourceCurrency": "CNY",
+      "targetCurrency": "NGN",
+      "rate": 215,
+      "status": "completed",
+      "reference": "SW-20261117-070662BF",
+      "swapReference": "SW-20261117-070662BF",
+      "timestamp": 1794986790235,
+      "direction": "CNY_TO_NGN",
+      "rateId": "fxr_4be39f0eb0f5",
+      "id": "ldg_1794986790235_7cd86e_c",
+      "leg": "credit",
+      "currency": "NGN",
+      "hiddenInHistory": true,
+      "amount": 215000,
+      "convertedAmount": 215000,
+      "fee": 0,
+      "openingBalance": 169329475,
+      "closingBalance": 169544475,
+      "pairedEntryId": "ldg_1794986790235_50037d_d",
+      "notes": "FX swap CNY→NGN: credited 215000 NGN @ 215"
+    },
+    "ldg_1794986790386_a5c7e2_d": {
+      "userId": "usr_alade_01",
+      "type": "FX_SWAP",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "CNY",
+      "rate": 220,
+      "status": "completed",
+      "reference": "SW-20261117-4B005F37",
+      "swapReference": "SW-20261117-4B005F37",
+      "timestamp": 1794986790386,
+      "direction": "NGN_TO_CNY",
+      "rateId": "fxr_4be39f0eb0f5",
+      "id": "ldg_1794986790386_a5c7e2_d",
+      "leg": "debit",
+      "currency": "NGN",
+      "amount": 220000,
+      "convertedAmount": 1000,
+      "fee": 0,
+      "openingBalance": 169544475,
+      "closingBalance": 169324475,
+      "pairedEntryId": "ldg_1794986790386_375774_c",
+      "notes": "FX swap NGN→CNY: debited 220000 NGN (fee 0) @ 220"
+    },
+    "ldg_1794986790386_375774_c": {
+      "userId": "usr_alade_01",
+      "type": "FX_SWAP",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "CNY",
+      "rate": 220,
+      "status": "completed",
+      "reference": "SW-20261117-4B005F37",
+      "swapReference": "SW-20261117-4B005F37",
+      "timestamp": 1794986790386,
+      "direction": "NGN_TO_CNY",
+      "rateId": "fxr_4be39f0eb0f5",
+      "id": "ldg_1794986790386_375774_c",
+      "leg": "credit",
+      "currency": "CNY",
+      "hiddenInHistory": true,
+      "amount": 1000,
+      "convertedAmount": 1000,
+      "fee": 0,
+      "openingBalance": 1583278.07,
+      "closingBalance": 1584278.07,
+      "pairedEntryId": "ldg_1794986790386_a5c7e2_d",
+      "notes": "FX swap NGN→CNY: credited 1000 CNY @ 220"
     }
   },
   "shipments": {
@@ -102375,7 +102949,7 @@
       "cancellationPolicy": "Free cancellation up to 48 hours before check-in. Non-refundable after check-in date.",
       "emailSent": true,
       "status": "completed",
-      "taxiCardZh": "师傅您好，请带我到：广州广交会威斯汀酒店（广州市海珠区凤浦中路681号广交会展馆C区）。谢谢！",
+      "taxiCardZh": "师傅您好，请带我到：广州广交会威斯汀酒店（广州市海珠区凤浦中路681号广交会展馆C���）。谢谢！",
       "createdAt": 1793691615317,
       "adminNotes": "Guest checked out, room inspected",
       "updatedAt": 1793691615855
@@ -118707,29 +119281,29 @@
   ],
   "system_settings": {
     "rates": {
-      "USD_NGN": 1490,
-      "USD_CNY": 7.26,
-      "NGN_CNY": 215.2,
-      "spreadPercent": 0.75,
-      "lastUpdated": 1794958322455,
-      "updatedBy": "Admin Central Treasury",
-      "NGN_USD": 1490,
-      "CNY_NGN": 215.2,
+      "USD_NGN": 1379.415,
+      "USD_CNY": 7.2509,
+      "NGN_CNY": 217.5,
+      "spreadPercent": 0.5,
+      "lastUpdated": 1794986789922,
+      "updatedBy": "Super Admin Babatunde",
+      "NGN_USD": 1379.415,
+      "CNY_NGN": 217.5,
       "CNY_USD": 0.137741,
-      "CNY_to_NGN": 213.59,
-      "NGN_to_CNY": 0.004587,
-      "naira_per_rmb": 218,
-      "USD_to_NGN": 1478.83,
-      "NGN_to_USD": 0.000781,
-      "naira_per_usd": 1280,
+      "CNY_to_NGN": 215,
+      "NGN_to_CNY": 0.00454545,
+      "naira_per_rmb": 220,
+      "USD_to_NGN": 1280,
+      "NGN_to_USD": 0.00067621,
+      "naira_per_usd": 1478.83,
       "USD_to_CNY": 7.2056,
-      "CNY_to_USD": 0.137,
-      "input_cny_to_ngn": 213.59,
-      "input_ngn_to_cny": 218,
-      "input_usd_to_ngn": 1478.83,
-      "input_ngn_to_usd": 1280,
+      "CNY_to_USD": 0.13705577,
+      "input_cny_to_ngn": 215,
+      "input_ngn_to_cny": 220,
+      "input_usd_to_ngn": 1280,
+      "input_ngn_to_usd": 1478.83,
       "input_usd_to_cny": 7.2056,
-      "input_cny_to_usd": 0.137
+      "input_cny_to_usd": 7.2963
     },
     "fees": {
       "withdrawalFlatNGN": 500,
@@ -118941,15 +119515,15 @@
       }
     },
     "logistics_fx_rates": {
-      "usdToNgn": 1490,
-      "usdToCny": 7.26
+      "usdToNgn": 1379.415,
+      "usdToCny": 7.2509
     },
     "live_fx_display": {
-      "announcementText": "⚡ Live Wholesale Bank Clearing: ₦213.59/RMB • ₦1,478.83/USD • Zero Slippage",
-      "displayNgnRmb": 213.59,
+      "announcementText": "⚡ Live Wholesale Clearing: ₦217.50/RMB (Buy: ₦215.00 • Sell: ₦220.00) • Zero Slippage",
+      "displayNgnRmb": 215,
       "displayUsdNgn": 1478.83,
       "displayUsdCny": 7.2056,
-      "lastUpdated": 1794551373129
+      "lastUpdated": 1794986789922
     }
   },
   "cac_registrations": {
@@ -158896,6 +159470,266 @@
       "ipAddress": "127.0.0.1",
       "previousHash": "7ef742b33c818bf49d2659aee56f8451f059291d16f59666e980f7f2531abaf9",
       "hash": "f974159213d6bd47aa32aec3405f9407c949d9afa85bc5465feb07a76ec93f72"
+    },
+    {
+      "id": "log_1794986062542_3500",
+      "adminId": "adm-001",
+      "adminName": "Super Admin Babatunde",
+      "action": "SETTINGS_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "config",
+      "details": "Updated exchange rates and operational margins",
+      "timestamp": 1794986062542,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "f974159213d6bd47aa32aec3405f9407c949d9afa85bc5465feb07a76ec93f72",
+      "hash": "b25edfa114d7d961fdcd22a26d3792aa3c6af861e79db472e0262a3cb490b796"
+    },
+    {
+      "id": "log_1794986062622_3985",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_FEE_UPDATED",
+      "targetCollection": "fx_fee_settings",
+      "targetId": "CNY_TO_NGN",
+      "details": "CNY_TO_NGN: 0% / min 100",
+      "timestamp": 1794986062622,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "b25edfa114d7d961fdcd22a26d3792aa3c6af861e79db472e0262a3cb490b796",
+      "hash": "f08c472ad69149436f1edc4da355fe36a0bae80acb8fcc96d25826c4b74a029c"
+    },
+    {
+      "id": "log_1794986062690_5501",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_FEE_UPDATED",
+      "targetCollection": "fx_fee_settings",
+      "targetId": "NGN_TO_CNY",
+      "details": "NGN_TO_CNY: 0% / min 1000",
+      "timestamp": 1794986062690,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "f08c472ad69149436f1edc4da355fe36a0bae80acb8fcc96d25826c4b74a029c",
+      "hash": "46fa5e7884e8515b60118632aacc916fffab3130070b9d718bcf1cc411f4d118"
+    },
+    {
+      "id": "log_1794986254586_2371",
+      "adminId": "adm-001",
+      "adminName": "Super Admin Babatunde",
+      "action": "SETTINGS_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "config",
+      "details": "Updated exchange rates and operational margins",
+      "timestamp": 1794986254586,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "46fa5e7884e8515b60118632aacc916fffab3130070b9d718bcf1cc411f4d118",
+      "hash": "2b3f18922ec910944ba51f5de7b452beaf967621ea8fef688aadefa36e623476"
+    },
+    {
+      "id": "log_1794986254667_6171",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_FEE_UPDATED",
+      "targetCollection": "fx_fee_settings",
+      "targetId": "CNY_TO_NGN",
+      "details": "CNY_TO_NGN: 0% / min 100",
+      "timestamp": 1794986254668,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "2b3f18922ec910944ba51f5de7b452beaf967621ea8fef688aadefa36e623476",
+      "hash": "436fd90df831316d6ca9746e682b5d1fb84d044a59477d6dbd6f8f803f57e793"
+    },
+    {
+      "id": "log_1794986254737_5163",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_FEE_UPDATED",
+      "targetCollection": "fx_fee_settings",
+      "targetId": "NGN_TO_CNY",
+      "details": "NGN_TO_CNY: 0% / min 1000",
+      "timestamp": 1794986254737,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "436fd90df831316d6ca9746e682b5d1fb84d044a59477d6dbd6f8f803f57e793",
+      "hash": "2697fd79b4eb414fc448e6c3815051f57625cfb799b982134d423e4e6e2425ac"
+    },
+    {
+      "id": "log_1794986254834_7051",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "MANUAL_WALLET_CREDIT",
+      "targetCollection": "wallets_ledger",
+      "targetId": "usr_alade_01",
+      "details": "Manual CREDIT CNY 5,000 (Credit RMB for conversion test)",
+      "timestamp": 1794986254834,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "2697fd79b4eb414fc448e6c3815051f57625cfb799b982134d423e4e6e2425ac",
+      "hash": "8123e4ae74d2b2abd27d0d96ed95cb7f1f0df06ef9d6317cc6450d5f9c8a6010"
+    },
+    {
+      "id": "log_1794986254906_9417",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_SWAP_EXECUTED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1794986254906_76e9b5_d",
+      "details": "SW-20261117-8E4C7A7F: CNY_TO_NGN 1000 CNY -> 215000 NGN",
+      "timestamp": 1794986254906,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "8123e4ae74d2b2abd27d0d96ed95cb7f1f0df06ef9d6317cc6450d5f9c8a6010",
+      "hash": "98e021c9422e71be2a7015b10feb126f5c3e0bf1cc35302d8170a06c23e463f5"
+    },
+    {
+      "id": "log_1794986280534_5998",
+      "adminId": "adm-001",
+      "adminName": "Super Admin Babatunde",
+      "action": "SETTINGS_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "config",
+      "details": "Updated exchange rates and operational margins",
+      "timestamp": 1794986280534,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "98e021c9422e71be2a7015b10feb126f5c3e0bf1cc35302d8170a06c23e463f5",
+      "hash": "84c40289f8df5d7f6ecd25b99aea08bf006a1ea132484797b44e23d22d0d1fba"
+    },
+    {
+      "id": "log_1794986280618_3641",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_FEE_UPDATED",
+      "targetCollection": "fx_fee_settings",
+      "targetId": "CNY_TO_NGN",
+      "details": "CNY_TO_NGN: 0% / min 100",
+      "timestamp": 1794986280618,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "84c40289f8df5d7f6ecd25b99aea08bf006a1ea132484797b44e23d22d0d1fba",
+      "hash": "aeeda104ffc8368157c36cca9462fabf08d2174daa2e77c073cf4d71ebd0c1bc"
+    },
+    {
+      "id": "log_1794986280705_2321",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_FEE_UPDATED",
+      "targetCollection": "fx_fee_settings",
+      "targetId": "NGN_TO_CNY",
+      "details": "NGN_TO_CNY: 0% / min 1000",
+      "timestamp": 1794986280705,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "aeeda104ffc8368157c36cca9462fabf08d2174daa2e77c073cf4d71ebd0c1bc",
+      "hash": "27384fbb7d6c09f0c70c57a1cc1c50007f8847f745342ab473f88eb1b2b0f960"
+    },
+    {
+      "id": "log_1794986280785_7281",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "MANUAL_WALLET_CREDIT",
+      "targetCollection": "wallets_ledger",
+      "targetId": "usr_alade_01",
+      "details": "Manual CREDIT CNY 5,000 (Credit RMB for conversion test)",
+      "timestamp": 1794986280785,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "27384fbb7d6c09f0c70c57a1cc1c50007f8847f745342ab473f88eb1b2b0f960",
+      "hash": "8efec33370c0eaf1464d701c16cd6d6518a66820996a02c346404f4b836f773c"
+    },
+    {
+      "id": "log_1794986280868_8533",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_SWAP_EXECUTED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1794986280868_848a9f_d",
+      "details": "SW-20261117-61FC01B7: CNY_TO_NGN 1000 CNY -> 215000 NGN",
+      "timestamp": 1794986280868,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "8efec33370c0eaf1464d701c16cd6d6518a66820996a02c346404f4b836f773c",
+      "hash": "afcb1a0135671922274767e8bdaccaf7ad3a61eb742c648d2857ddd901d324ca"
+    },
+    {
+      "id": "log_1794986281020_926",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_SWAP_EXECUTED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1794986281020_df7ca7_d",
+      "details": "SW-20261117-A034DBD1: NGN_TO_CNY 220000 NGN -> 1000 CNY",
+      "timestamp": 1794986281020,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "afcb1a0135671922274767e8bdaccaf7ad3a61eb742c648d2857ddd901d324ca",
+      "hash": "bfa66fa9fd6874c27528b5fb9c4a4af763238261aacd68c340540790d8dea602"
+    },
+    {
+      "id": "log_1794986789922_7080",
+      "adminId": "adm-001",
+      "adminName": "Super Admin Babatunde",
+      "action": "SETTINGS_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "config",
+      "details": "Updated exchange rates and operational margins",
+      "timestamp": 1794986789922,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "bfa66fa9fd6874c27528b5fb9c4a4af763238261aacd68c340540790d8dea602",
+      "hash": "3888086f98df5d23859ad794d9dc32a8bf6ec8c7380126fa7583f7ff54d29232"
+    },
+    {
+      "id": "log_1794986790003_9446",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_FEE_UPDATED",
+      "targetCollection": "fx_fee_settings",
+      "targetId": "CNY_TO_NGN",
+      "details": "CNY_TO_NGN: 0% / min 100",
+      "timestamp": 1794986790003,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "3888086f98df5d23859ad794d9dc32a8bf6ec8c7380126fa7583f7ff54d29232",
+      "hash": "8b54309e8c0ebdbb4f549dbf78a8969abc53f7e7a46f3807d7f95a3580b04913"
+    },
+    {
+      "id": "log_1794986790081_381",
+      "adminId": "adm-001",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_FEE_UPDATED",
+      "targetCollection": "fx_fee_settings",
+      "targetId": "NGN_TO_CNY",
+      "details": "NGN_TO_CNY: 0% / min 1000",
+      "timestamp": 1794986790081,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "8b54309e8c0ebdbb4f549dbf78a8969abc53f7e7a46f3807d7f95a3580b04913",
+      "hash": "153c4cae5c4076577b045c71294bf77e6e063612235b51ba8746ed9b7c30a632"
+    },
+    {
+      "id": "log_1794986790157_9891",
+      "adminId": "adm-001",
+      "adminName": "adm-001",
+      "action": "MANUAL_WALLET_CREDIT",
+      "targetCollection": "wallets_ledger",
+      "targetId": "usr_alade_01",
+      "details": "Manual CREDIT CNY 5,000 (Credit RMB for conversion test)",
+      "timestamp": 1794986790157,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "153c4cae5c4076577b045c71294bf77e6e063612235b51ba8746ed9b7c30a632",
+      "hash": "59e6dee97c216e7acb63629bc54bcfa0ea996f3ea8957cd970a6e31269a5fdc4"
+    },
+    {
+      "id": "log_1794986790235_5575",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_SWAP_EXECUTED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1794986790235_50037d_d",
+      "details": "SW-20261117-070662BF: CNY_TO_NGN 1000 CNY -> 215000 NGN",
+      "timestamp": 1794986790235,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "59e6dee97c216e7acb63629bc54bcfa0ea996f3ea8957cd970a6e31269a5fdc4",
+      "hash": "cd21e13bb50c1a2e7b8f77308e04155a33135a53d3c49c363b36d0fb847f1a7c"
+    },
+    {
+      "id": "log_1794986790387_3887",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "FX_SWAP_EXECUTED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1794986790386_a5c7e2_d",
+      "details": "SW-20261117-4B005F37: NGN_TO_CNY 220000 NGN -> 1000 CNY",
+      "timestamp": 1794986790387,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "cd21e13bb50c1a2e7b8f77308e04155a33135a53d3c49c363b36d0fb847f1a7c",
+      "hash": "3c20e63605780fd8923bb12a8371e254b9afc2ec1dd347592c7e5145d74a11ac"
     }
   ],
   "manual_payments": {
@@ -163120,6 +163954,92 @@
     "primaryAdminId": "adm-001"
   },
   "notifications": [
+    {
+      "id": "notif_1794986790463_u9r",
+      "userId": "usr_alade_01",
+      "title": "Currency Swap Executed: NGN → CNY (Ref: SW-20261117-4B005F37)",
+      "message": "Currency Swap Executed: Debited 220,000.00 NGN, Credited 1,000.00 CNY @ 220.0000. Reference: SW-20261117-4B005F37.",
+      "type": "info",
+      "timestamp": 1794986790463,
+      "read": false,
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794986790310_ts6",
+      "userId": "usr_alade_01",
+      "title": "Currency Swap Executed: CNY → NGN (Ref: SW-20261117-070662BF)",
+      "message": "Currency Swap Executed: Debited 1,000.00 CNY, Credited 215,000.00 NGN @ 215.0000. Reference: SW-20261117-070662BF.",
+      "type": "info",
+      "timestamp": 1794986790310,
+      "read": false,
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794986790157_806",
+      "userId": "usr_alade_01",
+      "targetUserId": "usr_alade_01",
+      "title": "Wallet Credited (+¥5,000)",
+      "message": "Your CNY wallet has been credited with ¥5,000 by FlyeMass Support. Note: Credit RMB for conversion test",
+      "type": "wallet",
+      "linkRoute": "wallets",
+      "read": false,
+      "timestamp": 1794986790157,
+      "time": "Just now"
+    },
+    {
+      "id": "notif_1794986281104_5ez",
+      "userId": "usr_alade_01",
+      "title": "Currency Swap Executed: NGN → CNY (Ref: SW-20261117-A034DBD1)",
+      "message": "Currency Swap Executed: Debited 220,000.00 NGN, Credited 1,000.00 CNY @ 220.0000. Reference: SW-20261117-A034DBD1.",
+      "type": "info",
+      "timestamp": 1794986281104,
+      "read": false,
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794986280945_7ns",
+      "userId": "usr_alade_01",
+      "title": "Currency Swap Executed: CNY → NGN (Ref: SW-20261117-61FC01B7)",
+      "message": "Currency Swap Executed: Debited 1,000.00 CNY, Credited 215,000.00 NGN @ 215.0000. Reference: SW-20261117-61FC01B7.",
+      "type": "info",
+      "timestamp": 1794986280945,
+      "read": false,
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794986280785_714",
+      "userId": "usr_alade_01",
+      "targetUserId": "usr_alade_01",
+      "title": "Wallet Credited (+¥5,000)",
+      "message": "Your CNY wallet has been credited with ¥5,000 by FlyeMass Support. Note: Credit RMB for conversion test",
+      "type": "wallet",
+      "linkRoute": "wallets",
+      "read": false,
+      "timestamp": 1794986280785,
+      "time": "Just now"
+    },
+    {
+      "id": "notif_1794986254982_4o4",
+      "userId": "usr_alade_01",
+      "title": "Currency Swap Executed: CNY → NGN (Ref: SW-20261117-8E4C7A7F)",
+      "message": "Currency Swap Executed: Debited 1,000.00 CNY, Credited 215,000.00 NGN @ 215.0000. Reference: SW-20261117-8E4C7A7F.",
+      "type": "info",
+      "timestamp": 1794986254982,
+      "read": false,
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794986254834_108",
+      "userId": "usr_alade_01",
+      "targetUserId": "usr_alade_01",
+      "title": "Wallet Credited (+¥5,000)",
+      "message": "Your CNY wallet has been credited with ¥5,000 by FlyeMass Support. Note: Credit RMB for conversion test",
+      "type": "wallet",
+      "linkRoute": "wallets",
+      "read": false,
+      "timestamp": 1794986254834,
+      "time": "Just now"
+    },
     {
       "id": "notif_1794984596496_933",
       "userId": "usr_alade_01",
@@ -177215,6 +178135,121 @@
       "timestamp": 1794983278293,
       "status": "delivered",
       "provider": "in_memory_vault"
+    },
+    "eml_fx_swap_1794986254982_b2kp": {
+      "id": "eml_fx_swap_1794986254982_b2kp",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "Currency Swap Executed: CNY → NGN (Ref: SW-20261117-8E4C7A7F)",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>Currency Swap Executed: CNY → NGN (Ref: SW-20261117-8E4C7A7F)</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-emerald\">FX Conversion Complete • Zero Slippage</div>\n        <h1 class=\"title\">Currency Swap Executed: CNY → NGN (Ref: SW-20261117-8E4C7A7F)</h1>\n        \n        <p class=\"lead\">\n          Your live foreign exchange swap has executed. Converted funds are immediately available for cargo clearance, tech shop orders, or supplier disbursements.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Debited (CNY):</span>\n            <span class=\"data-value\" style=\"color: #f87171;\">-1,000.00 CNY</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Credited (NGN):</span>\n            <span class=\"data-value\" style=\"color: #10b981;\">+215,000.00 NGN</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Applied Exchange Rate:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">1 CNY = 215.0000 NGN</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Execution Ref:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">SW-20261117-8E4C7A7F</span>\n          </div>\n        </div>\n        <p style=\"font-size: 11px; color: #64748b; line-height: 1.5;\">\n          FlyeMass operates strictly with verified commercial banking rails and official CBN/SAFE FX mechanisms. Cryptocurrency trading or stablecoins are strictly prohibited.\n        </p>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/wallets\" class=\"btn\" target=\"_blank\">View Balance & History</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Currency Swap Executed: Debited 1,000.00 CNY, Credited 215,000.00 NGN @ 215.0000. Reference: SW-20261117-8E4C7A7F.",
+      "eventType": "FX_SWAP",
+      "payload": {
+        "fromCurrency": "CNY",
+        "toCurrency": "NGN",
+        "fromAmount": 1000,
+        "toAmount": 215000,
+        "rate": 215,
+        "reference": "SW-20261117-8E4C7A7F"
+      },
+      "deliveredAt": 1794986254982,
+      "timestamp": 1794986254982,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_fx_swap_1794986280945_cg9j": {
+      "id": "eml_fx_swap_1794986280945_cg9j",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "Currency Swap Executed: CNY → NGN (Ref: SW-20261117-61FC01B7)",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>Currency Swap Executed: CNY → NGN (Ref: SW-20261117-61FC01B7)</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-emerald\">FX Conversion Complete • Zero Slippage</div>\n        <h1 class=\"title\">Currency Swap Executed: CNY → NGN (Ref: SW-20261117-61FC01B7)</h1>\n        \n        <p class=\"lead\">\n          Your live foreign exchange swap has executed. Converted funds are immediately available for cargo clearance, tech shop orders, or supplier disbursements.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Debited (CNY):</span>\n            <span class=\"data-value\" style=\"color: #f87171;\">-1,000.00 CNY</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Credited (NGN):</span>\n            <span class=\"data-value\" style=\"color: #10b981;\">+215,000.00 NGN</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Applied Exchange Rate:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">1 CNY = 215.0000 NGN</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Execution Ref:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">SW-20261117-61FC01B7</span>\n          </div>\n        </div>\n        <p style=\"font-size: 11px; color: #64748b; line-height: 1.5;\">\n          FlyeMass operates strictly with verified commercial banking rails and official CBN/SAFE FX mechanisms. Cryptocurrency trading or stablecoins are strictly prohibited.\n        </p>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/wallets\" class=\"btn\" target=\"_blank\">View Balance & History</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Currency Swap Executed: Debited 1,000.00 CNY, Credited 215,000.00 NGN @ 215.0000. Reference: SW-20261117-61FC01B7.",
+      "eventType": "FX_SWAP",
+      "payload": {
+        "fromCurrency": "CNY",
+        "toCurrency": "NGN",
+        "fromAmount": 1000,
+        "toAmount": 215000,
+        "rate": 215,
+        "reference": "SW-20261117-61FC01B7"
+      },
+      "deliveredAt": 1794986280945,
+      "timestamp": 1794986280945,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_fx_swap_1794986281104_johw": {
+      "id": "eml_fx_swap_1794986281104_johw",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "Currency Swap Executed: NGN → CNY (Ref: SW-20261117-A034DBD1)",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>Currency Swap Executed: NGN → CNY (Ref: SW-20261117-A034DBD1)</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-emerald\">FX Conversion Complete • Zero Slippage</div>\n        <h1 class=\"title\">Currency Swap Executed: NGN → CNY (Ref: SW-20261117-A034DBD1)</h1>\n        \n        <p class=\"lead\">\n          Your live foreign exchange swap has executed. Converted funds are immediately available for cargo clearance, tech shop orders, or supplier disbursements.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Debited (NGN):</span>\n            <span class=\"data-value\" style=\"color: #f87171;\">-220,000.00 NGN</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Credited (CNY):</span>\n            <span class=\"data-value\" style=\"color: #10b981;\">+1,000.00 CNY</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Applied Exchange Rate:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">1 NGN = 220.0000 CNY</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Execution Ref:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">SW-20261117-A034DBD1</span>\n          </div>\n        </div>\n        <p style=\"font-size: 11px; color: #64748b; line-height: 1.5;\">\n          FlyeMass operates strictly with verified commercial banking rails and official CBN/SAFE FX mechanisms. Cryptocurrency trading or stablecoins are strictly prohibited.\n        </p>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/wallets\" class=\"btn\" target=\"_blank\">View Balance & History</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Currency Swap Executed: Debited 220,000.00 NGN, Credited 1,000.00 CNY @ 220.0000. Reference: SW-20261117-A034DBD1.",
+      "eventType": "FX_SWAP",
+      "payload": {
+        "fromCurrency": "NGN",
+        "toCurrency": "CNY",
+        "fromAmount": 220000,
+        "toAmount": 1000,
+        "rate": 220,
+        "reference": "SW-20261117-A034DBD1"
+      },
+      "deliveredAt": 1794986281104,
+      "timestamp": 1794986281104,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_fx_swap_1794986790310_oeig": {
+      "id": "eml_fx_swap_1794986790310_oeig",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "Currency Swap Executed: CNY → NGN (Ref: SW-20261117-070662BF)",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>Currency Swap Executed: CNY → NGN (Ref: SW-20261117-070662BF)</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-emerald\">FX Conversion Complete • Zero Slippage</div>\n        <h1 class=\"title\">Currency Swap Executed: CNY → NGN (Ref: SW-20261117-070662BF)</h1>\n        \n        <p class=\"lead\">\n          Your live foreign exchange swap has executed. Converted funds are immediately available for cargo clearance, tech shop orders, or supplier disbursements.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Debited (CNY):</span>\n            <span class=\"data-value\" style=\"color: #f87171;\">-1,000.00 CNY</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Credited (NGN):</span>\n            <span class=\"data-value\" style=\"color: #10b981;\">+215,000.00 NGN</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Applied Exchange Rate:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">1 CNY = 215.0000 NGN</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Execution Ref:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">SW-20261117-070662BF</span>\n          </div>\n        </div>\n        <p style=\"font-size: 11px; color: #64748b; line-height: 1.5;\">\n          FlyeMass operates strictly with verified commercial banking rails and official CBN/SAFE FX mechanisms. Cryptocurrency trading or stablecoins are strictly prohibited.\n        </p>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/wallets\" class=\"btn\" target=\"_blank\">View Balance & History</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Currency Swap Executed: Debited 1,000.00 CNY, Credited 215,000.00 NGN @ 215.0000. Reference: SW-20261117-070662BF.",
+      "eventType": "FX_SWAP",
+      "payload": {
+        "fromCurrency": "CNY",
+        "toCurrency": "NGN",
+        "fromAmount": 1000,
+        "toAmount": 215000,
+        "rate": 215,
+        "reference": "SW-20261117-070662BF"
+      },
+      "deliveredAt": 1794986790310,
+      "timestamp": 1794986790310,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_fx_swap_1794986790463_59hx": {
+      "id": "eml_fx_swap_1794986790463_59hx",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "Currency Swap Executed: NGN → CNY (Ref: SW-20261117-4B005F37)",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>Currency Swap Executed: NGN → CNY (Ref: SW-20261117-4B005F37)</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-emerald\">FX Conversion Complete • Zero Slippage</div>\n        <h1 class=\"title\">Currency Swap Executed: NGN → CNY (Ref: SW-20261117-4B005F37)</h1>\n        \n        <p class=\"lead\">\n          Your live foreign exchange swap has executed. Converted funds are immediately available for cargo clearance, tech shop orders, or supplier disbursements.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Debited (NGN):</span>\n            <span class=\"data-value\" style=\"color: #f87171;\">-220,000.00 NGN</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Credited (CNY):</span>\n            <span class=\"data-value\" style=\"color: #10b981;\">+1,000.00 CNY</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Applied Exchange Rate:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">1 NGN = 220.0000 CNY</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Execution Ref:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">SW-20261117-4B005F37</span>\n          </div>\n        </div>\n        <p style=\"font-size: 11px; color: #64748b; line-height: 1.5;\">\n          FlyeMass operates strictly with verified commercial banking rails and official CBN/SAFE FX mechanisms. Cryptocurrency trading or stablecoins are strictly prohibited.\n        </p>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/wallets\" class=\"btn\" target=\"_blank\">View Balance & History</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Currency Swap Executed: Debited 220,000.00 NGN, Credited 1,000.00 CNY @ 220.0000. Reference: SW-20261117-4B005F37.",
+      "eventType": "FX_SWAP",
+      "payload": {
+        "fromCurrency": "NGN",
+        "toCurrency": "CNY",
+        "fromAmount": 220000,
+        "toAmount": 1000,
+        "rate": 220,
+        "reference": "SW-20261117-4B005F37"
+      },
+      "deliveredAt": 1794986790463,
+      "timestamp": 1794986790463,
+      "status": "delivered",
+      "provider": "in_memory_vault"
     }
   },
   "idempotency_store": {
@@ -180727,29 +181762,29 @@
     }
   },
   "fx_rates": {
-    "USD_NGN": 1490,
-    "USD_CNY": 7.26,
-    "NGN_CNY": 215.2,
-    "spreadPercent": 0.75,
-    "lastUpdated": 1794958322455,
-    "updatedBy": "Admin Central Treasury",
-    "NGN_USD": 1490,
-    "CNY_NGN": 215.2,
+    "USD_NGN": 1379.415,
+    "USD_CNY": 7.2509,
+    "NGN_CNY": 217.5,
+    "spreadPercent": 0.5,
+    "lastUpdated": 1794986789921,
+    "updatedBy": "Super Admin Babatunde",
+    "NGN_USD": 1379.415,
+    "CNY_NGN": 217.5,
     "CNY_USD": 0.137741,
-    "CNY_to_NGN": 213.59,
-    "NGN_to_CNY": 0.004587,
-    "naira_per_rmb": 218,
-    "USD_to_NGN": 1478.83,
-    "NGN_to_USD": 0.000781,
-    "naira_per_usd": 1280,
+    "CNY_to_NGN": 215,
+    "NGN_to_CNY": 0.00454545,
+    "naira_per_rmb": 220,
+    "USD_to_NGN": 1280,
+    "NGN_to_USD": 0.00067621,
+    "naira_per_usd": 1478.83,
     "USD_to_CNY": 7.2056,
-    "CNY_to_USD": 0.137,
-    "input_cny_to_ngn": 213.59,
-    "input_ngn_to_cny": 218,
-    "input_usd_to_ngn": 1478.83,
-    "input_ngn_to_usd": 1280,
+    "CNY_to_USD": 0.13705577,
+    "input_cny_to_ngn": 215,
+    "input_ngn_to_cny": 220,
+    "input_usd_to_ngn": 1280,
+    "input_ngn_to_usd": 1478.83,
     "input_usd_to_cny": 7.2056,
-    "input_cny_to_usd": 0.137
+    "input_cny_to_usd": 7.2963
   },
   "fx_rate_book": {
     "rates": [
@@ -180759,12 +181794,12 @@
         "quote": "NGN",
         "buy_rate": 213.59,
         "sell_rate": 218,
-        "is_active": true,
+        "is_active": false,
         "swappable": true,
         "published_by": "system-seed",
         "published_by_name": "Treasury Bootstrap",
         "published_at": 1794871317875,
-        "deactivated_at": null
+        "deactivated_at": 1794986062540
       },
       {
         "id": "fxr_608e3f0ab3af",
@@ -180791,16 +181826,68 @@
         "published_by_name": "Treasury Bootstrap",
         "published_at": 1794871317876,
         "deactivated_at": null
+      },
+      {
+        "id": "fxr_d2435da85411",
+        "base": "CNY",
+        "quote": "NGN",
+        "buy_rate": 215,
+        "sell_rate": 220,
+        "is_active": false,
+        "swappable": true,
+        "published_by": "adm-001",
+        "published_by_name": "Super Admin Babatunde",
+        "published_at": 1794986062540,
+        "deactivated_at": 1794986254586
+      },
+      {
+        "id": "fxr_e34de9a1de51",
+        "base": "CNY",
+        "quote": "NGN",
+        "buy_rate": 215,
+        "sell_rate": 220,
+        "is_active": false,
+        "swappable": true,
+        "published_by": "adm-001",
+        "published_by_name": "Super Admin Babatunde",
+        "published_at": 1794986254586,
+        "deactivated_at": 1794986280534
+      },
+      {
+        "id": "fxr_5154bdd28217",
+        "base": "CNY",
+        "quote": "NGN",
+        "buy_rate": 215,
+        "sell_rate": 220,
+        "is_active": false,
+        "swappable": true,
+        "published_by": "adm-001",
+        "published_by_name": "Super Admin Babatunde",
+        "published_at": 1794986280534,
+        "deactivated_at": 1794986789921
+      },
+      {
+        "id": "fxr_4be39f0eb0f5",
+        "base": "CNY",
+        "quote": "NGN",
+        "buy_rate": 215,
+        "sell_rate": 220,
+        "is_active": true,
+        "swappable": true,
+        "published_by": "adm-001",
+        "published_by_name": "Super Admin Babatunde",
+        "published_at": 1794986789921,
+        "deactivated_at": null
       }
     ],
     "fees": {
       "NGN_TO_CNY": {
-        "fee_percent": 0.5,
-        "min_amount_minor": 1000000
+        "fee_percent": 0,
+        "min_amount_minor": 1000
       },
       "CNY_TO_NGN": {
-        "fee_percent": 0.5,
-        "min_amount_minor": 5000
+        "fee_percent": 0,
+        "min_amount_minor": 100
       },
       "USD_TO_CNY": {
         "fee_percent": 0.5,
@@ -180813,5 +181900,383 @@
     },
     "max_rate_age_minutes": 1440
   },
-  "fx_rate_audit_log": []
+  "fx_rate_audit_log": [
+    {
+      "id": "fxa_1794986062540_19da58",
+      "created_at": 1794986062540,
+      "event": "RATE_PUBLISHED",
+      "actor_id": "adm-001",
+      "actor_name": "Super Admin Babatunde",
+      "actor_role": "super_admin",
+      "base": "CNY",
+      "quote": "NGN",
+      "old_buy_rate": 213.59,
+      "old_sell_rate": 218,
+      "new_buy_rate": 215,
+      "new_sell_rate": 220,
+      "buy_rate_delta": 1.41,
+      "sell_rate_delta": 2,
+      "details": {
+        "rate_id": "fxr_d2435da85411",
+        "previous_rate_id": "fxr_50bd3d1955e1"
+      },
+      "previous_hash": "GENESIS_FX_2026",
+      "hash": "47b45be2b9915d3c5627e95f20b76e9675545418428c65a65562f40f7eb0e262"
+    },
+    {
+      "id": "fxa_1794986062622_4389a5",
+      "created_at": 1794986062622,
+      "event": "FEE_UPDATED",
+      "actor_id": "adm-001",
+      "actor_name": "Chief Babatunde Alade",
+      "base": null,
+      "quote": null,
+      "details": {
+        "direction": "CNY_TO_NGN",
+        "before": {
+          "fee_percent": 0.5,
+          "min_amount_minor": 5000
+        },
+        "after": {
+          "fee_percent": 0,
+          "min_amount_minor": 100
+        },
+        "max_rate_age_minutes": 1440
+      },
+      "previous_hash": "47b45be2b9915d3c5627e95f20b76e9675545418428c65a65562f40f7eb0e262",
+      "hash": "3ff698ac338f406038a46fde6034e5bc1d7d3e07fd3375d56ed91fd612113ad0"
+    },
+    {
+      "id": "fxa_1794986062690_491ec2",
+      "created_at": 1794986062690,
+      "event": "FEE_UPDATED",
+      "actor_id": "adm-001",
+      "actor_name": "Chief Babatunde Alade",
+      "base": null,
+      "quote": null,
+      "details": {
+        "direction": "NGN_TO_CNY",
+        "before": {
+          "fee_percent": 0.5,
+          "min_amount_minor": 1000000
+        },
+        "after": {
+          "fee_percent": 0,
+          "min_amount_minor": 1000
+        },
+        "max_rate_age_minutes": 1440
+      },
+      "previous_hash": "3ff698ac338f406038a46fde6034e5bc1d7d3e07fd3375d56ed91fd612113ad0",
+      "hash": "92d6bee846d31ae7151bfd273f5c5b6746516d9f4e692955980bfd4ad31fda2f"
+    },
+    {
+      "id": "fxa_1794986254586_038197",
+      "created_at": 1794986254586,
+      "event": "RATE_PUBLISHED",
+      "actor_id": "adm-001",
+      "actor_name": "Super Admin Babatunde",
+      "actor_role": "super_admin",
+      "base": "CNY",
+      "quote": "NGN",
+      "old_buy_rate": 215,
+      "old_sell_rate": 220,
+      "new_buy_rate": 215,
+      "new_sell_rate": 220,
+      "buy_rate_delta": 0,
+      "sell_rate_delta": 0,
+      "details": {
+        "rate_id": "fxr_e34de9a1de51",
+        "previous_rate_id": "fxr_d2435da85411"
+      },
+      "previous_hash": "92d6bee846d31ae7151bfd273f5c5b6746516d9f4e692955980bfd4ad31fda2f",
+      "hash": "5a10582ed1c0b7d35517c6895fe72faa19a006275d197a7288bd8c8f743ebe53"
+    },
+    {
+      "id": "fxa_1794986254667_150da5",
+      "created_at": 1794986254667,
+      "event": "FEE_UPDATED",
+      "actor_id": "adm-001",
+      "actor_name": "Chief Babatunde Alade",
+      "base": null,
+      "quote": null,
+      "details": {
+        "direction": "CNY_TO_NGN",
+        "before": {
+          "fee_percent": 0,
+          "min_amount_minor": 100
+        },
+        "after": {
+          "fee_percent": 0,
+          "min_amount_minor": 100
+        },
+        "max_rate_age_minutes": 1440
+      },
+      "previous_hash": "5a10582ed1c0b7d35517c6895fe72faa19a006275d197a7288bd8c8f743ebe53",
+      "hash": "7e80266f063f3844cc7602a46bde2c12374e88e2606de63bf25071f16bc72188"
+    },
+    {
+      "id": "fxa_1794986254736_e204aa",
+      "created_at": 1794986254736,
+      "event": "FEE_UPDATED",
+      "actor_id": "adm-001",
+      "actor_name": "Chief Babatunde Alade",
+      "base": null,
+      "quote": null,
+      "details": {
+        "direction": "NGN_TO_CNY",
+        "before": {
+          "fee_percent": 0,
+          "min_amount_minor": 1000
+        },
+        "after": {
+          "fee_percent": 0,
+          "min_amount_minor": 1000
+        },
+        "max_rate_age_minutes": 1440
+      },
+      "previous_hash": "7e80266f063f3844cc7602a46bde2c12374e88e2606de63bf25071f16bc72188",
+      "hash": "446bf3962815f8a7b1821d527cbc96ffb51ee5f4a18d37b610b4bb935b0e6fa3"
+    },
+    {
+      "id": "fxa_1794986254906_3a35a5",
+      "created_at": 1794986254906,
+      "event": "SWAP_EXECUTED",
+      "actor_id": "usr_alade_01",
+      "actor_name": "Chief Babatunde Alade",
+      "base": "CNY",
+      "quote": "NGN",
+      "new_buy_rate": 215,
+      "new_sell_rate": 220,
+      "details": {
+        "reference": "SW-20261117-8E4C7A7F",
+        "direction": "CNY_TO_NGN",
+        "amount_minor": 100000,
+        "fee_minor": 0,
+        "credited_minor": 21500000,
+        "rate_id": "fxr_e34de9a1de51"
+      },
+      "previous_hash": "446bf3962815f8a7b1821d527cbc96ffb51ee5f4a18d37b610b4bb935b0e6fa3",
+      "hash": "4a64f53b2316bdd008aa8892cb560dd01de7c31de583debbddc8063edaaf9ff0"
+    },
+    {
+      "id": "fxa_1794986280534_086a8e",
+      "created_at": 1794986280534,
+      "event": "RATE_PUBLISHED",
+      "actor_id": "adm-001",
+      "actor_name": "Super Admin Babatunde",
+      "actor_role": "super_admin",
+      "base": "CNY",
+      "quote": "NGN",
+      "old_buy_rate": 215,
+      "old_sell_rate": 220,
+      "new_buy_rate": 215,
+      "new_sell_rate": 220,
+      "buy_rate_delta": 0,
+      "sell_rate_delta": 0,
+      "details": {
+        "rate_id": "fxr_5154bdd28217",
+        "previous_rate_id": "fxr_e34de9a1de51"
+      },
+      "previous_hash": "4a64f53b2316bdd008aa8892cb560dd01de7c31de583debbddc8063edaaf9ff0",
+      "hash": "04e72ef8679ff6bbdafeec0636031055f5827f21a5e7e676dbd4bc29014db03c"
+    },
+    {
+      "id": "fxa_1794986280618_99c609",
+      "created_at": 1794986280618,
+      "event": "FEE_UPDATED",
+      "actor_id": "adm-001",
+      "actor_name": "Chief Babatunde Alade",
+      "base": null,
+      "quote": null,
+      "details": {
+        "direction": "CNY_TO_NGN",
+        "before": {
+          "fee_percent": 0,
+          "min_amount_minor": 100
+        },
+        "after": {
+          "fee_percent": 0,
+          "min_amount_minor": 100
+        },
+        "max_rate_age_minutes": 1440
+      },
+      "previous_hash": "04e72ef8679ff6bbdafeec0636031055f5827f21a5e7e676dbd4bc29014db03c",
+      "hash": "4c5acaf48c7481eab1481d84ff5933a3c4ecec37b881a99be23eae038ee4bda0"
+    },
+    {
+      "id": "fxa_1794986280705_5015f6",
+      "created_at": 1794986280705,
+      "event": "FEE_UPDATED",
+      "actor_id": "adm-001",
+      "actor_name": "Chief Babatunde Alade",
+      "base": null,
+      "quote": null,
+      "details": {
+        "direction": "NGN_TO_CNY",
+        "before": {
+          "fee_percent": 0,
+          "min_amount_minor": 1000
+        },
+        "after": {
+          "fee_percent": 0,
+          "min_amount_minor": 1000
+        },
+        "max_rate_age_minutes": 1440
+      },
+      "previous_hash": "4c5acaf48c7481eab1481d84ff5933a3c4ecec37b881a99be23eae038ee4bda0",
+      "hash": "a41d3171c652437e9a6da7f00ad64114087da0db7a35b44a8c386e87cb0f31d1"
+    },
+    {
+      "id": "fxa_1794986280868_8d3eb9",
+      "created_at": 1794986280868,
+      "event": "SWAP_EXECUTED",
+      "actor_id": "usr_alade_01",
+      "actor_name": "Chief Babatunde Alade",
+      "base": "CNY",
+      "quote": "NGN",
+      "new_buy_rate": 215,
+      "new_sell_rate": 220,
+      "details": {
+        "reference": "SW-20261117-61FC01B7",
+        "direction": "CNY_TO_NGN",
+        "amount_minor": 100000,
+        "fee_minor": 0,
+        "credited_minor": 21500000,
+        "rate_id": "fxr_5154bdd28217"
+      },
+      "previous_hash": "a41d3171c652437e9a6da7f00ad64114087da0db7a35b44a8c386e87cb0f31d1",
+      "hash": "ff2b949b3ec9408b9d8b451e27e9fe1816968a731b4aa83a98291239fab0d858"
+    },
+    {
+      "id": "fxa_1794986281020_ed2eff",
+      "created_at": 1794986281020,
+      "event": "SWAP_EXECUTED",
+      "actor_id": "usr_alade_01",
+      "actor_name": "Chief Babatunde Alade",
+      "base": "CNY",
+      "quote": "NGN",
+      "new_buy_rate": 215,
+      "new_sell_rate": 220,
+      "details": {
+        "reference": "SW-20261117-A034DBD1",
+        "direction": "NGN_TO_CNY",
+        "amount_minor": 22000000,
+        "fee_minor": 0,
+        "credited_minor": 100000,
+        "rate_id": "fxr_5154bdd28217"
+      },
+      "previous_hash": "ff2b949b3ec9408b9d8b451e27e9fe1816968a731b4aa83a98291239fab0d858",
+      "hash": "3c9961e2cab3e4aad581a1ed2f4dac6f129ae73deca7cd715d92bf9322b91f79"
+    },
+    {
+      "id": "fxa_1794986789921_e844e1",
+      "created_at": 1794986789921,
+      "event": "RATE_PUBLISHED",
+      "actor_id": "adm-001",
+      "actor_name": "Super Admin Babatunde",
+      "actor_role": "super_admin",
+      "base": "CNY",
+      "quote": "NGN",
+      "old_buy_rate": 215,
+      "old_sell_rate": 220,
+      "new_buy_rate": 215,
+      "new_sell_rate": 220,
+      "buy_rate_delta": 0,
+      "sell_rate_delta": 0,
+      "details": {
+        "rate_id": "fxr_4be39f0eb0f5",
+        "previous_rate_id": "fxr_5154bdd28217"
+      },
+      "previous_hash": "3c9961e2cab3e4aad581a1ed2f4dac6f129ae73deca7cd715d92bf9322b91f79",
+      "hash": "e5ad2f0f92bce94ec36f38c5b9f3332d2288af0ef2ae6aea07224f59995fd7ef"
+    },
+    {
+      "id": "fxa_1794986790002_0d7142",
+      "created_at": 1794986790002,
+      "event": "FEE_UPDATED",
+      "actor_id": "adm-001",
+      "actor_name": "Chief Babatunde Alade",
+      "base": null,
+      "quote": null,
+      "details": {
+        "direction": "CNY_TO_NGN",
+        "before": {
+          "fee_percent": 0,
+          "min_amount_minor": 100
+        },
+        "after": {
+          "fee_percent": 0,
+          "min_amount_minor": 100
+        },
+        "max_rate_age_minutes": 1440
+      },
+      "previous_hash": "e5ad2f0f92bce94ec36f38c5b9f3332d2288af0ef2ae6aea07224f59995fd7ef",
+      "hash": "c544420e13fd95d21abe6d4d2a357b8656e5bde3ca8a669dab150769244291a4"
+    },
+    {
+      "id": "fxa_1794986790080_7bb06f",
+      "created_at": 1794986790080,
+      "event": "FEE_UPDATED",
+      "actor_id": "adm-001",
+      "actor_name": "Chief Babatunde Alade",
+      "base": null,
+      "quote": null,
+      "details": {
+        "direction": "NGN_TO_CNY",
+        "before": {
+          "fee_percent": 0,
+          "min_amount_minor": 1000
+        },
+        "after": {
+          "fee_percent": 0,
+          "min_amount_minor": 1000
+        },
+        "max_rate_age_minutes": 1440
+      },
+      "previous_hash": "c544420e13fd95d21abe6d4d2a357b8656e5bde3ca8a669dab150769244291a4",
+      "hash": "cfb4f2704bfef6cd3d39d8c551a338c3ff5391c4d2a26a9a24462e3583778b38"
+    },
+    {
+      "id": "fxa_1794986790235_4dc386",
+      "created_at": 1794986790235,
+      "event": "SWAP_EXECUTED",
+      "actor_id": "usr_alade_01",
+      "actor_name": "Chief Babatunde Alade",
+      "base": "CNY",
+      "quote": "NGN",
+      "new_buy_rate": 215,
+      "new_sell_rate": 220,
+      "details": {
+        "reference": "SW-20261117-070662BF",
+        "direction": "CNY_TO_NGN",
+        "amount_minor": 100000,
+        "fee_minor": 0,
+        "credited_minor": 21500000,
+        "rate_id": "fxr_4be39f0eb0f5"
+      },
+      "previous_hash": "cfb4f2704bfef6cd3d39d8c551a338c3ff5391c4d2a26a9a24462e3583778b38",
+      "hash": "15233fef435507d8ddef33387e55818e28a83ee5829c025ff93f0b8fda7cab21"
+    },
+    {
+      "id": "fxa_1794986790386_c836ec",
+      "created_at": 1794986790386,
+      "event": "SWAP_EXECUTED",
+      "actor_id": "usr_alade_01",
+      "actor_name": "Chief Babatunde Alade",
+      "base": "CNY",
+      "quote": "NGN",
+      "new_buy_rate": 215,
+      "new_sell_rate": 220,
+      "details": {
+        "reference": "SW-20261117-4B005F37",
+        "direction": "NGN_TO_CNY",
+        "amount_minor": 22000000,
+        "fee_minor": 0,
+        "credited_minor": 100000,
+        "rate_id": "fxr_4be39f0eb0f5"
+      },
+      "previous_hash": "15233fef435507d8ddef33387e55818e28a83ee5829c025ff93f0b8fda7cab21",
+      "hash": "80ae9cbdfd483149d8500b460ad254522d2e40e3bed3045f9e196e1f45bb95eb"
+    }
+  ]
 }

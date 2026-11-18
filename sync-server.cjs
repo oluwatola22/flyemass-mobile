@@ -10209,6 +10209,26 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
           lastUpdated: Date.now(),
           updatedBy: adminName || 'Admin Central Treasury'
         };
+
+        // Synchronize authoritative FxBook for CNY/NGN so customer swaps use exact fixed price
+        const spreadFrac = (Number(normalizedRates.spreadPercent) || 0.75) / 100;
+        const midRate = Number(normalizedRates.NGN_CNY || normalizedRates.CNY_NGN || 215.20);
+        let buyRate = Number(normalizedRates.CNY_to_NGN || normalizedRates.input_cny_to_ngn || (midRate * (1 - spreadFrac)));
+        let sellRate = Number(normalizedRates.naira_per_rmb || normalizedRates.input_ngn_to_cny || (normalizedRates.NGN_to_CNY ? 1 / normalizedRates.NGN_to_CNY : (midRate * (1 + spreadFrac))));
+        if (buyRate > 0 && sellRate > 0) {
+          if (sellRate < buyRate) {
+            const t = sellRate; sellRate = buyRate; buyRate = t;
+          }
+          publishFxRateInternal({
+            base: 'CNY',
+            quote: 'NGN',
+            buyRate: Number(buyRate.toFixed(4)),
+            sellRate: Number(sellRate.toFixed(4)),
+            actorId: req.headers['x-admin-id'] || 'admin',
+            actorName: adminName || 'Admin Central Treasury',
+            actorRole: req.headers['x-admin-role'] || 'super_admin'
+          });
+        }
       }
       if (fees) {
         dbState.system_settings.fees = {

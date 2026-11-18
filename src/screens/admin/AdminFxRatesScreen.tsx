@@ -17,7 +17,7 @@ const PAIRS: { base: 'CNY'; quote: 'NGN'; title: string; buyHint: string; sellHi
   {
     base: 'CNY', quote: 'NGN', title: 'CNY ⇌ NGN (RMB to Naira)', swappable: true,
     buyHint: 'Buy rate: ₦ per ¥1 (customer sells RMB)', sellHint: 'Sell rate: ₦ per ¥1 (customer buys RMB)',
-    note: 'Customer swaps CNY → NGN at the buy rate and NGN → CNY at the sell rate. USD is retired.'
+    note: 'Customer swaps CNY → NGN at the buy rate and NGN → CNY at the sell rate. USD corridors (USD ⇌ CNY, USD ⇌ NGN) are retired in favor of direct Naira & RMB.'
   }
 ];
 

@@ -418,14 +418,28 @@ export const AdminPaymentsScreen: React.FC = () => {
 
   const handleSaveMarginRates = async (e: React.FormEvent) => {
     e.preventDefault();
+    const rateNgnRmb = Number(ngnRmbRate);
+    const spreadPct = Number(spreadPercent);
+    const spreadFrac = spreadPct / 100;
+    const calcCnyToNgn = Number((rateNgnRmb * (1 - spreadFrac)).toFixed(2));
+    const calcNgnToCny = Number((rateNgnRmb * (1 + spreadFrac)).toFixed(2));
+
     await db.updateSystemSettings('Finance Officer Ngozi', {
-      NGN_CNY: Number(ngnRmbRate),
+      NGN_CNY: rateNgnRmb,
+      CNY_NGN: rateNgnRmb,
       USD_NGN: Number(usdNgnRate),
       NGN_USD: Number(usdNgnRate),
       USD_CNY: Number(usdCnyRate),
-      spreadPercent: Number(spreadPercent)
+      spreadPercent: spreadPct,
+      CNY_to_NGN: calcCnyToNgn,
+      input_cny_to_ngn: calcCnyToNgn,
+      naira_per_rmb: calcNgnToCny,
+      input_ngn_to_cny: calcNgnToCny
     });
-    showToast(`Authoritative exchange rates & margins updated! 1 RMB = ₦${ngnRmbRate} NGN, 1 USD = ₦${usdNgnRate} NGN`, 'success');
+    if (calcCnyToNgn > 0 && calcNgnToCny >= calcCnyToNgn) {
+      await db.publishFxRate('CNY', 'NGN', calcCnyToNgn, calcNgnToCny, 'adm-001', 'Finance Officer Ngozi', 'finance_officer');
+    }
+    showToast(`Authoritative exchange rates & margins updated! 1 RMB = ₦${rateNgnRmb} (Fixed Buy: ₦${calcCnyToNgn} • Fixed Sell: ₦${calcNgnToCny})`, 'success');
   };
 
   const handleVerifyReference = async (e: React.FormEvent) => {
@@ -606,11 +620,11 @@ export const AdminPaymentsScreen: React.FC = () => {
 
               <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm">
                 <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
-                  <span>Pending USD</span>
-                  <DollarSign className="w-4 h-4 text-sky-400" />
+                  <span>Pending RMB</span>
+                  <DollarSign className="w-4 h-4 text-indigo-400" />
                 </div>
-                <div className="text-lg font-black text-white">${pendingVolumeUSD.toLocaleString()}</div>
-                <div className="text-[10px] text-slate-500 mt-0.5">Uncredited wire transfers</div>
+                <div className="text-lg font-black text-white">¥{pendingVolumeCNY.toLocaleString()}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Uncredited Chinese transfers</div>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm">
@@ -1380,40 +1394,6 @@ export const AdminPaymentsScreen: React.FC = () => {
 
               <div>
                 <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
-                  1 USD ($) = Nigerian Naira (₦)
-                </label>
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-950 border border-slate-800">
-                  <span className="font-bold text-emerald-400">₦</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={usdNgnRate}
-                    onChange={(e) => setUsdNgnRate(e.target.value)}
-                    className="w-full bg-transparent font-mono font-bold text-white text-sm outline-none"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
-                  1 USD ($) = Chinese Yuan (¥)
-                </label>
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-950 border border-slate-800">
-                  <span className="font-bold text-indigo-400">¥</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={usdCnyRate}
-                    onChange={(e) => setUsdCnyRate(e.target.value)}
-                    className="w-full bg-transparent font-mono font-bold text-white text-sm outline-none"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
                   Clearing Margin Spread (%)
                 </label>
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-950 border border-slate-800">
@@ -1428,6 +1408,32 @@ export const AdminPaymentsScreen: React.FC = () => {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Fixed Conversion Rates Summary (Naira ⇄ RMB) */}
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-400">Fixed Buy (RMB ➔ NGN):</span>
+                <span className="text-emerald-400 font-bold">₦{(Number(ngnRmbRate) * (1 - Number(spreadPercent)/100)).toFixed(2)} / ¥1</span>
+              </div>
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-400">Fixed Sell (NGN ➔ RMB):</span>
+                <span className="text-indigo-400 font-bold">₦{(Number(ngnRmbRate) * (1 + Number(spreadPercent)/100)).toFixed(2)} / ¥1</span>
+              </div>
+            </div>
+
+            {/* Hidden container for legacy USD inputs */}
+            <div style={{ display: 'none' }} aria-hidden="true">
+              <input
+                type="number"
+                value={usdNgnRate}
+                onChange={(e) => setUsdNgnRate(e.target.value)}
+              />
+              <input
+                type="number"
+                value={usdCnyRate}
+                onChange={(e) => setUsdCnyRate(e.target.value)}
+              />
             </div>
 
             <button
