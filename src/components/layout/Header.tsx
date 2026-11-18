@@ -16,6 +16,7 @@ import {
 interface HeaderProps {
   showBack?: boolean;
   title?: string;
+  onBack?: () => void;
 }
 
 export { HeaderContext } from './HeaderContext';
@@ -60,7 +61,7 @@ const ROUTE_TITLES: Record<string, string> = {
   'delete-account': 'Account Deletion Request'
 };
 
-export const Header: React.FC<HeaderProps> = ({ showBack, title }) => {
+export const Header: React.FC<HeaderProps> = ({ showBack, title, onBack }) => {
   const isNested = React.useContext(HeaderContext);
   if (isNested) {
     return null;
@@ -116,7 +117,7 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title }) => {
     return (
       <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80 px-4 py-3 safe-top flex items-center justify-between shrink-0">
         <button
-          onClick={goBack}
+          onClick={onBack || goBack}
           className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white p-1 rounded-lg active:scale-95 transition-all cursor-pointer"
         >
           <ChevronLeft className="w-5 h-5 text-emerald-400" />
