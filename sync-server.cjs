@@ -10174,7 +10174,7 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
         return sendJson(res, 403, { error: 'Unauthorized: requires Super Admin or Finance Officer role' });
       }
 
-      const { adminName, rates, fees, live_fx_display } = await readJsonBody(req);
+      const { adminName, rates, fees, live_fx_display, liveFxDisplay } = await readJsonBody(req);
       if (rates) {
         const normalizedRates = { ...rates };
         if (normalizedRates.NGN_USD && !normalizedRates.USD_NGN) {
@@ -10236,10 +10236,11 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
           ...fees
         };
       }
-      if (live_fx_display) {
+      const livePayload = live_fx_display || liveFxDisplay;
+      if (livePayload) {
         dbState.system_settings.live_fx_display = {
           ...(dbState.system_settings.live_fx_display || {}),
-          ...live_fx_display,
+          ...livePayload,
           lastUpdated: Date.now()
         };
       }

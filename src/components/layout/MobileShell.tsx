@@ -376,7 +376,7 @@ export const MobileShell: React.FC = () => {
     { label: '/rentals-offices (Commercial Office Leases)', route: 'rentals-offices', group: '7. Business Hotels' },
 
     // 8. Profile, Security & Support
-    { label: '/profile (CAC Tier 3 Credentials)', route: 'profile', group: '8. Profile & Security' },
+    { label: '/profile (Corporate Credentials)', route: 'profile', group: '8. Profile & Security' },
     { label: '/security (PIN & Trusted Sessions)', route: 'security', group: '8. Profile & Security' },
     { label: '/support (Help Center & FAQ)', route: 'support', group: '8. Profile & Security' },
     { label: '/support/chat (24/7 Trade Desk)', route: 'support-chat', group: '8. Profile & Security' },

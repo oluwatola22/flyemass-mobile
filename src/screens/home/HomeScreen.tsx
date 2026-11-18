@@ -53,6 +53,11 @@ export const HomeScreen: React.FC = () => {
   const [liveFxDisplay, setLiveFxDisplay] = useState(() => db.getState().system_settings?.live_fx_display);
 
   useEffect(() => {
+    // Initial sync from current db state
+    const currentSettings = db.getState().system_settings;
+    if (currentSettings?.rates) setDbRates({ ...currentSettings.rates });
+    if (currentSettings?.live_fx_display) setLiveFxDisplay({ ...currentSettings.live_fx_display });
+
     return db.subscribe(() => {
       const nextBanners = db.getBanners().filter(b => b.placement !== 'shop' && b.destinationRoute !== 'shop');
       setBanners((prev) => {
@@ -66,39 +71,126 @@ export const HomeScreen: React.FC = () => {
       });
 
       const nextSettings = db.getState().system_settings;
-      const nextRates = nextSettings?.rates;
-      setDbRates((prev: any) => {
-        if (
-          prev &&
-          prev.NGN_CNY === nextRates?.NGN_CNY &&
-          prev.USD_NGN === nextRates?.USD_NGN &&
-          prev.USD_CNY === nextRates?.USD_CNY &&
-          prev.lastUpdated === nextRates?.lastUpdated
-        ) {
-          return prev;
-        }
-        return nextRates ? { ...nextRates } : prev;
-      });
-
+      if (nextSettings?.rates) {
+        setDbRates({ ...nextSettings.rates });
+      }
       if (nextSettings?.live_fx_display) {
-        setLiveFxDisplay(nextSettings.live_fx_display);
+        setLiveFxDisplay({ ...nextSettings.live_fx_display });
       }
     });
   }, []);
 
   const liveRatesList = useMemo(() => {
-    const cnyRateNgn = Number(dbRates?.CNY_to_NGN || liveFxDisplay?.displayNgnRmb || dbRates?.NGN_CNY || 215.20);
-    const usdRateNgn = Number(dbRates?.USD_to_NGN || liveFxDisplay?.displayUsdNgn || dbRates?.USD_NGN || 1490.00);
-    const usdRateCny = Number(dbRates?.USD_to_CNY || liveFxDisplay?.displayUsdCny || dbRates?.USD_CNY || 7.26);
-    const ngnRateCny = Number(dbRates?.NGN_to_CNY || (1 / (dbRates?.naira_per_rmb || cnyRateNgn)));
-    const ngnRateUsd = Number(dbRates?.NGN_to_USD || (1 / (dbRates?.naira_per_usd || usdRateNgn)));
-    const cnyRateUsd = Number(dbRates?.CNY_to_USD || (1 / usdRateCny));
+    // 1. Fixed Buy Rate (Customer converts RMB back to Naira / CNY ➔ NGN)
+    const fixedBuyRate = Number(
+      dbRates?.input_cny_to_ngn ?? 
+      dbRates?.CNY_to_NGN ?? 
+      liveFxDisplay?.displayNgnRmb ?? 
+      dbRates?.NGN_CNY ?? 
+      215.00
+    );
+
+    // 2. Fixed Sell Rate (Customer converts Naira to RMB / NGN ➔ CNY)
+    const fixedSellRate = Number(
+      dbRates?.input_ngn_to_cny ?? 
+      dbRates?.naira_per_rmb ?? 
+      (dbRates?.NGN_to_CNY ? (1 / Number(dbRates.NGN_to_CNY)) : 220.00)
+    );
+
+    // 3. Wholesale Clearing Benchmark Rate (1 RMB = Naira interbank base)
+    const benchmarkRate = Number(
+      dbRates?.NGN_CNY ?? 
+      dbRates?.CNY_NGN ?? 
+      liveFxDisplay?.displayNgnRmb ?? 
+      217.50
+    );
+
+    const inverseNgnToCny = fixedSellRate > 0 ? (1 / fixedSellRate) : 0.004545;
 
     return [
-      { pair: 'RMB ➔ NGN', from: 'CNY' as Currency, to: 'NGN' as Currency, display: `1 RMB = ₦${cnyRateNgn.toFixed(2)}`, rate: cnyRateNgn, change24h: 0.42, isPositive: true },
-      { pair: 'NGN ➔ RMB', from: 'NGN' as Currency, to: 'CNY' as Currency, display: dbRates?.naira_per_rmb ? `₦${Number(dbRates.naira_per_rmb).toFixed(2)}/RMB` : `1 NGN = ¥${ngnRateCny.toFixed(4)}`, rate: ngnRateCny, change24h: -0.35, isPositive: false }
+      {
+        pair: '🇨🇳 RMB ➔ 🇳🇬 NGN',
+        from: 'CNY' as Currency,
+        to: 'NGN' as Currency,
+        display: `1 RMB = ₦${fixedBuyRate.toFixed(2)}`,
+        tag: 'Fixed Buy',
+        rate: fixedBuyRate,
+        change24h: 0.42,
+        isPositive: true
+      },
+      {
+        pair: '🇳🇬 NGN ➔ 🇨🇳 RMB',
+        from: 'NGN' as Currency,
+        to: 'CNY' as Currency,
+        display: `₦${fixedSellRate.toFixed(2)}/RMB (1 NGN = ¥${inverseNgnToCny.toFixed(4)})`,
+        tag: 'Fixed Sell',
+        rate: fixedSellRate,
+        change24h: -0.35,
+        isPositive: false
+      },
+      {
+        pair: '🇨🇳 CNY ⇄ 🇳🇬 NGN',
+        from: 'CNY' as Currency,
+        to: 'NGN' as Currency,
+        display: `₦${benchmarkRate.toFixed(2)} Wholesale Benchmark`,
+        tag: 'Zero Slippage',
+        rate: benchmarkRate,
+        change24h: 0.00,
+        isPositive: true
+      }
     ];
   }, [dbRates, liveFxDisplay]);
+
+  // Seamless, symmetrical ticker track helper (prevents text clipping & jumping)
+  const renderTickerTrack = (trackId: string) => (
+    <div key={trackId} className="flex items-center shrink-0">
+      {liveFxDisplay?.announcementText && (
+        <div 
+          onClick={() => openSwapModal()}
+          className="inline-flex items-center gap-1.5 mx-3 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold cursor-pointer hover:bg-emerald-500/20 transition-all shrink-0 shadow-sm"
+        >
+          <span>{liveFxDisplay.announcementText}</span>
+        </div>
+      )}
+
+      {liveRatesList.map((rate, i) => (
+        <div 
+          key={`${trackId}-${rate.pair}-${i}`} 
+          onClick={() => {
+            const from = rate.from;
+            const to = rate.to;
+            openSwapModal(from, to);
+          }}
+          className="inline-flex items-center gap-2 mx-3.5 cursor-pointer hover:opacity-80 transition-opacity shrink-0"
+        >
+          <span className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+            {rate.pair}
+          </span>
+          <span className="text-xs font-extrabold text-white font-mono num-tabular">
+            {rate.display}
+          </span>
+          <span className={`text-[10px] font-bold flex items-center px-1.5 py-0.5 rounded-full ${
+            rate.isPositive 
+              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+              : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+          }`}>
+            {rate.isPositive ? <TrendingUp className="w-2.5 h-2.5 mr-0.5" /> : <TrendingDown className="w-2.5 h-2.5 mr-0.5" />}
+            {rate.tag || (rate.isPositive ? `+${rate.change24h}%` : `${rate.change24h}%`)}
+          </span>
+        </div>
+      ))}
+
+      {/* Corridor pill */}
+      <div 
+        onClick={() => openSwapModal()}
+        className="inline-flex items-center gap-1.5 mx-3 px-2 py-0.5 rounded-md bg-slate-800/80 border border-slate-700/60 text-slate-300 text-[11px] font-medium cursor-pointer hover:text-white shrink-0"
+      >
+        <span>🇳🇬 Nigeria ⇄ 🇨🇳 China Direct Settlement</span>
+      </div>
+
+      <span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-700 mx-3 shrink-0" />
+    </div>
+  );
 
   const defaultWallet: WalletBalance = {
     currency: 'NGN',
@@ -127,49 +219,33 @@ export const HomeScreen: React.FC = () => {
       <Header />
 
       {/* Sticky Live FX Ticker Marquee directly below top header */}
-      <div className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md border-b border-slate-800/80 py-1.5 overflow-hidden flex items-center relative">
-        {/* Clean Financial Live FX Badge */}
+      <div 
+        data-testid="mobile-livefx-ticker-bar"
+        className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md border-b border-slate-800/80 h-11 flex items-center relative overflow-hidden select-none"
+      >
+        {/* Clean Financial Live FX Badge (Fixed Left Anchor) */}
         <div 
           onClick={() => openSwapModal()}
-          className="px-3 py-1 text-xs uppercase font-medium text-emerald-400 bg-slate-900/95 z-10 flex items-center gap-2 border-r border-slate-800 shrink-0 cursor-pointer hover:bg-slate-800/80 transition-all"
+          className="h-full px-3 text-xs uppercase font-medium text-emerald-400 bg-slate-900 z-20 flex items-center gap-2 border-r border-slate-800 shrink-0 cursor-pointer hover:bg-slate-800/80 transition-all shadow-md"
           title="Open FX Swap"
         >
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-          <div className="flex flex-col text-left">
-            <span className="font-semibold text-xs text-white tracking-wider">LIVE FX</span>
-            <span className="text-xs font-mono text-emerald-400 font-medium">WHOLESALE</span>
+          <div className="flex flex-col text-left justify-center">
+            <span className="font-semibold text-[11px] text-white tracking-wider leading-none">LIVE FX</span>
+            <span className="text-[10px] font-mono text-emerald-400 font-medium leading-none mt-1">WHOLESALE</span>
           </div>
         </div>
-        
-        <div className="flex overflow-x-auto no-scrollbar py-0.5 whitespace-nowrap animate-marquee items-center">
-          {liveFxDisplay?.announcementText && (
-            <div 
-              onClick={() => openSwapModal()}
-              className="inline-flex items-center gap-1.5 mx-3 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-bold cursor-pointer hover:bg-emerald-500/20 transition-all shrink-0"
-            >
-              <span>{liveFxDisplay.announcementText}</span>
-            </div>
-          )}
-          {liveRatesList.concat(liveRatesList).map((rate, i) => (
-            <div 
-              key={`${rate.pair}-${i}`} 
-              onClick={() => {
-                const from = rate.from;
-                const to = rate.to;
-                openSwapModal(from, to);
-              }}
-              className="inline-flex items-center gap-2 mx-4 cursor-pointer hover:opacity-80 transition-opacity"
-            >
-              <span className="text-xs font-semibold text-slate-300">{rate.pair}</span>
-              <span className="text-xs font-extrabold text-white num-tabular">
-                {rate.display}
-              </span>
-              <span className={`text-[10px] font-bold flex items-center ${rate.isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {rate.isPositive ? <TrendingUp className="w-2.5 h-2.5 mr-0.5" /> : <TrendingDown className="w-2.5 h-2.5 mr-0.5" />}
-                {rate.isPositive ? '+' : ''}{rate.change24h}%
-              </span>
-            </div>
-          ))}
+
+        {/* Subtle Edge Gradients for Smooth In/Out Flow */}
+        <div className="pointer-events-none absolute left-[105px] top-0 bottom-0 w-4 bg-gradient-to-r from-slate-900 to-transparent z-10" />
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-slate-900 to-transparent z-10" />
+
+        {/* Scrolling Ticker Track Container */}
+        <div className="flex-1 min-w-0 h-full overflow-hidden flex items-center relative">
+          <div className="animate-marquee flex items-center whitespace-nowrap will-change-transform">
+            {renderTickerTrack('track-a')}
+            {renderTickerTrack('track-b')}
+          </div>
         </div>
       </div>
 
