@@ -132,7 +132,7 @@ export const HomeScreen: React.FC = () => {
         pair: '🇨🇳 CNY ⇄ 🇳🇬 NGN',
         from: 'CNY' as Currency,
         to: 'NGN' as Currency,
-        display: `₦${benchmarkRate.toFixed(2)} Wholesale Benchmark`,
+        display: `₦${benchmarkRate.toFixed(2)} Benchmark`,
         tag: 'Zero Slippage',
         rate: benchmarkRate,
         change24h: 0.00,
@@ -226,22 +226,24 @@ export const HomeScreen: React.FC = () => {
         {/* Clean Financial Live FX Badge (Fixed Left Anchor) */}
         <div 
           onClick={() => openSwapModal()}
-          className="h-full px-3 text-xs uppercase font-medium text-emerald-400 bg-slate-900 z-20 flex items-center gap-2 border-r border-slate-800 shrink-0 cursor-pointer hover:bg-slate-800/80 transition-all shadow-md"
+          className="h-full px-3 text-xs uppercase font-medium text-emerald-400 bg-slate-900 z-20 flex items-center gap-2 border-r border-slate-800 shrink-0 cursor-pointer hover:bg-slate-800/80 transition-all shadow-md select-none"
           title="Open FX Swap"
+          aria-label="LIVE FX WHOLESALE"
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-          <div className="flex flex-col text-left justify-center">
-            <span className="font-semibold text-[11px] text-white tracking-wider leading-none">LIVE FX</span>
-            <span className="text-[10px] font-mono text-emerald-400 font-medium leading-none mt-1">WHOLESALE</span>
-          </div>
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span className="font-bold text-xs text-white tracking-wider leading-none">LIVE FX</span>
+          <span className="sr-only">WHOLESALE</span>
         </div>
-
-        {/* Subtle Edge Gradients for Smooth In/Out Flow */}
-        <div className="pointer-events-none absolute left-[105px] top-0 bottom-0 w-4 bg-gradient-to-r from-slate-900 to-transparent z-10" />
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-slate-900 to-transparent z-10" />
 
         {/* Scrolling Ticker Track Container */}
         <div className="flex-1 min-w-0 h-full overflow-hidden flex items-center relative">
+          {/* Subtle Edge Gradients for Smooth In/Out Flow */}
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-slate-900 to-transparent z-10" />
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-slate-900 to-transparent z-10" />
+
           <div className="animate-marquee flex items-center whitespace-nowrap will-change-transform">
             {renderTickerTrack('track-a')}
             {renderTickerTrack('track-b')}
