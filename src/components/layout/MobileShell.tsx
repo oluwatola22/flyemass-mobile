@@ -19,7 +19,8 @@ import {
   RotateCcw,
   Compass,
   Globe,
-  Layers
+  Layers,
+  Building
 } from 'lucide-react';
 import { ScreenRoute } from '../../types';
 
@@ -79,6 +80,32 @@ import { SupportScreen } from '../../screens/profile/SupportScreen';
 import { SupportChatScreen } from '../../screens/profile/SupportChatScreen';
 import { SupportTicketsScreen } from '../../screens/profile/SupportTicketsScreen';
 import { TermsScreen, PrivacyScreen, DeleteAccountScreen } from '../../screens/profile/LegalScreens';
+
+const MobileSuppliersFallback: React.FC = () => {
+  const { navigate, showToast } = useApp();
+  useEffect(() => {
+    showToast('Verified Suppliers directory is currently managed via Enterprise Admin console', 'info');
+    navigate('home');
+  }, [navigate, showToast]);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center space-y-4">
+      <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+        <Building className="w-8 h-8" />
+      </div>
+      <h3 className="text-lg font-bold text-white">Exclusive Admin Feature</h3>
+      <p className="text-sm text-slate-400 max-w-xs">
+        The Verified Suppliers directory is currently managed exclusively via the Enterprise Admin console.
+      </p>
+      <button
+        onClick={() => navigate('home')}
+        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
+      >
+        Back to Trade Hub
+      </button>
+    </div>
+  );
+};
 
 const PRIMARY_TABS: ScreenRoute[] = ['home', 'wallets', 'logistics', 'shop', 'profile'];
 const PREWARMED_ROUTES: ScreenRoute[] = [
@@ -300,7 +327,7 @@ export const MobileShell: React.FC = () => {
       case 'shop-order-detail': return <ShopOrderDetailScreen />;
 
       // 6. Trade Sourcing & Agent Services
-      case 'suppliers': return <SuppliersScreen />;
+      case 'suppliers': return <MobileSuppliersFallback />;
       case 'agent': return <AgentServiceScreen />;
       case 'procure': return <ProcureScreen />;
       case 'cac-registration': return <CacRegistrationScreen />;
@@ -365,7 +392,6 @@ export const MobileShell: React.FC = () => {
     { label: '/shop/orders/$id (Consignment Tracker)', route: 'shop-order-detail', group: '5. Apple & Tech Shop' },
 
     // 6. Trade Sourcing & Agent Services
-    { label: '/suppliers (Vetted China Directory)', route: 'suppliers', group: '6. Trade Sourcing' },
     { label: '/agent (Ground Inspection & Canton)', route: 'agent', group: '6. Trade Sourcing' },
     { label: '/procure (Direct Quotation RFQ)', route: 'procure', group: '6. Trade Sourcing' },
 

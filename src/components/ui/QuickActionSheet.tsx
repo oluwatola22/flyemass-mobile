@@ -92,14 +92,6 @@ export const QuickActionSheet: React.FC = () => {
       cat: 'sourcing'
     },
     {
-      title: 'Verified Suppliers',
-      subtitle: 'Guangdong & Yiwu factories',
-      icon: Building,
-      color: 'text-amber-300 bg-amber-500/10 border-amber-500/20',
-      route: 'suppliers' as ScreenRoute,
-      cat: 'sourcing'
-    },
-    {
       title: 'CAC Business Registration',
       subtitle: 'Official BN & RC corporate portal',
       icon: ShieldCheck,
