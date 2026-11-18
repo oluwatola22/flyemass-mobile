@@ -3287,8 +3287,22 @@ class DatabaseService {
     return this.state.chat_messages || [];
   }
 
-  public getBanners(): BannerDocument[] {
-    return (this.state.banners || []).filter(b => b.isActive).sort((a, b) => a.displayOrder - b.displayOrder);
+  public getBanners(placement?: 'home' | 'shop' | 'all'): BannerDocument[] {
+    const list = (this.state.banners || []).filter(b => b.isActive);
+    if (placement === 'all') {
+      return list.sort((a, b) => a.displayOrder - b.displayOrder);
+    }
+    if (placement === 'shop') {
+      return list.filter(b => b.placement === 'shop' || b.destinationRoute === 'shop').sort((a, b) => a.displayOrder - b.displayOrder);
+    }
+    // Default / home: strictly exclude shop banners so Apple & Tech Store banners never show on the homepage
+    return list.filter(b => b.placement !== 'shop' && b.destinationRoute !== 'shop').sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  public getHomeBanners(): BannerDocument[] {
+    return (this.state.banners || [])
+      .filter(b => b.isActive && b.placement !== 'shop' && b.destinationRoute !== 'shop')
+      .sort((a, b) => a.displayOrder - b.displayOrder);
   }
 
   public getAllBanners(): BannerDocument[] {

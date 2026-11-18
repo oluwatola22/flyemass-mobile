@@ -11360,10 +11360,17 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
     // -------------------------------------------------------------
     if ((pathname === '/api/admin/banners' || pathname === '/api/shop/banners' || pathname === '/api/banners') && req.method === 'GET') {
       const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-      const placementFilter = url.searchParams.get('placement');
+      let placementFilter = url.searchParams.get('placement');
+      if (!placementFilter && pathname === '/api/shop/banners') {
+        placementFilter = 'shop';
+      }
       let list = dbState.banners || [];
-      if (placementFilter) {
-        list = list.filter(b => b.placement === placementFilter || (placementFilter === 'shop' && b.destinationRoute === 'shop'));
+      if (placementFilter === 'shop') {
+        list = list.filter(b => b.placement === 'shop' || b.destinationRoute === 'shop');
+      } else if (placementFilter === 'home') {
+        list = list.filter(b => (b.placement === 'home' || !b.placement) && b.placement !== 'shop' && b.destinationRoute !== 'shop');
+      } else if (placementFilter && placementFilter !== 'all') {
+        list = list.filter(b => b.placement === placementFilter);
       }
       return sendJson(res, 200, { success: true, banners: list });
     }

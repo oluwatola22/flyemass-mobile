@@ -46,13 +46,15 @@ export const HomeScreen: React.FC = () => {
 
   const [activeCardIndex, setActiveCardIndex] = useState<number>(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [banners, setBanners] = useState<BannerDocument[]>(() => db.getBanners());
+  const [banners, setBanners] = useState<BannerDocument[]>(() => 
+    db.getBanners().filter(b => b.placement !== 'shop' && b.destinationRoute !== 'shop')
+  );
   const [dbRates, setDbRates] = useState(() => db.getState().system_settings?.rates);
   const [liveFxDisplay, setLiveFxDisplay] = useState(() => db.getState().system_settings?.live_fx_display);
 
   useEffect(() => {
     return db.subscribe(() => {
-      const nextBanners = db.getBanners();
+      const nextBanners = db.getBanners().filter(b => b.placement !== 'shop' && b.destinationRoute !== 'shop');
       setBanners((prev) => {
         if (
           prev.length === nextBanners.length &&
