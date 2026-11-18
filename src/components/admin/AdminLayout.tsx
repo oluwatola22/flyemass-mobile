@@ -38,7 +38,8 @@ import {
   Plane,
   ChevronDown,
   Terminal,
-  Clock
+  Clock,
+  FileCheck
 } from 'lucide-react';
 import { ScreenRoute } from '../../types';
 
@@ -121,6 +122,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
 
     const usersCount = Object.keys(s.users || {}).length;
     const shopOrdersCount = Object.keys(s.shop_orders || {}).length;
+    const cacApplicationsCount = Object.values(s.cac_registrations || {}).filter(
+      (a: any) => a.status === 'pending' || a.status === 'action_required' || a.status === 'in_review'
+    ).length;
     const airRates = db.getAirShippingRates();
     const fxRates = db.getLogisticsFxRates();
 
@@ -132,6 +136,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
       agentRequestsCount,
       usersCount,
       shopOrdersCount,
+      cacApplicationsCount,
       expressAirRate: airRates.expressRatePerKgUSD ?? 13.0,
       normalAirRate: airRates.normalRatePerKgUSD ?? 9.6,
       usdToNgn: fxRates.usdToNgn ?? 1400.0,
@@ -153,6 +158,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
           prev.agentRequestsCount === next.agentRequestsCount &&
           prev.usersCount === next.usersCount &&
           prev.shopOrdersCount === next.shopOrdersCount &&
+          prev.cacApplicationsCount === next.cacApplicationsCount &&
           prev.expressAirRate === next.expressAirRate &&
           prev.normalAirRate === next.normalAirRate &&
           prev.usdToNgn === next.usdToNgn &&
@@ -368,6 +374,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
       route: 'admin-rentals-offices' as ScreenRoute,
       icon: Briefcase
     },
+    {
+      id: 'services-cac',
+      label: 'CAC Business Registration',
+      shortLabel: 'CAC Registrations',
+      path: '/admin/services/cac',
+      section: 'commerce',
+      route: 'admin-services-cac' as ScreenRoute,
+      icon: FileCheck,
+      badge: badges.cacApplicationsCount,
+      badgeColor: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+    },
 
     // 4. SYSTEM & GOVERNANCE
     {
@@ -403,18 +420,18 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
       'dashboard', 'logistics', 'agents', 'support', 'lagos-hubs', 'shipping-rates',
       'users', 'warehouses', 'rmb-transfers', 'naira-payouts', 
       'fx-management', 'fx-rates', 'funding', 'payments', 'shop', 'hotels', 
-      'rentals-apartments', 'rentals-offices', 'suppliers', 
+      'rentals-apartments', 'rentals-offices', 'suppliers', 'services-cac',
       'communications', 'team', 'db'
     ],
     finance_officer: [
       'dashboard', 'shipping-rates', 'users', 'warehouses', 'lagos-hubs', 'rmb-transfers', 'naira-payouts', 
-      'fx-management', 'fx-rates', 'funding', 'payments'
+      'fx-management', 'fx-rates', 'funding', 'payments', 'services-cac'
     ],
     logistics_manager: [
       'dashboard', 'logistics', 'shipping-rates', 'warehouses', 'lagos-hubs', 'shop', 'suppliers', 'agents', 'communications'
     ],
     support_agent: [
-      'dashboard', 'logistics', 'support', 'agents', 'users', 'warehouses', 'lagos-hubs', 'hotels', 'rentals-apartments', 'rentals-offices', 'communications'
+      'dashboard', 'logistics', 'support', 'agents', 'users', 'warehouses', 'lagos-hubs', 'hotels', 'rentals-apartments', 'rentals-offices', 'communications', 'services-cac'
     ],
     warehouse_officer: [
       'dashboard', 'logistics', 'warehouses', 'lagos-hubs', 'shop', 'suppliers'

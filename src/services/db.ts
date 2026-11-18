@@ -18,7 +18,13 @@ import {
   LagosHub,
   ShippingCorridor,
   FreightCalculationResult,
-  DestinationHubSurcharge
+  DestinationHubSurcharge,
+  CacRegistrationDocument,
+  CacPricingConfig,
+  CacServiceType,
+  CacPartnerDirector,
+  CacThreadMessage,
+  CacApplicationStatus
 } from '../types';
 import { TECH_PRODUCTS } from '../data/mockData';
 import {
@@ -68,6 +74,7 @@ export interface DatabaseState {
   private_supplier_contacts?: Record<string, any>;
   admin_staff?: Record<string, AdminUser>;
   fx_rates?: Record<string, any>;
+  cac_registrations?: Record<string, CacRegistrationDocument>;
 }
 
 import { getBackendBaseUrl } from '../utils/environment';
@@ -1397,6 +1404,60 @@ export const INITIAL_DATABASE: DatabaseState = {
       usdToCny: 7.25,
       updatedAt: Date.now(),
       updatedBy: 'Admin'
+    },
+    cac_pricing: {
+      business_name_ngn: 35000,
+      company_registration_ngn: 75000,
+      lastUpdated: Date.now()
+    }
+  },
+
+  cac_registrations: {
+    'cac_sample_01': {
+      id: 'cac_sample_01',
+      reference: 'CAC-2026-892401',
+      userId: 'usr_alade_01',
+      userEmail: 'babatunde.alade@flyemass.com',
+      userName: 'Chief Babatunde Alade',
+      userPhone: '+234 803 123 4567',
+      serviceType: 'business_name',
+      primaryName: 'Alade Global Freight & Logistics',
+      alternativeName: 'Alade Express Courier Services',
+      category: 'Transportation and Logistics',
+      commencementDate: '2026-01-15',
+      businessAddress: '14 Warehouse Road, Apapa Port Commercial Corridor, Lagos, Nigeria',
+      businessDescription: 'International freight forwarding, multi-modal container haulage, customs clearing, and cargo warehousing solutions across Nigeria and West Africa.',
+      partners: [
+        {
+          id: 'p_1',
+          fullName: 'Chief Babatunde Alade',
+          email: 'babatunde.alade@flyemass.com',
+          phone: '+234 803 123 4567',
+          role: 'Proprietor',
+          sharesPercent: 100
+        }
+      ],
+      passportPhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+      idCardUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80',
+      idCardType: 'NIN',
+      signatureUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80',
+      referenceSignatureUrl: '',
+      additionalDocuments: [],
+      serviceFeeNGN: 35000,
+      paymentStatus: 'paid',
+      paymentReference: 'CAC-PAY-892401',
+      status: 'pending',
+      thread: [
+        {
+          id: 'msg_01',
+          sender: 'user',
+          senderName: 'Chief Babatunde Alade',
+          message: 'Initial application submitted with NIN and applicant signature for Business Name registration.',
+          timestamp: Date.now() - 86400000
+        }
+      ],
+      createdAt: Date.now() - 86400000,
+      updatedAt: Date.now() - 86400000
     }
   },
 
@@ -1564,7 +1625,15 @@ class DatabaseService {
           support_tickets: { ...INITIAL_DATABASE.support_tickets, ...(parsed.support_tickets || {}) },
           lagos_hubs: { ...DEFAULT_LAGOS_HUBS, ...(parsed.lagos_hubs || {}) },
           banners: parsed.banners || INITIAL_DATABASE.banners,
-          system_settings: parsed.system_settings || INITIAL_DATABASE.system_settings
+          cac_registrations: { ...(INITIAL_DATABASE.cac_registrations || {}), ...(parsed.cac_registrations || {}) },
+          system_settings: {
+            ...INITIAL_DATABASE.system_settings,
+            ...(parsed.system_settings || {}),
+            cac_pricing: {
+              ...(INITIAL_DATABASE.system_settings.cac_pricing || { business_name_ngn: 35000, company_registration_ngn: 75000, lastUpdated: Date.now() }),
+              ...(parsed.system_settings?.cac_pricing || {})
+            }
+          }
         };
       }
     } catch (e) {
@@ -6355,6 +6424,249 @@ class DatabaseService {
       });
     } catch {
       // ignore
+    }
+  }
+
+  // =========================================================================
+  // CAC REGISTRATION ENTERPRISE CLIENT METHODS
+  // =========================================================================
+
+  public getCacPricing(): CacPricingConfig {
+    return this.state.system_settings?.cac_pricing || {
+      business_name_ngn: 35000,
+      company_registration_ngn: 75000,
+      lastUpdated: Date.now()
+    };
+  }
+
+  public async fetchCacPricing(): Promise<CacPricingConfig> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/cac/pricing`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.pricing) {
+          if (!this.state.system_settings) {
+            this.state.system_settings = { ...INITIAL_DATABASE.system_settings };
+          }
+          this.state.system_settings.cac_pricing = data.pricing;
+          this.persist();
+          this.notifyListeners();
+          return data.pricing;
+        }
+      }
+    } catch {
+      // fallback
+    }
+    return this.getCacPricing();
+  }
+
+  public async updateCacPricing(pricing: { business_name_ngn: number; company_registration_ngn: number }, adminId?: string): Promise<{ success: boolean; pricing?: CacPricingConfig; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/cac/pricing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...pricing, adminId })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (!this.state.system_settings) {
+          this.state.system_settings = { ...INITIAL_DATABASE.system_settings };
+        }
+        this.state.system_settings.cac_pricing = data.pricing;
+        this.persist();
+        this.notifyListeners();
+        return data;
+      }
+      return { success: false, error: data.error || 'Failed to update CAC pricing' };
+    } catch (err: any) {
+      // local fallback
+      if (!this.state.system_settings) {
+        this.state.system_settings = { ...INITIAL_DATABASE.system_settings };
+      }
+      const updated: CacPricingConfig = {
+        business_name_ngn: Number(pricing.business_name_ngn || 35000),
+        company_registration_ngn: Number(pricing.company_registration_ngn || 75000),
+        lastUpdated: Date.now()
+      };
+      this.state.system_settings.cac_pricing = updated;
+      this.persist();
+      this.notifyListeners();
+      return { success: true, pricing: updated };
+    }
+  }
+
+  public getCacApplications(userId?: string): CacRegistrationDocument[] {
+    const list = Object.values(this.state.cac_registrations || {});
+    const filtered = userId ? list.filter(a => a.userId === userId) : list;
+    return filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  }
+
+  public getCacApplicationById(id: string): CacRegistrationDocument | undefined {
+    return this.state.cac_registrations?.[id];
+  }
+
+  public async fetchCacApplications(userId?: string): Promise<CacRegistrationDocument[]> {
+    try {
+      const url = userId ? `${BACKEND_BASE}/api/cac/applications?userId=${encodeURIComponent(userId)}` : `${BACKEND_BASE}/api/cac/applications`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.applications)) {
+          if (!this.state.cac_registrations) this.state.cac_registrations = {};
+          for (const app of data.applications) {
+            this.state.cac_registrations[app.id] = app;
+          }
+          this.persist();
+          this.notifyListeners();
+          return this.getCacApplications(userId);
+        }
+      }
+    } catch {
+      // fallback
+    }
+    return this.getCacApplications(userId);
+  }
+
+  public async submitCacRegistration(params: {
+    userId: string;
+    serviceType: CacServiceType;
+    primaryName: string;
+    alternativeName?: string;
+    category: string;
+    commencementDate?: string;
+    businessAddress: string;
+    businessDescription?: string;
+    partners?: CacPartnerDirector[];
+    passportPhotoUrl: string;
+    idCardUrl: string;
+    idCardType?: 'NIN' | 'Driver License' | 'International Passport' | 'Voter Card';
+    signatureUrl: string;
+    referenceSignatureUrl?: string;
+    pin: string;
+  }): Promise<{ success: boolean; application?: CacRegistrationDocument; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/cac/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (!this.state.cac_registrations) this.state.cac_registrations = {};
+        this.state.cac_registrations[data.application.id] = data.application;
+        // Also deduct balance locally if user exists
+        const user = this.state.users[params.userId];
+        if (user && user.balances) {
+          user.balances.NGN = Math.max(0, (user.balances.NGN || 0) - (data.application.serviceFeeNGN || 0));
+        }
+        this.persist();
+        this.notifyListeners();
+        return data;
+      }
+      return { success: false, error: data.error || 'Failed to submit registration' };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error submitting CAC registration' };
+    }
+  }
+
+  public async sendCacThreadMessage(params: {
+    applicationId: string;
+    sender: 'admin' | 'user';
+    senderName: string;
+    message: string;
+    attachments?: string[];
+  }): Promise<{ success: boolean; application?: CacRegistrationDocument; message?: CacThreadMessage; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/cac/thread/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (!this.state.cac_registrations) this.state.cac_registrations = {};
+        this.state.cac_registrations[params.applicationId] = data.application;
+        this.persist();
+        this.notifyListeners();
+        return data;
+      }
+      return { success: false, error: data.error || 'Failed to post message' };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error sending thread message' };
+    }
+  }
+
+  public async completeCacRegistration(params: {
+    applicationId: string;
+    rcNumber: string;
+    certificatePdfUrl: string;
+    adminId?: string;
+    adminNotes?: string;
+  }): Promise<{ success: boolean; application?: CacRegistrationDocument; user?: any; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/cac/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (!this.state.cac_registrations) this.state.cac_registrations = {};
+        this.state.cac_registrations[params.applicationId] = data.application;
+        if (data.user && this.state.users[data.user.uid]) {
+          this.state.users[data.user.uid] = { ...this.state.users[data.user.uid], ...data.user };
+        }
+        this.persist();
+        this.notifyListeners();
+        return data;
+      }
+      return { success: false, error: data.error || 'Failed to complete registration' };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error completing CAC registration' };
+    }
+  }
+
+  public async updateCacStatus(params: {
+    applicationId: string;
+    status: CacApplicationStatus;
+    adminId?: string;
+    notes?: string;
+  }): Promise<{ success: boolean; application?: CacRegistrationDocument; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/cac/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (!this.state.cac_registrations) this.state.cac_registrations = {};
+        this.state.cac_registrations[params.applicationId] = data.application;
+        this.persist();
+        this.notifyListeners();
+        return data;
+      }
+      return { success: false, error: data.error || 'Failed to update status' };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error updating CAC status' };
+    }
+  }
+
+  public async uploadCacDocument(fileName: string, fileData: string, mimeType?: string): Promise<{ success: boolean; url: string; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/cac/upload-document`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName, fileData, mimeType })
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.url) {
+        return { success: true, url: data.url };
+      }
+      return { success: false, url: '', error: data.error || 'Failed to upload document' };
+    } catch (err: any) {
+      // Local fallback
+      return { success: true, url: fileData.startsWith('data:') ? fileData : `https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80` };
     }
   }
 }

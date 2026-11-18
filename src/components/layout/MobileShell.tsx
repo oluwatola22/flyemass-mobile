@@ -62,6 +62,7 @@ import { ShopOrderDetailScreen } from '../../screens/shop/ShopOrderDetailScreen'
 import { SuppliersScreen } from '../../screens/suppliers/SuppliersScreen';
 import { AgentServiceScreen } from '../../screens/suppliers/AgentServiceScreen';
 import { ProcureScreen } from '../../screens/suppliers/ProcureScreen';
+import { CacRegistrationScreen } from '../../screens/services/CacRegistrationScreen';
 
 // Section 7: China Business Hotels & Realty
 import { HotelsScreen } from '../../screens/hotels/HotelsScreen';
@@ -301,6 +302,7 @@ export const MobileShell: React.FC = () => {
       case 'suppliers': return <SuppliersScreen />;
       case 'agent': return <AgentServiceScreen />;
       case 'procure': return <ProcureScreen />;
+      case 'cac-registration': return <CacRegistrationScreen />;
 
       // 7. China Business Hotels & Realty
       case 'hotels': return <HotelsScreen />;

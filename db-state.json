@@ -89,16 +89,16 @@
       "role": "client",
       "createdAt": 1791047745841,
       "balances": {
-        "NGN": 167830575,
+        "NGN": 169624475,
         "CNY": 1570278.0699999998,
         "USD": 18595
       },
-      "pinHash": "5cbd494b41e2facafaf3e4dd50933b2559d33e3a76f41dc7d6253e8fbd7cb229",
-      "pinSalt": "a50897dc0fb93acea760d03b5ead2237",
+      "pinHash": "2be703d3cc374d1c823eefe8967f0b3228afcc99e31220f22b99595aaa1af681",
+      "pinSalt": "8d21beaf08725b316668fe7fedb117eb",
       "pinFailedAttempts": 0,
       "pinLockedUntil": 0,
       "kycLevel": "Tier 3 (BVN & CAC Verified)",
-      "updatedAt": 1793737543667,
+      "updatedAt": 1794983269886,
       "adminNotes": "Due diligence complete: Form CAC 1.1 inspected, Nigerian NUBAN BVN match verified, China SAFE corporate quota approved.",
       "hardwareSession": {
         "sessionId": "term_sess_1794253147617",
@@ -112,7 +112,12 @@
         "ipAddress": "119.147.22.8 (Guangzhou Direct Handshake)"
       },
       "primaryTerminal": "iPhone 16 Pro (Mobile Enclave)",
-      "primaryTerminalAuthorizedAt": 1794253147617
+      "primaryTerminalAuthorizedAt": 1794253147617,
+      "company": "Alade Global Haulage & Marine Ltd",
+      "registeredCompanyName": "Alade Global Haulage & Marine Ltd",
+      "rcNumber": "RC-1928401",
+      "cacRcNumber": "RC-1928401",
+      "cacCertificateUrl": "https://supabase.flyemass.com/storage/v1/object/public/cac_documents/cac-cert-alade-haulage.pdf"
     },
     "usr_chen_agent": {
       "uid": "usr_chen_agent",
@@ -44128,6 +44133,202 @@
         }
       ],
       "metadata": {}
+    },
+    "je_1794983047564_927": {
+      "id": "je_1794983047564_927",
+      "reference": "CAC-1794983047564-8578",
+      "timestamp": 1794983047564,
+      "userId": "usr_alade_01",
+      "transactionType": "CAC_REGISTRATION",
+      "description": "CAC Company Registration: Alade Global Haulage & Marine Ltd",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:NGN",
+          "currency": "NGN",
+          "debit": 78000,
+          "credit": 0
+        },
+        {
+          "account": "revenue:services:cac_registration:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 78000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794983052751_773": {
+      "id": "je_1794983052751_773",
+      "reference": "FLYE-FUND-1794983052749",
+      "timestamp": 1794983052751,
+      "userId": "usr_alade_01",
+      "transactionType": "FUND",
+      "description": "Deposit via Test Funding",
+      "postings": [
+        {
+          "account": "assets:bank:clearing:ngn",
+          "currency": "NGN",
+          "debit": 1000000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 1000000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794983053423_333": {
+      "id": "je_1794983053423_333",
+      "reference": "WD-30825181",
+      "timestamp": 1794983053423,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_RESERVED",
+      "description": "Withdrawal payout to Providus Bank (2089140022)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 25050,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:pending_withdrawals:wth_1794983053423",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 25000
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 50
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794983054314_156": {
+      "id": "je_1794983054314_156",
+      "reference": "NIP-PROV-1794983054308",
+      "timestamp": 1794983054314,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_CLEARED",
+      "description": "NIBSS disbursement completed for 2089140022 via Providus NIP Instant Switch",
+      "postings": [
+        {
+          "account": "liabilities:pending_withdrawals:wth_1794983053423",
+          "currency": "NGN",
+          "debit": 25000,
+          "credit": 0
+        },
+        {
+          "account": "assets:nigeria:nibss_clearing:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 25000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794983269663_257": {
+      "id": "je_1794983269663_257",
+      "reference": "CAC-1794983269663-8855",
+      "timestamp": 1794983269663,
+      "userId": "usr_alade_01",
+      "transactionType": "CAC_REGISTRATION",
+      "description": "CAC Company Registration: Alade Global Haulage & Marine Ltd",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:NGN",
+          "currency": "NGN",
+          "debit": 78000,
+          "credit": 0
+        },
+        {
+          "account": "revenue:services:cac_registration:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 78000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794983278212_596": {
+      "id": "je_1794983278212_596",
+      "reference": "FLYE-FUND-1794983278210",
+      "timestamp": 1794983278212,
+      "userId": "usr_alade_01",
+      "transactionType": "FUND",
+      "description": "Deposit via Test Funding",
+      "postings": [
+        {
+          "account": "assets:bank:clearing:ngn",
+          "currency": "NGN",
+          "debit": 1000000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 1000000
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794983278949_145": {
+      "id": "je_1794983278949_145",
+      "reference": "WD-23102722",
+      "timestamp": 1794983278949,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_RESERVED",
+      "description": "Withdrawal payout to Providus Bank (2089140022)",
+      "postings": [
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 25050,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:pending_withdrawals:wth_1794983278949",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 25000
+        },
+        {
+          "account": "revenue:fees:withdrawal",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 50
+        }
+      ],
+      "metadata": {}
+    },
+    "je_1794983279805_728": {
+      "id": "je_1794983279805_728",
+      "reference": "NIP-PROV-1794983279804",
+      "timestamp": 1794983279805,
+      "userId": "usr_alade_01",
+      "transactionType": "WITHDRAW_CLEARED",
+      "description": "NIBSS disbursement completed for 2089140022 via Providus NIP Instant Switch",
+      "postings": [
+        {
+          "account": "liabilities:pending_withdrawals:wth_1794983278949",
+          "currency": "NGN",
+          "debit": 25000,
+          "credit": 0
+        },
+        {
+          "account": "assets:nigeria:nibss_clearing:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 25000
+        }
+      ],
+      "metadata": {}
     }
   },
   "wallets_ledger": {
@@ -67397,6 +67598,92 @@
       "reference": "SUB-VIP-597879",
       "timestamp": 1794981597879,
       "notes": "30-Day VIP Supplier Directory Pass Renewal (+30d extended to 12/12/2029)"
+    },
+    "CAC-1794983047564-8578": {
+      "id": "CAC-1794983047564-8578",
+      "userId": "usr_alade_01",
+      "type": "CAC_REGISTRATION",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 78000,
+      "fee": 0,
+      "status": "completed",
+      "reference": "CAC-1794983047564-8578",
+      "timestamp": 1794983047564,
+      "notes": "CAC Registration: Alade Global Haulage & Marine Ltd (Incorporated Company)"
+    },
+    "ldg_1794983052751_550": {
+      "id": "ldg_1794983052751_550",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 1000000,
+      "fee": 0,
+      "openingBalance": 167752575,
+      "closingBalance": 168752575,
+      "status": "completed",
+      "reference": "FLYE-FUND-1794983052749",
+      "timestamp": 1794983052751,
+      "notes": "Wallet credited with ₦1,000,000 via Test Funding"
+    },
+    "ldg_1794983053423": {
+      "id": "ldg_1794983053423",
+      "userId": "usr_alade_01",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 25000,
+      "fee": 50,
+      "openingBalance": 168752575,
+      "closingBalance": 168727525,
+      "status": "pending",
+      "reference": "WD-30825181",
+      "timestamp": 1794983053423,
+      "notes": "Payout ₦25,000 to Providus Bank (2089140022)"
+    },
+    "CAC-1794983269663-8855": {
+      "id": "CAC-1794983269663-8855",
+      "userId": "usr_alade_01",
+      "type": "CAC_REGISTRATION",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 78000,
+      "fee": 0,
+      "status": "completed",
+      "reference": "CAC-1794983269663-8855",
+      "timestamp": 1794983269663,
+      "notes": "CAC Registration: Alade Global Haulage & Marine Ltd (Incorporated Company)"
+    },
+    "ldg_1794983278212_757": {
+      "id": "ldg_1794983278212_757",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 1000000,
+      "fee": 0,
+      "openingBalance": 168649525,
+      "closingBalance": 169649525,
+      "status": "completed",
+      "reference": "FLYE-FUND-1794983278210",
+      "timestamp": 1794983278212,
+      "notes": "Wallet credited with ₦1,000,000 via Test Funding"
+    },
+    "ldg_1794983278950": {
+      "id": "ldg_1794983278950",
+      "userId": "usr_alade_01",
+      "type": "WITHDRAW",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 25000,
+      "fee": 50,
+      "openingBalance": 169649525,
+      "closingBalance": 169624475,
+      "status": "pending",
+      "reference": "WD-23102722",
+      "timestamp": 1794983278950,
+      "notes": "Payout ₦25,000 to Providus Bank (2089140022)"
     }
   },
   "shipments": {
@@ -86038,6 +86325,68 @@
       "receiptUrl": "https://storage.flyemass.com/receipts/prov_transfer_slip.png",
       "adminNotes": "Settled via Providus Bank NIP switch",
       "completedAt": 1794981594834
+    },
+    "wth_1794983053423": {
+      "id": "wth_1794983053423",
+      "userId": "usr_alade_01",
+      "customerName": "Chief Babatunde Alade",
+      "customerEmail": "babatunde@aladeholding.ng",
+      "customerPhone": "+234 803 555 9201",
+      "channel": "naira_bank",
+      "currency": "NGN",
+      "bankName": "Providus Bank",
+      "bankCode": "101",
+      "accountNumber": "2089140022",
+      "accountName": "CHIEF BABATUNDE ALADE",
+      "amountNGN": 25000,
+      "feeNGN": 50,
+      "totalDebit": 25050,
+      "note": "Naira test withdrawal",
+      "status": "successful",
+      "reference": "WD-30825181",
+      "transferReference": "NIP-PROV-1794983054308",
+      "createdAt": 1794983053423,
+      "processingStartedAt": 1794983054118,
+      "reviewer": "adm-001",
+      "completed": true,
+      "payoutMode": "gateway",
+      "gatewayProvider": "Providus NIP Instant Switch",
+      "gatewaySessionId": "NIP-PROV-1794983054308",
+      "paymentProofUrl": "https://storage.flyemass.com/receipts/prov_transfer_slip.png",
+      "receiptUrl": "https://storage.flyemass.com/receipts/prov_transfer_slip.png",
+      "adminNotes": "Settled via Providus Bank NIP switch",
+      "completedAt": 1794983054315
+    },
+    "wth_1794983278949": {
+      "id": "wth_1794983278949",
+      "userId": "usr_alade_01",
+      "customerName": "Chief Babatunde Alade",
+      "customerEmail": "babatunde@aladeholding.ng",
+      "customerPhone": "+234 803 555 9201",
+      "channel": "naira_bank",
+      "currency": "NGN",
+      "bankName": "Providus Bank",
+      "bankCode": "101",
+      "accountNumber": "2089140022",
+      "accountName": "CHIEF BABATUNDE ALADE",
+      "amountNGN": 25000,
+      "feeNGN": 50,
+      "totalDebit": 25050,
+      "note": "Naira test withdrawal",
+      "status": "successful",
+      "reference": "WD-23102722",
+      "transferReference": "NIP-PROV-1794983279804",
+      "createdAt": 1794983278950,
+      "processingStartedAt": 1794983279661,
+      "reviewer": "adm-001",
+      "completed": true,
+      "payoutMode": "gateway",
+      "gatewayProvider": "Providus NIP Instant Switch",
+      "gatewaySessionId": "NIP-PROV-1794983279804",
+      "paymentProofUrl": "https://storage.flyemass.com/receipts/prov_transfer_slip.png",
+      "receiptUrl": "https://storage.flyemass.com/receipts/prov_transfer_slip.png",
+      "adminNotes": "Settled via Providus Bank NIP switch",
+      "completedAt": 1794983279805
     }
   },
   "agent_requests": {
@@ -118187,6 +118536,11 @@
       "updatedAt": 1794981597257,
       "updatedBy": "Chief Babatunde Alade (Super Admin)"
     },
+    "cac_pricing": {
+      "business_name_ngn": 36000,
+      "company_registration_ngn": 78000,
+      "lastUpdated": 1794983269502
+    },
     "shipping_corridors": [
       {
         "id": "cn_los",
@@ -118350,6 +118704,216 @@
       "displayUsdNgn": 1478.83,
       "displayUsdCny": 7.2056,
       "lastUpdated": 1794551373129
+    }
+  },
+  "cac_registrations": {
+    "cac_sample_01": {
+      "id": "cac_sample_01",
+      "reference": "CAC-2026-892401",
+      "userId": "usr_alade_01",
+      "userEmail": "babatunde.alade@flyemass.com",
+      "userName": "Chief Babatunde Alade",
+      "userPhone": "+234 803 123 4567",
+      "serviceType": "business_name",
+      "primaryName": "Alade Global Freight & Logistics",
+      "alternativeName": "Alade Express Courier Services",
+      "category": "Transportation and Logistics",
+      "commencementDate": "2026-01-15",
+      "businessAddress": "14 Warehouse Road, Apapa Port Commercial Corridor, Lagos, Nigeria",
+      "businessDescription": "International freight forwarding, multi-modal container haulage, customs clearing, and cargo warehousing solutions across Nigeria and West Africa.",
+      "partners": [
+        {
+          "id": "p_1",
+          "fullName": "Chief Babatunde Alade",
+          "email": "babatunde.alade@flyemass.com",
+          "phone": "+234 803 123 4567",
+          "role": "Proprietor",
+          "sharesPercent": 100
+        }
+      ],
+      "passportPhotoUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+      "idCardType": "NIN",
+      "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80",
+      "referenceSignatureUrl": "",
+      "additionalDocuments": [],
+      "serviceFeeNGN": 35000,
+      "paymentStatus": "paid",
+      "paymentReference": "CAC-PAY-892401",
+      "status": "pending",
+      "thread": [
+        {
+          "id": "msg_01",
+          "sender": "user",
+          "senderName": "Chief Babatunde Alade",
+          "message": "Initial application submitted with NIN and applicant signature for Business Name registration.",
+          "timestamp": 1794896558383
+        }
+      ],
+      "createdAt": 1794896558383,
+      "updatedAt": 1794896558383
+    },
+    "cac_1794983047564_550": {
+      "id": "cac_1794983047564_550",
+      "reference": "CAC-1794983047564-8578",
+      "userId": "usr_alade_01",
+      "userEmail": "babatunde@aladeholding.ng",
+      "userName": "Chief Babatunde Alade",
+      "userPhone": "+234 803 555 9201",
+      "serviceType": "company_registration",
+      "primaryName": "Alade Global Haulage & Marine Ltd",
+      "alternativeName": "Alade Express Container Lines Ltd",
+      "category": "Transportation and Logistics",
+      "commencementDate": "2026-02-01",
+      "businessAddress": "Plot 10, Commercial Avenue, Apapa Sea Port, Lagos, Nigeria",
+      "businessDescription": "Ocean freight forwarding, multi-modal haulage and customs compliance",
+      "partners": [
+        {
+          "id": "p_dir_1",
+          "fullName": "Chief Babatunde Alade",
+          "email": "babatunde.alade@flyemass.com",
+          "phone": "+234 803 123 4567",
+          "role": "Director",
+          "sharesPercent": 70
+        },
+        {
+          "id": "p_dir_2",
+          "fullName": "Folashade Alade",
+          "email": "folashade@flyemass.com",
+          "phone": "+234 803 987 6543",
+          "role": "Director",
+          "sharesPercent": 30
+        }
+      ],
+      "passportPhotoUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+      "idCardType": "NIN",
+      "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80",
+      "referenceSignatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80",
+      "additionalDocuments": [],
+      "serviceFeeNGN": 78000,
+      "paymentStatus": "paid",
+      "paymentReference": "CAC-1794983047564-8578",
+      "status": "completed",
+      "thread": [
+        {
+          "id": "msg_1794983047564",
+          "sender": "user",
+          "senderName": "Chief Babatunde Alade",
+          "message": "Official application submitted for CAC Incorporated Company Registration: \"Alade Global Haulage & Marine Ltd\". Payment of ₦78,000 settled via NGN wallet.",
+          "timestamp": 1794983047564
+        },
+        {
+          "id": "msg_1794983047636_708",
+          "sender": "admin",
+          "senderName": "CAC Officer Oladipo",
+          "message": "Please provide a clearer NIN slip with legible date of birth and NIN number.",
+          "attachments": [],
+          "timestamp": 1794983047636
+        },
+        {
+          "id": "msg_1794983047705_531",
+          "sender": "user",
+          "senderName": "Chief Babatunde Alade",
+          "message": "High resolution NIN digital verification slip re-uploaded.",
+          "attachments": [],
+          "timestamp": 1794983047705
+        },
+        {
+          "id": "msg_1794983047773",
+          "sender": "admin",
+          "senderName": "Super Admin Babatunde",
+          "message": "CAC Registration Completed! Official Registration / RC Number issued: RC-1928401. Certificate dispatched to customer vault.",
+          "timestamp": 1794983047773
+        }
+      ],
+      "createdAt": 1794983047564,
+      "updatedAt": 1794983047773,
+      "rcNumber": "RC-1928401",
+      "certificatePdfUrl": "https://supabase.flyemass.com/storage/v1/object/public/cac_documents/cac-cert-alade-haulage.pdf",
+      "certificateDispatchedAt": 1794983047773,
+      "adminNotes": "Incorporation verified by CAC Abuja Registry"
+    },
+    "cac_1794983269663_655": {
+      "id": "cac_1794983269663_655",
+      "reference": "CAC-1794983269663-8855",
+      "userId": "usr_alade_01",
+      "userEmail": "babatunde@aladeholding.ng",
+      "userName": "Chief Babatunde Alade",
+      "userPhone": "+234 803 555 9201",
+      "serviceType": "company_registration",
+      "primaryName": "Alade Global Haulage & Marine Ltd",
+      "alternativeName": "Alade Express Container Lines Ltd",
+      "category": "Transportation and Logistics",
+      "commencementDate": "2026-02-01",
+      "businessAddress": "Plot 10, Commercial Avenue, Apapa Sea Port, Lagos, Nigeria",
+      "businessDescription": "Ocean freight forwarding, multi-modal haulage and customs compliance",
+      "partners": [
+        {
+          "id": "p_dir_1",
+          "fullName": "Chief Babatunde Alade",
+          "email": "babatunde.alade@flyemass.com",
+          "phone": "+234 803 123 4567",
+          "role": "Director",
+          "sharesPercent": 70
+        },
+        {
+          "id": "p_dir_2",
+          "fullName": "Folashade Alade",
+          "email": "folashade@flyemass.com",
+          "phone": "+234 803 987 6543",
+          "role": "Director",
+          "sharesPercent": 30
+        }
+      ],
+      "passportPhotoUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "idCardUrl": "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
+      "idCardType": "NIN",
+      "signatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80",
+      "referenceSignatureUrl": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80",
+      "additionalDocuments": [],
+      "serviceFeeNGN": 78000,
+      "paymentStatus": "paid",
+      "paymentReference": "CAC-1794983269663-8855",
+      "status": "completed",
+      "thread": [
+        {
+          "id": "msg_1794983269663",
+          "sender": "user",
+          "senderName": "Chief Babatunde Alade",
+          "message": "Official application submitted for CAC Incorporated Company Registration: \"Alade Global Haulage & Marine Ltd\". Payment of ₦78,000 settled via NGN wallet.",
+          "timestamp": 1794983269663
+        },
+        {
+          "id": "msg_1794983269732_307",
+          "sender": "admin",
+          "senderName": "CAC Officer Oladipo",
+          "message": "Please provide a clearer NIN slip with legible date of birth and NIN number.",
+          "attachments": [],
+          "timestamp": 1794983269732
+        },
+        {
+          "id": "msg_1794983269817_656",
+          "sender": "user",
+          "senderName": "Chief Babatunde Alade",
+          "message": "High resolution NIN digital verification slip re-uploaded.",
+          "attachments": [],
+          "timestamp": 1794983269817
+        },
+        {
+          "id": "msg_1794983269886",
+          "sender": "admin",
+          "senderName": "Super Admin Babatunde",
+          "message": "CAC Registration Completed! Official Registration / RC Number issued: RC-1928401. Certificate dispatched to customer vault.",
+          "timestamp": 1794983269886
+        }
+      ],
+      "createdAt": 1794983269663,
+      "updatedAt": 1794983269886,
+      "rcNumber": "RC-1928401",
+      "certificatePdfUrl": "https://supabase.flyemass.com/storage/v1/object/public/cac_documents/cac-cert-alade-haulage.pdf",
+      "certificateDispatchedAt": 1794983269886,
+      "adminNotes": "Incorporation verified by CAC Abuja Registry"
     }
   },
   "processed_webhooks": {
@@ -157186,6 +157750,240 @@
       "ipAddress": "127.0.0.1",
       "previousHash": "01a6529595133c7fbf26d8d8bbc275f44fffd85ce6326b1b0a124988163f82e2",
       "hash": "ba03a37bf7000c6099492126d89b5d0802a977c98aaa70da6c43511e60a012ec"
+    },
+    {
+      "id": "log_1794982965663_5834",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_PRICING_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "cac_pricing",
+      "details": "Updated CAC pricing: Business Name ₦36,000, Company Registration ₦78,000",
+      "timestamp": 1794982965664,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "ba03a37bf7000c6099492126d89b5d0802a977c98aaa70da6c43511e60a012ec",
+      "hash": "d38a5256faeec74b81cb0a32f149d198f9f3b15109a5a41e3c52b1ac27cabcca"
+    },
+    {
+      "id": "log_1794983047428_9860",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_PRICING_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "cac_pricing",
+      "details": "Updated CAC pricing: Business Name ₦36,000, Company Registration ₦78,000",
+      "timestamp": 1794983047428,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "d38a5256faeec74b81cb0a32f149d198f9f3b15109a5a41e3c52b1ac27cabcca",
+      "hash": "6df0cd6e623a36a34533bc3da7d020bd769bed2b0aa3212ce14a47034a8ebc4e"
+    },
+    {
+      "id": "log_1794983047564_3738",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "CAC_REGISTRATION_SUBMITTED",
+      "targetCollection": "cac_registrations",
+      "targetId": "cac_1794983047564_550",
+      "details": "Submitted CAC registration for Alade Global Haulage & Marine Ltd (CAC-1794983047564-8578)",
+      "timestamp": 1794983047564,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "6df0cd6e623a36a34533bc3da7d020bd769bed2b0aa3212ce14a47034a8ebc4e",
+      "hash": "5bb148b786c180aff180168e48e0bec44edfa1705d6ead2499c843220f427c82"
+    },
+    {
+      "id": "log_1794983047773_5670",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_APPLICATION_COMPLETED",
+      "targetCollection": "cac_registrations",
+      "targetId": "cac_1794983047564_550",
+      "details": "Approved CAC filing for Alade Global Haulage & Marine Ltd with RC RC-1928401",
+      "timestamp": 1794983047773,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "5bb148b786c180aff180168e48e0bec44edfa1705d6ead2499c843220f427c82",
+      "hash": "e740e1a91ac3ad537455f23753d20672fbef7fe1e6e233464bc20d8edc68d6a5"
+    },
+    {
+      "id": "log_1794983052681_1122",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "PIN_UPDATED",
+      "targetCollection": "users",
+      "targetId": "usr_alade_01",
+      "details": "Established new 6-digit cryptographic PIN",
+      "timestamp": 1794983052681,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "e740e1a91ac3ad537455f23753d20672fbef7fe1e6e233464bc20d8edc68d6a5",
+      "hash": "0a56b95d015a2f3f208a274474c7f30555f83869353f7f5aa6d046f248faab7c"
+    },
+    {
+      "id": "log_1794983052751_1440",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WALLET_FUNDED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1794983052751_550",
+      "details": "Credited NGN 1000000 via Test Funding",
+      "timestamp": 1794983052751,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "0a56b95d015a2f3f208a274474c7f30555f83869353f7f5aa6d046f248faab7c",
+      "hash": "b685e1e45ca13bf06985fadcc3567561079fb622500b23c5e31d607528154e77"
+    },
+    {
+      "id": "log_1794983053423_4651",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WITHDRAWAL_INITIATED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1794983053423",
+      "details": "Initiated withdrawal of ₦25000 to Providus Bank",
+      "timestamp": 1794983053423,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "b685e1e45ca13bf06985fadcc3567561079fb622500b23c5e31d607528154e77",
+      "hash": "20995a0adc4dd2a0e59e880b12584f7c70e4c2d8035117038cd71616f6eadb51"
+    },
+    {
+      "id": "log_1794983054118_6593",
+      "adminId": "sys",
+      "adminName": "adm-001",
+      "action": "WITHDRAWAL_PROCESSING",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1794983053423",
+      "details": "Status updated to processing",
+      "timestamp": 1794983054118,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "20995a0adc4dd2a0e59e880b12584f7c70e4c2d8035117038cd71616f6eadb51",
+      "hash": "c8bc8b8d8201b4a47013c749425cb7b464eb1cde8877eacabbf773e4115ced87"
+    },
+    {
+      "id": "log_1794983054316_3587",
+      "adminId": "sys",
+      "adminName": "Treasury Desk",
+      "action": "WITHDRAWAL_DISBURSED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1794983053423",
+      "details": "Disbursed ₦25000 via NIBSS (Ref: NIP-PROV-1794983054308)",
+      "timestamp": 1794983054316,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "c8bc8b8d8201b4a47013c749425cb7b464eb1cde8877eacabbf773e4115ced87",
+      "hash": "c71e520d8c0304d4b37902d1bb9940cd763c7f4121ae0789d1f1b98b8c5c8d33"
+    },
+    {
+      "id": "log_1794983166713_5533",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_PRICING_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "cac_pricing",
+      "details": "Updated CAC pricing: Business Name ₦36,000, Company Registration ₦78,000",
+      "timestamp": 1794983166713,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "c71e520d8c0304d4b37902d1bb9940cd763c7f4121ae0789d1f1b98b8c5c8d33",
+      "hash": "c313d70ba68a104959e150295252d3f95ee5bc050362db09e93b9a8508ddfcea"
+    },
+    {
+      "id": "log_1794983269526_1524",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_PRICING_UPDATED",
+      "targetCollection": "system_settings",
+      "targetId": "cac_pricing",
+      "details": "Updated CAC pricing: Business Name ₦36,000, Company Registration ₦78,000",
+      "timestamp": 1794983269526,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "c313d70ba68a104959e150295252d3f95ee5bc050362db09e93b9a8508ddfcea",
+      "hash": "9c90289c487c340a66bb65608b77c03ffa277faef35f9d3fbb42955b778d7c38"
+    },
+    {
+      "id": "log_1794983269664_5646",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "CAC_REGISTRATION_SUBMITTED",
+      "targetCollection": "cac_registrations",
+      "targetId": "cac_1794983269663_655",
+      "details": "Submitted CAC registration for Alade Global Haulage & Marine Ltd (CAC-1794983269663-8855)",
+      "timestamp": 1794983269664,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "9c90289c487c340a66bb65608b77c03ffa277faef35f9d3fbb42955b778d7c38",
+      "hash": "3e7529325f6940470253dc44f4fdfb3ee767c5dae88a4826192a9a396d27421f"
+    },
+    {
+      "id": "log_1794983269886_7278",
+      "adminId": "sys",
+      "adminName": "Super Admin Babatunde",
+      "action": "CAC_APPLICATION_COMPLETED",
+      "targetCollection": "cac_registrations",
+      "targetId": "cac_1794983269663_655",
+      "details": "Approved CAC filing for Alade Global Haulage & Marine Ltd with RC RC-1928401",
+      "timestamp": 1794983269886,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "3e7529325f6940470253dc44f4fdfb3ee767c5dae88a4826192a9a396d27421f",
+      "hash": "a19b1dc537ba12f469ceef2b72bce984ef6e70adac84f6201769d4348678c82a"
+    },
+    {
+      "id": "log_1794983278139_883",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "PIN_UPDATED",
+      "targetCollection": "users",
+      "targetId": "usr_alade_01",
+      "details": "Established new 6-digit cryptographic PIN",
+      "timestamp": 1794983278139,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "a19b1dc537ba12f469ceef2b72bce984ef6e70adac84f6201769d4348678c82a",
+      "hash": "e0ef7df226abe2c8c04431bfb02e62d1f0f0633d98443df073fbc7a8ed66ff9e"
+    },
+    {
+      "id": "log_1794983278212_9776",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WALLET_FUNDED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1794983278212_757",
+      "details": "Credited NGN 1000000 via Test Funding",
+      "timestamp": 1794983278212,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "e0ef7df226abe2c8c04431bfb02e62d1f0f0633d98443df073fbc7a8ed66ff9e",
+      "hash": "d53cd29e73847c5602179594ae43626a613f7c25cb0e6b1f23fceb9e73740b6d"
+    },
+    {
+      "id": "log_1794983278950_6131",
+      "adminId": "sys",
+      "adminName": "Chief Babatunde Alade",
+      "action": "WITHDRAWAL_INITIATED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1794983278949",
+      "details": "Initiated withdrawal of ₦25000 to Providus Bank",
+      "timestamp": 1794983278950,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "d53cd29e73847c5602179594ae43626a613f7c25cb0e6b1f23fceb9e73740b6d",
+      "hash": "3e603c4f66313f6bbc947d1ffca64084ecd91c1f6637af65c9dcb9f5476b3e8f"
+    },
+    {
+      "id": "log_1794983279661_6085",
+      "adminId": "sys",
+      "adminName": "adm-001",
+      "action": "WITHDRAWAL_PROCESSING",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1794983278949",
+      "details": "Status updated to processing",
+      "timestamp": 1794983279661,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "3e603c4f66313f6bbc947d1ffca64084ecd91c1f6637af65c9dcb9f5476b3e8f",
+      "hash": "6453655fa0103a9c3c110a2c80ceb1acc0de5131155b1bec4cabb43b4d1d5b99"
+    },
+    {
+      "id": "log_1794983279806_6515",
+      "adminId": "sys",
+      "adminName": "Treasury Desk",
+      "action": "WITHDRAWAL_DISBURSED",
+      "targetCollection": "withdrawals",
+      "targetId": "wth_1794983278949",
+      "details": "Disbursed ₦25000 via NIBSS (Ref: NIP-PROV-1794983279804)",
+      "timestamp": 1794983279806,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "6453655fa0103a9c3c110a2c80ceb1acc0de5131155b1bec4cabb43b4d1d5b99",
+      "hash": "04db3842931e738f657414755a33e86c9099367ebc4c3bbd9269053c09ef204f"
     }
   ],
   "manual_payments": {
@@ -157617,6 +158415,40 @@
       "status": "approved",
       "createdAt": 1794981593937,
       "updatedAt": 1794981593937,
+      "adminNotes": "Instant clearing via Test Funding"
+    },
+    "req_1794983052751_529": {
+      "id": "req_1794983052751_529",
+      "userId": "usr_alade_01",
+      "customerName": "Chief Babatunde Alade",
+      "customerEmail": "babatunde@aladeholding.ng",
+      "currency": "NGN",
+      "amount": 1000000,
+      "paymentMethod": "Test Funding",
+      "senderName": "Chief Babatunde Alade",
+      "originatingBank": "Test Funding",
+      "destinationBank": "Providus Bank",
+      "reference": "FLYE-FUND-1794983052749",
+      "status": "approved",
+      "createdAt": 1794983052751,
+      "updatedAt": 1794983052751,
+      "adminNotes": "Instant clearing via Test Funding"
+    },
+    "req_1794983278212_531": {
+      "id": "req_1794983278212_531",
+      "userId": "usr_alade_01",
+      "customerName": "Chief Babatunde Alade",
+      "customerEmail": "babatunde@aladeholding.ng",
+      "currency": "NGN",
+      "amount": 1000000,
+      "paymentMethod": "Test Funding",
+      "senderName": "Chief Babatunde Alade",
+      "originatingBank": "Test Funding",
+      "destinationBank": "Providus Bank",
+      "reference": "FLYE-FUND-1794983278210",
+      "status": "approved",
+      "createdAt": 1794983278212,
+      "updatedAt": 1794983278212,
       "adminNotes": "Instant clearing via Test Funding"
     }
   },
@@ -161275,6 +162107,82 @@
         "CNY": 1570278.0699999998,
         "USD": 18595
       }
+    },
+    "wd_test_1794983053421": {
+      "withdrawal": {
+        "id": "wth_1794983053423",
+        "userId": "usr_alade_01",
+        "customerName": "Chief Babatunde Alade",
+        "customerEmail": "babatunde@aladeholding.ng",
+        "customerPhone": "+234 803 555 9201",
+        "channel": "naira_bank",
+        "currency": "NGN",
+        "bankName": "Providus Bank",
+        "bankCode": "101",
+        "accountNumber": "2089140022",
+        "accountName": "CHIEF BABATUNDE ALADE",
+        "amountNGN": 25000,
+        "feeNGN": 50,
+        "totalDebit": 25050,
+        "note": "Naira test withdrawal",
+        "status": "successful",
+        "reference": "WD-30825181",
+        "transferReference": "NIP-PROV-1794983054308",
+        "createdAt": 1794983053423,
+        "processingStartedAt": 1794983054118,
+        "reviewer": "adm-001",
+        "completed": true,
+        "payoutMode": "gateway",
+        "gatewayProvider": "Providus NIP Instant Switch",
+        "gatewaySessionId": "NIP-PROV-1794983054308",
+        "paymentProofUrl": "https://storage.flyemass.com/receipts/prov_transfer_slip.png",
+        "receiptUrl": "https://storage.flyemass.com/receipts/prov_transfer_slip.png",
+        "adminNotes": "Settled via Providus Bank NIP switch",
+        "completedAt": 1794983054315
+      },
+      "balances": {
+        "NGN": 168727525,
+        "CNY": 1570278.0699999998,
+        "USD": 18595
+      }
+    },
+    "wd_test_1794983278948": {
+      "withdrawal": {
+        "id": "wth_1794983278949",
+        "userId": "usr_alade_01",
+        "customerName": "Chief Babatunde Alade",
+        "customerEmail": "babatunde@aladeholding.ng",
+        "customerPhone": "+234 803 555 9201",
+        "channel": "naira_bank",
+        "currency": "NGN",
+        "bankName": "Providus Bank",
+        "bankCode": "101",
+        "accountNumber": "2089140022",
+        "accountName": "CHIEF BABATUNDE ALADE",
+        "amountNGN": 25000,
+        "feeNGN": 50,
+        "totalDebit": 25050,
+        "note": "Naira test withdrawal",
+        "status": "successful",
+        "reference": "WD-23102722",
+        "transferReference": "NIP-PROV-1794983279804",
+        "createdAt": 1794983278950,
+        "processingStartedAt": 1794983279661,
+        "reviewer": "adm-001",
+        "completed": true,
+        "payoutMode": "gateway",
+        "gatewayProvider": "Providus NIP Instant Switch",
+        "gatewaySessionId": "NIP-PROV-1794983279804",
+        "paymentProofUrl": "https://storage.flyemass.com/receipts/prov_transfer_slip.png",
+        "receiptUrl": "https://storage.flyemass.com/receipts/prov_transfer_slip.png",
+        "adminNotes": "Settled via Providus Bank NIP switch",
+        "completedAt": 1794983279805
+      },
+      "balances": {
+        "NGN": 169624475,
+        "CNY": 1570278.0699999998,
+        "USD": 18595
+      }
     }
   },
   "resource_locks": {},
@@ -161300,6 +162208,146 @@
     "primaryAdminId": "adm-001"
   },
   "notifications": [
+    {
+      "id": "notif_1794983279806",
+      "title": "Withdrawal Payout Cleared",
+      "message": "₦25,000 has been sent to Providus Bank (2089140022). Ref: NIP-PROV-1794983279804.",
+      "time": "Just now",
+      "timestamp": 1794983279806,
+      "read": false,
+      "type": "withdrawal",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794983279661",
+      "title": "Withdrawal Processing",
+      "message": "Your withdrawal of ₦25,000 (Ref: WD-23102722) is being processed via NIBSS.",
+      "time": "Just now",
+      "timestamp": 1794983279661,
+      "read": false,
+      "type": "withdrawal",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794983278950",
+      "title": "Withdrawal Request Submitted",
+      "message": "₦25,000 withdrawal to Providus Bank queued for processing (Ref: WD-23102722).",
+      "time": "Just now",
+      "timestamp": 1794983278950,
+      "read": false,
+      "type": "withdrawal",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794983278293_1mf",
+      "userId": "usr_alade_01",
+      "title": "Deposit Confirmed: NGN 1,000,000.00 Credited to Your Wallet",
+      "message": "Deposit Confirmed: ₦1,000,000.00 NGN credited via Test Funding. Reference: FLYE-FUND-1794983278210. Settlement Time: Nov 18, 2026, 7:27 AM.",
+      "type": "success",
+      "timestamp": 1794983278293,
+      "read": false,
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794983269886_351",
+      "userId": "usr_alade_01",
+      "title": "CAC Certificate Dispatched",
+      "message": "Congratulations! Your business \"Alade Global Haulage & Marine Ltd\" is officially incorporated with RC Number: RC-1928401. Download your certificate in the CAC Hub.",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794983269886
+    },
+    {
+      "id": "notif_1794983269732_785",
+      "userId": "usr_alade_01",
+      "title": "CAC Compliance Action Required",
+      "message": "CAC compliance desk requested information on CAC-1794983269663-8855: \"Please provide a clearer NIN slip with legible date of birth and NIN number....\"",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794983269732
+    },
+    {
+      "id": "notif_1794983269663_844",
+      "userId": "usr_alade_01",
+      "title": "CAC Application Submitted",
+      "message": "Your filing for \"Alade Global Haulage & Marine Ltd\" has been received and queued for Corporate Affairs Commission processing.",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794983269664
+    },
+    {
+      "id": "notif_1794983054316",
+      "title": "Withdrawal Payout Cleared",
+      "message": "₦25,000 has been sent to Providus Bank (2089140022). Ref: NIP-PROV-1794983054308.",
+      "time": "Just now",
+      "timestamp": 1794983054316,
+      "read": false,
+      "type": "withdrawal",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794983054118",
+      "title": "Withdrawal Processing",
+      "message": "Your withdrawal of ₦25,000 (Ref: WD-30825181) is being processed via NIBSS.",
+      "time": "Just now",
+      "timestamp": 1794983054118,
+      "read": false,
+      "type": "withdrawal",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794983053423",
+      "title": "Withdrawal Request Submitted",
+      "message": "₦25,000 withdrawal to Providus Bank queued for processing (Ref: WD-30825181).",
+      "time": "Just now",
+      "timestamp": 1794983053423,
+      "read": false,
+      "type": "withdrawal",
+      "targetUserId": "usr_alade_01",
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794983052828_000",
+      "userId": "usr_alade_01",
+      "title": "Deposit Confirmed: NGN 1,000,000.00 Credited to Your Wallet",
+      "message": "Deposit Confirmed: ₦1,000,000.00 NGN credited via Test Funding. Reference: FLYE-FUND-1794983052749. Settlement Time: Nov 18, 2026, 7:24 AM.",
+      "type": "success",
+      "timestamp": 1794983052828,
+      "read": false,
+      "linkRoute": "wallets"
+    },
+    {
+      "id": "notif_1794983047773_127",
+      "userId": "usr_alade_01",
+      "title": "CAC Certificate Dispatched",
+      "message": "Congratulations! Your business \"Alade Global Haulage & Marine Ltd\" is officially incorporated with RC Number: RC-1928401. Download your certificate in the CAC Hub.",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794983047773
+    },
+    {
+      "id": "notif_1794983047636_36",
+      "userId": "usr_alade_01",
+      "title": "CAC Compliance Action Required",
+      "message": "CAC compliance desk requested information on CAC-1794983047564-8578: \"Please provide a clearer NIN slip with legible date of birth and NIN number....\"",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794983047636
+    },
+    {
+      "id": "notif_1794983047564_50",
+      "userId": "usr_alade_01",
+      "title": "CAC Application Submitted",
+      "message": "Your filing for \"Alade Global Haulage & Marine Ltd\" has been received and queued for Corporate Affairs Commission processing.",
+      "type": "CAC_REGISTRATION",
+      "read": false,
+      "createdAt": 1794983047564
+    },
     {
       "id": "notif_1794981598052_wmf",
       "userId": "usr_alade_01",
@@ -175101,6 +176149,50 @@
       },
       "deliveredAt": 1794981598052,
       "timestamp": 1794981598052,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_wallet_funding_1794983052828_li8p": {
+      "id": "eml_wallet_funding_1794983052828_li8p",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "Deposit Confirmed: NGN 1,000,000.00 Credited to Your Wallet",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>Deposit Confirmed: NGN 1,000,000.00 Credited to Your Wallet</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-emerald\">Deposit Successful • Instant Credit</div>\n        <h1 class=\"title\">Deposit Confirmed: NGN 1,000,000.00 Credited to Your Wallet</h1>\n        \n        <p class=\"lead\">\n          Your wallet funding request has completed successfully. Funds have been posted to your FlyeMass multi-currency ledger with 0.00% zero-slippage guarantee.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Funding Channel:</span>\n            <span class=\"data-value\">Test Funding</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Amount Credited:</span>\n            <span class=\"data-value\" style=\"color: #10b981; font-size: 15px;\">₦1,000,000.00 NGN</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Transaction Reference:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">FLYE-FUND-1794983052749</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Settlement Time:</span>\n            <span class=\"data-value\">Nov 18, 2026, 7:24 AM</span>\n          </div>\n          \n          <div class=\"data-row\">\n            <span class=\"data-label\">New NGN Balance:</span>\n            <span class=\"data-value\" style=\"color: #38bdf8;\">₦168,752,575.00</span>\n          </div>\n        </div>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/wallets\" class=\"btn\" target=\"_blank\">View Multi-Currency Wallets</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Deposit Confirmed: ₦1,000,000.00 NGN credited via Test Funding. Reference: FLYE-FUND-1794983052749. Settlement Time: Nov 18, 2026, 7:24 AM.",
+      "eventType": "WALLET_FUNDING",
+      "payload": {
+        "currency": "NGN",
+        "amount": 1000000,
+        "channel": "Test Funding",
+        "reference": "FLYE-FUND-1794983052749",
+        "newBalance": 168752575
+      },
+      "deliveredAt": 1794983052828,
+      "timestamp": 1794983052828,
+      "status": "delivered",
+      "provider": "in_memory_vault"
+    },
+    "eml_wallet_funding_1794983278293_er2o": {
+      "id": "eml_wallet_funding_1794983278293_er2o",
+      "userId": "usr_alade_01",
+      "recipientEmail": "babatunde@aladeholding.ng",
+      "customerName": "Chief Babatunde Alade",
+      "flyeTag": "FM-USR-8924",
+      "subject": "Deposit Confirmed: NGN 1,000,000.00 Credited to Your Wallet",
+      "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\"/>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n  <title>Deposit Confirmed: NGN 1,000,000.00 Credited to Your Wallet</title>\n  <style>\n    body {\n      margin: 0; padding: 0; background-color: #020617; color: #f8fafc;\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n      -webkit-font-smoothing: antialiased;\n    }\n    .wrapper { width: 100%; background-color: #020617; padding: 32px 16px; box-sizing: border-box; }\n    .container {\n      max-width: 580px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b;\n      border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);\n    }\n    .header {\n      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);\n      padding: 28px 32px; border-bottom: 1px solid #1e293b; text-align: center;\n    }\n    .logo-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; margin: 0; }\n    .logo-badge { color: #10b981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }\n    .content { padding: 32px; }\n    .badge {\n      display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700;\n      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;\n    }\n    .badge-emerald { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }\n    .badge-amber { background-color: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }\n    .badge-indigo { background-color: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; }\n    .title { font-size: 22px; font-weight: 700; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; }\n    .lead { font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 24px 0; }\n    .data-card { background-color: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 20px; margin: 20px 0; }\n    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #0f172a; font-size: 13px; }\n    .data-row:last-child { border-bottom: none; padding-bottom: 0; }\n    .data-label { color: #64748b; }\n    .data-value { color: #f1f5f9; font-weight: 600; text-align: right; }\n    .btn-container { text-align: center; margin: 32px 0 16px 0; }\n    .btn {\n      display: inline-block; background-color: #10b981; color: #020617 !important; font-weight: 700; font-size: 14px;\n      padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);\n    }\n    .footer {\n      background-color: #020617; border-top: 1px solid #1e293b; padding: 24px 32px; text-align: center; font-size: 11px; color: #64748b; line-height: 1.6;\n    }\n    .footer a { color: #10b981; text-decoration: none; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n    <div class=\"container\">\n      <div class=\"header\">\n        <div class=\"logo-title\">FLYEMASS</div>\n        <div class=\"logo-badge\">Global Cross-Border Financial & Logistics Hub</div>\n      </div>\n      <div class=\"content\">\n        <div class=\"badge badge-emerald\">Deposit Successful • Instant Credit</div>\n        <h1 class=\"title\">Deposit Confirmed: NGN 1,000,000.00 Credited to Your Wallet</h1>\n        \n        <p class=\"lead\">\n          Your wallet funding request has completed successfully. Funds have been posted to your FlyeMass multi-currency ledger with 0.00% zero-slippage guarantee.\n        </p>\n        <div class=\"data-card\">\n          <div class=\"data-row\">\n            <span class=\"data-label\">Funding Channel:</span>\n            <span class=\"data-value\">Test Funding</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Amount Credited:</span>\n            <span class=\"data-value\" style=\"color: #10b981; font-size: 15px;\">₦1,000,000.00 NGN</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Transaction Reference:</span>\n            <span class=\"data-value\" style=\"font-family: monospace;\">FLYE-FUND-1794983278210</span>\n          </div>\n          <div class=\"data-row\">\n            <span class=\"data-label\">Settlement Time:</span>\n            <span class=\"data-value\">Nov 18, 2026, 7:27 AM</span>\n          </div>\n          \n          <div class=\"data-row\">\n            <span class=\"data-label\">New NGN Balance:</span>\n            <span class=\"data-value\" style=\"color: #38bdf8;\">₦169,649,525.00</span>\n          </div>\n        </div>\n      \n        <div class=\"btn-container\">\n          <a href=\"https://app.flyemass.com/wallets\" class=\"btn\" target=\"_blank\">View Multi-Currency Wallets</a>\n        </div>\n      </div>\n      <div class=\"footer\">\n        <p style=\"margin: 0 0 8px 0;\">FlyeMass B2B Global Trade Infrastructure • CAC / CBN / SAFE Compliant</p>\n        <p style=\"margin: 0 0 8px 0;\">Official security seal • Zero-crypto platform • Double-entry general ledger protected</p>\n        <p style=\"margin: 0;\">Need immediate trade assistance? Reach our 24/7 Trade Concierge via the mobile app or reply to <a href=\"mailto:support@flyemass.com\">support@flyemass.com</a>.</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+      "text": "Deposit Confirmed: ₦1,000,000.00 NGN credited via Test Funding. Reference: FLYE-FUND-1794983278210. Settlement Time: Nov 18, 2026, 7:27 AM.",
+      "eventType": "WALLET_FUNDING",
+      "payload": {
+        "currency": "NGN",
+        "amount": 1000000,
+        "channel": "Test Funding",
+        "reference": "FLYE-FUND-1794983278210",
+        "newBalance": 169649525
+      },
+      "deliveredAt": 1794983278293,
+      "timestamp": 1794983278293,
       "status": "delivered",
       "provider": "in_memory_vault"
     }

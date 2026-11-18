@@ -26,12 +26,14 @@ import { AdminSupportScreen } from '../../screens/admin/AdminSupportScreen';
 import { AdminCommunicationsScreen } from '../../screens/admin/AdminCommunicationsScreen';
 import { AdminTeamScreen } from '../../screens/admin/AdminTeamScreen';
 import { DatabaseViewerScreen } from '../../screens/admin/DatabaseViewerScreen';
+import { AdminCacServicesScreen } from '../../screens/admin/AdminCacServicesScreen';
 import { AdminAccessDeniedScreen } from '../../screens/admin/AdminAccessDeniedScreen';
 import { AdminModulePermission, firebaseSync } from '../../services/firebase';
 import { db } from '../../services/db';
 
 const ROUTE_TO_ADMIN_TAB: Record<string, string> = {
   'admin-dashboard': 'dashboard',
+  'admin-services-cac': 'services-cac',
   'admin-users': 'users',
   'admin-user-detail': 'users',
   'admin-wallet-credit': 'users',
@@ -221,6 +223,8 @@ export const AdminShell: React.FC = () => {
         return <AdminSupportScreen />;
       case 'admin-communications':
         return <AdminCommunicationsScreen />;
+      case 'admin-services-cac':
+        return <AdminCacServicesScreen />;
       case 'admin-team':
         return <AdminTeamScreen />;
       case 'schema-inspector':

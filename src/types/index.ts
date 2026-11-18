@@ -45,10 +45,12 @@ export type ScreenRoute =
   | 'terms'
   | 'privacy'
   | 'delete-account'
+  | 'cac-registration'
   | 'schema-inspector'
   // Web Admin Dashboard Routes
   | 'admin-login'
   | 'admin-dashboard'
+  | 'admin-services-cac'
   | 'admin-warehouses'
   | 'admin-lagos-hubs'
   | 'admin-users'
@@ -117,6 +119,11 @@ export interface UserDocument {
   adminNotes?: string;
   kycLevel?: string;
   updatedAt?: number;
+  company?: string;
+  registeredCompanyName?: string;
+  rcNumber?: string;
+  cacRcNumber?: string;
+  cacCertificateUrl?: string;
 }
 
 /**
@@ -125,7 +132,7 @@ export interface UserDocument {
 export interface WalletLedgerDocument {
   id: string;
   userId: string;
-  type: 'FUND' | 'PAY_SUPPLIER' | 'FX_SWAP' | 'WITHDRAW' | 'SHOP_ORDER' | 'CARGO_FREIGHT' | 'SUPPLIER_SUB';
+  type: 'FUND' | 'PAY_SUPPLIER' | 'FX_SWAP' | 'WITHDRAW' | 'SHOP_ORDER' | 'CARGO_FREIGHT' | 'SUPPLIER_SUB' | 'CAC_REGISTRATION';
   sourceCurrency: string;
   targetCurrency: string;
   amount: number;
@@ -682,6 +689,7 @@ export interface SystemSettingsDocument {
   shipping_corridors?: ShippingCorridor[];
   air_shipping_rates?: AirShippingRatesConfig;
   logistics_fx_rates?: LogisticsFxRatesConfig;
+  cac_pricing?: CacPricingConfig;
   live_fx_display?: {
     announcementText?: string;
     displayNgnRmb?: number;
@@ -1356,4 +1364,70 @@ export interface RFQQuotation {
   inspectionRequired: boolean;
   cantonFairBooth?: string;
   date: string;
+}
+
+// =========================================================================
+// CORPORATE AFFAIRS COMMISSION (CAC) ENTERPRISE REGISTRATION TYPES
+// =========================================================================
+
+export type CacServiceType = 'business_name' | 'company_registration';
+
+export type CacApplicationStatus = 'pending' | 'in_review' | 'action_required' | 'completed' | 'rejected';
+
+export interface CacPartnerDirector {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  role: 'Director' | 'Shareholder' | 'Partner' | 'Proprietor' | 'Secretary';
+  sharesPercent?: number;
+}
+
+export interface CacThreadMessage {
+  id: string;
+  sender: 'admin' | 'user';
+  senderName: string;
+  message: string;
+  attachments?: string[];
+  timestamp: number;
+}
+
+export interface CacPricingConfig {
+  business_name_ngn: number;
+  company_registration_ngn: number;
+  lastUpdated: number;
+}
+
+export interface CacRegistrationDocument {
+  id: string;
+  reference: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  userPhone: string;
+  serviceType: CacServiceType;
+  primaryName: string;
+  alternativeName: string;
+  category: string;
+  commencementDate: string;
+  businessAddress: string;
+  businessDescription: string;
+  partners: CacPartnerDirector[];
+  passportPhotoUrl: string;
+  idCardUrl: string;
+  idCardType: 'NIN' | 'Driver License' | 'International Passport' | 'Voter Card';
+  signatureUrl: string;
+  referenceSignatureUrl?: string; // Strictly required for company registration
+  additionalDocuments?: string[];
+  serviceFeeNGN: number;
+  paymentStatus: 'paid' | 'pending';
+  paymentReference: string;
+  status: CacApplicationStatus;
+  rcNumber?: string;
+  certificatePdfUrl?: string;
+  certificateDispatchedAt?: number;
+  adminNotes?: string;
+  thread: CacThreadMessage[];
+  createdAt: number;
+  updatedAt: number;
 }

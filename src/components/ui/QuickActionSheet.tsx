@@ -100,6 +100,14 @@ export const QuickActionSheet: React.FC = () => {
       cat: 'sourcing'
     },
     {
+      title: 'CAC Business Registration',
+      subtitle: 'Official BN & RC corporate portal',
+      icon: ShieldCheck,
+      color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+      route: 'cac-registration' as ScreenRoute,
+      cat: 'sourcing'
+    },
+    {
       title: 'Shop Apple & Tech',
       subtitle: 'Direct gadget wholesale (NGN/RMB)',
       icon: Smartphone,

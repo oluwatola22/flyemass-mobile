@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { db } from '../../services/db';
@@ -22,7 +22,8 @@ import {
   Edit,
   X,
   Check,
-  Copy
+  Copy,
+  FileCheck
 } from 'lucide-react';
 
 export const ProfileScreen: React.FC = () => {
@@ -47,6 +48,19 @@ export const ProfileScreen: React.FC = () => {
   const [editName, setEditName] = useState(userProfile.name);
   const [editCompany, setEditCompany] = useState(userProfile.company);
   const [editPhone, setEditPhone] = useState(userProfile.phone);
+
+  useEffect(() => {
+    const u = db.getUser(activeUserId);
+    if (u && setUserProfile) {
+      if (u.company || u.registeredCompanyName || u.rcNumber || u.cacRcNumber) {
+        setUserProfile((prev: any) => ({
+          ...prev,
+          company: u.company || u.registeredCompanyName || prev.company,
+          rcNumber: u.rcNumber || u.cacRcNumber || prev.rcNumber
+        }));
+      }
+    }
+  }, [activeUserId, setUserProfile]);
 
   const uniqueUserId = (userProfile as any).shippingMark || userProfile.flyeTag || (activeUserId === 'usr_alade_01' ? 'FM-USR-8924' : `FM-USR-${activeUserId.slice(-4).toUpperCase()}`);
 
@@ -88,6 +102,7 @@ export const ProfileScreen: React.FC = () => {
     {
       title: t('profile.legal_section', 'Legal, Compliance & Governance'),
       items: [
+        { title: 'CAC Business Registration', desc: 'Corporate Affairs Commission BN & RC Portal', icon: FileCheck, route: 'cac-registration' as any, color: 'text-emerald-400 bg-emerald-500/10' },
         { title: t('profile.terms', 'Terms of Trade Service'), desc: 'Cross-border escrow and logistics rules', icon: FileText, route: 'terms', color: 'text-slate-400 bg-slate-800' },
         { title: t('profile.privacy', 'Privacy Policy & NDPR'), desc: 'Nigeria Data Protection Regulation', icon: ShieldCheck, route: 'privacy', color: 'text-slate-400 bg-slate-800' },
         { title: t('profile.delete_account', 'Account Deletion Request'), desc: 'Store compliant data purge protocol', icon: LogOut, route: 'delete-account', color: 'text-rose-400 bg-rose-500/10' }
