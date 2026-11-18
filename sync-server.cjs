@@ -3525,16 +3525,66 @@ function verifyDatabaseIntegrity() {
 // -----------------------------------------------------------------
 
 const NIGERIAN_BANKS = [
-  { code: '057', name: 'Zenith Bank Plc', cbnCode: '057', active: true },
-  { code: '058', name: 'Guaranty Trust Bank (GTB)', cbnCode: '058', active: true },
   { code: '044', name: 'Access Bank Nigeria', cbnCode: '044', active: true },
+  { code: '063', name: 'Access Bank (Diamond)', cbnCode: '063', active: true },
+  { code: '000033', name: 'Alternate Bank Limited', cbnCode: '000033', active: true },
+  { code: '090136', name: 'Bowen Microfinance Bank', cbnCode: '090136', active: true },
+  { code: '090279', name: 'Branch Microfinance Bank', cbnCode: '090279', active: true },
+  { code: '090130', name: 'Carbon (One Finance)', cbnCode: '090130', active: true },
+  { code: '023', name: 'Citibank Nigeria', cbnCode: '023', active: true },
+  { code: '060001', name: 'Coronation Merchant Bank', cbnCode: '060001', active: true },
+  { code: '090470', name: 'Dot Microfinance Bank', cbnCode: '090470', active: true },
+  { code: '050', name: 'Ecobank Nigeria', cbnCode: '050', active: true },
+  { code: '090328', name: 'Eyowo Microfinance Bank', cbnCode: '090328', active: true },
+  { code: '090551', name: 'FairMoney Microfinance Bank', cbnCode: '090551', active: true },
+  { code: '060002', name: 'FBNQuest Merchant Bank', cbnCode: '060002', active: true },
+  { code: '070', name: 'Fidelity Bank', cbnCode: '070', active: true },
   { code: '011', name: 'First Bank of Nigeria', cbnCode: '011', active: true },
-  { code: '101', name: 'Providus Bank', cbnCode: '101', active: true },
-  { code: '033', name: 'United Bank for Africa (UBA)', cbnCode: '033', active: true },
-  { code: '221', name: 'Stanbic IBTC Bank', cbnCode: '221', active: true },
+  { code: '214', name: 'First City Monument Bank (FCMB)', cbnCode: '214', active: true },
+  { code: '00103', name: 'Globus Bank', cbnCode: '00103', active: true },
+  { code: '100022', name: 'Gomoney', cbnCode: '100022', active: true },
+  { code: '058', name: 'Guaranty Trust Bank (GTBank)', cbnCode: '058', active: true },
+  { code: '030', name: 'Heritage Bank', cbnCode: '030', active: true },
+  { code: '120002', name: 'Hope PSBank', cbnCode: '120002', active: true },
+  { code: '301', name: 'Jaiz Bank', cbnCode: '301', active: true },
+  { code: '082', name: 'Keystone Bank', cbnCode: '082', active: true },
   { code: '090267', name: 'Kuda Microfinance Bank', cbnCode: '090267', active: true },
-  { code: '090405', name: 'Moniepoint MFB', cbnCode: '090405', active: true },
-  { code: '090565', name: 'OPay Digital Services', cbnCode: '090565', active: true }
+  { code: '303', name: 'Lotus Bank', cbnCode: '303', active: true },
+  { code: '090281', name: 'Mint Finex MFB', cbnCode: '090281', active: true },
+  { code: '090385', name: 'Mkobo Microfinance Bank', cbnCode: '090385', active: true },
+  { code: '120003', name: 'Momo Payment Service Bank (MTN)', cbnCode: '120003', active: true },
+  { code: '090405', name: 'Moniepoint Microfinance Bank', cbnCode: '090405', active: true },
+  { code: '090190', name: 'Mutual Trust Microfinance Bank', cbnCode: '090190', active: true },
+  { code: '060003', name: 'Nova Merchant Bank', cbnCode: '060003', active: true },
+  { code: '090565', name: 'OPay Digital Services', cbnCode: '090565', active: true },
+  { code: '000036', name: 'Optimus Bank', cbnCode: '000036', active: true },
+  { code: '090336', name: 'PalmPay Limited', cbnCode: '090336', active: true },
+  { code: '000030', name: 'Parallex Bank', cbnCode: '000030', active: true },
+  { code: '311', name: 'Parkway - ReadyCash', cbnCode: '311', active: true },
+  { code: '090401', name: 'Peace Microfinance Bank', cbnCode: '090401', active: true },
+  { code: '076', name: 'Polaris Bank', cbnCode: '076', active: true },
+  { code: '000031', name: 'PremiumTrust Bank', cbnCode: '000031', active: true },
+  { code: '101', name: 'Providus Bank', cbnCode: '101', active: true },
+  { code: '060004', name: 'Rand Merchant Bank', cbnCode: '060004', active: true },
+  { code: '090175', name: 'Raven Bank (RavenPay)', cbnCode: '090175', active: true },
+  { code: '090175', name: 'Rubies Microfinance Bank', cbnCode: '090175', active: true },
+  { code: '090286', name: 'Safe Haven Microfinance Bank', cbnCode: '090286', active: true },
+  { code: '000034', name: 'Signature Bank', cbnCode: '000034', active: true },
+  { code: '120004', name: 'Smartcash Payment Service Bank (Airtel)', cbnCode: '120004', active: true },
+  { code: '090325', name: 'Sparkle Microfinance Bank', cbnCode: '090325', active: true },
+  { code: '221', name: 'Stanbic IBTC Bank', cbnCode: '221', active: true },
+  { code: '068', name: 'Standard Chartered Bank', cbnCode: '068', active: true },
+  { code: '232', name: 'Sterling Bank', cbnCode: '232', active: true },
+  { code: '100', name: 'SunTrust Bank', cbnCode: '100', active: true },
+  { code: '302', name: 'TAJ Bank', cbnCode: '302', active: true },
+  { code: '090479', name: 'TCFC Microfinance Bank', cbnCode: '090479', active: true },
+  { code: '102', name: 'Titan Trust Bank', cbnCode: '102', active: true },
+  { code: '032', name: 'Union Bank of Nigeria', cbnCode: '032', active: true },
+  { code: '033', name: 'United Bank for Africa (UBA)', cbnCode: '033', active: true },
+  { code: '215', name: 'Unity Bank', cbnCode: '215', active: true },
+  { code: '090110', name: 'VFD Microfinance Bank', cbnCode: '090110', active: true },
+  { code: '035', name: 'Wema Bank', cbnCode: '035', active: true },
+  { code: '057', name: 'Zenith Bank Plc', cbnCode: '057', active: true }
 ];
 
 function simulateNubanNameEnquiry(bankCode, accountNumber) {
@@ -5618,7 +5668,7 @@ const server = http.createServer(async (req, res) => {
       const { withdrawalId, transferReference, paymentProofUrl, adminNotes, adminId, payoutMode, gatewayProvider, gatewaySessionId } = await readJsonBody(req);
       const wth = dbState.withdrawals[withdrawalId];
       if (!wth) return sendJson(res, 404, { error: 'Withdrawal not found' });
-      if (wth.status === 'approved' || wth.status === 'completed') {
+      if (wth.status === 'approved' || wth.status === 'completed' || wth.status === 'successful') {
         return sendJson(res, 400, { error: 'Withdrawal already completed' });
       }
       if (wth.status === 'failed' || wth.status === 'rejected') {
@@ -5694,7 +5744,7 @@ const server = http.createServer(async (req, res) => {
       const { withdrawalId, reason, adminId } = await readJsonBody(req);
       const wth = dbState.withdrawals[withdrawalId];
       if (!wth) return sendJson(res, 404, { error: 'Withdrawal not found' });
-      if (wth.status === 'approved' || wth.status === 'completed') {
+      if (wth.status === 'approved' || wth.status === 'completed' || wth.status === 'successful') {
         return sendJson(res, 400, { error: 'Cannot reject or refund an already completed withdrawal' });
       }
       if (wth.status === 'failed' || wth.status === 'rejected') {

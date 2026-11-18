@@ -49,10 +49,14 @@ export const AdminNairaPayoutsScreen: React.FC = () => {
   const dbState = db.getState();
 
   const withdrawalsList = Object.values(dbState.withdrawals || {}).filter((w) => {
+    // Only Naira (NGN) withdrawals appear on the Naira Payouts desk
+    const isNaira = w.currency === 'NGN' || w.channel === 'naira_bank' || (w.amountNGN && w.amountNGN > 0) || !w.currency;
+    if (!isNaira) return false;
+
     const matchesStatus = withdrawalStatusFilter === 'all'
       ? true
       : withdrawalStatusFilter === 'approved'
-      ? (w.status === 'approved' || w.status === 'completed')
+      ? (w.status === 'approved' || w.status === 'completed' || w.status === 'successful')
       : withdrawalStatusFilter === 'rejected'
       ? (w.status === 'rejected' || w.status === 'refunded' || w.status === 'failed')
       : w.status === withdrawalStatusFilter;
@@ -149,7 +153,7 @@ export const AdminNairaPayoutsScreen: React.FC = () => {
   };
 
   const handleOpenRejectWithdrawal = (w: WithdrawalDocument) => {
-    if (w.status === 'approved' || w.status === 'completed') {
+    if (w.status === 'approved' || w.status === 'completed' || w.status === 'successful') {
       showToast('Cannot reject or refund an already completed withdrawal', 'error');
       return;
     }
@@ -296,7 +300,7 @@ export const AdminNairaPayoutsScreen: React.FC = () => {
                     </td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        w.status === 'approved' || w.status === 'completed'
+                        w.status === 'approved' || w.status === 'completed' || w.status === 'successful'
                           ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                           : w.status === 'processing'
                           ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
@@ -304,7 +308,7 @@ export const AdminNairaPayoutsScreen: React.FC = () => {
                           ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                           : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
                       }`}>
-                        {w.status}
+                        {w.status === 'successful' ? 'Successful' : w.status}
                       </span>
                       {w.payoutMode && (
                         <div className="text-[9px] text-slate-400 mt-1 font-mono">
@@ -340,7 +344,7 @@ export const AdminNairaPayoutsScreen: React.FC = () => {
                           </>
                         )}
 
-                        {(w.status === 'approved' || w.status === 'completed') && (
+                        {(w.status === 'approved' || w.status === 'completed' || w.status === 'successful') && (
                           <div className="flex items-center gap-1 text-[11px] text-emerald-400 font-bold">
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             <span>Paid</span>

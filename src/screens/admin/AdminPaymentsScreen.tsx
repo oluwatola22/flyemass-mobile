@@ -126,7 +126,7 @@ export const AdminPaymentsScreen: React.FC = () => {
     const matchesStatus = withdrawalStatusFilter === 'all'
       ? true
       : withdrawalStatusFilter === 'approved'
-      ? (w.status === 'approved' || w.status === 'completed')
+      ? (w.status === 'approved' || w.status === 'completed' || w.status === 'successful')
       : withdrawalStatusFilter === 'rejected'
       ? (w.status === 'rejected' || w.status === 'refunded' || w.status === 'failed')
       : w.status === withdrawalStatusFilter;
@@ -304,7 +304,7 @@ export const AdminPaymentsScreen: React.FC = () => {
   };
 
   const handleOpenRejectWithdrawal = (w: WithdrawalDocument) => {
-    if (w.status === 'approved' || w.status === 'completed') {
+    if (w.status === 'approved' || w.status === 'completed' || w.status === 'successful') {
       showToast('Cannot reject or refund an already completed withdrawal', 'error');
       return;
     }
@@ -1043,7 +1043,7 @@ export const AdminPaymentsScreen: React.FC = () => {
                       </td>
                       <td className="py-3.5 px-3">
                         <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${
-                          w.status === 'approved' || w.status === 'completed' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
+                          w.status === 'approved' || w.status === 'completed' || w.status === 'successful' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
                           w.status === 'rejected' || w.status === 'refunded' ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30' :
                           w.status === 'processing' ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30' :
                           'bg-amber-500/15 text-amber-400 border border-amber-500/30'
@@ -1093,7 +1093,7 @@ export const AdminPaymentsScreen: React.FC = () => {
                               Reject & Refund
                             </button>
                           </div>
-                        ) : w.status === 'approved' || w.status === 'completed' ? (
+                        ) : w.status === 'approved' || w.status === 'completed' || w.status === 'successful' ? (
                           <span className="text-[11px] text-emerald-400 font-mono capitalize">Paid ({w.transferReference || 'Done'})</span>
                         ) : (
                           <span className="text-[11px] text-rose-400 font-mono capitalize" title={w.refundReason || 'Rejected'}>Refunded</span>
