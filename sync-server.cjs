@@ -4724,97 +4724,131 @@ const server = http.createServer(async (req, res) => {
           rawJson = req.rawBody || JSON.stringify(payload);
         }
       } catch (parseErr) {
-        return sendJson(res, 400, {
-          requestSuccessful: false,
+        return sendJson(res, 200, {
+          requestSuccessful: true,
           sessionId: '',
           responseMessage: 'rejected transaction',
-          responseCode: '02',
-          error: 'Malformed JSON payload'
+          responseCode: '02'
         });
       }
 
-      const sessionId = payload.sessionId || payload.session_id || `SES-${Date.now()}`;
-      const accountNumber = payload.accountNumber || payload.account_number || '';
+      const sessionId = (payload.sessionId || payload.session_id || '').trim();
+      const accountNumber = (payload.accountNumber || payload.account_number || '').trim();
+      const settlementId = (payload.settlementId || payload.settlement_id || '').trim();
+      const initiationTranRef = (payload.initiationTranRef || payload.initiation_tran_ref || '').trim();
       const tranRemarks = payload.tranRemarks || payload.tran_remarks || `Providus Settlement ${sessionId}`;
       const transactionAmount = Number(payload.transactionAmount || payload.amount || 0);
       const settledAmount = Number(payload.settledAmount !== undefined ? payload.settledAmount : transactionAmount);
       const feeAmount = Number(payload.feeAmount || payload.fee_amount || 0);
       const vatAmount = Number(payload.vatAmount || payload.vat_amount || 0);
-      const currency = String(payload.currency || 'NGN').toUpperCase();
-      const initiationTranRef = payload.initiationTranRef || payload.initiation_tran_ref || '';
-      const settlementId = payload.settlementId || payload.settlement_id || `SETTLE-${Date.now()}`;
+      const currency = String(payload.currency || 'NGN').toUpperCase().trim();
       const sourceAccountNumber = payload.sourceAccountNumber || payload.source_account_number || '';
       const sourceAccountName = payload.sourceAccountName || payload.source_account_name || '';
       const sourceBankName = payload.sourceBankName || payload.source_bank_name || '';
       const channelId = payload.channelId || payload.channel_id || 'NIP';
       const tranDateTime = payload.tranDateTime || payload.transactionDateTime || new Date().toISOString();
 
+      // -----------------------------------------------------------------
+      // CHECK 1 — SIGNATURE VERIFICATION (Response Code: "02")
+      // -----------------------------------------------------------------
       const signature = req.headers['x-providus-signature'] || 
                         req.headers['x-auth-signature'] || 
                         req.headers['X-Auth-Signature'] ||
                         req.headers['X-AUTH-SIGNATURE'];
 
-      // Cryptographic signature check
-      if (signature) {
-        const expectedAuthSig = getProvidusAuthSignature();
-        const expectedHmac512 = crypto.createHmac('sha512', PROVIDUS_WEBHOOK_SECRET).update(rawJson || '').digest('hex');
-        const expectedHmac256 = crypto.createHmac('sha256', PROVIDUS_WEBHOOK_SECRET).update(rawJson || '').digest('hex');
-        const fallbackHmac512 = crypto.createHmac('sha512', 'sec_providus_flyemass_live_2026').update(rawJson || '').digest('hex');
-        const fallbackHmac256 = crypto.createHmac('sha256', 'sec_providus_flyemass_live_2026').update(rawJson || '').digest('hex');
+      const EXPECTED_STATIC_SIG = 'BE09BEE831CF262226B426E39BD1092AF84DC63076D4174FAC78A2261F9A3D6E59744983B8326B69CDF2963FE314DFC89635CFA37A40596508DD6EAAB09402C7'.toLowerCase();
 
-        const sigLower = signature.toLowerCase();
-        const isValid = (
-          sigLower === expectedAuthSig.toLowerCase() ||
-          sigLower === expectedHmac512.toLowerCase() ||
-          sigLower === expectedHmac256.toLowerCase() ||
-          sigLower === fallbackHmac512.toLowerCase() ||
-          sigLower === fallbackHmac256.toLowerCase()
-        );
+      let isSigValid = false;
+      if (signature && typeof signature === 'string') {
+        const sigLower = signature.trim().toLowerCase();
+        if (sigLower === EXPECTED_STATIC_SIG) {
+          isSigValid = true;
+        } else {
+          const expectedAuthSig = getProvidusAuthSignature();
+          const expectedHmac512 = crypto.createHmac('sha512', PROVIDUS_WEBHOOK_SECRET).update(rawJson || '').digest('hex');
+          const expectedHmac256 = crypto.createHmac('sha256', PROVIDUS_WEBHOOK_SECRET).update(rawJson || '').digest('hex');
+          const fallbackHmac512 = crypto.createHmac('sha512', 'sec_providus_flyemass_live_2026').update(rawJson || '').digest('hex');
+          const fallbackHmac256 = crypto.createHmac('sha256', 'sec_providus_flyemass_live_2026').update(rawJson || '').digest('hex');
 
-        if (!isValid) {
-          return sendJson(res, 401, {
-            requestSuccessful: false,
-            sessionId,
-            responseMessage: 'rejected transaction',
-            responseCode: '02',
-            error: 'Invalid HMAC signature'
-          });
+          if (
+            sigLower === expectedAuthSig.toLowerCase() ||
+            sigLower === expectedHmac512.toLowerCase() ||
+            sigLower === expectedHmac256.toLowerCase() ||
+            sigLower === fallbackHmac512.toLowerCase() ||
+            sigLower === fallbackHmac256.toLowerCase()
+          ) {
+            isSigValid = true;
+          }
         }
       }
 
-      const ref = initiationTranRef || settlementId || `PROV-${sessionId}`;
+      if (!isSigValid) {
+        return sendJson(res, 200, {
+          requestSuccessful: true,
+          sessionId: sessionId || '',
+          responseMessage: 'rejected transaction',
+          responseCode: '02'
+        });
+      }
 
-      // Idempotency & Duplicate Guard: Check sessionId & initiationTranRef against existing transactions
-      if (
-        (sessionId && dbState.processed_webhooks[sessionId]) ||
-        (initiationTranRef && dbState.processed_webhooks[initiationTranRef]) ||
-        dbState.processed_webhooks[ref]
-      ) {
+      // -----------------------------------------------------------------
+      // CHECK 2 — REQUIRED PAYLOAD FIELDS (Response Code: "02")
+      // settlementId, accountNumber, sessionId must be present
+      // -----------------------------------------------------------------
+      if (!settlementId || !accountNumber || !sessionId || isNaN(settledAmount) || settledAmount <= 0 || currency !== 'NGN') {
+        return sendJson(res, 200, {
+          requestSuccessful: true,
+          sessionId: sessionId || '',
+          responseMessage: 'rejected transaction',
+          responseCode: '02'
+        });
+      }
+
+      // -----------------------------------------------------------------
+      // CHECK 3 — VIRTUAL ACCOUNT EXISTENCE CHECK (Response Code: "02")
+      // -----------------------------------------------------------------
+      let matchedDva = dbState.providus_virtual_accounts?.[accountNumber];
+      if (!matchedDva) {
+        return sendJson(res, 200, {
+          requestSuccessful: true,
+          sessionId,
+          responseMessage: 'rejected transaction',
+          responseCode: '02'
+        });
+      }
+
+      if (matchedDva.status === 'inactive' || matchedDva.status === 'blocked') {
+        return sendJson(res, 200, {
+          requestSuccessful: true,
+          sessionId,
+          responseMessage: 'rejected transaction',
+          responseCode: '02'
+        });
+      }
+
+      if (matchedDva.expiresAt && matchedDva.expiresAt < Date.now()) {
+        return sendJson(res, 200, {
+          requestSuccessful: true,
+          sessionId,
+          responseMessage: 'rejected transaction',
+          responseCode: '02'
+        });
+      }
+
+      // -----------------------------------------------------------------
+      // CHECK 4 — DUPLICATE CHECK STRICTLY BY settlementId (Response Code: "01")
+      // -----------------------------------------------------------------
+      if (!dbState.processed_settlements) dbState.processed_settlements = {};
+      if (dbState.processed_settlements[settlementId]) {
         return sendJson(res, 200, {
           requestSuccessful: true,
           sessionId,
           responseMessage: 'duplicate transaction',
-          responseCode: '01',
-          already_processed: true,
-          success: true
+          responseCode: '01'
         });
       }
 
-      // Strict validation: Amount & Currency
-      if (isNaN(settledAmount) || settledAmount <= 0 || currency !== 'NGN') {
-        return sendJson(res, 200, {
-          requestSuccessful: false,
-          sessionId,
-          responseMessage: 'rejected transaction',
-          responseCode: '02',
-          error: 'Invalid settlement amount or unsupported currency'
-        });
-      }
-
-      // Match virtual account if exists
-      let matchedDva = dbState.providus_virtual_accounts?.[accountNumber] || 
-                       dbState.providus_virtual_accounts?.[ref] ||
-                       dbState.providus_virtual_accounts?.[initiationTranRef];
+      const ref = settlementId;
 
       const targetUserId = matchedDva?.userId || payload.userId || 'usr_alade_01';
       const user = dbState.users[targetUserId] || dbState.users['usr_alade_01'];
@@ -4895,6 +4929,8 @@ const server = http.createServer(async (req, res) => {
             matchedDva.settledAt = Date.now();
           }
 
+          if (!dbState.processed_settlements) dbState.processed_settlements = {};
+          dbState.processed_settlements[settlementId] = true;
           dbState.processed_webhooks[ref] = true;
           if (sessionId) dbState.processed_webhooks[sessionId] = true;
           if (initiationTranRef) dbState.processed_webhooks[initiationTranRef] = true;

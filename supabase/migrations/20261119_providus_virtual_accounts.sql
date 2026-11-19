@@ -46,3 +46,22 @@ DO $$ BEGIN
     USING (true) WITH CHECK (true);
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
+
+-- Providus Settlements Table for strict settlementId idempotency tracking
+CREATE TABLE IF NOT EXISTS public.providus_settlements (
+  settlement_id TEXT PRIMARY KEY,
+  session_id TEXT,
+  account_number TEXT,
+  amount NUMERIC,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE public.providus_settlements ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  CREATE POLICY "Service role full access to settlements" 
+    ON public.providus_settlements FOR ALL 
+    TO service_role 
+    USING (true) WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;

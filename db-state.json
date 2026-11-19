@@ -97,7 +97,7 @@
       "role": "client",
       "createdAt": 1791047745841,
       "balances": {
-        "NGN": 175384475,
+        "NGN": 175434475,
         "CNY": 1659278.07,
         "USD": 18595
       },
@@ -46402,6 +46402,54 @@
           "tranDateTime": "2026-11-19T08:28:28.111Z"
         }
       }
+    },
+    "je_1795084747753_905": {
+      "id": "je_1795084747753_905",
+      "reference": "SET_LOC_01",
+      "timestamp": 1795084747753,
+      "userId": "usr_alade_01",
+      "transactionType": "FUND",
+      "description": "Providus Virtual Direct Account Transfer (9917273343)",
+      "postings": [
+        {
+          "account": "assets:bank:providus_clearing:ngn",
+          "currency": "NGN",
+          "debit": 50000,
+          "credit": 0
+        },
+        {
+          "account": "liabilities:customer:usr_alade_01:ngn",
+          "currency": "NGN",
+          "debit": 0,
+          "credit": 50000
+        }
+      ],
+      "metadata": {
+        "provider": "Providus",
+        "sessionId": "LOC_01",
+        "accountNumber": "9917273343",
+        "tranRemarks": "Providus Settlement LOC_01",
+        "transactionAmount": 50000,
+        "settledAmount": 50000,
+        "feeAmount": 0,
+        "vatAmount": 0,
+        "currency": "NGN",
+        "initiationTranRef": "",
+        "settlementId": "SET_LOC_01",
+        "sourceAccountNumber": "",
+        "sourceAccountName": "",
+        "sourceBankName": "",
+        "channelId": "NIP",
+        "tranDateTime": "2026-11-19T10:39:07.753Z",
+        "payload": {
+          "sessionId": "LOC_01",
+          "accountNumber": "9917273343",
+          "settlementId": "SET_LOC_01",
+          "transactionAmount": 50000,
+          "settledAmount": 50000,
+          "currency": "NGN"
+        }
+      }
     }
   },
   "wallets_ledger": {
@@ -71242,6 +71290,21 @@
       "reference": "FLY-DVA-1795076906808-T946A",
       "timestamp": 1795076908666,
       "notes": "Providus NIP virtual settlement confirmed (FLY-DVA-1795076906808-T946A)"
+    },
+    "ldg_1795084747754": {
+      "id": "ldg_1795084747754",
+      "userId": "usr_alade_01",
+      "type": "FUND",
+      "sourceCurrency": "NGN",
+      "targetCurrency": "NGN",
+      "amount": 50000,
+      "fee": 0,
+      "openingBalance": 175384475,
+      "closingBalance": 175434475,
+      "status": "completed",
+      "reference": "SET_LOC_01",
+      "timestamp": 1795084747754,
+      "notes": "Providus NIP virtual settlement confirmed (SET_LOC_01)"
     }
   },
   "shipments": {
@@ -123308,9 +123371,31 @@
     "FLY-DVA-LOCAL-1795076901572": true,
     "LOCAL_UAT_1795076901572": true,
     "FLY-DVA-1795076906808-T946A": true,
-    "SES-PROV-1795076908111": true
+    "SES-PROV-1795076908111": true,
+    "SET_LOC_01": true,
+    "LOC_01": true
   },
   "webhook_events": [
+    {
+      "id": "whk_1795084747754_plvb",
+      "provider": "Providus",
+      "reference": "SET_LOC_01",
+      "sessionId": "LOC_01",
+      "amount": 50000,
+      "currency": "NGN",
+      "status": "SUCCESS",
+      "timestamp": 1795084747754,
+      "accountNumber": "9917273343",
+      "tranRemarks": "Providus Settlement LOC_01",
+      "feeAmount": 0,
+      "vatAmount": 0,
+      "sourceAccountNumber": "",
+      "sourceAccountName": "",
+      "sourceBankName": "",
+      "channelId": "NIP",
+      "tranDateTime": "2026-11-19T10:39:07.753Z",
+      "userId": "usr_alade_01"
+    },
     {
       "id": "whk_1795076908666_xuec",
       "provider": "Providus",
@@ -164357,6 +164442,19 @@
       "ipAddress": "127.0.0.1",
       "previousHash": "418cdc371628cfa1d9a3ba053d998495f1afaf671ffcd063c2a0ef1929076df8",
       "hash": "84f0cb34e134af984b91c8078380266762d341478ec929f7a3577fc9d09e039a"
+    },
+    {
+      "id": "log_1795084747754_4525",
+      "adminId": "sys",
+      "adminName": "Providus Webhook Engine",
+      "action": "PAYMENT_CREDITED",
+      "targetCollection": "wallets_ledger",
+      "targetId": "ldg_1795084747754",
+      "details": "Credited ₦50000 via Providus webhook (SET_LOC_01)",
+      "timestamp": 1795084747754,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "84f0cb34e134af984b91c8078380266762d341478ec929f7a3577fc9d09e039a",
+      "hash": "3949df8ca3e8072f376254439cd2f57d93f36d5ee6d07ab712df19c4d08f1177"
     }
   ],
   "manual_payments": {
@@ -189786,18 +189884,18 @@
       "expectedAmount": 0,
       "currency": "NGN",
       "status": "settled",
-      "expiresAt": 1797668866425,
-      "createdAt": 1795076866425,
+      "expiresAt": 1797676634189,
+      "createdAt": 1795084634189,
       "apiEndpoint": "http://102.209.190.54:8088/appdevapi/api/PiPCreateDynamicAccountNumber",
-      "settledAmount": 100000,
-      "settlementId": "SETTLE_UAT_1795076898741",
-      "sessionId": "LOCAL_UAT_1795076901572",
-      "sourceAccountNumber": "0123456789",
-      "sourceAccountName": "Providus Bank UAT Simulator",
-      "sourceBankName": "Providus Bank",
+      "settledAmount": 50000,
+      "settlementId": "SET_LOC_01",
+      "sessionId": "LOC_01",
+      "sourceAccountNumber": "",
+      "sourceAccountName": "",
+      "sourceBankName": "",
       "channelId": "NIP",
-      "tranRemarks": "TRF/NIP/PROVIDUS_UAT/FLY-DVA-UAT-9917273343",
-      "settledAt": 1795076901579
+      "tranRemarks": "Providus Settlement LOC_01",
+      "settledAt": 1795084747754
     },
     "FLY-DVA-UAT-9917273343": {
       "id": "dva_providus_uat_9917273343",
@@ -189811,18 +189909,18 @@
       "expectedAmount": 0,
       "currency": "NGN",
       "status": "settled",
-      "expiresAt": 1797668866425,
-      "createdAt": 1795076866425,
+      "expiresAt": 1797676634189,
+      "createdAt": 1795084634189,
       "apiEndpoint": "http://102.209.190.54:8088/appdevapi/api/PiPCreateDynamicAccountNumber",
-      "settledAmount": 100000,
-      "settlementId": "SETTLE_UAT_1795076898741",
-      "sessionId": "LOCAL_UAT_1795076901572",
-      "sourceAccountNumber": "0123456789",
-      "sourceAccountName": "Providus Bank UAT Simulator",
-      "sourceBankName": "Providus Bank",
+      "settledAmount": 50000,
+      "settlementId": "SET_LOC_01",
+      "sessionId": "LOC_01",
+      "sourceAccountNumber": "",
+      "sourceAccountName": "",
+      "sourceBankName": "",
       "channelId": "NIP",
-      "tranRemarks": "TRF/NIP/PROVIDUS_UAT/FLY-DVA-UAT-9917273343",
-      "settledAt": 1795076901579
+      "tranRemarks": "Providus Settlement LOC_01",
+      "settledAt": 1795084747754
     },
     "FLY-DVA-1795076906808-T946A": {
       "id": "dva_1795076906808_t946a",
@@ -190000,5 +190098,8 @@
       "approved_at": "2026-11-19T06:29:35.923Z",
       "approved_by_device_id": "dev_test_b_1795069775738"
     }
+  },
+  "processed_settlements": {
+    "SET_LOC_01": true
   }
 }
