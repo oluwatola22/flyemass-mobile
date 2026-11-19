@@ -53,17 +53,49 @@ export const AdminKycComplianceScreen: React.FC = () => {
   const [rejectionReason, setRejectionReason] = useState(REJECTION_PRESETS[0]);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
 
+  const [counts, setCounts] = useState<{ all: number; pending: number; verified: number; rejected: number }>({
+    all: 0,
+    pending: 0,
+    verified: 0,
+    rejected: 0
+  });
+
   const loadSubmissions = async () => {
     setIsLoading(true);
     try {
       const res = await db.fetchKycSubmissions(statusFilter);
       if (res.success && res.submissions) {
         setSubmissions(res.submissions);
+        if (res.counts) {
+          setCounts(res.counts);
+        } else {
+          const all = db.getKycSubmissions();
+          setCounts({
+            all: all.length,
+            pending: all.filter(s => s.status === 'pending').length,
+            verified: all.filter(s => s.status === 'verified').length,
+            rejected: all.filter(s => s.status === 'rejected').length
+          });
+        }
       } else {
-        setSubmissions(db.getKycSubmissions());
+        const all = db.getKycSubmissions();
+        setSubmissions(statusFilter === 'all' ? all : all.filter(s => s.status === statusFilter));
+        setCounts({
+          all: all.length,
+          pending: all.filter(s => s.status === 'pending').length,
+          verified: all.filter(s => s.status === 'verified').length,
+          rejected: all.filter(s => s.status === 'rejected').length
+        });
       }
     } catch {
-      setSubmissions(db.getKycSubmissions());
+      const all = db.getKycSubmissions();
+      setSubmissions(statusFilter === 'all' ? all : all.filter(s => s.status === statusFilter));
+      setCounts({
+        all: all.length,
+        pending: all.filter(s => s.status === 'pending').length,
+        verified: all.filter(s => s.status === 'verified').length,
+        rejected: all.filter(s => s.status === 'rejected').length
+      });
     } finally {
       setIsLoading(false);
     }
@@ -72,19 +104,10 @@ export const AdminKycComplianceScreen: React.FC = () => {
   useEffect(() => {
     loadSubmissions();
     const unsub = db.subscribe(() => {
-      setSubmissions(db.getKycSubmissions());
+      loadSubmissions();
     });
     return () => unsub();
   }, [statusFilter]);
-
-  // Real-time Counts
-  const allSubmissions = db.getKycSubmissions();
-  const counts = useMemo(() => ({
-    all: allSubmissions.length,
-    pending: allSubmissions.filter(s => s.status === 'pending').length,
-    verified: allSubmissions.filter(s => s.status === 'verified').length,
-    rejected: allSubmissions.filter(s => s.status === 'rejected').length
-  }), [allSubmissions]);
 
   // Filtered List
   const filteredSubmissions = useMemo(() => {
@@ -295,7 +318,7 @@ export const AdminKycComplianceScreen: React.FC = () => {
         {/* Filter Tabs & Search Bar */}
         <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Tabs */}
-          <div className="flex items-center gap-1.5 p-1 bg-slate-950 rounded-2xl border border-slate-800 w-full md:w-auto overflow-x-auto">
+          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-950 rounded-2xl border border-slate-800 w-full md:w-auto">
             {(['all', 'pending', 'verified', 'rejected'] as const).map((tab) => (
               <button
                 key={tab}
@@ -347,16 +370,16 @@ export const AdminKycComplianceScreen: React.FC = () => {
           </div>
         ) : (
           <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full min-w-[850px] text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-800 bg-slate-950/60 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                    <th className="py-3.5 px-4">Applicant & User ID</th>
-                    <th className="py-3.5 px-4">Government ID Details</th>
-                    <th className="py-3.5 px-4">Document Scans</th>
-                    <th className="py-3.5 px-4">Submission Date</th>
-                    <th className="py-3.5 px-4">Status & Gating</th>
-                    <th className="py-3.5 px-4 text-right">Actions</th>
+                    <th className="py-3.5 px-4 min-w-[200px]">Applicant & User ID</th>
+                    <th className="py-3.5 px-4 min-w-[160px]">Government ID Details</th>
+                    <th className="py-3.5 px-4 min-w-[140px]">Document Scans</th>
+                    <th className="py-3.5 px-4 min-w-[120px]">Submission Date</th>
+                    <th className="py-3.5 px-4 min-w-[130px]">Status & Gating</th>
+                    <th className="py-3.5 px-4 text-right min-w-[160px] sticky right-0 bg-slate-950/90 backdrop-blur-md border-l border-slate-800/80 z-10">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/80 text-xs">
@@ -498,7 +521,7 @@ export const AdminKycComplianceScreen: React.FC = () => {
                         </td>
 
                         {/* Action Buttons */}
-                        <td className="py-4 px-4 text-right whitespace-nowrap">
+                        <td className="py-4 px-4 text-right whitespace-nowrap sticky right-0 bg-slate-900/95 backdrop-blur-md border-l border-slate-800/80 z-10">
                           <div className="flex items-center justify-end gap-2">
                             {/* Inspect Drawer / Modal */}
                             <button

@@ -196,11 +196,22 @@ export const KycScreen: React.FC = () => {
   };
 
   const handleSimulate = async (status: KycStatus) => {
-    const res = await db.simulateKycStatus(activeUserId, status);
-    if (res.success) {
-      showToast(`Simulated status: ${status.toUpperCase()}`, 'info');
-      await loadStatus();
-    }
+    // Instant optimistic update for immediate UI feedback
+    setKycData(prev => ({
+      ...prev,
+      status,
+      verifiedBadge: status === 'verified',
+      rejectionReason: status === 'rejected' ? 'Government ID scan was blurry or unreadable. Please upload a clear flat photo.' : undefined
+    }));
+    setIsResubmitting(false);
+    showToast(`Simulated status: ${status.toUpperCase()}`, 'info');
+
+    try {
+      const res = await db.simulateKycStatus(activeUserId, status);
+      if (res.success) {
+        await loadStatus();
+      }
+    } catch (_) {}
   };
 
   const isFormVisible = kycData.status === 'unverified' || kycData.status === 'rejected' || isResubmitting;

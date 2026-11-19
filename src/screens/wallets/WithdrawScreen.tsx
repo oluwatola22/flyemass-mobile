@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp } from '../../context/AppContext';
 import { Header } from '../../components/layout/Header';
 import { PinPad } from '../../components/ui/PinPad';
@@ -138,7 +139,19 @@ export const WithdrawScreen: React.FC = () => {
   const [submissionReceipt, setSubmissionReceipt] = useState<any | null>(null);
 
   // KYC Verification Compliance Gating Check
-  const kycInfo = db.getKycStatus(activeUserId);
+  const [kycInfo, setKycInfo] = useState(() => db.getKycStatus(activeUserId));
+
+  useEffect(() => {
+    setKycInfo(db.getKycStatus(activeUserId));
+    db.fetchKycStatus(activeUserId).then(() => {
+      setKycInfo(db.getKycStatus(activeUserId));
+    });
+    const unsub = db.subscribe(() => {
+      setKycInfo(db.getKycStatus(activeUserId));
+    });
+    return () => unsub();
+  }, [activeUserId]);
+
   const isKycVerified = kycInfo.status === 'verified';
 
   // Naira Wallet Balance
@@ -237,7 +250,8 @@ export const WithdrawScreen: React.FC = () => {
   };
 
   const handleInitiateReview = () => {
-    if (!isKycVerified) {
+    const liveKyc = db.getKycStatus(activeUserId);
+    if (liveKyc.status !== 'verified') {
       setShowKycRestrictionModal(true);
       return;
     }
@@ -901,8 +915,8 @@ export const WithdrawScreen: React.FC = () => {
       )}
 
       {/* Compliance Gating Restriction Modal */}
-      {showKycRestrictionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+      {showKycRestrictionModal && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
           <div className="w-full max-w-sm bg-slate-900 border border-amber-500/30 rounded-3xl p-6 shadow-2xl space-y-4 text-center">
             <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mx-auto">
               <ShieldAlert className="w-7 h-7" />
@@ -939,7 +953,8 @@ export const WithdrawScreen: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

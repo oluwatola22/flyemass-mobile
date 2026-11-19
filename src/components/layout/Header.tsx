@@ -109,7 +109,8 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title, onBack }) => {
   // If on sub-page with back button or specific page title
   const isSubPage = Boolean(title) || showBack || currentRoute !== 'home';
   const translatedTitle = getRouteTitle ? getRouteTitle(currentRoute) : '';
-  const displayTitle = translatedTitle || title || (currentRoute === 'cart' && cart?.length > 0 
+  const validTranslatedTitle = (translatedTitle && !translatedTitle.startsWith('route.')) ? translatedTitle : '';
+  const displayTitle = title || validTranslatedTitle || (currentRoute === 'cart' && cart?.length > 0 
     ? `${t('route.cart', 'Shopping Cart')} (${cart.length} ${cart.length === 1 ? 'item' : 'items'})` 
     : (ROUTE_TITLES[currentRoute] || currentRoute.replace('-', ' ').toUpperCase()));
 
