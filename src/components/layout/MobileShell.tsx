@@ -66,6 +66,7 @@ import { SuppliersScreen } from '../../screens/suppliers/SuppliersScreen';
 import { AgentServiceScreen } from '../../screens/suppliers/AgentServiceScreen';
 import { ProcureScreen } from '../../screens/suppliers/ProcureScreen';
 import { CacRegistrationScreen } from '../../screens/services/CacRegistrationScreen';
+import { BillsScreen } from '../../screens/services/BillsScreen';
 
 // Section 7: China Business Hotels & Realty
 import { HotelsScreen } from '../../screens/hotels/HotelsScreen';
@@ -331,6 +332,7 @@ export const MobileShell: React.FC = () => {
       case 'pay': return <PaySupplierScreen />;
       case 'exchange': return <ExchangeScreen />;
       case 'withdraw': return <WithdrawScreen />;
+      case 'bills': return <BillsScreen />;
 
       // 4. Logistics & Cargo Tracking
       case 'track': return <TrackShipmentScreen />;
@@ -395,6 +397,7 @@ export const MobileShell: React.FC = () => {
     { label: '/pay (Alipay, WeChat, Bank)', route: 'pay', group: '3. Banking & Money' },
     { label: '/withdraw (Nigerian NUBAN Payout)', route: 'withdraw', group: '3. Banking & Money' },
     { label: '/exchange (Real-Time FX Swap)', route: 'exchange', group: '3. Banking & Money' },
+    { label: '/bills (Airtime, Data & Utility Bills)', route: 'bills', group: '3. Banking & Money' },
 
     // 4. Logistics & Cargo Tracking
     { label: '/logistics (Guangzhou & Yiwu Hubs)', route: 'logistics', group: '4. Logistics & Cargo' },

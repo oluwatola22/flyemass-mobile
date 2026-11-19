@@ -47,11 +47,13 @@ export type ScreenRoute =
   | 'privacy'
   | 'delete-account'
   | 'cac-registration'
+  | 'bills'
   | 'schema-inspector'
   // Web Admin Dashboard Routes
   | 'admin-login'
   | 'admin-dashboard'
   | 'admin-services-cac'
+  | 'admin-services-bills'
   | 'admin-kyc-compliance'
   | 'admin-warehouses'
   | 'admin-lagos-hubs'
@@ -1490,3 +1492,118 @@ export interface CacRegistrationDocument {
   createdAt: number;
   updatedAt: number;
 }
+
+// -------------------------------------------------------------------------
+// NIGERIAN VTU & UTILITIES BILLS ENGINE TYPES
+// -------------------------------------------------------------------------
+
+export type BillCategory = 'airtime' | 'data' | 'electricity' | 'cable_tv';
+
+export type NigerianNetwork = 'MTN' | 'Airtel' | 'Glo' | '9mobile';
+
+export type ElectricityDisco = 
+  | 'IKEDC' 
+  | 'EKEDC' 
+  | 'AEDC' 
+  | 'IBEDC' 
+  | 'EEDC' 
+  | 'PHED' 
+  | 'KEDCO' 
+  | 'KAEDCO' 
+  | 'JEDC' 
+  | 'BEDC' 
+  | 'YEDC';
+
+export type CableTvProvider = 'DStv' | 'GOtv' | 'Startimes';
+
+export interface BillPlanDocument {
+  id: string;
+  category: BillCategory;
+  provider: string;
+  network_or_provider?: string;
+  plan_code: string;
+  plan_name: string;
+  duration_type?: 'daily' | 'weekly' | 'monthly' | 'sme';
+  validity: string;
+  cost_price: number;
+  vendor_cost_ngn?: number;
+  selling_price: number;
+  selling_price_ngn?: number;
+  is_active: boolean;
+  created_at?: string | number;
+  updated_at?: string | number;
+}
+
+export interface BillTransactionDocument {
+  id: string;
+  user_id: string;
+  reference: string;
+  category: BillCategory;
+  provider: string;
+  recipient_number: string;
+  recipient_name?: string;
+  customer_name?: string;
+  customer_address?: string;
+  package_name?: string;
+  plan_code?: string;
+  plan_name?: string;
+  amount_ngn: number;
+  fee_ngn: number;
+  discount_ngn?: number;
+  total_debited_ngn: number;
+  status: 'pending' | 'successful' | 'failed' | 'refunded';
+  meter_token?: string;
+  token?: string;
+  meterToken?: string;
+  units_kwh?: number;
+  vendor_reference?: string;
+  vendor_response?: any;
+  raw_response?: any;
+  admin_notes?: string;
+  refund_reason?: string;
+  created_at: string | number;
+  createdAt?: string | number;
+  updated_at?: string | number;
+}
+
+export interface BillProviderConfigDocument {
+  id?: string;
+  provider_name?: string;
+  active_provider: 'simulated' | 'vtpass' | 'clubkonnect';
+  base_url?: string;
+  api_base_url?: string;
+  api_key?: string;
+  api_key_encrypted?: string;
+  api_secret?: string;
+  secret_key_encrypted?: string;
+  public_key?: string;
+  is_live?: boolean;
+  airtime_discount_pct?: number;
+  airtime_discount_percentage: number;
+  utility_convenience_fee_ngn?: number;
+  convenience_fee_ngn: number;
+  enabled_networks?: string[];
+  enabled_categories?: string[];
+  enabled_services?: Record<string, boolean>;
+  created_at?: string | number;
+  updated_at?: string | number;
+}
+
+export interface CustomerVerificationResult {
+  success: boolean;
+  customerName: string;
+  address?: string;
+  customerNumber: string;
+  meterNumber?: string;
+  smartcardNumber?: string;
+  meterType?: 'Prepaid' | 'Postpaid';
+  disco?: string;
+  provider?: string;
+  currentBouquet?: string;
+  dueDate?: string;
+  minVendAmount?: number;
+  tariffClass?: string;
+  verifiedAt: string;
+  error?: string;
+}
+

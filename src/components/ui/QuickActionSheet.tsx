@@ -16,7 +16,8 @@ import {
   Headphones,
   ShieldCheck,
   Truck,
-  Home
+  Home,
+  Zap
 } from 'lucide-react';
 import { ScreenRoute } from '../../types';
 
@@ -57,6 +58,14 @@ export const QuickActionSheet: React.FC = () => {
       icon: Download,
       color: 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20',
       route: 'withdraw' as ScreenRoute,
+      cat: 'money'
+    },
+    {
+      title: 'Airtime, Data & Utility Bills',
+      subtitle: 'MTN, Airtel, Glo, DISCOs & Cable TV',
+      icon: Zap,
+      color: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+      route: 'bills' as ScreenRoute,
       cat: 'money'
     },
     {

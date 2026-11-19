@@ -27,6 +27,7 @@ import { AdminCommunicationsScreen } from '../../screens/admin/AdminCommunicatio
 import { AdminTeamScreen } from '../../screens/admin/AdminTeamScreen';
 import { DatabaseViewerScreen } from '../../screens/admin/DatabaseViewerScreen';
 import { AdminCacServicesScreen } from '../../screens/admin/AdminCacServicesScreen';
+import { AdminBillsServicesScreen } from '../../screens/admin/AdminBillsServicesScreen';
 import { AdminKycComplianceScreen } from '../../screens/admin/AdminKycComplianceScreen';
 import { AdminAccessDeniedScreen } from '../../screens/admin/AdminAccessDeniedScreen';
 import { AdminModulePermission, firebaseSync } from '../../services/firebase';
@@ -34,6 +35,7 @@ import { db } from '../../services/db';
 
 const ROUTE_TO_ADMIN_TAB: Record<string, string> = {
   'admin-dashboard': 'dashboard',
+  'admin-services-bills': 'services-bills',
   'admin-services-cac': 'services-cac',
   'admin-kyc-compliance': 'kyc-compliance',
   'admin-users': 'users',
@@ -110,6 +112,8 @@ const ROUTE_REQUIRED_PERMISSION: Record<string, AdminModulePermission | 'super_a
   'admin-rentals-apartments': 'commerce',
   'admin-rentals-offices': 'commerce',
   'admin-suppliers': 'commerce',
+  'admin-services-bills': 'commerce',
+  'admin-services-cac': 'commerce',
 
   // Staff Governance & RBAC (Requires super_admin)
   'admin-team': 'super_admin',
@@ -226,6 +230,8 @@ export const AdminShell: React.FC = () => {
         return <AdminSupportScreen />;
       case 'admin-communications':
         return <AdminCommunicationsScreen />;
+      case 'admin-services-bills':
+        return <AdminBillsServicesScreen />;
       case 'admin-services-cac':
         return <AdminCacServicesScreen />;
       case 'admin-kyc-compliance':

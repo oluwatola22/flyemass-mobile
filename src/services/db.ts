@@ -28,7 +28,12 @@ import {
   CacApplicationStatus,
   KycIdType,
   KycStatus,
-  KycSubmissionDocument
+  KycSubmissionDocument,
+  BillPlanDocument,
+  BillTransactionDocument,
+  BillProviderConfigDocument,
+  CustomerVerificationResult,
+  BillCategory
 } from '../types';
 import { TECH_PRODUCTS } from '../data/mockData';
 import {
@@ -121,6 +126,9 @@ export interface DatabaseState {
   cac_registrations?: Record<string, CacRegistrationDocument>;
   kyc_submissions?: Record<string, KycSubmissionDocument>;
   providus_virtual_accounts?: Record<string, any>;
+  bill_provider_config?: BillProviderConfigDocument;
+  bill_plans?: Record<string, BillPlanDocument>;
+  bill_transactions?: Record<string, BillTransactionDocument>;
 }
 
 import { getBackendBaseUrl } from '../utils/environment';
@@ -1584,7 +1592,27 @@ export const INITIAL_DATABASE: DatabaseState = {
     }
   ],
   double_entry_ledger: {},
-  notifications: []
+  notifications: [],
+  bill_plans: {},
+  bill_transactions: {},
+  bill_provider_config: {
+    active_provider: 'simulated',
+    airtime_discount_percentage: 2.0,
+    convenience_fee_ngn: 100,
+    base_url: 'https://api.vtpass.com/api',
+    enabled_networks: ['MTN', 'Airtel', 'Glo', '9mobile'],
+    enabled_categories: ['airtime', 'data', 'electricity', 'cable_tv'],
+    enabled_services: {
+      airtime: true,
+      data: true,
+      electricity: true,
+      cable_tv: true,
+      mtn: true,
+      airtel: true,
+      glo: true,
+      '9mobile': true
+    }
+  }
 };
 
 class DatabaseService {
@@ -7094,6 +7122,263 @@ class DatabaseService {
         this.notifyListeners();
       }
       return { success: true, status };
+    }
+  }
+  // =========================================================================
+  // NIGERIAN AIRTIME, MOBILE DATA & UTILITIES BILLS ENGINE
+  // =========================================================================
+
+  public async getBillPlans(category?: string, provider?: string): Promise<BillPlanDocument[]> {
+    try {
+      let url = `${BACKEND_BASE}/api/bills/plans`;
+      const params = new URLSearchParams();
+      if (category) params.set('category', category);
+      if (provider) params.set('provider', provider);
+      if (params.toString()) url += `?${params.toString()}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+      if (res.ok && data.success && Array.isArray(data.plans)) {
+        return data.plans;
+      }
+    } catch (_err) {
+      // Fallback to local state
+    }
+    const plans = Object.values(this.state.bill_plans || {}) as BillPlanDocument[];
+    return plans.filter(p => {
+      if (category && p.category !== category) return false;
+      if (provider && p.network_or_provider?.toLowerCase() !== provider.toLowerCase()) return false;
+      return true;
+    });
+  }
+
+  public async getBillConfig(): Promise<BillProviderConfigDocument> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/bills/config`);
+      const data = await res.json();
+      if (res.ok && data.success && data.config) {
+        return data.config;
+      }
+    } catch (_err) {
+      // Fallback
+    }
+    return (this.state.bill_provider_config || {
+      id: 'default_vtu_config',
+      provider_name: 'VTpass',
+      base_url: 'https://api-service.vtpass.com/api/',
+      is_live: false,
+      airtime_discount_pct: 2.0,
+      utility_convenience_fee_ngn: 100.0,
+      enabled_networks: ['MTN', 'Airtel', 'Glo', '9mobile'],
+      enabled_categories: ['airtime', 'data', 'electricity', 'cable_tv']
+    }) as BillProviderConfigDocument;
+  }
+
+  public async validateCustomer(
+    category: string,
+    provider: string,
+    customerNumber: string,
+    meterType: 'Prepaid' | 'Postpaid' = 'Prepaid'
+  ): Promise<CustomerVerificationResult> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/bills/validate-customer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category, provider, customerNumber, meterType })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        return data as CustomerVerificationResult;
+      }
+      return {
+        success: false,
+        customerName: '',
+        customerNumber,
+        error: data.error || 'Failed to verify customer number',
+        verifiedAt: new Date().toISOString()
+      };
+    } catch (err: any) {
+      return {
+        success: true,
+        customerName: 'Chief Babatunde Alade',
+        address: 'Plot 14B, Adeola Odeku Street, Victoria Island, Lagos',
+        customerNumber,
+        meterNumber: customerNumber,
+        meterType,
+        disco: provider,
+        verifiedAt: new Date().toISOString()
+      };
+    }
+  }
+
+  public async vendBill(params: {
+    userId: string;
+    pin?: string;
+    category: BillCategory;
+    provider: string;
+    recipientNumber: string;
+    recipientName?: string;
+    planCode?: string;
+    planName?: string;
+    amount: number;
+    fee?: number;
+    meterType?: 'Prepaid' | 'Postpaid';
+    simulateFailure?: boolean;
+  }): Promise<{
+    success: boolean;
+    status?: string;
+    reference?: string;
+    meterToken?: string;
+    unitsKwh?: number;
+    billTransaction?: BillTransactionDocument;
+    newBalance?: number;
+    error?: string;
+    refunded?: boolean;
+  }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/bills/vend`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      const data = await res.json();
+
+      if (data.newBalance !== undefined && this.state.users[params.userId]) {
+        this.state.users[params.userId].balances.NGN = data.newBalance;
+        this.persist();
+        this.notifyListeners();
+      }
+
+      return data;
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error executing bill payment' };
+    }
+  }
+
+  public async getBillTransactions(userId?: string): Promise<BillTransactionDocument[]> {
+    const uid = userId || 'usr_alade_01';
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/bills/transactions?userId=${uid}`);
+      const data = await res.json();
+      if (res.ok && data.success && Array.isArray(data.transactions)) {
+        return data.transactions;
+      }
+    } catch (_err) {
+      // Fallback
+    }
+    const all = Object.values(this.state.bill_transactions || {}) as BillTransactionDocument[];
+    return all.filter(t => (t as any).userId === uid || t.user_id === uid);
+  }
+
+  public async adminGetAllBills(): Promise<{
+    success: boolean;
+    transactions: BillTransactionDocument[];
+    stats: any;
+    config: BillProviderConfigDocument;
+    plans: BillPlanDocument[];
+  }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/bills/all`);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        return data;
+      }
+    } catch (_err) {
+      // Fallback
+    }
+    const txs = Object.values(this.state.bill_transactions || {}) as BillTransactionDocument[];
+    return {
+      success: true,
+      transactions: txs,
+      stats: {
+        totalVolumeNGN: txs.reduce((acc, t) => acc + (t.amount_ngn || (t as any).amountNGN || 0), 0),
+        totalTransactions: txs.length,
+        successfulCount: txs.filter(t => t.status === 'successful').length,
+        refundedCount: txs.filter(t => t.status === 'refunded').length,
+        categoryBreakdown: { airtime: 1, data: 0, electricity: 1, cable_tv: 0 }
+      },
+      config: (this.state.bill_provider_config || {}) as BillProviderConfigDocument,
+      plans: Object.values(this.state.bill_plans || {}) as BillPlanDocument[]
+    };
+  }
+
+  public async adminUpdateBillConfig(updates: Partial<BillProviderConfigDocument>): Promise<{ success: boolean; config?: BillProviderConfigDocument; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/bills/config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        this.state.bill_provider_config = data.config;
+        this.persist();
+        this.notifyListeners();
+        return { success: true, config: data.config };
+      }
+      return { success: false, error: data.error };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  }
+
+  public async adminSaveBillPlan(plan: Partial<BillPlanDocument>): Promise<{ success: boolean; plan?: BillPlanDocument; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/bills/plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(plan)
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (!this.state.bill_plans) this.state.bill_plans = {};
+        this.state.bill_plans[data.plan.id] = data.plan;
+        this.persist();
+        this.notifyListeners();
+        return { success: true, plan: data.plan };
+      }
+      return { success: false, error: data.error };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  }
+
+  public async adminToggleBillPlan(planId: string, isActive: boolean): Promise<{ success: boolean; plan?: BillPlanDocument; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/bills/plan-toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId, isActive })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (this.state.bill_plans?.[planId]) {
+          this.state.bill_plans[planId].is_active = isActive;
+          this.persist();
+          this.notifyListeners();
+        }
+        return { success: true, plan: data.plan };
+      }
+      return { success: false, error: data.error };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  }
+
+  public async adminRefundBill(reference: string, reason?: string): Promise<{ success: boolean; transaction?: BillTransactionDocument; newBalance?: number; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/bills/refund`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reference, reason })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        return { success: true, transaction: data.transaction, newBalance: data.newBalance };
+      }
+      return { success: false, error: data.error };
+    } catch (err: any) {
+      return { success: false, error: err.message };
     }
   }
 }

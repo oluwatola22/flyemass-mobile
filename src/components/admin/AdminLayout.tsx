@@ -39,7 +39,8 @@ import {
   ChevronDown,
   Terminal,
   Clock,
-  FileCheck
+  FileCheck,
+  Zap
 } from 'lucide-react';
 import { ScreenRoute } from '../../types';
 
@@ -389,6 +390,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
       section: 'commerce',
       route: 'admin-rentals-offices' as ScreenRoute,
       icon: Briefcase
+    },
+    {
+      id: 'services-bills',
+      label: 'Airtime, Data & VTU Bills',
+      shortLabel: 'VTU & Bills',
+      path: '/admin/services/bills',
+      section: 'commerce',
+      route: 'admin-services-bills' as ScreenRoute,
+      icon: Zap
     },
     {
       id: 'services-cac',

@@ -160,6 +160,7 @@ const ROUTE_TO_PATH: Record<ScreenRoute, string> = {
   pay: '/pay',
   exchange: '/exchange',
   withdraw: '/withdraw',
+  bills: '/bills',
 
   // 4. Logistics & Cargo Tracking
   logistics: '/logistics',
@@ -208,6 +209,7 @@ const ROUTE_TO_PATH: Record<ScreenRoute, string> = {
   // 10. Web Admin Dashboard
   'admin-dashboard': '/admin',
   'admin-login': '/admin/login',
+  'admin-services-bills': '/admin/services/bills',
   'admin-services-cac': '/admin/services/cac',
   'admin-kyc-compliance': '/admin/compliance/kyc',
   'admin-users': '/admin/users',
@@ -264,6 +266,7 @@ const getInitialRoute = (): ScreenRoute => {
     if (path === '/checkout' || path === '/shop/checkout') return 'checkout';
     if (path === '/shop/product' || path.startsWith('/shop/product') || path === '/product' || path.startsWith('/product')) return 'product-detail';
     if (path === '/cac-registration' || path === '/_authenticated/services/cac' || path === '/services/cac') return 'cac-registration';
+    if (path === '/bills' || path === '/_authenticated/bills' || path.startsWith('/bills')) return 'bills';
     if (path === '/kyc' || path === '/_authenticated/kyc') return 'kyc';
     if (path.startsWith('/rentals/apartments')) return 'rentals-apartments';
     if (path.startsWith('/rentals/offices')) return 'rentals-offices';
@@ -290,6 +293,7 @@ const getInitialRoute = (): ScreenRoute => {
   // ==========================================
   if (path === '/admin/login' || path === '/login') return 'admin-login';
   if (path === '/admin/db') return 'schema-inspector';
+  if (path.startsWith('/admin/services/bills') || path.startsWith('/admin/bills')) return 'admin-services-bills';
   if (path.startsWith('/admin/services/cac') || path.startsWith('/admin/cac')) return 'admin-services-cac';
   if (path.startsWith('/admin/compliance/kyc') || path.startsWith('/admin/kyc')) return 'admin-kyc-compliance';
   if (path.startsWith('/admin/users')) return 'admin-users';

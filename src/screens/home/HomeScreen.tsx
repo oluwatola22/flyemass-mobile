@@ -24,7 +24,8 @@ import {
   Building,
   Hotel,
   Home,
-  Briefcase
+  Briefcase,
+  Zap
 } from 'lucide-react';
 import { Currency, BannerDocument, WalletBalance } from '../../types';
 
@@ -209,7 +210,8 @@ export const HomeScreen: React.FC = () => {
   const quickActions = [
     { title: t('action.fund', 'Fund'), desc: 'Instant NGN', icon: ArrowDownLeft, route: 'fund', color: 'from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30' },
     { title: t('action.pay_supplier', 'Pay Supplier'), desc: 'Direct RMB', icon: Send, route: 'pay', color: 'from-indigo-500/20 to-blue-500/20 text-indigo-400 border-indigo-500/30' },
-    { title: 'FX Swap', desc: 'Live Rates', icon: ArrowLeftRight, route: 'exchange', action: () => openSwapModal(), color: 'from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/30' },
+    { title: 'Airtime & Bills', desc: 'VTU & Power', icon: Zap, route: 'bills', color: 'from-amber-500/20 to-yellow-500/20 text-amber-400 border-amber-500/30' },
+    { title: 'FX Swap', desc: 'Live Rates', icon: ArrowLeftRight, route: 'exchange', action: () => openSwapModal(), color: 'from-cyan-500/20 to-teal-500/20 text-cyan-400 border-cyan-500/30' },
     { title: t('action.withdraw', 'Withdraw'), desc: 'Naira NUBAN', icon: ArrowUpRight, route: 'withdraw', color: 'from-teal-500/20 to-cyan-500/20 text-teal-400 border-teal-500/30' },
   ];
 
@@ -338,7 +340,7 @@ export const HomeScreen: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-5 gap-1.5">
             {quickActions.map((act) => {
               const Icon = act.icon;
               return (
@@ -348,15 +350,15 @@ export const HomeScreen: React.FC = () => {
                   onPointerDown={() => (act as any).route && prefetchRoute((act as any).route)}
                   onTouchStart={() => (act as any).route && prefetchRoute((act as any).route)}
                   onMouseEnter={() => (act as any).route && prefetchRoute((act as any).route)}
-                  className="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 active:scale-95 transition-all flex flex-col items-center text-center group cursor-pointer touch-manipulation"
+                  className="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 active:scale-95 transition-all flex flex-col items-center text-center group cursor-pointer touch-manipulation"
                 >
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${act.color} border flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md`}>
+                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${act.color} border flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md shrink-0`}>
                     <Icon className="w-4 h-4" />
                   </div>
-                  <span className="text-xs font-semibold text-slate-100 group-hover:text-emerald-400 transition-colors truncate w-full">
+                  <span className="text-[10px] sm:text-xs font-semibold text-slate-100 group-hover:text-emerald-400 transition-colors leading-tight truncate w-full">
                     {act.title}
                   </span>
-                  <span className="text-xs text-slate-400 mt-0.5 line-clamp-1 truncate w-full">
+                  <span className="text-[10px] sm:text-xs text-slate-400 mt-0.5 line-clamp-1 truncate w-full">
                     {act.desc}
                   </span>
                 </button>
