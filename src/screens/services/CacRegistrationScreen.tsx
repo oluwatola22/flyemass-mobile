@@ -18,7 +18,6 @@ import {
   Clock,
   ChevronRight,
   Upload,
-  ArrowLeft,
   Download,
   Lock,
   Send,
@@ -371,65 +370,66 @@ export const CacRegistrationScreen: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 pb-32">
       {/* Top Header */}
-      <div className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('home')}
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white active:scale-95 transition-all"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-base font-bold text-white flex items-center gap-2">
-              CAC Corporate Registration
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono font-semibold uppercase">
-                CAMA 2020
-              </span>
-            </h1>
-            <p className="text-xs text-slate-400">Statutory Business Name & Company Incorporation</p>
+      <div className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-2.5 space-y-0.5">
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-[17px] sm:text-[18px] font-bold tracking-tight text-white whitespace-nowrap">
+            CAC Corporate Registration
+          </h1>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="whitespace-nowrap shrink-0 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-semibold tracking-wide font-mono">
+              CAMA 2020
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                db.fetchCacPricing().then(p => setPricing(p));
+                if (activeUserId) db.fetchCacApplications(activeUserId).then(apps => setApplications(apps));
+                showToast('Synchronized with CAC Corporate Registry', 'success');
+              }}
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-emerald-400 flex items-center justify-center active:scale-95 transition-all shrink-0 cursor-pointer"
+              title="Refresh Registry"
+              aria-label="Refresh Registry"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
 
-        <button
-          onClick={() => {
-            db.fetchCacPricing().then(p => setPricing(p));
-            if (activeUserId) db.fetchCacApplications(activeUserId).then(apps => setApplications(apps));
-            showToast('Synchronized with CAC Corporate Registry', 'success');
-          }}
-          className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-emerald-400 active:scale-95 transition-all"
-          title="Refresh Registry"
-        >
-          <RefreshCw className="w-4 h-4" />
-        </button>
+        <p className="text-[12px] text-white/60 leading-snug whitespace-nowrap">
+          Statutory Business Name & Company Incorporation
+        </p>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 pt-4 space-y-4">
-        {/* Navigation Switcher: New Filing vs Applications */}
-        <div className="grid grid-cols-2 p-1 rounded-2xl bg-slate-900/80 border border-slate-800">
+        {/* Navigation Switcher: New Filing vs My Filings */}
+        <div className="grid grid-cols-2 p-1 rounded-xl bg-white/[0.04] border border-white/10">
           <button
+            type="button"
             onClick={() => {
               setActiveMainTab('form');
               setSelectedApp(null);
             }}
-            className={`py-2 text-xs font-semibold rounded-xl transition-all ${
+            className={`py-2 px-3 text-[12px] font-semibold rounded-lg transition-all text-center cursor-pointer ${
               activeMainTab === 'form'
-                ? 'bg-emerald-500 text-slate-950 shadow-md font-bold'
+                ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            New Registration Filing
+            New Filing
           </button>
           <button
+            type="button"
             onClick={() => setActiveMainTab('applications')}
-            className={`py-2 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-2 ${
+            className={`py-2 px-3 text-[12px] font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               activeMainTab === 'applications'
-                ? 'bg-emerald-500 text-slate-950 shadow-md font-bold'
+                ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            My Filings
+            <span>My Filings</span>
             {applications.length > 0 && (
-              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold leading-none ${
                 activeMainTab === 'applications' ? 'bg-slate-950 text-emerald-400' : 'bg-slate-800 text-slate-300'
               }`}>
                 {applications.length}
@@ -441,25 +441,27 @@ export const CacRegistrationScreen: React.FC = () => {
         {activeMainTab === 'form' ? (
           <>
             {/* Stepped Progress Indicator */}
-            <div className="p-4 rounded-3xl bg-slate-900/60 border border-slate-800/80 space-y-2.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-white flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-[11px] font-bold">
+            <div className="px-3.5 py-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-2">
+              <div className="flex items-center justify-between text-xs min-w-0">
+                <span className="font-bold text-white flex items-center gap-1.5 text-[11px] sm:text-[12px] tracking-tight min-w-0">
+                  <span className="w-4 h-4 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-[10px] font-black shrink-0">
                     {currentStep}
                   </span>
-                  {currentStep === 1 && 'Step 1: Entity Type & Business Details'}
-                  {currentStep === 2 && 'Step 2: Directors, Shareholders & Witnesses'}
-                  {currentStep === 3 && 'Step 3: Share Capital Matrix & Documents'}
-                  {currentStep === 4 && 'Step 4: Statutory Review & Naira Settlement'}
+                  <span>
+                    {currentStep === 1 && 'Entity Type & Business Details'}
+                    {currentStep === 2 && 'Directors, Shareholders & Witnesses'}
+                    {currentStep === 3 && 'Share Capital Matrix & Documents'}
+                    {currentStep === 4 && 'Statutory Review & Settlement'}
+                  </span>
                 </span>
-                <span className="text-slate-400 font-mono text-[11px]">Step {currentStep} of 4</span>
+                <span className="text-slate-400 font-mono text-[10.5px] sm:text-[11px] shrink-0 ml-2">Step {currentStep} of 4</span>
               </div>
 
-              <div className="grid grid-cols-4 gap-1.5">
+              <div className="grid grid-cols-4 gap-1">
                 {[1, 2, 3, 4].map(st => (
                   <div
                     key={st}
-                    className={`h-1.5 rounded-full transition-all ${
+                    className={`h-1 rounded-full transition-all ${
                       st <= currentStep
                         ? 'bg-emerald-500 shadow-sm shadow-emerald-500/40'
                         : 'bg-slate-800'
