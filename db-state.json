@@ -93,7 +93,7 @@
       "kyc_id_number": "29384756102",
       "kyc_document_front_url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80",
       "kyc_document_back_url": "",
-      "kyc_submitted_at": 1795074652635,
+      "kyc_submitted_at": 1795075384113,
       "role": "client",
       "createdAt": 1791047745841,
       "balances": {
@@ -127,7 +127,7 @@
       "cacRcNumber": "RC-1928401",
       "cacCertificateUrl": "https://supabase.flyemass.com/storage/v1/object/public/cac_documents/cac-cert-alade-haulage.pdf",
       "kycSubmission": {
-        "id": "kyc_1795074652635_499",
+        "id": "kyc_1795075384113_813",
         "userId": "usr_alade_01",
         "userEmail": "babatunde@aladeholding.ng",
         "userPhone": "+234 803 555 9201",
@@ -137,16 +137,35 @@
         "idTypeLabel": "National Identification Number (NIN)",
         "idNumber": "29384756102",
         "documentFrontUrl": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80",
+        "id_document_url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80",
         "documentBackUrl": "",
         "documentFileName": "nin_corrected_clear_scan.jpg",
+        "selfiePhotoUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+        "selfieCapturedAt": 1795075384113,
         "status": "verified",
-        "submittedAt": 1795074652635,
-        "reviewedAt": 1795074652717,
+        "submittedAt": 1795075384113,
+        "reviewedAt": 1795075384193,
         "reviewedBy": "Chief Compliance Officer"
       },
-      "kyc_reviewed_at": 1795074652717,
+      "kyc_reviewed_at": 1795075384193,
       "kyc_reviewed_by": "Chief Compliance Officer",
       "notifications": [
+        {
+          "id": "notif_1795075384193",
+          "title": "Identity Verification Approved",
+          "message": "Congratulations! Your government ID has been verified by the Compliance Desk. Full withdrawal and payment capabilities are now unlocked.",
+          "type": "KYC_VERIFICATION",
+          "read": false,
+          "createdAt": 1795075384193
+        },
+        {
+          "id": "notif_1795075384029",
+          "title": "Identity Verification Rejected",
+          "message": "Your identity submission requires attention: NIN slip photo is blurry and NIN number is unreadable. Please re-upload a clear flat scan.. Please re-submit clear documents on your Profile page.",
+          "type": "KYC_VERIFICATION",
+          "read": false,
+          "createdAt": 1795075384029
+        },
         {
           "id": "notif_1795074652717",
           "title": "Identity Verification Approved",
@@ -179,7 +198,8 @@
           "read": false,
           "createdAt": 1795073976244
         }
-      ]
+      ],
+      "kyc_selfie_photo_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80"
     },
     "usr_chen_agent": {
       "uid": "usr_chen_agent",
@@ -124645,9 +124665,52 @@
       "documentFrontUrl": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80",
       "documentBackUrl": "",
       "documentFileName": "nin_corrected_clear_scan.jpg",
-      "status": "verified",
+      "status": "unverified",
       "submittedAt": 1795074652635,
       "reviewedAt": 1795074652717,
+      "reviewedBy": "Chief Compliance Officer"
+    },
+    "kyc_1795075383943_859": {
+      "id": "kyc_1795075383943_859",
+      "userId": "usr_alade_01",
+      "userEmail": "babatunde@aladeholding.ng",
+      "userPhone": "+234 803 555 9201",
+      "companyName": "Alade Global Enterprises Ltd",
+      "fullLegalName": "Chief Babatunde Alade",
+      "idType": "NIN",
+      "idTypeLabel": "National Identification Number (NIN)",
+      "idNumber": "29384756102",
+      "documentFrontUrl": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80",
+      "id_document_url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80",
+      "documentBackUrl": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80",
+      "documentFileName": "nin_slip_alade_full.jpg",
+      "selfiePhotoUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "selfieCapturedAt": 1795075383942,
+      "status": "rejected",
+      "submittedAt": 1795075383943,
+      "rejectionReason": "NIN slip photo is blurry and NIN number is unreadable. Please re-upload a clear flat scan.",
+      "reviewedAt": 1795075384029,
+      "reviewedBy": "Chief Compliance Officer"
+    },
+    "kyc_1795075384113_813": {
+      "id": "kyc_1795075384113_813",
+      "userId": "usr_alade_01",
+      "userEmail": "babatunde@aladeholding.ng",
+      "userPhone": "+234 803 555 9201",
+      "companyName": "Alade Global Enterprises Ltd",
+      "fullLegalName": "Chief Babatunde Alade",
+      "idType": "NIN",
+      "idTypeLabel": "National Identification Number (NIN)",
+      "idNumber": "29384756102",
+      "documentFrontUrl": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80",
+      "id_document_url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80",
+      "documentBackUrl": "",
+      "documentFileName": "nin_corrected_clear_scan.jpg",
+      "selfiePhotoUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+      "selfieCapturedAt": 1795075384113,
+      "status": "verified",
+      "submittedAt": 1795075384113,
+      "reviewedAt": 1795075384193,
       "reviewedBy": "Chief Compliance Officer"
     }
   },
@@ -164028,6 +164091,58 @@
       "ipAddress": "127.0.0.1",
       "previousHash": "ff0128df3aa3ac87d594172fa676ffbc36d98ce3c2f1493abe09eee4886750fe",
       "hash": "98adfbd567eef3872a975fd7887db53eeec5db36236e2b9973878bde13c461cd"
+    },
+    {
+      "id": "log_1795075383943_572",
+      "adminId": "sys",
+      "adminName": "usr_alade_01",
+      "action": "KYC_SUBMISSION_CREATED",
+      "targetCollection": "kyc_submissions",
+      "targetId": "kyc_1795075383943_859",
+      "details": "Submitted National Identification Number (NIN) (29384756102) for compliance review",
+      "timestamp": 1795075383943,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "98adfbd567eef3872a975fd7887db53eeec5db36236e2b9973878bde13c461cd",
+      "hash": "66e4bead9008e5c51750be3de8950fc2c38d58d6b97d8f069a31a323324681cd"
+    },
+    {
+      "id": "log_1795075384029_8559",
+      "adminId": "sys",
+      "adminName": "Chief Compliance Officer",
+      "action": "KYC_SUBMISSION_REJECTED",
+      "targetCollection": "kyc_submissions",
+      "targetId": "kyc_1795075383943_859",
+      "details": "Rejected KYC for user usr_alade_01: NIN slip photo is blurry and NIN number is unreadable. Please re-upload a clear flat scan.",
+      "timestamp": 1795075384029,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "66e4bead9008e5c51750be3de8950fc2c38d58d6b97d8f069a31a323324681cd",
+      "hash": "648113e49d3d7cd4890426252a887bce6625d0847b7773886c703b7699f13394"
+    },
+    {
+      "id": "log_1795075384113_7424",
+      "adminId": "sys",
+      "adminName": "usr_alade_01",
+      "action": "KYC_SUBMISSION_CREATED",
+      "targetCollection": "kyc_submissions",
+      "targetId": "kyc_1795075384113_813",
+      "details": "Submitted National Identification Number (NIN) (29384756102) for compliance review",
+      "timestamp": 1795075384113,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "648113e49d3d7cd4890426252a887bce6625d0847b7773886c703b7699f13394",
+      "hash": "c7d58697a0669af85781808cb6e5e6fa5e856c2a57cb09209a5336b83e87277a"
+    },
+    {
+      "id": "log_1795075384193_3048",
+      "adminId": "sys",
+      "adminName": "Chief Compliance Officer",
+      "action": "KYC_SUBMISSION_APPROVED",
+      "targetCollection": "kyc_submissions",
+      "targetId": "kyc_1795075384113_813",
+      "details": "Approved KYC for user usr_alade_01 (Chief Babatunde Alade - NIN)",
+      "timestamp": 1795075384193,
+      "ipAddress": "127.0.0.1",
+      "previousHash": "c7d58697a0669af85781808cb6e5e6fa5e856c2a57cb09209a5336b83e87277a",
+      "hash": "0f4d53b76351424a48ad2a269b4c42ea5f63e876d4c52c33366577f14e5554a3"
     }
   ],
   "manual_payments": {

@@ -1530,6 +1530,8 @@ export const INITIAL_DATABASE: DatabaseState = {
       documentFrontUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
       documentBackUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
       documentFileName: 'nin_slip_front_alade.jpg',
+      selfiePhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+      selfieCapturedAt: Date.now() - 3600000 * 4,
       status: 'pending',
       submittedAt: Date.now() - 3600000 * 4
     }
@@ -6928,6 +6930,8 @@ class DatabaseService {
     documentFrontUrl: string;
     documentBackUrl?: string;
     documentFileName?: string;
+    selfiePhotoUrl?: string;
+    selfieCapturedAt?: number;
   }): Promise<{ success: boolean; submission?: KycSubmissionDocument; user?: any; error?: string }> {
     try {
       const res = await fetch(`${BACKEND_BASE}/api/kyc/submit`, {
@@ -6944,6 +6948,9 @@ class DatabaseService {
           this.state.users[params.userId].kycStatus = 'pending';
           this.state.users[params.userId].verifiedBadge = false;
           this.state.users[params.userId].kycSubmission = data.submission;
+          if (data.submission.selfiePhotoUrl) {
+            this.state.users[params.userId].kyc_selfie_photo_url = data.submission.selfiePhotoUrl;
+          }
         }
         this.persist();
         this.notifyListeners();
@@ -6962,6 +6969,8 @@ class DatabaseService {
         documentFrontUrl: params.documentFrontUrl,
         documentBackUrl: params.documentBackUrl,
         documentFileName: params.documentFileName,
+        selfiePhotoUrl: params.selfiePhotoUrl,
+        selfieCapturedAt: params.selfieCapturedAt || Date.now(),
         status: 'pending',
         submittedAt: Date.now()
       };
@@ -6972,6 +6981,9 @@ class DatabaseService {
         this.state.users[params.userId].kycStatus = 'pending';
         this.state.users[params.userId].verifiedBadge = false;
         this.state.users[params.userId].kycSubmission = sub;
+        if (sub.selfiePhotoUrl) {
+          this.state.users[params.userId].kyc_selfie_photo_url = sub.selfiePhotoUrl;
+        }
       }
       this.persist();
       this.notifyListeners();

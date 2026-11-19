@@ -2744,6 +2744,8 @@ const INITIAL_DATABASE = {
       documentFrontUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
       documentBackUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
       documentFileName: 'nin_slip_front_alade.jpg',
+      selfiePhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+      selfieCapturedAt: Date.now() - 3600000 * 4,
       status: 'pending',
       submittedAt: Date.now() - 3600000 * 4
     }
@@ -13054,12 +13056,20 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
         idNumber, 
         documentFrontUrl, 
         documentBackUrl, 
-        documentFileName 
+        documentFileName,
+        selfiePhotoUrl,
+        selfieCapturedAt
       } = await readJsonBody(req);
 
       if (!userId || !fullLegalName || !idType || !idNumber || !documentFrontUrl) {
         return sendJson(res, 400, { 
           error: 'Missing required fields: Full Legal Name, ID Type, ID Number, and Front Document scan are mandatory.' 
+        });
+      }
+
+      if (!selfiePhotoUrl) {
+        return sendJson(res, 400, {
+          error: 'Live circular facial selfie snapshot is mandatory to complete Step 2 of KYC verification.'
         });
       }
 
@@ -13085,8 +13095,11 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
         idTypeLabel: idTypeLabels[idType] || idType,
         idNumber: idNumber.trim(),
         documentFrontUrl,
+        id_document_url: documentFrontUrl,
         documentBackUrl: documentBackUrl || '',
         documentFileName: documentFileName || 'identity_document.jpg',
+        selfiePhotoUrl,
+        selfieCapturedAt: selfieCapturedAt || Date.now(),
         status: 'pending',
         submittedAt: Date.now()
       };
@@ -13103,6 +13116,7 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
       user.kyc_id_number = submission.idNumber;
       user.kyc_document_front_url = submission.documentFrontUrl;
       user.kyc_document_back_url = submission.documentBackUrl;
+      user.kyc_selfie_photo_url = submission.selfiePhotoUrl;
       user.kyc_submitted_at = submission.submittedAt;
       user.kycSubmission = submission;
       delete user.kyc_rejection_reason;

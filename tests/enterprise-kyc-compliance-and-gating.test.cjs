@@ -108,7 +108,21 @@ async function runTests() {
   console.log('✓ Supplier payment strictly blocked by compliance middleware (HTTP 403).\n');
 
   // 4. Test User KYC Submission
-  console.log('Step 4: Submitting primary government ID (NIN) with front/back scans...');
+  console.log('Step 4: Submitting primary government ID (NIN) with ID scan and live circular selfie...');
+  // 4a. Verify failure if selfiePhotoUrl is missing
+  const failSelfie = await postJson('/api/kyc/submit', {
+    userId: testUserId,
+    fullLegalName: 'Chief Babatunde Alade',
+    idType: 'NIN',
+    idNumber: '29384756102',
+    documentFrontUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+    documentFileName: 'nin_slip_alade_full.jpg'
+  });
+  assert.strictEqual(failSelfie.status, 400, 'Submission without selfie photo must return 400');
+  assert(failSelfie.data.error.includes('selfie'), 'Error message must specify selfie requirement');
+  console.log('✓ Submission without live selfie strictly rejected with HTTP 400.');
+
+  // 4b. Valid submission with both ID card and live round face selfie
   const submitRes = await postJson('/api/kyc/submit', {
     userId: testUserId,
     fullLegalName: 'Chief Babatunde Alade',
@@ -116,14 +130,17 @@ async function runTests() {
     idNumber: '29384756102',
     documentFrontUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
     documentBackUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
-    documentFileName: 'nin_slip_alade_full.jpg'
+    documentFileName: 'nin_slip_alade_full.jpg',
+    selfiePhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+    selfieCapturedAt: Date.now()
   });
   assert.strictEqual(submitRes.status, 200, 'Submission should return 200');
   assert.strictEqual(submitRes.data.success, true);
   assert.strictEqual(submitRes.data.submission.status, 'pending');
   assert.strictEqual(submitRes.data.submission.idType, 'NIN');
+  assert(submitRes.data.submission.selfiePhotoUrl, 'Submission must retain selfiePhotoUrl');
   const submissionId = submitRes.data.submission.id;
-  console.log(`✓ KYC submitted successfully! Submission ID: ${submissionId}\n`);
+  console.log(`✓ KYC submitted successfully with ID scan + circular selfie! Submission ID: ${submissionId}\n`);
 
   // 5. Verify KYC status reflects 'pending'
   console.log('Step 5: Verifying GET /api/kyc/status reflects pending review...');
@@ -178,17 +195,20 @@ async function runTests() {
   console.log('✓ Customer profile receives specific compliance rejection reason.\n');
 
   // 9. Test User Resubmission
-  console.log('Step 9: Customer resubmits corrected high-resolution NIN document...');
+  console.log('Step 9: Customer resubmits corrected high-resolution NIN document with fresh live circular selfie...');
   const resubmitRes = await postJson('/api/kyc/submit', {
     userId: testUserId,
     fullLegalName: 'Chief Babatunde Alade',
     idType: 'NIN',
     idNumber: '29384756102',
     documentFrontUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
-    documentFileName: 'nin_corrected_clear_scan.jpg'
+    documentFileName: 'nin_corrected_clear_scan.jpg',
+    selfiePhotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+    selfieCapturedAt: Date.now()
   });
   assert.strictEqual(resubmitRes.status, 200);
   assert.strictEqual(resubmitRes.data.submission.status, 'pending');
+  assert.strictEqual(resubmitRes.data.submission.selfiePhotoUrl, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80');
   const newSubmissionId = resubmitRes.data.submission.id;
   console.log(`✓ Resubmission queued! New Submission ID: ${newSubmissionId}\n`);
 

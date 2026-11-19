@@ -127,6 +127,7 @@ export interface UserDocument {
   kyc_id_number?: string;
   kyc_document_front_url?: string;
   kyc_document_back_url?: string;
+  kyc_selfie_photo_url?: string;
   kyc_submitted_at?: number;
   kyc_reviewed_at?: number;
   kyc_reviewed_by?: string;
@@ -156,6 +157,8 @@ export interface KycSubmissionDocument {
   documentFrontUrl: string;
   documentBackUrl?: string;
   documentFileName?: string;
+  selfiePhotoUrl?: string;
+  selfieCapturedAt?: number;
   status: KycStatus;
   rejectionReason?: string;
   submittedAt: number;

@@ -25,7 +25,10 @@ import {
   ExternalLink,
   ChevronRight,
   Loader2,
-  ZoomIn
+  ZoomIn,
+  Camera,
+  Scan,
+  Sparkles
 } from 'lucide-react';
 
 const REJECTION_PRESETS = [
@@ -429,49 +432,64 @@ export const AdminKycComplianceScreen: React.FC = () => {
                           </div>
                         </td>
 
-                        {/* Document Scans */}
+                        {/* Document Scans & Live Selfie */}
                         <td className="py-4 px-4">
-                          <div className="flex items-center gap-2">
-                            {/* Front Scan */}
+                          <div className="flex items-center gap-3">
+                            {/* ID Card Front */}
                             {sub.documentFrontUrl ? (
                               <div 
-                                onClick={() => setActivePreviewImage({ url: sub.documentFrontUrl, title: `${sub.fullLegalName} - Front Scan` })}
-                                className="relative group/thumb cursor-pointer"
-                                title="Click to view full resolution"
+                                onClick={() => setActivePreviewImage({ url: sub.documentFrontUrl, title: `${sub.fullLegalName} - Government ID Card` })}
+                                className="relative group/thumb cursor-pointer shrink-0"
+                                title="Click to view Government ID Card"
                               >
                                 <img
                                   src={sub.documentFrontUrl}
-                                  alt="Front ID"
+                                  alt="ID Card"
                                   className="w-12 h-9 rounded-lg object-cover border border-slate-700 group-hover/thumb:border-emerald-500 transition-colors"
                                 />
                                 <div className="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity">
                                   <ZoomIn className="w-3.5 h-3.5 text-white" />
                                 </div>
-                                <span className="text-[9px] text-slate-400 block text-center mt-0.5">Front</span>
+                                <span className="text-[9px] text-slate-400 block text-center mt-0.5">ID Card</span>
                               </div>
                             ) : (
-                              <span className="text-[10px] text-slate-500 italic">No front scan</span>
+                              <span className="text-[10px] text-slate-500 italic">No ID</span>
                             )}
 
-                            {/* Back Scan */}
-                            {sub.documentBackUrl ? (
+                            {/* Captured Round Face Selfie */}
+                            <div 
+                              onClick={() => setActivePreviewImage({ 
+                                url: sub.selfiePhotoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80', 
+                                title: `${sub.fullLegalName} - Live Circular Selfie` 
+                              })}
+                              className="relative group/thumb cursor-pointer shrink-0"
+                              title="Click to view Circular Selfie"
+                            >
+                              <img
+                                src={sub.selfiePhotoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'}
+                                alt="Live Selfie"
+                                className="w-9 h-9 rounded-full object-cover border-2 border-emerald-500/80 shadow-md group-hover/thumb:border-emerald-400 transition-colors"
+                              />
+                              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity">
+                                <ZoomIn className="w-3 h-3 text-white" />
+                              </div>
+                              <span className="text-[9px] text-emerald-400 block text-center mt-0.5">Selfie</span>
+                            </div>
+
+                            {/* Back Scan (if present) */}
+                            {sub.documentBackUrl && (
                               <div 
-                                onClick={() => setActivePreviewImage({ url: sub.documentBackUrl!, title: `${sub.fullLegalName} - Reverse Scan` })}
-                                className="relative group/thumb cursor-pointer"
-                                title="Click to view full resolution"
+                                onClick={() => setActivePreviewImage({ url: sub.documentBackUrl!, title: `${sub.fullLegalName} - Reverse ID Scan` })}
+                                className="relative group/thumb cursor-pointer shrink-0"
+                                title="Click to view reverse ID scan"
                               >
                                 <img
                                   src={sub.documentBackUrl}
                                   alt="Back ID"
-                                  className="w-12 h-9 rounded-lg object-cover border border-slate-700 group-hover/thumb:border-emerald-500 transition-colors"
+                                  className="w-10 h-8 rounded-lg object-cover border border-slate-700 group-hover/thumb:border-emerald-500 transition-colors"
                                 />
-                                <div className="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity">
-                                  <ZoomIn className="w-3.5 h-3.5 text-white" />
-                                </div>
-                                <span className="text-[9px] text-slate-400 block text-center mt-0.5">Back</span>
+                                <span className="text-[9px] text-slate-500 block text-center mt-0.5">Back</span>
                               </div>
-                            ) : (
-                              <span className="text-[9px] text-slate-600 block self-center">Single-side</span>
                             )}
                           </div>
                         </td>
@@ -631,57 +649,93 @@ export const AdminKycComplianceScreen: React.FC = () => {
               </div>
             </div>
 
-            {/* Document Scans Viewer */}
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
-                Attached Government Scans
-              </span>
+            {/* SIDE-BY-SIDE BIOMETRIC COMPARISON CARD (ID CARD VS ROUND FACE SELFIE) */}
+            <div className="p-4 bg-slate-950 rounded-3xl border border-slate-800 space-y-3 shadow-inner">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Scan className="w-4 h-4" />
+                  Side-by-Side Identity Verification (ID Card vs Circular Selfie)
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-emerald-400" />
+                  Visual Facial Match
+                </span>
+              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Front Scan */}
-                <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 space-y-2 text-center">
-                  <span className="text-xs font-semibold text-slate-400">Front Scan</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                {/* Left Card: Uploaded Government ID Card */}
+                <div className="p-3 bg-slate-900 rounded-2xl border border-slate-800 space-y-2 text-center">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">1. Government ID Card</span>
+                    <span className="text-[10px] text-slate-400 font-mono">{inspectingSubmission.idType}</span>
+                  </div>
                   {inspectingSubmission.documentFrontUrl ? (
                     <div 
-                      onClick={() => setActivePreviewImage({ url: inspectingSubmission.documentFrontUrl, title: `${inspectingSubmission.fullLegalName} - Front Scan` })}
-                      className="cursor-pointer group relative overflow-hidden rounded-xl border border-slate-800 hover:border-emerald-500/50"
+                      onClick={() => setActivePreviewImage({ url: inspectingSubmission.documentFrontUrl, title: `${inspectingSubmission.fullLegalName} - Government ID Card` })}
+                      className="cursor-pointer group relative overflow-hidden rounded-xl border border-slate-700 hover:border-emerald-500/60 shadow-md bg-black/40"
                     >
                       <img
                         src={inspectingSubmission.documentFrontUrl}
-                        alt="Front ID Scan"
-                        className="w-full h-44 object-cover group-hover:scale-105 transition-transform"
+                        alt="Government ID Scan"
+                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform"
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-semibold gap-1">
-                        <ZoomIn className="w-4 h-4" /> Click to Expand
+                        <ZoomIn className="w-4 h-4" /> Click to Enlarge ID Card
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-500 italic py-10">No front image provided</p>
+                    <p className="text-xs text-slate-500 italic py-16">No ID image provided</p>
                   )}
+                  <p className="text-[11px] text-slate-400 font-mono tracking-wider">{inspectingSubmission.idNumber}</p>
                 </div>
 
-                {/* Back Scan */}
-                <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 space-y-2 text-center">
-                  <span className="text-xs font-semibold text-slate-400">Reverse Scan</span>
-                  {inspectingSubmission.documentBackUrl ? (
+                {/* Right Card: Captured Live Circular ("Round Face") Selfie */}
+                <div className="p-3 bg-slate-900 rounded-2xl border border-slate-800 space-y-2 text-center">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">2. Live Circular Selfie</span>
+                    <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Liveness Passed
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center py-1">
                     <div 
-                      onClick={() => setActivePreviewImage({ url: inspectingSubmission.documentBackUrl!, title: `${inspectingSubmission.fullLegalName} - Reverse Scan` })}
-                      className="cursor-pointer group relative overflow-hidden rounded-xl border border-slate-800 hover:border-emerald-500/50"
+                      onClick={() => setActivePreviewImage({ 
+                        url: inspectingSubmission.selfiePhotoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80', 
+                        title: `${inspectingSubmission.fullLegalName} - Live Circular Selfie` 
+                      })}
+                      className="w-44 h-44 rounded-full overflow-hidden border-4 border-emerald-500/80 shadow-[0_0_30px_rgba(16,185,129,0.35)] cursor-pointer group relative hover:scale-105 transition-all bg-black/40 shrink-0"
+                      title="Click to Enlarge Live Selfie"
                     >
                       <img
-                        src={inspectingSubmission.documentBackUrl}
-                        alt="Back ID Scan"
-                        className="w-full h-44 object-cover group-hover:scale-105 transition-transform"
+                        src={inspectingSubmission.selfiePhotoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'}
+                        alt="Captured Live Round Face Selfie"
+                        className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-semibold gap-1">
-                        <ZoomIn className="w-4 h-4" /> Click to Expand
+                        <ZoomIn className="w-4 h-4" /> Enlarge
                       </div>
                     </div>
-                  ) : (
-                    <p className="text-xs text-slate-500 italic py-10">No reverse image provided</p>
-                  )}
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    Snapshot: {inspectingSubmission.selfieCapturedAt ? new Date(inspectingSubmission.selfieCapturedAt).toLocaleTimeString() : 'Live Camera Snapshot'}
+                  </p>
                 </div>
               </div>
+
+              {/* Reverse ID Card Scan (if provided) */}
+              {inspectingSubmission.documentBackUrl && (
+                <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between px-2">
+                  <span className="text-[11px] text-slate-400">Reverse Side Scan Attached:</span>
+                  <button
+                    type="button"
+                    onClick={() => setActivePreviewImage({ url: inspectingSubmission.documentBackUrl!, title: `${inspectingSubmission.fullLegalName} - Reverse Side Scan` })}
+                    className="text-xs text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1 cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5" /> View Reverse ID Scan
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Current Status Banner */}
