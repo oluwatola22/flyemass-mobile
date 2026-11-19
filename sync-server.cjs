@@ -2928,6 +2928,30 @@ try {
       processed_webhooks: parsed.processed_webhooks || {},
       idempotency_keys: parsed.idempotency_keys || {},
       resource_locks: parsed.resource_locks || {},
+      providus_virtual_accounts: (() => {
+        const dvas = { ...(parsed.providus_virtual_accounts || {}) };
+        const uatAccount = '9917273343';
+        const uatRef = 'FLY-DVA-UAT-9917273343';
+        const uatDva = {
+          id: 'dva_providus_uat_9917273343',
+          userId: 'usr_alade_01',
+          walletId: 'w_ngn_01',
+          accountNumber: uatAccount,
+          accountName: 'FlyeMass / Chief Babatunde Alade',
+          bankName: 'Providus Bank',
+          bankCode: '101',
+          initiationTranRef: uatRef,
+          expectedAmount: 0,
+          currency: 'NGN',
+          status: 'active',
+          expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days extended UAT window
+          createdAt: Date.now(),
+          apiEndpoint: 'http://102.209.190.54:8088/appdevapi/api/PiPCreateDynamicAccountNumber'
+        };
+        dvas[uatAccount] = uatDva;
+        dvas[uatRef] = uatDva;
+        return dvas;
+      })(),
       payment_providers: parsed.payment_providers || {
         providus: { mode: 'sandbox', baseUrl: 'https://api.providusbank.com', active: true },
         monnify: { mode: 'sandbox', baseUrl: 'https://sandbox.monnify.com', active: true },
@@ -4573,7 +4597,8 @@ const server = http.createServer(async (req, res) => {
       const timestamp = Date.now();
       const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
       const initiationTranRef = `FLY-DVA-${timestamp}-${randomSuffix}`;
-      const expiresAt = timestamp + 30 * 60 * 1000; // 30 minutes time-sensitive
+      const validityMs = body.expiresInDays ? (Number(body.expiresInDays) * 86400000) : (7 * 86400000); // Extended 7-day window for UAT
+      const expiresAt = timestamp + validityMs;
 
       // Attempt live outgoing Providus API call with official Client-Id and SHA512 signature
       let liveAccountData = null;
