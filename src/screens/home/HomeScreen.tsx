@@ -341,7 +341,7 @@ export const HomeScreen: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-3 gap-2">
             {quickActions.map((act) => {
               const Icon = act.icon;
               return (
@@ -351,16 +351,16 @@ export const HomeScreen: React.FC = () => {
                   onPointerDown={() => (act as any).route && prefetchRoute((act as any).route)}
                   onTouchStart={() => (act as any).route && prefetchRoute((act as any).route)}
                   onMouseEnter={() => (act as any).route && prefetchRoute((act as any).route)}
-                  className="px-2 py-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 active:scale-[0.97] transition-all flex flex-col items-center text-center group cursor-pointer touch-manipulation h-full justify-between"
+                  className="px-2 py-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 active:scale-[0.97] transition-all flex flex-col items-center text-center group cursor-pointer touch-manipulation h-full justify-between"
                 >
-                  <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${act.color} border flex items-center justify-center mb-2 group-hover:scale-105 transition-transform shadow-md shrink-0`}>
-                    <Icon className="w-5 h-5" />
+                  <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${act.color} border flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-sm shrink-0`}>
+                    <Icon className="w-4 h-4" />
                   </div>
                   <div className="w-full flex flex-col items-center">
-                    <span className="text-[13px] font-semibold text-slate-100 group-hover:text-emerald-400 transition-colors leading-snug text-center">
+                    <span className="text-[12px] font-semibold text-slate-100 group-hover:text-emerald-400 transition-colors leading-tight text-center">
                       {act.title}
                     </span>
-                    <span className="text-[11px] text-white/60 mt-0.5 leading-snug text-center">
+                    <span className="text-[10px] text-white/60 mt-0.5 leading-tight text-center">
                       {act.desc}
                     </span>
                   </div>
