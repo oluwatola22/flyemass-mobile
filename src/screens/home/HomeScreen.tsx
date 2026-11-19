@@ -208,11 +208,12 @@ export const HomeScreen: React.FC = () => {
   const activeShipment = shipments?.[0]; // Active air cargo
 
   const quickActions = [
-    { title: t('action.fund', 'Fund'), desc: 'Instant NGN', icon: ArrowDownLeft, route: 'fund', color: 'from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30' },
-    { title: t('action.pay_supplier', 'Pay Supplier'), desc: 'Direct RMB', icon: Send, route: 'pay', color: 'from-indigo-500/20 to-blue-500/20 text-indigo-400 border-indigo-500/30' },
-    { title: 'Airtime & Bills', desc: 'VTU & Power', icon: Zap, route: 'bills', color: 'from-amber-500/20 to-yellow-500/20 text-amber-400 border-amber-500/30' },
-    { title: 'FX Swap', desc: 'Live Rates', icon: ArrowLeftRight, route: 'exchange', action: () => openSwapModal(), color: 'from-cyan-500/20 to-teal-500/20 text-cyan-400 border-cyan-500/30' },
-    { title: t('action.withdraw', 'Withdraw'), desc: 'Naira NUBAN', icon: ArrowUpRight, route: 'withdraw', color: 'from-teal-500/20 to-cyan-500/20 text-teal-400 border-teal-500/30' },
+    { title: 'Fund Wallet', desc: 'NGN Deposit', icon: ArrowDownLeft, route: 'fund', color: 'from-emerald-500/20 to-teal-500/20 text-emerald-400 border-emerald-500/30' },
+    { title: 'Pay Supplier', desc: 'Alipay / WeChat', icon: Send, route: 'pay', color: 'from-indigo-500/20 to-blue-500/20 text-indigo-400 border-indigo-500/30' },
+    { title: 'Bills & Data', desc: 'Airtime & Power', icon: Zap, route: 'bills', color: 'from-amber-500/20 to-yellow-500/20 text-amber-400 border-amber-500/30' },
+    { title: 'Swap FX', desc: 'NGN ⇄ RMB', icon: ArrowLeftRight, route: 'exchange', action: () => openSwapModal(), color: 'from-cyan-500/20 to-teal-500/20 text-cyan-400 border-cyan-500/30' },
+    { title: 'Withdraw', desc: 'Bank Payout', icon: ArrowUpRight, route: 'withdraw', color: 'from-teal-500/20 to-cyan-500/20 text-teal-400 border-teal-500/30' },
+    { title: 'Track Cargo', desc: 'Air & Sea', icon: Package, route: 'track', color: 'from-rose-500/20 to-pink-500/20 text-rose-400 border-rose-500/30' },
   ];
 
   return (
@@ -340,7 +341,7 @@ export const HomeScreen: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-5 gap-1.5">
+          <div className="grid grid-cols-3 gap-2.5">
             {quickActions.map((act) => {
               const Icon = act.icon;
               return (
@@ -350,17 +351,19 @@ export const HomeScreen: React.FC = () => {
                   onPointerDown={() => (act as any).route && prefetchRoute((act as any).route)}
                   onTouchStart={() => (act as any).route && prefetchRoute((act as any).route)}
                   onMouseEnter={() => (act as any).route && prefetchRoute((act as any).route)}
-                  className="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 active:scale-95 transition-all flex flex-col items-center text-center group cursor-pointer touch-manipulation"
+                  className="px-2 py-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 active:scale-[0.97] transition-all flex flex-col items-center text-center group cursor-pointer touch-manipulation h-full justify-between"
                 >
-                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${act.color} border flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform shadow-md shrink-0`}>
-                    <Icon className="w-4 h-4" />
+                  <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${act.color} border flex items-center justify-center mb-2 group-hover:scale-105 transition-transform shadow-md shrink-0`}>
+                    <Icon className="w-5 h-5" />
                   </div>
-                  <span className="text-[10px] sm:text-xs font-semibold text-slate-100 group-hover:text-emerald-400 transition-colors leading-tight truncate w-full">
-                    {act.title}
-                  </span>
-                  <span className="text-[10px] sm:text-xs text-slate-400 mt-0.5 line-clamp-1 truncate w-full">
-                    {act.desc}
-                  </span>
+                  <div className="w-full flex flex-col items-center">
+                    <span className="text-[13px] font-semibold text-slate-100 group-hover:text-emerald-400 transition-colors leading-snug text-center">
+                      {act.title}
+                    </span>
+                    <span className="text-[11px] text-white/60 mt-0.5 leading-snug text-center">
+                      {act.desc}
+                    </span>
+                  </div>
                 </button>
               );
             })}
