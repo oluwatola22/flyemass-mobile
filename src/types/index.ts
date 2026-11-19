@@ -36,6 +36,7 @@ export type ScreenRoute =
   | 'rentals-apartments'
   | 'rentals-offices'
   | 'profile'
+  | 'kyc'
   | 'security'
   | 'support'
   | 'support-chat'
@@ -51,6 +52,7 @@ export type ScreenRoute =
   | 'admin-login'
   | 'admin-dashboard'
   | 'admin-services-cac'
+  | 'admin-kyc-compliance'
   | 'admin-warehouses'
   | 'admin-lagos-hubs'
   | 'admin-users'
@@ -118,12 +120,47 @@ export interface UserDocument {
   restrictions?: string[];
   adminNotes?: string;
   kycLevel?: string;
+  kyc_status?: KycStatus;
+  kycStatus?: KycStatus;
+  kyc_full_legal_name?: string;
+  kyc_id_type?: KycIdType;
+  kyc_id_number?: string;
+  kyc_document_front_url?: string;
+  kyc_document_back_url?: string;
+  kyc_submitted_at?: number;
+  kyc_reviewed_at?: number;
+  kyc_reviewed_by?: string;
+  kyc_rejection_reason?: string;
+  kycSubmission?: KycSubmissionDocument;
   updatedAt?: number;
   company?: string;
   registeredCompanyName?: string;
   rcNumber?: string;
   cacRcNumber?: string;
   cacCertificateUrl?: string;
+}
+
+export type KycIdType = 'NIN' | 'Drivers_License' | 'International_Passport' | 'Voters_Card';
+export type KycStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
+
+export interface KycSubmissionDocument {
+  id: string;
+  userId: string;
+  userEmail?: string;
+  userPhone?: string;
+  companyName?: string;
+  fullLegalName: string;
+  idType: KycIdType;
+  idTypeLabel?: string;
+  idNumber: string;
+  documentFrontUrl: string;
+  documentBackUrl?: string;
+  documentFileName?: string;
+  status: KycStatus;
+  rejectionReason?: string;
+  submittedAt: number;
+  reviewedAt?: number;
+  reviewedBy?: string;
 }
 
 /**

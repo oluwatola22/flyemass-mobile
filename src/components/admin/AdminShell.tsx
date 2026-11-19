@@ -27,6 +27,7 @@ import { AdminCommunicationsScreen } from '../../screens/admin/AdminCommunicatio
 import { AdminTeamScreen } from '../../screens/admin/AdminTeamScreen';
 import { DatabaseViewerScreen } from '../../screens/admin/DatabaseViewerScreen';
 import { AdminCacServicesScreen } from '../../screens/admin/AdminCacServicesScreen';
+import { AdminKycComplianceScreen } from '../../screens/admin/AdminKycComplianceScreen';
 import { AdminAccessDeniedScreen } from '../../screens/admin/AdminAccessDeniedScreen';
 import { AdminModulePermission, firebaseSync } from '../../services/firebase';
 import { db } from '../../services/db';
@@ -34,6 +35,7 @@ import { db } from '../../services/db';
 const ROUTE_TO_ADMIN_TAB: Record<string, string> = {
   'admin-dashboard': 'dashboard',
   'admin-services-cac': 'services-cac',
+  'admin-kyc-compliance': 'kyc-compliance',
   'admin-users': 'users',
   'admin-user-detail': 'users',
   'admin-wallet-credit': 'users',
@@ -90,6 +92,7 @@ const ROUTE_REQUIRED_PERMISSION: Record<string, AdminModulePermission | 'super_a
   'admin-users': 'users',
   'admin-user-detail': 'users',
   'admin-wallet-credit': 'users',
+  'admin-kyc-compliance': 'users',
 
   // Treasury, RMB/Naira Payouts & General Ledger
   'admin-payments': 'treasury',
@@ -225,6 +228,8 @@ export const AdminShell: React.FC = () => {
         return <AdminCommunicationsScreen />;
       case 'admin-services-cac':
         return <AdminCacServicesScreen />;
+      case 'admin-kyc-compliance':
+        return <AdminKycComplianceScreen />;
       case 'admin-team':
         return <AdminTeamScreen />;
       case 'schema-inspector':

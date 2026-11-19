@@ -25,7 +25,10 @@ import {
   CacServiceType,
   CacPartnerDirector,
   CacThreadMessage,
-  CacApplicationStatus
+  CacApplicationStatus,
+  KycIdType,
+  KycStatus,
+  KycSubmissionDocument
 } from '../types';
 import { TECH_PRODUCTS } from '../data/mockData';
 import {
@@ -116,6 +119,7 @@ export interface DatabaseState {
   admin_staff?: Record<string, AdminUser>;
   fx_rates?: Record<string, any>;
   cac_registrations?: Record<string, CacRegistrationDocument>;
+  kyc_submissions?: Record<string, KycSubmissionDocument>;
   providus_virtual_accounts?: Record<string, any>;
 }
 
@@ -324,7 +328,15 @@ export const INITIAL_DATABASE: DatabaseState = {
       email: 'babatunde@aladeholding.ng',
       phone: '+234 803 555 9201',
       businessName: 'Alade Global Enterprises Ltd',
-      verifiedBadge: true,
+      verifiedBadge: false,
+      kyc_status: 'pending',
+      kycStatus: 'pending',
+      kyc_full_legal_name: 'Chief Babatunde Alade',
+      kyc_id_type: 'NIN',
+      kyc_id_number: '29384756102',
+      kyc_document_front_url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+      kyc_document_back_url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+      kyc_submitted_at: Date.now() - 3600000 * 4,
       role: 'client',
       createdAt: Date.now() - 30 * 86400000,
       balances: {
@@ -1504,6 +1516,25 @@ export const INITIAL_DATABASE: DatabaseState = {
     }
   },
 
+  kyc_submissions: {
+    'kyc_sample_01': {
+      id: 'kyc_sample_01',
+      userId: 'usr_alade_01',
+      userEmail: 'babatunde@aladeholding.ng',
+      userPhone: '+234 803 555 9201',
+      companyName: 'Alade Global Enterprises Ltd',
+      fullLegalName: 'Chief Babatunde Alade',
+      idType: 'NIN',
+      idTypeLabel: 'National Identification Number (NIN)',
+      idNumber: '29384756102',
+      documentFrontUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+      documentBackUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+      documentFileName: 'nin_slip_front_alade.jpg',
+      status: 'pending',
+      submittedAt: Date.now() - 3600000 * 4
+    }
+  },
+
   products: {
     ...TECH_PRODUCTS.reduce((acc, p) => {
       acc[p.id] = p;
@@ -1669,6 +1700,7 @@ class DatabaseService {
           lagos_hubs: { ...DEFAULT_LAGOS_HUBS, ...(parsed.lagos_hubs || {}) },
           banners: parsed.banners || INITIAL_DATABASE.banners,
           cac_registrations: { ...(INITIAL_DATABASE.cac_registrations || {}), ...(parsed.cac_registrations || {}) },
+          kyc_submissions: { ...(INITIAL_DATABASE.kyc_submissions || {}), ...(parsed.kyc_submissions || {}) },
           system_settings: {
             ...INITIAL_DATABASE.system_settings,
             ...(parsed.system_settings || {}),
@@ -6785,6 +6817,271 @@ class DatabaseService {
     } catch (err: any) {
       // Local fallback
       return { success: true, url: fileData.startsWith('data:') ? fileData : `https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80` };
+    }
+  }
+
+  // =========================================================================
+  // ENTERPRISE KYC VERIFICATION & COMPLIANCE METHODS
+  // =========================================================================
+
+  public getKycStatus(userId: string): {
+    status: KycStatus;
+    verifiedBadge: boolean;
+    submission?: KycSubmissionDocument;
+    rejectionReason?: string;
+  } {
+    const user = this.state.users?.[userId];
+    const submissions = Object.values(this.state.kyc_submissions || {}).filter(s => s.userId === userId);
+    submissions.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+    const latestSubmission = submissions[0] || user?.kycSubmission;
+
+    const status: KycStatus = user?.kyc_status || user?.kycStatus || (user?.verifiedBadge ? 'verified' : 'unverified');
+
+    return {
+      status,
+      verifiedBadge: !!user?.verifiedBadge,
+      submission: latestSubmission,
+      rejectionReason: user?.kyc_rejection_reason || latestSubmission?.rejectionReason
+    };
+  }
+
+  public async fetchKycStatus(userId: string): Promise<{
+    success: boolean;
+    kycStatus: KycStatus;
+    verifiedBadge: boolean;
+    submission?: KycSubmissionDocument;
+    rejectionReason?: string;
+    error?: string;
+  }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/kyc/status?userId=${encodeURIComponent(userId)}`);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (this.state.users[userId]) {
+          this.state.users[userId].kyc_status = data.kycStatus;
+          this.state.users[userId].kycStatus = data.kycStatus;
+          this.state.users[userId].verifiedBadge = data.verifiedBadge;
+          if (data.rejectionReason) this.state.users[userId].kyc_rejection_reason = data.rejectionReason;
+        }
+        if (data.submission) {
+          if (!this.state.kyc_submissions) this.state.kyc_submissions = {};
+          this.state.kyc_submissions[data.submission.id] = data.submission;
+        }
+        this.persist();
+        this.notifyListeners();
+        return data;
+      }
+      return { success: false, kycStatus: 'unverified', verifiedBadge: false, error: data.error };
+    } catch (err: any) {
+      const local = this.getKycStatus(userId);
+      return {
+        success: true,
+        kycStatus: local.status,
+        verifiedBadge: local.verifiedBadge,
+        submission: local.submission,
+        rejectionReason: local.rejectionReason
+      };
+    }
+  }
+
+  public getKycSubmissions(filter?: { status?: KycStatus }): KycSubmissionDocument[] {
+    const list = Object.values(this.state.kyc_submissions || {});
+    list.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+    if (filter?.status && filter.status !== ('all' as any)) {
+      return list.filter(item => item.status === filter.status);
+    }
+    return list;
+  }
+
+  public async fetchKycSubmissions(status?: string): Promise<{
+    success: boolean;
+    submissions: KycSubmissionDocument[];
+    counts?: { all: number; pending: number; verified: number; rejected: number };
+    error?: string;
+  }> {
+    try {
+      const url = status && status !== 'all' 
+        ? `${BACKEND_BASE}/api/admin/kyc/list?status=${encodeURIComponent(status)}`
+        : `${BACKEND_BASE}/api/admin/kyc/list`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (!this.state.kyc_submissions) this.state.kyc_submissions = {};
+        for (const sub of (data.submissions || [])) {
+          this.state.kyc_submissions[sub.id] = sub;
+        }
+        this.persist();
+        this.notifyListeners();
+        return data;
+      }
+      return { success: false, submissions: this.getKycSubmissions(), error: data.error };
+    } catch (err: any) {
+      return { success: true, submissions: this.getKycSubmissions() };
+    }
+  }
+
+  public async submitKyc(params: {
+    userId: string;
+    fullLegalName: string;
+    idType: KycIdType;
+    idNumber: string;
+    documentFrontUrl: string;
+    documentBackUrl?: string;
+    documentFileName?: string;
+  }): Promise<{ success: boolean; submission?: KycSubmissionDocument; user?: any; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/kyc/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (!this.state.kyc_submissions) this.state.kyc_submissions = {};
+        this.state.kyc_submissions[data.submission.id] = data.submission;
+        if (this.state.users[params.userId]) {
+          this.state.users[params.userId].kyc_status = 'pending';
+          this.state.users[params.userId].kycStatus = 'pending';
+          this.state.users[params.userId].verifiedBadge = false;
+          this.state.users[params.userId].kycSubmission = data.submission;
+        }
+        this.persist();
+        this.notifyListeners();
+        return data;
+      }
+      return { success: false, error: data.error || 'Failed to submit KYC' };
+    } catch (err: any) {
+      // Local fallback in case offline
+      const subId = `kyc_${Date.now()}`;
+      const sub: KycSubmissionDocument = {
+        id: subId,
+        userId: params.userId,
+        fullLegalName: params.fullLegalName,
+        idType: params.idType,
+        idNumber: params.idNumber,
+        documentFrontUrl: params.documentFrontUrl,
+        documentBackUrl: params.documentBackUrl,
+        documentFileName: params.documentFileName,
+        status: 'pending',
+        submittedAt: Date.now()
+      };
+      if (!this.state.kyc_submissions) this.state.kyc_submissions = {};
+      this.state.kyc_submissions[subId] = sub;
+      if (this.state.users[params.userId]) {
+        this.state.users[params.userId].kyc_status = 'pending';
+        this.state.users[params.userId].kycStatus = 'pending';
+        this.state.users[params.userId].verifiedBadge = false;
+        this.state.users[params.userId].kycSubmission = sub;
+      }
+      this.persist();
+      this.notifyListeners();
+      return { success: true, submission: sub };
+    }
+  }
+
+  public async reviewKyc(params: {
+    submissionId: string;
+    userId?: string;
+    action: 'approve' | 'reject';
+    rejectionReason?: string;
+    adminName?: string;
+  }): Promise<{ success: boolean; submission?: KycSubmissionDocument; user?: any; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/kyc/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (!this.state.kyc_submissions) this.state.kyc_submissions = {};
+        this.state.kyc_submissions[params.submissionId] = data.submission;
+        const uid = params.userId || data.submission.userId;
+        if (uid && this.state.users[uid]) {
+          this.state.users[uid].kyc_status = data.submission.status;
+          this.state.users[uid].kycStatus = data.submission.status;
+          this.state.users[uid].verifiedBadge = (data.submission.status === 'verified');
+          if (data.submission.rejectionReason) {
+            this.state.users[uid].kyc_rejection_reason = data.submission.rejectionReason;
+          } else {
+            delete this.state.users[uid].kyc_rejection_reason;
+          }
+        }
+        this.persist();
+        this.notifyListeners();
+        return data;
+      }
+      return { success: false, error: data.error || 'Failed to review KYC' };
+    } catch (err: any) {
+      // Local fallback
+      const sub = this.state.kyc_submissions?.[params.submissionId];
+      if (sub) {
+        sub.status = params.action === 'approve' ? 'verified' : 'rejected';
+        sub.reviewedAt = Date.now();
+        sub.reviewedBy = params.adminName || 'Compliance Officer';
+        if (params.action === 'reject') sub.rejectionReason = params.rejectionReason;
+        const uid = params.userId || sub.userId;
+        if (uid && this.state.users[uid]) {
+          this.state.users[uid].kyc_status = sub.status;
+          this.state.users[uid].kycStatus = sub.status;
+          this.state.users[uid].verifiedBadge = (sub.status === 'verified');
+          if (params.rejectionReason) this.state.users[uid].kyc_rejection_reason = params.rejectionReason;
+        }
+        this.persist();
+        this.notifyListeners();
+        return { success: true, submission: sub };
+      }
+      return { success: false, error: err.message || 'Error reviewing KYC' };
+    }
+  }
+
+  public async uploadKycDocument(fileName: string, fileData: string, mimeType?: string): Promise<{ success: boolean; url: string; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/kyc/upload-document`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName, fileData, mimeType })
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.fileUrl) {
+        return { success: true, url: data.fileUrl };
+      }
+      return { success: false, url: '', error: data.error || 'Failed to upload document' };
+    } catch (err: any) {
+      return { success: true, url: fileData.startsWith('data:') ? fileData : `https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80` };
+    }
+  }
+
+  public async simulateKycStatus(userId: string, status: KycStatus, rejectionReason?: string): Promise<{ success: boolean; status: KycStatus; error?: string }> {
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/kyc/simulate-status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, status, rejectionReason })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (this.state.users[userId]) {
+          this.state.users[userId].kyc_status = status;
+          this.state.users[userId].kycStatus = status;
+          this.state.users[userId].verifiedBadge = (status === 'verified');
+          if (status === 'rejected') this.state.users[userId].kyc_rejection_reason = rejectionReason || 'Document unreadable';
+        }
+        this.persist();
+        this.notifyListeners();
+        return data;
+      }
+      return { success: false, status, error: data.error };
+    } catch (err: any) {
+      if (this.state.users[userId]) {
+        this.state.users[userId].kyc_status = status;
+        this.state.users[userId].kycStatus = status;
+        this.state.users[userId].verifiedBadge = (status === 'verified');
+        if (status === 'rejected') this.state.users[userId].kyc_rejection_reason = rejectionReason || 'Document unreadable';
+        this.persist();
+        this.notifyListeners();
+      }
+      return { success: true, status };
     }
   }
 }

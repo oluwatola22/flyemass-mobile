@@ -95,6 +95,9 @@ export const WalletsScreen: React.FC = () => {
     db.getAuthoritativeRates().then(setSystemRates).catch(() => {});
   }, []);
 
+  const kycInfo = db.getKycStatus(activeUserId);
+  const isKycVerified = kycInfo.status === 'verified';
+
   // Compute Balances
   // Institutional Vault Reference: United States Dollar Wallet (USD)
   const ngnWallet = wallets.find(w => w.currency === 'NGN') || { currency: 'NGN', balance: 0, symbol: '₦', name: 'Nigerian Naira Vault', flag: '🇳🇬', equivalentUSD: 0 };
@@ -364,6 +367,25 @@ export const WalletsScreen: React.FC = () => {
             </span>
           </button>
         </div>
+
+        {/* KYC Compliance Reminder Banner */}
+        {!isKycVerified && (
+          <div 
+            onClick={() => navigate('kyc')}
+            className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-950/50 via-slate-900 to-amber-950/30 border border-amber-500/30 flex items-center justify-between gap-3 cursor-pointer hover:border-amber-500/50 transition-all shadow-lg"
+          >
+            <div className="flex items-center gap-2.5">
+              <ShieldCheck className="w-5 h-5 text-amber-400 shrink-0" />
+              <div>
+                <p className="text-xs font-bold text-amber-300">Identity Verification Required</p>
+                <p className="text-[11px] text-slate-300">Complete KYC to unlock full withdrawals & China payments.</p>
+              </div>
+            </div>
+            <span className="text-xs font-semibold text-amber-400 flex items-center gap-1 shrink-0">
+              Verify <ChevronRight className="w-3.5 h-3.5" />
+            </span>
+          </div>
+        )}
 
         {/* ======================================================== */}
         {/* 4. TRANSACTION HISTORY & ACTIVITY AUDIT LEDGER */}

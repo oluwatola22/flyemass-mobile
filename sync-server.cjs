@@ -973,7 +973,15 @@ const INITIAL_DATABASE = {
       businessName: 'Alade Global Enterprises Ltd',
       flyeTag: 'FM-USR-8924',
       shippingMark: 'FM-USR-8924',
-      verifiedBadge: true,
+      verifiedBadge: false,
+      kyc_status: 'pending',
+      kycStatus: 'pending',
+      kyc_full_legal_name: 'Chief Babatunde Alade',
+      kyc_id_type: 'NIN',
+      kyc_id_number: '29384756102',
+      kyc_document_front_url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+      kyc_document_back_url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+      kyc_submitted_at: Date.now() - 3600000 * 4,
       role: 'client',
       createdAt: Date.now() - 30 * 86400000,
       balances: {
@@ -2722,6 +2730,24 @@ const INITIAL_DATABASE = {
       userId: 'usr_alade_01'
     }
   ],
+  kyc_submissions: {
+    'kyc_sample_01': {
+      id: 'kyc_sample_01',
+      userId: 'usr_alade_01',
+      userEmail: 'babatunde@aladeholding.ng',
+      userPhone: '+234 803 555 9201',
+      companyName: 'Alade Global Enterprises Ltd',
+      fullLegalName: 'Chief Babatunde Alade',
+      idType: 'NIN',
+      idTypeLabel: 'National Identification Number (NIN)',
+      idNumber: '29384756102',
+      documentFrontUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=800&q=80',
+      documentBackUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+      documentFileName: 'nin_slip_front_alade.jpg',
+      status: 'pending',
+      submittedAt: Date.now() - 3600000 * 4
+    }
+  },
   audit_logs: []
 };
 
@@ -2861,6 +2887,7 @@ try {
       support_tickets: { ...INITIAL_DATABASE.support_tickets, ...(parsed.support_tickets || {}) },
       banners: parsed.banners || INITIAL_DATABASE.banners,
       cac_registrations: { ...INITIAL_DATABASE.cac_registrations, ...(parsed.cac_registrations || {}) },
+      kyc_submissions: { ...INITIAL_DATABASE.kyc_submissions, ...(parsed.kyc_submissions || {}) },
       system_settings: {
         ...INITIAL_DATABASE.system_settings,
         ...(parsed.system_settings || {}),
@@ -5816,6 +5843,17 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 403, { error: 'Account suspended. Outgoing transfers restricted.' });
       }
 
+      // Enterprise KYC Compliance Gating Middleware
+      const supplierPayKycStatus = user.kyc_status || user.kycStatus || (user.verifiedBadge ? 'verified' : 'unverified');
+      if (supplierPayKycStatus !== 'verified') {
+        return sendJson(res, 403, {
+          success: false,
+          kycRequired: true,
+          kycStatus: supplierPayKycStatus,
+          error: 'KYC Verification Required. Please complete your identity verification on your Profile page before initiating withdrawals or supplier payments.'
+        });
+      }
+
       const numCNY = Number(amountCNY);
       if (isNaN(numCNY) || numCNY <= 0) return sendJson(res, 400, { error: 'Invalid CNY amount' });
       if (numCNY < 1 || numCNY > 1000000) {
@@ -6014,6 +6052,17 @@ const server = http.createServer(async (req, res) => {
 
       if (user.isSuspended) {
         return sendJson(res, 403, { error: 'Account suspended. Withdrawals restricted.' });
+      }
+
+      // Enterprise KYC Compliance Gating Middleware
+      const withdrawKycStatus = user.kyc_status || user.kycStatus || (user.verifiedBadge ? 'verified' : 'unverified');
+      if (withdrawKycStatus !== 'verified') {
+        return sendJson(res, 403, {
+          success: false,
+          kycRequired: true,
+          kycStatus: withdrawKycStatus,
+          error: 'KYC Verification Required. Please complete your identity verification on your Profile page before initiating withdrawals or supplier payments.'
+        });
       }
 
       const channel = (body.channel || (body.paymentMethod ? body.paymentMethod.toLowerCase() : 'naira_bank')).toLowerCase();
@@ -12951,6 +13000,289 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
       persistState();
       broadcastUpdate();
       return sendJson(res, 200, { success: true, application: app });
+    }
+
+    // =========================================================================
+    // ENTERPRISE KYC VERIFICATION & COMPLIANCE ENGINE API
+    // =========================================================================
+
+    // 1. Get User KYC Status & Active Submission
+    if (pathname === '/api/kyc/status' && req.method === 'GET') {
+      const userId = parsedUrl.searchParams.get('userId');
+      if (!userId) return sendJson(res, 400, { error: 'userId is required' });
+      const user = dbState.users?.[userId];
+      if (!user) return sendJson(res, 404, { error: 'User not found' });
+
+      const submissions = Object.values(dbState.kyc_submissions || {}).filter(s => s.userId === userId);
+      submissions.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+      const latestSubmission = submissions[0] || user.kycSubmission || null;
+
+      const kycStatus = user.kyc_status || user.kycStatus || (user.verifiedBadge ? 'verified' : 'unverified');
+
+      return sendJson(res, 200, {
+        success: true,
+        userId,
+        kycStatus,
+        verifiedBadge: !!user.verifiedBadge,
+        rejectionReason: user.kyc_rejection_reason || latestSubmission?.rejectionReason,
+        submission: latestSubmission
+      });
+    }
+
+    // 2. Upload KYC Document Image (Simulated cloud storage / base64 vault)
+    if (pathname === '/api/kyc/upload-document' && req.method === 'POST') {
+      const { fileName, fileData, mimeType } = await readJsonBody(req);
+      const cleanName = (fileName || `kyc-doc-${Date.now()}`).replace(/[^a-zA-Z0-9.-]/g, '_');
+      const storageUrl = fileData && typeof fileData === 'string' && fileData.startsWith('data:') 
+        ? fileData 
+        : `https://storage.flyemass.com/kyc-vault/${Date.now()}_${cleanName}`;
+
+      return sendJson(res, 200, {
+        success: true,
+        fileUrl: storageUrl,
+        fileName: cleanName,
+        uploadedAt: Date.now()
+      });
+    }
+
+    // 3. Submit KYC Verification
+    if (pathname === '/api/kyc/submit' && req.method === 'POST') {
+      const { 
+        userId, 
+        fullLegalName, 
+        idType, 
+        idNumber, 
+        documentFrontUrl, 
+        documentBackUrl, 
+        documentFileName 
+      } = await readJsonBody(req);
+
+      if (!userId || !fullLegalName || !idType || !idNumber || !documentFrontUrl) {
+        return sendJson(res, 400, { 
+          error: 'Missing required fields: Full Legal Name, ID Type, ID Number, and Front Document scan are mandatory.' 
+        });
+      }
+
+      const user = dbState.users?.[userId];
+      if (!user) return sendJson(res, 404, { error: 'User account not found.' });
+
+      const idTypeLabels = {
+        'NIN': 'National Identification Number (NIN)',
+        'Drivers_License': "Driver's License Number",
+        'International_Passport': 'International Passport Number',
+        'Voters_Card': "Voter's Card Number"
+      };
+
+      const submissionId = `kyc_${Date.now()}_${Math.floor(100 + Math.random() * 900)}`;
+      const submission = {
+        id: submissionId,
+        userId,
+        userEmail: user.email,
+        userPhone: user.phone,
+        companyName: user.businessName || user.company,
+        fullLegalName: fullLegalName.trim(),
+        idType,
+        idTypeLabel: idTypeLabels[idType] || idType,
+        idNumber: idNumber.trim(),
+        documentFrontUrl,
+        documentBackUrl: documentBackUrl || '',
+        documentFileName: documentFileName || 'identity_document.jpg',
+        status: 'pending',
+        submittedAt: Date.now()
+      };
+
+      if (!dbState.kyc_submissions) dbState.kyc_submissions = {};
+      dbState.kyc_submissions[submissionId] = submission;
+
+      // Update user document
+      user.kyc_status = 'pending';
+      user.kycStatus = 'pending';
+      user.verifiedBadge = false;
+      user.kyc_full_legal_name = submission.fullLegalName;
+      user.kyc_id_type = submission.idType;
+      user.kyc_id_number = submission.idNumber;
+      user.kyc_document_front_url = submission.documentFrontUrl;
+      user.kyc_document_back_url = submission.documentBackUrl;
+      user.kyc_submitted_at = submission.submittedAt;
+      user.kycSubmission = submission;
+      delete user.kyc_rejection_reason;
+
+      recordAudit(
+        userId,
+        'KYC_SUBMISSION_CREATED',
+        'kyc_submissions',
+        submissionId,
+        `Submitted ${submission.idTypeLabel} (${submission.idNumber}) for compliance review`,
+        req
+      );
+
+      persistState();
+      broadcastUpdate();
+
+      return sendJson(res, 200, {
+        success: true,
+        submission,
+        user,
+        message: 'KYC identity verification documents submitted successfully. Our compliance desk will review your details promptly.'
+      });
+    }
+
+    // 4. Admin List KYC Submissions
+    if (pathname === '/api/admin/kyc/list' && req.method === 'GET') {
+      const statusFilter = parsedUrl.searchParams.get('status');
+      let list = Object.values(dbState.kyc_submissions || {});
+
+      list.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+
+      if (statusFilter && statusFilter !== 'all') {
+        list = list.filter(item => item.status === statusFilter);
+      }
+
+      const allItems = Object.values(dbState.kyc_submissions || {});
+      const counts = {
+        all: allItems.length,
+        pending: allItems.filter(i => i.status === 'pending').length,
+        verified: allItems.filter(i => i.status === 'verified').length,
+        rejected: allItems.filter(i => i.status === 'rejected').length
+      };
+
+      return sendJson(res, 200, {
+        success: true,
+        submissions: list,
+        counts
+      });
+    }
+
+    // 5. Admin Review KYC Submission (Approve or Reject)
+    if (pathname === '/api/admin/kyc/review' && req.method === 'POST') {
+      const { submissionId, userId, action, rejectionReason, adminName } = await readJsonBody(req);
+      if (!submissionId || !action) {
+        return sendJson(res, 400, { error: 'submissionId and action are required.' });
+      }
+
+      const submission = dbState.kyc_submissions?.[submissionId];
+      if (!submission) return sendJson(res, 404, { error: 'KYC submission record not found.' });
+
+      const targetUserId = userId || submission.userId;
+      const user = dbState.users?.[targetUserId];
+
+      const reviewer = adminName || 'Compliance Desk Officer';
+      const timestamp = Date.now();
+
+      if (action === 'approve') {
+        submission.status = 'verified';
+        submission.reviewedAt = timestamp;
+        submission.reviewedBy = reviewer;
+        delete submission.rejectionReason;
+
+        if (user) {
+          user.kyc_status = 'verified';
+          user.kycStatus = 'verified';
+          user.verifiedBadge = true;
+          user.kyc_reviewed_at = timestamp;
+          user.kyc_reviewed_by = reviewer;
+          delete user.kyc_rejection_reason;
+          if (!user.notifications) user.notifications = [];
+          user.notifications.unshift({
+            id: `notif_${timestamp}`,
+            title: 'Identity Verification Approved',
+            message: 'Congratulations! Your government ID has been verified by the Compliance Desk. Full withdrawal and payment capabilities are now unlocked.',
+            type: 'KYC_VERIFICATION',
+            read: false,
+            createdAt: timestamp
+          });
+        }
+
+        recordAudit(
+          reviewer,
+          'KYC_SUBMISSION_APPROVED',
+          'kyc_submissions',
+          submissionId,
+          `Approved KYC for user ${targetUserId} (${submission.fullLegalName} - ${submission.idType})`,
+          req
+        );
+      } else if (action === 'reject') {
+        if (!rejectionReason || !rejectionReason.trim()) {
+          return sendJson(res, 400, { error: 'A specific rejection reason is mandatory when disapproving a KYC submission.' });
+        }
+
+        submission.status = 'rejected';
+        submission.rejectionReason = rejectionReason.trim();
+        submission.reviewedAt = timestamp;
+        submission.reviewedBy = reviewer;
+
+        if (user) {
+          user.kyc_status = 'rejected';
+          user.kycStatus = 'rejected';
+          user.verifiedBadge = false;
+          user.kyc_rejection_reason = submission.rejectionReason;
+          user.kyc_reviewed_at = timestamp;
+          user.kyc_reviewed_by = reviewer;
+          if (!user.notifications) user.notifications = [];
+          user.notifications.unshift({
+            id: `notif_${timestamp}`,
+            title: 'Identity Verification Rejected',
+            message: `Your identity submission requires attention: ${submission.rejectionReason}. Please re-submit clear documents on your Profile page.`,
+            type: 'KYC_VERIFICATION',
+            read: false,
+            createdAt: timestamp
+          });
+        }
+
+        recordAudit(
+          reviewer,
+          'KYC_SUBMISSION_REJECTED',
+          'kyc_submissions',
+          submissionId,
+          `Rejected KYC for user ${targetUserId}: ${submission.rejectionReason}`,
+          req
+        );
+      } else {
+        return sendJson(res, 400, { error: 'Invalid action. Expected "approve" or "reject".' });
+      }
+
+      persistState();
+      broadcastUpdate();
+
+      return sendJson(res, 200, {
+        success: true,
+        submission,
+        user
+      });
+    }
+
+    // 6. Test Helper: Simulate / Toggle KYC Status for Demo
+    if (pathname === '/api/kyc/simulate-status' && req.method === 'POST') {
+      const { userId, status, rejectionReason } = await readJsonBody(req);
+      if (!userId || !status) return sendJson(res, 400, { error: 'userId and status are required' });
+      const user = dbState.users?.[userId];
+      if (!user) return sendJson(res, 404, { error: 'User not found' });
+
+      user.kyc_status = status;
+      user.kycStatus = status;
+      user.verifiedBadge = (status === 'verified');
+      if (status === 'rejected') {
+        user.kyc_rejection_reason = rejectionReason || 'Government ID scan was blurry or unreadable. Please upload a clear photo.';
+      } else {
+        delete user.kyc_rejection_reason;
+      }
+      if (status === 'verified') {
+        user.kyc_reviewed_at = Date.now();
+        user.kyc_reviewed_by = 'Automated Verification Engine';
+      }
+
+      // Also update latest submission if exists
+      const submissions = Object.values(dbState.kyc_submissions || {}).filter(s => s.userId === userId);
+      submissions.sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+      if (submissions[0]) {
+        submissions[0].status = status;
+        if (status === 'rejected') submissions[0].rejectionReason = user.kyc_rejection_reason;
+        if (status === 'verified') submissions[0].reviewedAt = Date.now();
+      }
+
+      persistState();
+      broadcastUpdate();
+      return sendJson(res, 200, { success: true, user, status });
     }
 
     // Endpoint not matched

@@ -76,6 +76,7 @@ import { OfficeRentalsScreen } from '../../screens/rentals/OfficeRentalsScreen';
 
 // Section 8: Profile, Security & Support
 import { ProfileScreen } from '../../screens/profile/ProfileScreen';
+import { KycScreen } from '../../screens/profile/KycScreen';
 import { SecurityScreen } from '../../screens/profile/SecurityScreen';
 import { SupportScreen } from '../../screens/profile/SupportScreen';
 import { SupportChatScreen } from '../../screens/profile/SupportChatScreen';
@@ -358,6 +359,7 @@ export const MobileShell: React.FC = () => {
       case 'rentals-offices': return <OfficeRentalsScreen />;
 
       // 8. Profile, Security & Support
+      case 'kyc': return <KycScreen />;
       case 'security': return <SecurityScreen />;
       case 'support': return <SupportScreen />;
       case 'support-chat': return <SupportChatScreen />;
@@ -422,6 +424,7 @@ export const MobileShell: React.FC = () => {
 
     // 8. Profile, Security & Support
     { label: '/profile (Corporate Credentials)', route: 'profile', group: '8. Profile & Security' },
+    { label: '/kyc (Identity & Compliance Verification)', route: 'kyc', group: '8. Profile & Security' },
     { label: '/security (PIN & Trusted Sessions)', route: 'security', group: '8. Profile & Security' },
     { label: '/support (Help Center & FAQ)', route: 'support', group: '8. Profile & Security' },
     { label: '/support/chat (24/7 Trade Desk)', route: 'support-chat', group: '8. Profile & Security' },

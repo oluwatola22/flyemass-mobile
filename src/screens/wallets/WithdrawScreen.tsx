@@ -7,6 +7,7 @@ import {
   Building2, 
   ArrowUpRight, 
   ShieldCheck, 
+  ShieldAlert,
   CheckCircle2, 
   AlertCircle, 
   Loader2,
@@ -19,7 +20,8 @@ import {
   Search,
   Send,
   Lock,
-  ChevronDown
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { Currency } from '../../types';
 
@@ -130,9 +132,14 @@ export const WithdrawScreen: React.FC = () => {
   // Modals & Flow
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
+  const [showKycRestrictionModal, setShowKycRestrictionModal] = useState(false);
   const [showProofPreviewModal, setShowProofPreviewModal] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionReceipt, setSubmissionReceipt] = useState<any | null>(null);
+
+  // KYC Verification Compliance Gating Check
+  const kycInfo = db.getKycStatus(activeUserId);
+  const isKycVerified = kycInfo.status === 'verified';
 
   // Naira Wallet Balance
   const ngnWallet = wallets.find((w) => w.currency === 'NGN') || { currency: 'NGN', balance: 0 };
@@ -230,6 +237,10 @@ export const WithdrawScreen: React.FC = () => {
   };
 
   const handleInitiateReview = () => {
+    if (!isKycVerified) {
+      setShowKycRestrictionModal(true);
+      return;
+    }
     if (!validateForm()) return;
     setShowReviewModal(true);
   };
@@ -260,6 +271,11 @@ export const WithdrawScreen: React.FC = () => {
       );
 
       if (res && res.error) {
+        if ((res as any).kycRequired) {
+          setShowPinModal(false);
+          setShowKycRestrictionModal(true);
+          return;
+        }
         showToast(res.error, 'error');
         return;
       }
@@ -324,6 +340,25 @@ export const WithdrawScreen: React.FC = () => {
       </div>
 
       <div className="p-4 space-y-4 max-w-lg mx-auto">
+        {/* Compliance Gating Alert Banner */}
+        {!isKycVerified && (
+          <div 
+            onClick={() => setShowKycRestrictionModal(true)}
+            className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 cursor-pointer hover:bg-amber-500/15 transition-colors shadow-lg"
+          >
+            <div className="flex items-center gap-2.5">
+              <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0" />
+              <div>
+                <p className="text-xs font-bold text-amber-300">KYC Verification Required</p>
+                <p className="text-[11px] text-slate-300">NUBAN withdrawals locked until identity is verified.</p>
+              </div>
+            </div>
+            <span className="text-xs font-semibold text-amber-400 flex items-center gap-1 shrink-0">
+              Verify <ChevronRight className="w-3.5 h-3.5" />
+            </span>
+          </div>
+        )}
+
         {/* ======================================================== */}
         {/* 1. SEND MONEY TO CHINA INFORMATIONAL ROUTE CALLOUT */}
         {/* ======================================================== */}
@@ -861,6 +896,48 @@ export const WithdrawScreen: React.FC = () => {
               <Download className="w-3.5 h-3.5" />
               <span>Download Image</span>
             </a>
+          </div>
+        </div>
+      )}
+
+      {/* Compliance Gating Restriction Modal */}
+      {showKycRestrictionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-sm bg-slate-900 border border-amber-500/30 rounded-3xl p-6 shadow-2xl space-y-4 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mx-auto">
+              <ShieldAlert className="w-7 h-7" />
+            </div>
+
+            <div>
+              <h3 className="text-base font-extrabold text-white">KYC Verification Required</h3>
+              <p className="text-xs text-amber-400/90 font-medium mt-1">Regulatory AML & CBN Compliance Gate</p>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+              KYC Verification Required. Please complete your identity verification on your Profile page before initiating withdrawals or supplier payments.
+            </p>
+
+            <div className="space-y-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowKycRestrictionModal(false);
+                  navigate('kyc');
+                }}
+                className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transition-all cursor-pointer"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Complete KYC Verification
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowKycRestrictionModal(false)}
+                className="w-full py-2.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                Dismiss & Return
+              </button>
+            </div>
           </div>
         </div>
       )}

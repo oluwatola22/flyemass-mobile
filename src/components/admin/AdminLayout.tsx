@@ -125,6 +125,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
     const cacApplicationsCount = Object.values(s.cac_registrations || {}).filter(
       (a: any) => a.status === 'pending' || a.status === 'action_required' || a.status === 'in_review'
     ).length;
+    const pendingKycCount = Object.values((s as any).kyc_submissions || {}).filter(
+      (k: any) => k.status === 'pending'
+    ).length;
     const airRates = db.getAirShippingRates();
     const fxRates = db.getLogisticsFxRates();
 
@@ -137,6 +140,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
       usersCount,
       shopOrdersCount,
       cacApplicationsCount,
+      pendingKycCount,
       expressAirRate: airRates.expressRatePerKgUSD ?? 13.0,
       normalAirRate: airRates.normalRatePerKgUSD ?? 9.6,
       usdToNgn: fxRates.usdToNgn ?? 1400.0,
@@ -159,6 +163,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
           prev.usersCount === next.usersCount &&
           prev.shopOrdersCount === next.shopOrdersCount &&
           prev.cacApplicationsCount === next.cacApplicationsCount &&
+          prev.pendingKycCount === next.pendingKycCount &&
           prev.expressAirRate === next.expressAirRate &&
           prev.normalAirRate === next.normalAirRate &&
           prev.usdToNgn === next.usdToNgn &&
@@ -269,6 +274,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
       route: 'admin-users' as ScreenRoute,
       icon: Users,
       badge: badges.usersCount
+    },
+    {
+      id: 'kyc-compliance',
+      label: 'KYC & Compliance Verification',
+      shortLabel: 'KYC Compliance',
+      path: '/admin/compliance/kyc',
+      section: 'treasury',
+      route: 'admin-kyc-compliance' as ScreenRoute,
+      icon: ShieldCheck,
+      badge: badges.pendingKycCount,
+      badgeColor: 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
     },
     {
       id: 'rmb-transfers',
