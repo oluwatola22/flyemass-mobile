@@ -17,6 +17,7 @@ import {
   AlertCircle,
   Clock,
   ChevronRight,
+  ChevronDown,
   Upload,
   Download,
   Lock,
@@ -36,7 +37,9 @@ import {
   Mail,
   Phone,
   PenTool,
-  Check
+  Check,
+  X,
+  Search
 } from 'lucide-react';
 
 export const CAC_INDUSTRY_CATEGORIES = [
@@ -66,6 +69,47 @@ export const CAC_INDUSTRY_CATEGORIES = [
   'Waste Management and Recycling'
 ];
 
+export const getRecommendedCapitalTierForIndustry = (
+  industryName: string,
+  tiers: CacShareCapitalTier[]
+): CacShareCapitalTier | undefined => {
+  if (!Array.isArray(tiers) || tiers.length === 0) return undefined;
+  const norm = (industryName || '').toLowerCase();
+  let targetCapital = 1000000;
+  if (
+    norm.includes('financial') ||
+    norm.includes('fintech') ||
+    norm.includes('oil and gas') ||
+    norm.includes('energy') ||
+    norm.includes('mining')
+  ) {
+    targetCapital = 10000000;
+  } else if (
+    norm.includes('manufacturing') ||
+    norm.includes('security') ||
+    norm.includes('construction') ||
+    norm.includes('telecom')
+  ) {
+    targetCapital = 5000000;
+  } else if (
+    norm.includes('transportation') ||
+    norm.includes('logistics') ||
+    norm.includes('it, software') ||
+    norm.includes('electronics')
+  ) {
+    targetCapital = 2000000;
+  } else {
+    targetCapital = 1000000;
+  }
+
+  const exact = tiers.find(t => t.shareCapitalNGN === targetCapital);
+  if (exact) return exact;
+  const sorted = [...tiers].sort(
+    (a, b) => Math.abs(a.shareCapitalNGN - targetCapital) - Math.abs(b.shareCapitalNGN - targetCapital)
+  );
+  return sorted[0];
+};
+
 export const CacRegistrationScreen: React.FC = () => {
   const { activeUserId, userProfile, wallets, navigate, showToast } = useApp();
   const user = db.getUser(activeUserId);
@@ -87,6 +131,8 @@ export const CacRegistrationScreen: React.FC = () => {
   const [primaryName, setPrimaryName] = useState('');
   const [alternativeName, setAlternativeName] = useState('');
   const [category, setCategory] = useState(CAC_INDUSTRY_CATEGORIES[21]); // Transportation & Logistics
+  const [isIndustryPickerOpen, setIsIndustryPickerOpen] = useState(false);
+  const [industrySearch, setIndustrySearch] = useState('');
   const [commencementDate, setCommencementDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [businessAddress, setBusinessAddress] = useState('');
   const [businessDescription, setBusinessDescription] = useState('');
@@ -201,6 +247,23 @@ export const CacRegistrationScreen: React.FC = () => {
     wallets?.find(w => w.currency === 'NGN')?.balance ?? user?.balances?.NGN ?? 0
   );
   const hasSufficientNgn = ngnWalletBalance >= calculatedFee;
+
+  const filteredIndustries = useMemo(() => {
+    if (!industrySearch.trim()) return CAC_INDUSTRY_CATEGORIES;
+    const q = industrySearch.toLowerCase().trim();
+    return CAC_INDUSTRY_CATEGORIES.filter(c => c.toLowerCase().includes(q));
+  }, [industrySearch]);
+
+  const handleSelectCategory = (cat: string) => {
+    setCategory(cat);
+    setIsIndustryPickerOpen(false);
+    if (serviceType === 'company_registration') {
+      const rec = getRecommendedCapitalTierForIndustry(cat, shareCapitalTiers);
+      if (rec) {
+        setSelectedCapitalTierId(rec.id);
+      }
+    }
+  };
 
   // Manage Partners / Directors
   const handleAddPartner = () => {
@@ -572,33 +635,35 @@ export const CacRegistrationScreen: React.FC = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                        Official CAC Industry Category *
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="min-w-0">
+                      <label className="block text-xs font-semibold text-slate-300 mb-1.5 whitespace-nowrap truncate">
+                        Official CAC Industry Category <span className="text-emerald-400">*</span>
                       </label>
-                      <select
-                        value={category}
-                        onChange={e => setCategory(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIndustrySearch('');
+                          setIsIndustryPickerOpen(true);
+                        }}
+                        className="w-full h-[46px] px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 active:border-emerald-500 text-left flex items-center justify-between transition-all focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer group"
                       >
-                        {CAC_INDUSTRY_CATEGORIES.map(cat => (
-                          <option key={cat} value={cat}>
-                            {cat}
-                          </option>
-                        ))}
-                      </select>
+                        <span className="truncate text-xs sm:text-sm text-white font-medium pr-2">
+                          {category}
+                        </span>
+                        <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-emerald-400 shrink-0 transition-colors" />
+                      </button>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                        Date of Commencement *
+                    <div className="min-w-0">
+                      <label className="block text-xs font-semibold text-slate-300 mb-1.5 whitespace-nowrap truncate">
+                        Date of Commencement <span className="text-emerald-400">*</span>
                       </label>
                       <input
                         type="date"
                         value={commencementDate}
                         onChange={e => setCommencementDate(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                        className="w-full h-[46px] px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs sm:text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all [color-scheme:dark]"
                       />
                     </div>
                   </div>
@@ -612,7 +677,7 @@ export const CacRegistrationScreen: React.FC = () => {
                       value={businessAddress}
                       onChange={e => setBusinessAddress(e.target.value)}
                       placeholder="e.g. 14 Warehouse Road, Apapa Port Commercial Corridor, Lagos, Nigeria"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                      className="w-full h-[46px] px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
                     />
                   </div>
 
@@ -621,21 +686,21 @@ export const CacRegistrationScreen: React.FC = () => {
                       Operations & Nature of Trade Description
                     </label>
                     <textarea
-                      rows={2}
+                      rows={3}
                       value={businessDescription}
                       onChange={e => setBusinessDescription(e.target.value)}
                       placeholder="Describe the trade goods, cargo haulage, wholesale distribution, or services..."
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors resize-none"
+                      className="w-full p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all resize-none leading-relaxed"
                     />
                   </div>
 
                   <button
                     type="button"
                     onClick={handleNextStep}
-                    className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm tracking-wide shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3.5 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm tracking-wide shadow-md shadow-emerald-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer mt-1"
                   >
-                    Continue to Director & Shareholder Details
-                    <ChevronRight className="w-4 h-4" />
+                    <span>Continue to Director & Shareholder Details</span>
+                    <ChevronRight className="w-4 h-4 shrink-0" />
                   </button>
                 </div>
               </div>
@@ -1478,6 +1543,118 @@ export const CacRegistrationScreen: React.FC = () => {
                   'Confirm & Pay'
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dark Obsidian Industry Picker Bottom-Sheet / Modal */}
+      {isIndustryPickerOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fadeIn"
+          onClick={() => setIsIndustryPickerOpen(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Select Official CAC Industry Category"
+            className="bg-[#0d1411] border border-white/10 text-white w-full max-w-md mx-auto rounded-t-3xl sm:rounded-2xl max-h-[65vh] flex flex-col shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Mobile drag handle */}
+            <div className="pt-2.5 pb-1 sm:hidden flex justify-center">
+              <div className="w-10 h-1 rounded-full bg-white/20" />
+            </div>
+
+            {/* Modal Header */}
+            <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-white truncate">
+                    Official CAC Industry Category
+                  </h3>
+                  <p className="text-[11px] text-white/60 truncate">
+                    CAMA 2020 Statutory Classification
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsIndustryPickerOpen(false)}
+                className="w-8 h-8 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Quick Filter */}
+            <div className="px-3.5 py-2.5 border-b border-white/10 bg-black/20 shrink-0">
+              <div className="relative">
+                <Search className="w-4 h-4 text-white/40 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  value={industrySearch}
+                  onChange={e => setIndustrySearch(e.target.value)}
+                  placeholder="Filter 24 CAC industry categories..."
+                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-white placeholder-white/40 focus:outline-none focus:border-emerald-500 transition-colors"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Industry List */}
+            <div className="overflow-y-auto max-h-[45vh] p-3 space-y-1 divide-y divide-white/[0.04]">
+              {filteredIndustries.length === 0 ? (
+                <div className="py-8 text-center text-xs text-white/50">
+                  No matching industry category found
+                </div>
+              ) : (
+                filteredIndustries.map(cat => {
+                  const isSelected = category === cat;
+                  const recTier = getRecommendedCapitalTierForIndustry(cat, shareCapitalTiers);
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => handleSelectCategory(cat)}
+                      className={`w-full px-3.5 py-3 rounded-xl flex items-center justify-between text-left transition-all cursor-pointer group ${
+                        isSelected
+                          ? 'bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-semibold'
+                          : 'text-slate-300 hover:text-white hover:bg-white/[0.05] border border-transparent'
+                      }`}
+                    >
+                      <div className="min-w-0 pr-2">
+                        <span className="text-xs sm:text-[13px] block truncate">
+                          {cat}
+                        </span>
+                        {serviceType === 'company_registration' && recTier && (
+                          <span className="text-[10px] text-white/40 font-mono mt-0.5 block">
+                            CAMA Rec: ₦{recTier.shareCapitalNGN.toLocaleString()} Capital
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="shrink-0 flex items-center gap-1.5">
+                        {isSelected && (
+                          <span className="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center">
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-4 py-2.5 bg-black/40 border-t border-white/10 flex items-center justify-between text-[11px] text-white/60 shrink-0">
+              <span>{CAC_INDUSTRY_CATEGORIES.length} CAMA 2020 Standard Sectors</span>
+              <span className="text-emerald-400 font-mono font-medium">Auto-Calibrated</span>
             </div>
           </div>
         </div>
