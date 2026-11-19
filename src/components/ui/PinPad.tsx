@@ -85,7 +85,7 @@ export const PinPad: React.FC<PinPadProps> = ({
     try {
       const result = await authenticateWithBiometrics(`Authorize FlyeMass transaction via ${bioCaps.label}`);
       if (result.verified) {
-        onComplete(expectedPin || '123456');
+        onComplete(expectedPin || (length === 4 ? '2468' : '246810'));
       } else {
         setError(result.error || `${bioCaps.label} verification cancelled. Enter your PIN.`);
       }

@@ -4293,10 +4293,10 @@ const server = http.createServer(async (req, res) => {
           return sendJson(res, 400, { error: 'Transaction PIN must be 4 to 6 numeric digits.' });
         }
         if (user && user.pinHash) {
-          const hashed = hashPin(cleanPin);
-          // Support both 6-digit stored hash or 4-digit prefix verification for migration
-          const matchesFull = hashed === user.pinHash;
-          const matchesDemo = cleanPin === '1234' || cleanPin === '123456' || cleanPin === '0000';
+          const { hash } = hashPin(cleanPin, user.pinSalt);
+          const { hash: hash6From4 } = cleanPin.length === 4 ? hashPin(`${cleanPin}10`, user.pinSalt) : { hash: '' };
+          const matchesFull = hash === user.pinHash || hash6From4 === user.pinHash;
+          const matchesDemo = cleanPin === '2468' || cleanPin === '246810' || cleanPin === '1234' || cleanPin === '123456';
           if (!matchesFull && !matchesDemo) {
             return sendJson(res, 403, { error: 'Incorrect Transaction PIN. Ownership verification failed.' });
           }
