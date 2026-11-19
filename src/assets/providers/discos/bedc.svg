@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bedcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C8102E" />
+      <stop offset="100%" stop-color="#78081A" />
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="24" fill="url(#bedcGrad)" stroke="#EAAA00" stroke-width="2" />
+  <!-- BEDC Royal Crown & Spark -->
+  <path d="M36 68 L36 44 L48 54 L60 38 L72 54 L84 44 L84 68 Z" fill="#EAAA00" />
+  <circle cx="36" cy="40" r="3" fill="#FFFFFF" />
+  <circle cx="60" cy="34" r="3" fill="#FFFFFF" />
+  <circle cx="84" cy="40" r="3" fill="#FFFFFF" />
+  <line x1="36" y1="72" x2="84" y2="72" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" />
+  <!-- Text -->
+  <text x="60" y="104" text-anchor="middle" fill="#FFFFFF" font-family="'Inter', sans-serif" font-weight="900" font-size="13" letter-spacing="1">BEDC</text>
+</svg>

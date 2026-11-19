@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6A00" />
+      <stop offset="100%" stop-color="#EE3E00" />
+    </linearGradient>
+    <linearGradient id="blueArc" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0066CC" />
+      <stop offset="100%" stop-color="#003366" />
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="24" fill="#111B2B" stroke="#FF6A00" stroke-width="1.5" />
+  <!-- StarTimes twin orbital arcs -->
+  <path d="M30 46 C30 32 46 22 66 22 C78 22 88 27 94 36 C86 30 76 27 64 27 C46 27 35 36 35 46 Z" fill="url(#starGrad)" />
+  <path d="M90 74 C90 88 74 98 54 98 C42 98 32 93 26 84 C34 90 44 93 56 93 C74 93 85 84 85 74 Z" fill="url(#blueArc)" />
+  <!-- Star shape in center -->
+  <polygon points="60,38 64,50 76,52 66,60 70,72 60,64 50,72 54,60 44,52 56,50" fill="#FFB800" />
+  <!-- Wordmark -->
+  <text x="60" y="98" text-anchor="middle" fill="#FFFFFF" font-family="'Inter', sans-serif" font-weight="900" font-size="13" letter-spacing="0.5">StarTimes</text>
+</svg>

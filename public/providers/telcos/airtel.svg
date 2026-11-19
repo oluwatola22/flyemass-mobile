@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="airtelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF1A21" />
+      <stop offset="100%" stop-color="#C80006" />
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="24" fill="url(#airtelGrad)" />
+  <!-- Airtel Iconic Swoosh & Dot -->
+  <path d="M60 20 C38 20 20 38 20 60 C20 82 38 100 60 100 C74 100 86 92 93 80 C87 85 80 88 72 88 C54 88 40 74 40 56 C40 38 54 24 72 24 C80 24 87 27 93 32 C86 24 74 20 60 20 Z" fill="#FFFFFF" />
+  <circle cx="80" cy="56" r="9" fill="#FFFFFF" />
+</svg>

@@ -39,6 +39,8 @@ import {
   Info
 } from 'lucide-react';
 import { TelcoLogo } from '../../components/ui/TelcoLogo';
+import { DiscoLogo } from '../../components/ui/DiscoLogo';
+import { CableLogo } from '../../components/ui/CableLogo';
 import { FALLBACK_BILL_PLANS } from '../../data/fallbackBillPlans';
 
 const NIGERIAN_DISCOS: { code: ElectricityDisco; name: string; state: string }[] = [
@@ -772,8 +774,8 @@ export const BillsScreen: React.FC = () => {
                     className="w-full bg-slate-900 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 rounded-2xl px-3.5 py-3 flex items-center justify-between text-left transition-all cursor-pointer group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0 text-amber-400 font-black">
-                        ⚡
+                      <div className="shrink-0 flex items-center justify-center">
+                        <DiscoLogo disco={selectedDisco} size="md" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
@@ -923,19 +925,24 @@ export const BillsScreen: React.FC = () => {
                     return (
                       <button
                         key={c}
+                        type="button"
                         onClick={() => {
                           setCableProvider(c);
                           setSelectedBouquet(null);
                           setVerifiedCustomer(null);
                         }}
-                        className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
+                        className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
                           isSelected
-                            ? 'border-emerald-500 bg-emerald-500/15 text-emerald-400 font-bold'
-                            : 'border-slate-800 bg-slate-900 text-slate-400'
+                            ? 'border-emerald-400 bg-emerald-500/15 shadow-md shadow-emerald-500/20'
+                            : 'border-slate-800 bg-slate-900/80 hover:border-slate-700'
                         }`}
                       >
-                        <Tv className="w-5 h-5 mx-auto mb-1" />
-                        <span className="text-xs">{c}</span>
+                        <div className="mb-1.5 flex items-center justify-center">
+                          <CableLogo provider={c} size="md" />
+                        </div>
+                        <span className={`text-[11px] font-bold block ${isSelected ? 'text-emerald-400' : 'text-slate-300'}`}>
+                          {c}
+                        </span>
                       </button>
                     );
                   })}
@@ -997,8 +1004,11 @@ export const BillsScreen: React.FC = () => {
                               : 'border-slate-800 bg-slate-900/80 text-slate-300 hover:border-slate-700'
                           }`}
                         >
-                          <span className="text-xs">{b.plan_name}</span>
-                          <span className="text-xs font-mono font-bold text-emerald-400">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <CableLogo provider={cableProvider} size="sm" />
+                            <span className="text-xs truncate">{b.plan_name}</span>
+                          </div>
+                          <span className="text-xs font-mono font-bold text-emerald-400 shrink-0 ml-2">
                             ₦{(b.selling_price_ngn || b.selling_price || 0).toLocaleString()}
                           </span>
                         </div>
@@ -1077,10 +1087,24 @@ export const BillsScreen: React.FC = () => {
             </div>
 
             {/* Breakdown Card */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs space-y-1.5">
-              <div className="flex justify-between text-slate-400">
-                <span>Service:</span>
-                <span className="text-white font-bold uppercase">{checkoutSummary.category} ({checkoutSummary.provider})</span>
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs space-y-2">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                <div className="flex items-center gap-2.5">
+                  {checkoutSummary.category === 'electricity' ? (
+                    <DiscoLogo disco={checkoutSummary.provider} size="sm" />
+                  ) : checkoutSummary.category === 'cable_tv' ? (
+                    <CableLogo provider={checkoutSummary.provider} size="sm" />
+                  ) : (
+                    <TelcoLogo provider={checkoutSummary.provider} size="sm" />
+                  )}
+                  <div>
+                    <span className="text-white font-bold block">{checkoutSummary.provider}</span>
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider">{checkoutSummary.category}</span>
+                  </div>
+                </div>
+                <span className="text-emerald-400 font-mono font-bold text-sm">
+                  ₦{checkoutSummary.totalDebited.toLocaleString()}
+                </span>
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>Recipient:</span>
@@ -1092,10 +1116,6 @@ export const BillsScreen: React.FC = () => {
                   <span className="text-white font-bold">{checkoutSummary.planName}</span>
                 </div>
               )}
-              <div className="pt-2 border-t border-slate-800 flex justify-between font-black text-sm">
-                <span className="text-white">Total Debit:</span>
-                <span className="text-emerald-400 font-mono">₦{checkoutSummary.totalDebited.toLocaleString()}</span>
-              </div>
             </div>
 
             {/* Transaction PIN Input */}
@@ -1196,9 +1216,18 @@ export const BillsScreen: React.FC = () => {
 
             {/* Receipt Summary Grid */}
             <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs space-y-1.5">
-              <div className="flex justify-between text-slate-400">
-                <span>Provider:</span>
-                <span className="text-white font-bold">{activeReceipt.provider}</span>
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+                <div className="flex items-center gap-2">
+                  {activeReceipt.category === 'electricity' ? (
+                    <DiscoLogo disco={activeReceipt.provider} size="sm" />
+                  ) : activeReceipt.category === 'cable_tv' ? (
+                    <CableLogo provider={activeReceipt.provider} size="sm" />
+                  ) : (
+                    <TelcoLogo provider={activeReceipt.provider} size="sm" />
+                  )}
+                  <span className="text-white font-bold">{activeReceipt.provider}</span>
+                </div>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold">{activeReceipt.category}</span>
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>Recipient:</span>
@@ -1269,10 +1298,16 @@ export const BillsScreen: React.FC = () => {
                     className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-white uppercase flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                        {tx.provider} ({tx.category})
-                      </span>
+                      <div className="font-bold text-white uppercase flex items-center gap-2">
+                        {tx.category === 'electricity' ? (
+                          <DiscoLogo disco={tx.provider} size="sm" />
+                        ) : tx.category === 'cable_tv' ? (
+                          <CableLogo provider={tx.provider} size="sm" />
+                        ) : (
+                          <TelcoLogo provider={tx.provider} size="sm" />
+                        )}
+                        <span>{tx.provider} ({tx.category})</span>
+                      </div>
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         tx.status === 'successful'
                           ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
@@ -1380,12 +1415,8 @@ export const BillsScreen: React.FC = () => {
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs font-black ${
-                          isSelected ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-amber-400'
-                        }`}
-                      >
-                        ⚡
+                      <div className="shrink-0 flex items-center justify-center">
+                        <DiscoLogo disco={disco.code} size="md" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="phedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0072CE" />
+      <stop offset="100%" stop-color="#003E70" />
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="24" fill="url(#phedGrad)" stroke="#FF6C0C" stroke-width="2" />
+  <!-- PHED Dual Energy Loop & Droplet -->
+  <path d="M60 26 C46 44 42 56 42 66 C42 76 50 84 60 84 C70 84 78 76 78 66 C78 56 74 44 60 26 Z" fill="none" stroke="#FF6C0C" stroke-width="5" />
+  <polygon points="63,40 52,60 60,60 56,76 70,54 62,54" fill="#FFFFFF" />
+  <!-- Text -->
+  <text x="60" y="104" text-anchor="middle" fill="#FFFFFF" font-family="'Inter', sans-serif" font-weight="900" font-size="13" letter-spacing="1">PHED</text>
+</svg>

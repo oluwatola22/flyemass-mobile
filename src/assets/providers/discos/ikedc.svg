@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="ikejaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E31B23" />
+      <stop offset="100%" stop-color="#9E0B0F" />
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="24" fill="url(#ikejaGrad)" />
+  <!-- Ikeja Electric dynamic flame / spiral -->
+  <path d="M46 30 C56 22 74 24 82 36 C88 46 84 60 72 66 C62 70 54 66 54 58 C54 50 62 46 68 50 C62 46 54 48 50 56 C46 64 50 76 62 82 C76 88 92 80 94 64" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" />
+  <circle cx="42" cy="42" r="5" fill="#FFFFFF" />
+  <!-- Text -->
+  <text x="60" y="104" text-anchor="middle" fill="#FFFFFF" font-family="'Inter', sans-serif" font-weight="900" font-size="13" letter-spacing="1">IKEDC</text>
+</svg>

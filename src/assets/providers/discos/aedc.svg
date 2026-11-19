@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="aedcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B3082" />
+      <stop offset="100%" stop-color="#041238" />
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="24" fill="url(#aedcGrad)" stroke="#00A859" stroke-width="2" />
+  <!-- AEDC Lightning Swoosh in green and white -->
+  <circle cx="60" cy="50" r="30" fill="none" stroke="#00A859" stroke-width="4" stroke-dasharray="12 4" />
+  <polygon points="64,24 46,54 58,54 52,78 74,46 62,46" fill="#00FF80" stroke="#FFFFFF" stroke-width="1.5" />
+  <!-- Text -->
+  <text x="60" y="104" text-anchor="middle" fill="#FFFFFF" font-family="'Inter', sans-serif" font-weight="900" font-size="13" letter-spacing="1">AEDC</text>
+</svg>

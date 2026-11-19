@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="yedcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E57200" />
+      <stop offset="100%" stop-color="#994C00" />
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="24" fill="url(#yedcGrad)" stroke="#005A36" stroke-width="2" />
+  <!-- YEDC Radiating Solar Arcs & Savannah -->
+  <circle cx="60" cy="52" r="14" fill="#FFCC00" />
+  <path d="M38 68 C44 58 52 52 60 52 C68 52 76 58 82 68" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" />
+  <path d="M30 76 C40 64 50 56 60 56 C70 56 80 64 90 76" fill="none" stroke="#005A36" stroke-width="5" stroke-linecap="round" />
+  <!-- Text -->
+  <text x="60" y="104" text-anchor="middle" fill="#FFFFFF" font-family="'Inter', sans-serif" font-weight="900" font-size="13" letter-spacing="1">YEDC</text>
+</svg>
