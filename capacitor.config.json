@@ -1,5 +1,5 @@
 {
-  "appId": "com.flyemass.trade",
+  "appId": "com.flyemass.app",
   "appName": "FlyeMass",
   "webDir": "dist",
   "bundledWebRuntime": false,
