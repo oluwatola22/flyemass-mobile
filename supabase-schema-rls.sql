@@ -1568,3 +1568,79 @@ BEGIN
     );
 END;
 $$;
+
+-- ============================================================================
+-- SECTION 25: FIREBASE CLOUD MESSAGING (FCM) & PUSH NOTIFICATIONS
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.user_push_tokens (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id text NOT NULL,
+  token text NOT NULL,
+  platform text NOT NULL DEFAULT 'web' CHECK (platform IN ('ios', 'android', 'web')),
+  device_info jsonb DEFAULT '{}'::jsonb,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT user_push_tokens_user_token_unique UNIQUE (user_id, token)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_push_tokens_user_id ON public.user_push_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_push_tokens_token ON public.user_push_tokens(token);
+
+ALTER TABLE public.user_push_tokens ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own push tokens" ON public.user_push_tokens;
+CREATE POLICY "Users can view own push tokens" ON public.user_push_tokens
+  FOR SELECT TO authenticated
+  USING ((SELECT auth.uid())::text = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own push tokens" ON public.user_push_tokens;
+CREATE POLICY "Users can insert own push tokens" ON public.user_push_tokens
+  FOR INSERT TO authenticated
+  WITH CHECK ((SELECT auth.uid())::text = user_id);
+
+DROP POLICY IF EXISTS "Users can update own push tokens" ON public.user_push_tokens;
+CREATE POLICY "Users can update own push tokens" ON public.user_push_tokens
+  FOR UPDATE TO authenticated
+  USING ((SELECT auth.uid())::text = user_id)
+  WITH CHECK ((SELECT auth.uid())::text = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own push tokens" ON public.user_push_tokens;
+CREATE POLICY "Users can delete own push tokens" ON public.user_push_tokens
+  FOR DELETE TO authenticated
+  USING ((SELECT auth.uid())::text = user_id);
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_push_tokens TO authenticated;
+GRANT ALL ON public.user_push_tokens TO service_role;
+
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id text,
+  title text NOT NULL,
+  body text NOT NULL,
+  type text NOT NULL DEFAULT 'system',
+  metadata jsonb DEFAULT '{}'::jsonb,
+  is_read boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON public.notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON public.notifications(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON public.notifications(user_id, is_read) WHERE is_read = false;
+
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can read own and broadcast notifications" ON public.notifications;
+CREATE POLICY "Users can read own and broadcast notifications" ON public.notifications
+  FOR SELECT TO authenticated
+  USING (user_id IS NULL OR user_id = 'all' OR user_id = (SELECT auth.uid())::text);
+
+DROP POLICY IF EXISTS "Users can update read status on own notifications" ON public.notifications;
+CREATE POLICY "Users can update read status on own notifications" ON public.notifications
+  FOR UPDATE TO authenticated
+  USING (user_id = (SELECT auth.uid())::text)
+  WITH CHECK (user_id = (SELECT auth.uid())::text);
+
+GRANT SELECT, UPDATE ON public.notifications TO authenticated;
+GRANT ALL ON public.notifications TO service_role;

@@ -10,7 +10,11 @@ import {
   ShieldAlert, 
   ChevronRight, 
   Trash2,
-  Check
+  Check,
+  Wallet,
+  Zap,
+  ShieldCheck,
+  FileText
 } from 'lucide-react';
 import { AppNotification } from '../../types';
 
@@ -23,28 +27,42 @@ export const NotificationsScreen: React.FC = () => {
     showToast 
   } = useApp();
 
-  const [filter, setFilter] = useState<'all' | 'trade' | 'cargo' | 'fx' | 'system'>('all');
+  const [filter, setFilter] = useState<'all' | 'wallet' | 'bills' | 'trade' | 'cargo' | 'fx' | 'system'>('all');
 
   const filteredNotifications = notifications.filter((n) => {
     if (filter === 'all') return true;
+    if (filter === 'wallet') return n.type === 'wallet';
+    if (filter === 'bills') return n.type === 'bills';
+    if (filter === 'trade') return n.type === 'trade';
+    if (filter === 'cargo') return n.type === 'cargo';
+    if (filter === 'fx') return n.type === 'fx';
+    if (filter === 'system') return n.type === 'system' || n.type === 'kyc' || n.type === 'cac';
     return n.type === filter;
   });
 
   const getIcon = (type: AppNotification['type']) => {
     switch (type) {
+      case 'wallet': return Wallet;
+      case 'bills': return Zap;
       case 'trade': return Send;
       case 'cargo': return Truck;
       case 'fx': return TrendingUp;
-      default: return ShieldAlert;
+      case 'cac': return FileText;
+      case 'kyc': return ShieldCheck;
+      default: return Bell;
     }
   };
 
   const getIconColor = (type: AppNotification['type']) => {
     switch (type) {
-      case 'trade': return 'bg-emerald-500/10 text-emerald-400';
-      case 'cargo': return 'bg-cyan-500/10 text-cyan-400';
-      case 'fx': return 'bg-amber-500/10 text-amber-400';
-      default: return 'bg-indigo-500/10 text-indigo-400';
+      case 'wallet': return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+      case 'bills': return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+      case 'trade': return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+      case 'cargo': return 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20';
+      case 'fx': return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+      case 'cac': return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+      case 'kyc': return 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
+      default: return 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20';
     }
   };
 
@@ -63,38 +81,52 @@ export const NotificationsScreen: React.FC = () => {
 
       <div className="p-4 space-y-4">
         {/* Top Control Bar */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-white">Alerts & Broadcasts</span>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+            <span className="text-xs font-bold text-white whitespace-nowrap">Alerts & Broadcasts</span>
             {unreadCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-extrabold">
-                {unreadCount} new
+              <span className="px-1.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-extrabold whitespace-nowrap">
+                {unreadCount > 99 ? '99+' : unreadCount} new
               </span>
             )}
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono shrink-0 whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>FCM Active</span>
+            </div>
           </div>
 
           <button
+            type="button"
             onClick={markAllNotificationsRead}
-            className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+            className="flex items-center gap-1 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
           >
             <CheckCheck className="w-3.5 h-3.5" />
-            <span>Mark all read</span>
+            <span>Mark read</span>
           </button>
         </div>
 
         {/* Filter Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
-          {(['all', 'trade', 'cargo', 'fx', 'system'] as const).map((tab) => (
+          {([
+            { id: 'all', label: 'All Alerts' },
+            { id: 'wallet', label: 'Wallet & Payouts' },
+            { id: 'bills', label: 'Airtime & Bills' },
+            { id: 'trade', label: 'Supplier Trade' },
+            { id: 'cargo', label: 'Cargo Tracking' },
+            { id: 'fx', label: 'FX Market' },
+            { id: 'system', label: 'Compliance & Security' }
+          ] as const).map((tab) => (
             <button
-              key={tab}
-              onClick={() => setFilter(tab)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize whitespace-nowrap transition-all ${
-                filter === tab
+              key={tab.id}
+              type="button"
+              onClick={() => setFilter(tab.id as any)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                filter === tab.id
                   ? 'bg-emerald-500 text-slate-950 font-bold shadow-md'
                   : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
               }`}
             >
-              {tab === 'all' ? 'All Alerts' : tab === 'trade' ? 'Supplier Payouts' : tab === 'cargo' ? 'Cargo Tracking' : tab === 'fx' ? 'FX Market' : 'Security'}
+              {tab.label}
             </button>
           ))}
         </div>

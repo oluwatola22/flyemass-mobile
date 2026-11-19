@@ -3611,6 +3611,49 @@ function recordAudit(adminName, action, targetCollection, targetId, details, req
   appendToWal({ type: 'AUDIT_LOG', logDoc });
 }
 
+function dispatchSystemNotification({ userId, title, message, type, linkRoute, metadata }) {
+  const notifId = `notif_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  const notif = {
+    id: notifId,
+    title,
+    message,
+    time: 'Just now',
+    timestamp: Date.now(),
+    read: false,
+    type: type || 'system',
+    targetUserId: userId || 'all',
+    linkRoute: linkRoute || 'notifications',
+    metadata: metadata || {}
+  };
+
+  if (!dbState.notifications) dbState.notifications = [];
+  dbState.notifications.unshift(notif);
+  if (dbState.notifications.length > 200) {
+    dbState.notifications = dbState.notifications.slice(0, 200);
+  }
+
+  // Trigger Supabase FCM Edge Function in background
+  try {
+    const fcmEdgeUrl = 'https://oalpwwreypjprsmkcdvq.supabase.co/functions/v1/send-fcm-notification';
+    fetch(fcmEdgeUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        title,
+        body: message,
+        type: type || 'system',
+        data: { linkRoute: linkRoute || 'notifications', ...(metadata || {}) },
+        saveInApp: false
+      })
+    }).catch(() => {});
+  } catch (e) {}
+
+  persistState();
+  broadcastUpdate();
+  return notif;
+}
+
 function verifyAuditChain() {
   if (!dbState.audit_logs || dbState.audit_logs.length === 0) {
     return { valid: true, message: 'Empty audit log', verifiedCount: 0 };
@@ -5039,6 +5082,21 @@ const server = http.createServer(async (req, res) => {
             matchedDva.tranRemarks = tranRemarks;
             matchedDva.settledAt = Date.now();
           }
+
+          // Trigger Real-Time Notification & FCM Push
+          dispatchSystemNotification({
+            userId: targetUserId,
+            title: `Naira Wallet Credited: ₦${settledAmount.toLocaleString()}`,
+            message: `Bank transfer received via Providus Account ${accountNumber}. Closing balance: ₦${closingBalance.toLocaleString()}`,
+            type: 'wallet',
+            linkRoute: 'wallets',
+            metadata: {
+              amount: settledAmount,
+              currency: 'NGN',
+              reference: ref,
+              sessionId
+            }
+          });
 
           if (!dbState.processed_settlements) dbState.processed_settlements = {};
           dbState.processed_settlements[settlementId] = true;
@@ -11674,6 +11732,23 @@ Notice: Rental payments and deposits are handled directly with the FlyeMass Chin
 
       if (!dbState.notifications) dbState.notifications = [];
       dbState.notifications.unshift(notif);
+
+      // Forward to Supabase FCM Edge Function in background
+      try {
+        const fcmEdgeUrl = 'https://oalpwwreypjprsmkcdvq.supabase.co/functions/v1/send-fcm-notification';
+        fetch(fcmEdgeUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: targetUserId,
+            title,
+            body: message,
+            type: type || 'system',
+            data: { linkRoute: linkRoute || 'notifications' },
+            saveInApp: false
+          })
+        }).catch(() => {});
+      } catch (e) {}
 
       recordAudit(adminId || 'Admin Staff', 'NOTIFICATION_DISPATCHED', 'notifications', notifId, `Dispatched: "${title}" to ${targetUserId || 'all users'}`, req);
       persistState();

@@ -1394,8 +1394,11 @@ export interface AppNotification {
   message: string;
   time: string;
   read: boolean;
-  type: 'trade' | 'cargo' | 'fx' | 'system';
+  type: 'wallet' | 'trade' | 'cargo' | 'fx' | 'bills' | 'kyc' | 'cac' | 'system';
   linkRoute?: ScreenRoute;
+  targetUserId?: string;
+  timestamp?: number;
+  metadata?: Record<string, any>;
 }
 
 export interface RFQQuotation {

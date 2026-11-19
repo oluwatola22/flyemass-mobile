@@ -10,7 +10,8 @@ import {
   Headphones, 
   Check, 
   X,
-  ShoppingBag
+  ShoppingBag,
+  CheckCheck
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -76,35 +77,15 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title, onBack }) => {
     navigate,
     cart,
     t,
-    getRouteTitle
+    getRouteTitle,
+    notifications,
+    markNotificationRead,
+    markAllNotificationsRead
   } = useApp();
 
   const cartCount = (cart || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
   const [showNotifications, setShowNotifications] = useState(false);
-
-  const notificationsList = [
-    {
-      id: 'notif-1',
-      title: 'Alipay Payment Confirmed',
-      desc: '¥45,000 received by Foxconn Micro Tech.',
-      time: '12m ago',
-      unread: true
-    },
-    {
-      id: 'notif-2',
-      title: 'Flight ET921 Waypoint Update',
-      desc: 'Air cargo departed Guangzhou Baiyun hub.',
-      time: '2h ago',
-      unread: true
-    },
-    {
-      id: 'notif-3',
-      title: 'FX Rate Alert: RMB/NGN ₦214.50',
-      desc: 'Naira appreciated +0.4% against Yuan.',
-      time: '5h ago',
-      unread: false
-    }
-  ];
+  const unreadCount = (notifications || []).filter((n) => !n.read).length;
 
   // If on sub-page with back button or specific page title
   const isSubPage = Boolean(title) || showBack || currentRoute !== 'home';
@@ -243,58 +224,103 @@ export const Header: React.FC<HeaderProps> = ({ showBack, title, onBack }) => {
           {/* Notification Bell */}
           <div className="relative">
             <button
+              type="button"
               onClick={() => setShowNotifications(!showNotifications)}
-              className="w-9 h-9 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-95 relative"
+              className="w-9 h-9 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-95 relative cursor-pointer"
+              title={`Notifications (${unreadCount} unread)`}
+              aria-label="Toggle notifications dropdown"
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80 animate-pulse" />
+              {unreadCount > 0 ? (
+                <span className="absolute -top-1 -right-1 bg-emerald-500 text-slate-950 font-black text-[9px] min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center border-2 border-slate-950 shadow-sm shadow-emerald-500/40">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              ) : null}
             </button>
 
             {/* Notifications Dropdown Panel */}
             {showNotifications && (
-              <div className="absolute right-0 top-12 w-80 bg-slate-900/95 border border-slate-800 rounded-2xl p-4 shadow-2xl backdrop-blur-2xl z-50 animate-in fade-in zoom-in-95 duration-200">
+              <div className="absolute right-0 top-12 w-80 bg-slate-950 border border-slate-800 rounded-2xl p-4 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200">
                 <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-800">
-                  <span className="text-xs font-bold text-white">Notifications</span>
-                  <button 
-                    onClick={() => setShowNotifications(false)}
-                    className="text-slate-400 hover:text-white"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="space-y-2.5 max-h-64 overflow-y-auto no-scrollbar">
-                  {notificationsList.map((item) => (
-                    <div 
-                      key={item.id} 
-                      onClick={() => {
-                        setShowNotifications(false);
-                        navigate('notifications');
-                      }}
-                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                        item.unread 
-                          ? 'bg-slate-800/80 border-slate-700/80 hover:border-emerald-500/50' 
-                          : 'bg-slate-950/40 border-slate-900'
-                      }`}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-white">Notifications</span>
+                    {unreadCount > 0 && (
+                      <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono text-[10px] font-bold">
+                        {unreadCount} new
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={markAllNotificationsRead}
+                        className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"
+                        title="Mark all as read"
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                    <button 
+                      type="button"
+                      onClick={() => setShowNotifications(false)}
+                      className="text-slate-400 hover:text-white cursor-pointer"
                     >
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold text-slate-200">{item.title}</p>
-                        <span className="text-[10px] text-slate-400">{item.time}</span>
-                      </div>
-                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">{item.desc}</p>
-                    </div>
-                  ))}
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="pt-3 mt-2 border-t border-slate-800 text-center">
+                <div className="space-y-2 max-h-64 overflow-y-auto no-scrollbar">
+                  {notifications.length === 0 ? (
+                    <div className="py-6 text-center text-xs text-white/50 space-y-1">
+                      <Bell className="w-6 h-6 text-slate-600 mx-auto" />
+                      <p>No notifications yet</p>
+                    </div>
+                  ) : (
+                    notifications.slice(0, 5).map((item) => (
+                      <div 
+                        key={item.id} 
+                        onClick={() => {
+                          markNotificationRead(item.id);
+                          setShowNotifications(false);
+                          if (item.linkRoute) {
+                            navigate(item.linkRoute);
+                          } else {
+                            navigate('notifications');
+                          }
+                        }}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer relative ${
+                          !item.read 
+                            ? 'bg-emerald-500/10 border-emerald-500/30 hover:border-emerald-500/60' 
+                            : 'bg-white/[0.02] border-white/5 hover:border-white/10'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <p className={`text-xs font-semibold truncate pr-2 ${!item.read ? 'text-white' : 'text-slate-300'}`}>
+                            {item.title}
+                          </p>
+                          <span className="text-[10px] text-slate-500 shrink-0">{item.time}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-2 leading-snug">{item.message}</p>
+                        {!item.read && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 absolute right-2 bottom-2" />
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="pt-3 mt-2 border-t border-white/10 text-center">
                   <button
+                    type="button"
                     onClick={() => {
                       setShowNotifications(false);
                       navigate('notifications');
                     }}
-                    className="text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors w-full py-1"
+                    className="text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors w-full py-1 cursor-pointer"
                   >
-                    View All Notifications
+                    View All Notifications ({notifications.length})
                   </button>
                 </div>
               </div>

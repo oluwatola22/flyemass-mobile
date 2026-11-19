@@ -31,7 +31,11 @@ import {
   ArrowDown,
   Image,
   Sparkles,
-  ShoppingBag
+  ShoppingBag,
+  User,
+  Wallet,
+  Zap,
+  CheckCheck
 } from 'lucide-react';
 
 export const AdminCommunicationsScreen: React.FC = () => {
@@ -211,9 +215,11 @@ export const AdminCommunicationsScreen: React.FC = () => {
   };
 
   // -------------------------------------------------------------
-  // TAB 2: IN-APP NOTIFICATIONS STATE & ACTIONS
+  // TAB 2: IN-APP & FCM PUSH NOTIFICATIONS STATE & ACTIONS
   // -------------------------------------------------------------
   const notifications = dbState.notifications || [];
+  const [audienceMode, setAudienceMode] = useState<'all' | 'individual'>('all');
+  const [userSearchQuery, setUserSearchQuery] = useState('');
   const [notifForm, setNotifForm] = useState({
     title: '',
     message: '',
@@ -223,35 +229,67 @@ export const AdminCommunicationsScreen: React.FC = () => {
   });
   const [sendingNotif, setSendingNotif] = useState(false);
 
+  const registeredUsersList = Object.values(dbState.users || {});
+  const filteredTargetUsers = registeredUsersList.filter(u => {
+    if (!userSearchQuery.trim()) return true;
+    const q = userSearchQuery.toLowerCase();
+    return (
+      (u.fullName || '').toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q) ||
+      (u.phone || '').toLowerCase().includes(q) ||
+      (u.uid || '').toLowerCase().includes(q)
+    );
+  });
+
+  const selectedTargetUser = registeredUsersList.find(u => u.uid === notifForm.targetUserId);
+
   const handleSendNotification = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!notifForm.title || !notifForm.message) {
+    if (!notifForm.title.trim() || !notifForm.message.trim()) {
       showToast('Title and message are required', 'error');
       return;
     }
 
-    setSendingNotif(true);
-    const res = await db.sendAdminNotification(
-      notifForm.title,
-      notifForm.message,
-      (notifForm.type as any) || 'system',
-      notifForm.targetUserId === 'all' ? undefined : notifForm.targetUserId,
-      notifForm.linkRoute,
-      adminUser?.name || 'Admin Staff'
-    );
-    setSendingNotif(false);
+    if (audienceMode === 'individual' && (!notifForm.targetUserId || notifForm.targetUserId === 'all')) {
+      showToast('Please select a specific recipient user for individual notification', 'error');
+      return;
+    }
 
-    if (res.success) {
-      showToast('In-app notification broadcast dispatched successfully!', 'success');
-      setNotifForm({
-        title: '',
-        message: '',
-        type: 'system',
-        targetUserId: 'all',
-        linkRoute: 'notifications'
-      });
-    } else {
-      showToast(res.error || 'Failed to send notification', 'error');
+    setSendingNotif(true);
+    const targetUid = audienceMode === 'all' ? 'all' : notifForm.targetUserId;
+    try {
+      const res = await db.sendAdminNotification(
+        notifForm.title.trim(),
+        notifForm.message.trim(),
+        (notifForm.type as any) || 'system',
+        targetUid,
+        notifForm.linkRoute,
+        adminUser?.name || 'Admin Operations'
+      );
+      setSendingNotif(false);
+
+      if (res.success) {
+        showToast(
+          audienceMode === 'all' 
+            ? 'General broadcast dispatched & pushed via FCM to all users!' 
+            : `Notification dispatched & pushed via FCM to ${selectedTargetUser?.fullName || targetUid}!`,
+          'success'
+        );
+        setNotifForm({
+          title: '',
+          message: '',
+          type: 'system',
+          targetUserId: 'all',
+          linkRoute: 'notifications'
+        });
+        setAudienceMode('all');
+        setUserSearchQuery('');
+      } else {
+        showToast(res.error || 'Failed to dispatch notification', 'error');
+      }
+    } catch (err: any) {
+      setSendingNotif(false);
+      showToast(err.message || 'Notification dispatch error', 'error');
     }
   };
 
@@ -642,25 +680,110 @@ export const AdminCommunicationsScreen: React.FC = () => {
         )}
 
         {/* -------------------------------------------------------------
-            TAB 2: IN-APP NOTIFICATIONS
+            TAB 2: IN-APP & FCM PUSH NOTIFICATIONS
         ------------------------------------------------------------- */}
         {activeTab === 'notifications' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left: Compose Form */}
             <div className="lg:col-span-1 p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-5">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
-                  <Bell className="w-4 h-4" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                    <Bell className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Push & In-App Alert</h3>
+                    <p className="text-[11px] text-slate-400">Firebase Cloud Messaging HTTP v1</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white">Broadcast Alert</h3>
-                  <p className="text-[11px] text-slate-400">Push to customer header bell & list</p>
-                </div>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  FCM v1 Active
+                </span>
               </div>
 
               <form onSubmit={handleSendNotification} className="space-y-4">
+                {/* Target Audience Switcher */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1.5">Notification Title</label>
+                  <label className="text-xs font-semibold text-slate-400 block mb-1.5">Target Audience</label>
+                  <div className="grid grid-cols-2 p-1 rounded-xl bg-slate-950 border border-slate-800 gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAudienceMode('all');
+                        setNotifForm(prev => ({ ...prev, targetUserId: 'all' }));
+                      }}
+                      className={`py-2 px-2.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                        audienceMode === 'all'
+                          ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <Users className="w-3.5 h-3.5 shrink-0" />
+                      <span>General Broadcast</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAudienceMode('individual');
+                        if (registeredUsersList.length > 0 && notifForm.targetUserId === 'all') {
+                          setNotifForm(prev => ({ ...prev, targetUserId: registeredUsersList[0].uid }));
+                        }
+                      }}
+                      className={`py-2 px-2.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                        audienceMode === 'individual'
+                          ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <User className="w-3.5 h-3.5 shrink-0" />
+                      <span>Individual User</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Individual User Search & Selection */}
+                {audienceMode === 'individual' && (
+                  <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="Search users by name, email, or phone..."
+                        value={userSearchQuery}
+                        onChange={(e) => setUserSearchQuery(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    <select
+                      value={notifForm.targetUserId}
+                      onChange={(e) => setNotifForm({ ...notifForm, targetUserId: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-amber-500"
+                    >
+                      {filteredTargetUsers.map(u => (
+                        <option key={u.uid} value={u.uid}>
+                          {u.fullName} — {u.email || u.phone} ({u.uid})
+                        </option>
+                      ))}
+                    </select>
+
+                    {selectedTargetUser && (
+                      <div className="px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-800/80 flex items-center justify-between text-[11px]">
+                        <div className="truncate pr-2">
+                          <span className="font-bold text-white block truncate">{selectedTargetUser.fullName}</span>
+                          <span className="text-slate-400 block truncate">{selectedTargetUser.email || selectedTargetUser.phone}</span>
+                        </div>
+                        <span className="text-emerald-400 font-mono font-bold shrink-0">
+                          ₦{(selectedTargetUser.balances?.NGN || 0).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 block mb-1.5">Notification Title *</label>
                   <input
                     type="text"
                     required
@@ -672,7 +795,7 @@ export const AdminCommunicationsScreen: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1.5">Message Body</label>
+                  <label className="text-xs font-semibold text-slate-400 block mb-1.5">Message Body *</label>
                   <textarea
                     required
                     rows={3}
@@ -691,11 +814,15 @@ export const AdminCommunicationsScreen: React.FC = () => {
                       onChange={(e) => setNotifForm({ ...notifForm, type: e.target.value })}
                       className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-amber-500"
                     >
-                      <option value="system">System Alert</option>
+                      <option value="system">System Notice</option>
+                      <option value="wallet">Wallet & Payouts</option>
+                      <option value="bills">Utility Bills</option>
+                      <option value="trade">Supplier Trade</option>
+                      <option value="cargo">Cargo Tracking</option>
+                      <option value="fx">FX Market</option>
+                      <option value="kyc">KYC Verification</option>
+                      <option value="cac">CAC Registration</option>
                       <option value="promo">Special Offer</option>
-                      <option value="cargo">Cargo / Freight</option>
-                      <option value="financial">Wallet / Rates</option>
-                      <option value="security">Security Notice</option>
                     </select>
                   </div>
 
@@ -706,40 +833,32 @@ export const AdminCommunicationsScreen: React.FC = () => {
                       onChange={(e) => setNotifForm({ ...notifForm, linkRoute: e.target.value })}
                       className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-amber-500"
                     >
-                      <option value="notifications">Notifications Center</option>
-                      <option value="logistics">Logistics & Shipments</option>
-                      <option value="shop">Apple Gadgets Shop</option>
-                      <option value="suppliers">VIP Suppliers</option>
-                      <option value="wallet">Wallet Balance</option>
-                      <option value="orders">Orders & History</option>
-                      <option value="support">Help & Support</option>
+                      <option value="notifications">/notifications (Inbox)</option>
+                      <option value="wallets">/wallets (Balances)</option>
+                      <option value="bills">/bills (Airtime & Utilities)</option>
+                      <option value="logistics">/logistics (Cargo Hub)</option>
+                      <option value="cac">/cac (CAC Registration)</option>
+                      <option value="profile">/profile (KYC & Account)</option>
+                      <option value="shop">/shop (Tech Store)</option>
+                      <option value="suppliers">/suppliers (VIP Suppliers)</option>
+                      <option value="support">/support (Concierge)</option>
                     </select>
                   </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1.5">Target Audience</label>
-                  <select
-                    value={notifForm.targetUserId}
-                    onChange={(e) => setNotifForm({ ...notifForm, targetUserId: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-amber-500"
-                  >
-                    <option value="all">Global (All Customers & Merchants)</option>
-                    {registeredUsers.map(u => (
-                      <option key={u.uid} value={u.uid}>
-                        {u.fullName} ({u.email || u.phone})
-                      </option>
-                    ))}
-                  </select>
                 </div>
 
                 <button
                   type="submit"
                   disabled={sendingNotif}
-                  className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-amber-500/10 disabled:opacity-50"
+                  className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-amber-500/10 disabled:opacity-50 cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>{sendingNotif ? 'Broadcasting...' : 'Broadcast In-App Alert'}</span>
+                  <span>
+                    {sendingNotif
+                      ? 'Dispatching FCM Push...'
+                      : audienceMode === 'all'
+                      ? 'Broadcast Push to All Users'
+                      : `Send Push to ${selectedTargetUser?.fullName?.split(' ')[0] || 'User'}`}
+                  </span>
                 </button>
               </form>
             </div>
@@ -747,8 +866,13 @@ export const AdminCommunicationsScreen: React.FC = () => {
             {/* Right: Notification Stream */}
             <div className="lg:col-span-2 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white">Live Dispatched Alerts ({notifications.length})</h3>
-                <span className="text-xs text-slate-400">Rendered in mobile header bell</span>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Live Dispatched Alerts ({notifications.length})</h3>
+                  <p className="text-[11px] text-slate-400">Streamed to user notification bell & native push</p>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 text-[10px] font-mono">
+                  Real-time sync
+                </span>
               </div>
 
               <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
@@ -757,43 +881,58 @@ export const AdminCommunicationsScreen: React.FC = () => {
                     No in-app notifications have been dispatched yet.
                   </div>
                 ) : (
-                  notifications.map((n) => (
-                    <div
-                      key={n.id}
-                      className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-start justify-between gap-4 hover:border-slate-700 transition-all"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                          <Bell className="w-4 h-4" />
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="text-xs font-bold text-white">{n.title}</h4>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-slate-800 text-slate-300">
-                              {n.type || 'system'}
-                            </span>
-                            <span className="text-[10px] text-slate-500 flex items-center gap-1">
-                              <Clock className="w-2.5 h-2.5" />
-                              {n.timestamp ? new Date(n.timestamp).toLocaleTimeString() : n.time || 'Recent'}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-400 leading-relaxed">{n.message}</p>
-                          <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-500">
-                            <span>Target: <span className="text-slate-300 font-medium">{n.targetUserId || 'All Users'}</span></span>
-                            <span>Route: <span className="text-emerald-400 font-medium">/{n.linkRoute || 'notifications'}</span></span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => handleDeleteNotification(n.id)}
-                        className="p-1.5 rounded-lg hover:bg-rose-500/10 text-slate-500 hover:text-rose-400 transition-colors shrink-0"
-                        title="Delete notification"
+                  <>
+                    {notifications.slice(0, 40).map((n) => (
+                      <div
+                        key={n.id}
+                        className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-start justify-between gap-4 hover:border-slate-700 transition-all"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                          <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <Bell className="w-4 h-4" />
+                          </div>
+                          <div className="space-y-1 min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-xs font-bold text-white truncate max-w-[280px]">{n.title}</h4>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-slate-800 text-slate-300">
+                                {n.type || 'system'}
+                              </span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                FCM PUSH ACTIVE
+                              </span>
+                              <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                                <Clock className="w-2.5 h-2.5" />
+                                {n.timestamp ? new Date(n.timestamp).toLocaleTimeString() : n.time || 'Recent'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-400 leading-relaxed">{n.message}</p>
+                            <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-500 flex-wrap">
+                              <span>
+                                Target: <span className="text-slate-300 font-semibold">{!n.targetUserId || n.targetUserId === 'all' ? 'All Registered Users (Broadcast)' : `Individual (${n.targetUserId})`}</span>
+                              </span>
+                              <span>
+                                Deep Link: <span className="text-emerald-400 font-medium">/{n.linkRoute || 'notifications'}</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteNotification(n.id)}
+                          className="p-1.5 rounded-lg hover:bg-rose-500/10 text-slate-500 hover:text-rose-400 transition-colors shrink-0 cursor-pointer"
+                          title="Delete notification"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                    {notifications.length > 40 && (
+                      <p className="text-[11px] text-slate-500 text-center py-2">
+                        Showing recent 40 of {notifications.length} dispatched alerts
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             </div>

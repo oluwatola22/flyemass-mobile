@@ -433,6 +433,42 @@ Deno.serve(async (req: Request) => {
             })
             .eq('id', matchedDva.id);
         }
+
+        // Dispatch In-App Notification and FCM Push
+        try {
+          await supabase.from('notifications').insert({
+            user_id: targetUserId,
+            title: `Naira Wallet Credited: ₦${settledAmount.toLocaleString()}`,
+            body: `Inbound bank transfer received via Providus Account ${accountNumber}. Reference: ${settlementId}`,
+            type: 'wallet',
+            metadata: {
+              linkRoute: 'wallets',
+              amount: settledAmount,
+              currency: 'NGN',
+              reference: settlementId,
+              accountNumber
+            },
+            is_read: false
+          });
+
+          fetch(`${SUPABASE_URL}/functions/v1/send-fcm-notification`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+            },
+            body: JSON.stringify({
+              userId: targetUserId,
+              title: `Naira Wallet Credited: ₦${settledAmount.toLocaleString()}`,
+              body: `Inbound bank transfer received via Providus Account ${accountNumber}.`,
+              type: 'wallet',
+              data: { linkRoute: 'wallets', amount: String(settledAmount), currency: 'NGN' },
+              saveInApp: false
+            })
+          }).catch(() => {});
+        } catch (_notifErr) {
+          console.warn('Providus notification trigger notice:', _notifErr);
+        }
       } catch (dbErr) {
         console.error('Wallet settlement error:', dbErr);
       }

@@ -31,6 +31,7 @@ import {
   TECH_PRODUCTS
 } from '../data/mockData';
 import { db } from '../services/db';
+import { pushNotificationService } from '../services/pushNotificationService';
 import { isAdminEnvironment } from '../utils/environment';
 import { AdminUser, INITIAL_ADMINS, firebaseSync } from '../services/firebase';
 
@@ -1323,6 +1324,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       unsubscribe();
     };
   }, []);
+
+  // Firebase Cloud Messaging (FCM) Push Notifications Registration
+  useEffect(() => {
+    const uid = activeUserId || 'usr_alade_01';
+    pushNotificationService.init(uid, {
+      onNotificationReceived: (notif) => {
+        showToast(`🔔 ${notif.title || 'Notification'}: ${notif.body || notif.message || ''}`, 'info');
+      },
+      navigate: (route) => {
+        navigate(route);
+      }
+    });
+
+    const handleCustomNav = (e: any) => {
+      if (e.detail?.route) {
+        navigate(e.detail.route);
+      }
+    };
+    window.addEventListener('flyemass:navigate', handleCustomNav);
+    return () => {
+      window.removeEventListener('flyemass:navigate', handleCustomNav);
+    };
+  }, [activeUserId]);
 
   // Browser History & URL route synchronization
   useEffect(() => {

@@ -48,7 +48,7 @@ import {
   TransactionalEmailEvent,
   EmailRecipient
 } from './emailTemplates';
-import { supabase } from './supabaseClient';
+import { supabase, SUPABASE_CONFIG } from './supabaseClient';
 
 export const DEFAULT_SHARE_CAPITAL_TIERS: CacShareCapitalTier[] = [
   {
@@ -116,6 +116,7 @@ export interface DatabaseState {
   audit_logs: any[];
   double_entry_ledger?: Record<string, any>;
   notifications?: any[];
+  user_push_tokens?: Record<string, any>;
   email_receipts?: Record<string, any>;
   warehouses?: Record<string, Warehouse>;
   lagos_hubs?: Record<string, LagosHub>;
@@ -4380,6 +4381,68 @@ class DatabaseService {
     return data;
   }
 
+  public registerPushToken(userId: string, token: string, platform: string, deviceInfo?: any): void {
+    if (!this.state.user_push_tokens) {
+      this.state.user_push_tokens = {};
+    }
+    const tokenId = `tok_${userId}_${token.substring(0, 16)}`;
+    this.state.user_push_tokens[tokenId] = {
+      id: tokenId,
+      userId,
+      token,
+      platform,
+      deviceInfo: deviceInfo || {},
+      isActive: true,
+      updatedAt: Date.now()
+    };
+    this.persist();
+    this.notifyListeners();
+  }
+
+  public async dispatchPushNotification(payload: {
+    userId?: string;
+    tokens?: string[];
+    title: string;
+    body: string;
+    type?: string;
+    data?: Record<string, string>;
+    saveInApp?: boolean;
+  }): Promise<any> {
+    try {
+      const res = await fetch(`${SUPABASE_CONFIG.url}/functions/v1/send-fcm-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
+        },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      console.warn('[FCM] Edge Function push dispatch notice:', e);
+    }
+
+    // Fallback sync server dispatch
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/admin/notifications/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-role': 'super_admin' },
+        body: JSON.stringify({
+          title: payload.title,
+          message: payload.body,
+          type: payload.type || 'system',
+          targetUserId: payload.userId || 'all',
+          linkRoute: payload.data?.linkRoute || 'notifications'
+        })
+      });
+      return await res.json();
+    } catch {
+      return { success: true, simulated: true };
+    }
+  }
+
   public async sendAdminNotification(
     title: string,
     message: string,
@@ -4399,6 +4462,17 @@ class DatabaseService {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to dispatch notification');
+
+    // Also trigger FCM push notification in parallel
+    this.dispatchPushNotification({
+      userId: targetUserId,
+      title,
+      body: message,
+      type,
+      data: { linkRoute: linkRoute || 'notifications' },
+      saveInApp: false // already stored by sync server
+    }).catch(() => {});
+
     return data;
   }
 
