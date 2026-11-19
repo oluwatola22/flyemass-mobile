@@ -210,8 +210,12 @@ const ROUTE_TO_PATH: Record<ScreenRoute, string> = {
   'admin-dashboard': '/admin',
   'admin-login': '/admin/login',
   'admin-services-bills': '/admin/services/bills',
+  'admin-bills': '/admin/bills',
+  'admin-utilities': '/admin/utilities',
   'admin-services-cac': '/admin/services/cac',
   'admin-kyc-compliance': '/admin/compliance/kyc',
+  'admin-kyc': '/admin/kyc',
+  'admin-compliance-kyc': '/admin/compliance/kyc',
   'admin-users': '/admin/users',
   'admin-user-detail': '/admin/users/detail',
   'admin-wallet-credit': '/admin/users/wallet-credit',
@@ -293,9 +297,30 @@ const getInitialRoute = (): ScreenRoute => {
   // ==========================================
   if (path === '/admin/login' || path === '/login') return 'admin-login';
   if (path === '/admin/db') return 'schema-inspector';
-  if (path.startsWith('/admin/services/bills') || path.startsWith('/admin/bills')) return 'admin-services-bills';
+  if (
+    path === '/admin/services/bills' ||
+    path === '/admin/bills' ||
+    path === '/admin/utilities' ||
+    path === '/admin/vtu' ||
+    path === '/admin/services/vtu' ||
+    path === '/admin/services/utilities' ||
+    path.startsWith('/admin/services/bills') ||
+    path.startsWith('/admin/bills') ||
+    path.startsWith('/admin/utilities') ||
+    path.startsWith('/admin/vtu')
+  ) return 'admin-services-bills';
   if (path.startsWith('/admin/services/cac') || path.startsWith('/admin/cac')) return 'admin-services-cac';
-  if (path.startsWith('/admin/compliance/kyc') || path.startsWith('/admin/kyc')) return 'admin-kyc-compliance';
+  if (
+    path === '/admin/compliance/kyc' ||
+    path === '/admin/kyc' ||
+    path === '/admin/compliance' ||
+    path === '/admin/kyc/review' ||
+    path === '/admin/users/kyc' ||
+    path.startsWith('/admin/compliance/kyc') ||
+    path.startsWith('/admin/kyc') ||
+    path.startsWith('/admin/compliance') ||
+    path.startsWith('/admin/users/kyc')
+  ) return 'admin-kyc-compliance';
   if (path.startsWith('/admin/users')) return 'admin-users';
   if (path.startsWith('/admin/settings/shipping') || path.startsWith('/admin/logistics-rates')) return 'admin-shipping-rates';
   if (path.startsWith('/admin/logistics') || path.startsWith('/admin/shipments')) return 'admin-logistics';

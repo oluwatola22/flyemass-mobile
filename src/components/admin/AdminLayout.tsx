@@ -444,26 +444,26 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
   const ROLE_AUTHORIZED_TABS: Record<AdminRole, string[]> = {
     super_admin: [
       'dashboard', 'logistics', 'agents', 'support', 'lagos-hubs', 'shipping-rates',
-      'users', 'warehouses', 'rmb-transfers', 'naira-payouts', 
+      'users', 'kyc-compliance', 'warehouses', 'rmb-transfers', 'naira-payouts', 
       'fx-management', 'fx-rates', 'funding', 'payments', 'shop', 'hotels', 
-      'rentals-apartments', 'rentals-offices', 'suppliers', 'services-cac',
+      'rentals-apartments', 'rentals-offices', 'suppliers', 'services-bills', 'services-cac',
       'communications', 'team', 'db'
     ],
     finance_officer: [
-      'dashboard', 'shipping-rates', 'users', 'warehouses', 'lagos-hubs', 'rmb-transfers', 'naira-payouts', 
-      'fx-management', 'fx-rates', 'funding', 'payments', 'services-cac'
+      'dashboard', 'shipping-rates', 'users', 'kyc-compliance', 'warehouses', 'lagos-hubs', 'rmb-transfers', 'naira-payouts', 
+      'fx-management', 'fx-rates', 'funding', 'payments', 'services-bills', 'services-cac'
     ],
     logistics_manager: [
-      'dashboard', 'logistics', 'shipping-rates', 'warehouses', 'lagos-hubs', 'shop', 'suppliers', 'agents', 'communications'
+      'dashboard', 'logistics', 'shipping-rates', 'warehouses', 'lagos-hubs', 'shop', 'suppliers', 'agents', 'services-bills', 'communications'
     ],
     support_agent: [
-      'dashboard', 'logistics', 'support', 'agents', 'users', 'warehouses', 'lagos-hubs', 'hotels', 'rentals-apartments', 'rentals-offices', 'communications', 'services-cac'
+      'dashboard', 'logistics', 'support', 'agents', 'users', 'kyc-compliance', 'warehouses', 'lagos-hubs', 'hotels', 'rentals-apartments', 'rentals-offices', 'communications', 'services-bills', 'services-cac'
     ],
     warehouse_officer: [
       'dashboard', 'logistics', 'warehouses', 'lagos-hubs', 'shop', 'suppliers'
     ],
     custom: [
-      'dashboard', 'logistics'
+      'dashboard', 'logistics', 'kyc-compliance', 'services-bills'
     ]
   };
 
@@ -474,6 +474,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
     'lagos-hubs': 'lagos_hubs',
     'shipping-rates': 'shipping_rates',
     'users': 'users',
+    'kyc-compliance': 'users',
     'payments': 'treasury',
     'rmb-transfers': 'treasury',
     'naira-payouts': 'treasury',
@@ -486,6 +487,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
     'rentals-apartments': 'commerce',
     'rentals-offices': 'commerce',
     'suppliers': 'commerce',
+    'services-bills': 'commerce',
+    'services-cac': 'commerce',
     'communications': 'support'
   };
 
@@ -574,6 +577,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
       navigate('admin-rentals-offices');
     } else if (q.includes('vetted') || q.includes('vip sup') || q.includes('factory')) {
       navigate('admin-suppliers');
+    } else if (q.includes('kyc') || q.includes('compliance') || q.includes('nin') || q.includes('identity') || q.includes('passport') || q.includes('voter')) {
+      navigate('admin-kyc-compliance');
+    } else if (q.includes('bill') || q.includes('vtu') || q.includes('airtime') || q.includes('data bundle') || q.includes('disco') || q.includes('electricity') || q.includes('cable') || q.includes('dstv') || q.includes('gotv')) {
+      navigate('admin-services-bills');
     } else if (q.includes('user') || q.includes('alade') || q.includes('client')) {
       navigate('admin-users');
     } else if (q.includes('iphone') || q.includes('order') || q.includes('tech')) {
@@ -1005,6 +1012,20 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab })
                         >
                           <Headphones className="w-3.5 h-3.5 text-cyan-400" />
                           <span>Review Support Desk</span>
+                        </button>
+                        <button
+                          onClick={() => { navigate('admin-kyc-compliance'); setShowQuickActions(false); }}
+                          className="w-full text-left px-2.5 py-2 rounded-xl text-slate-200 hover:text-white hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
+                        >
+                          <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Review Pending KYC</span>
+                        </button>
+                        <button
+                          onClick={() => { navigate('admin-services-bills'); setShowQuickActions(false); }}
+                          className="w-full text-left px-2.5 py-2 rounded-xl text-slate-200 hover:text-white hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
+                        >
+                          <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Bills & VTU Control</span>
                         </button>
                       </div>
                     )}

@@ -36,8 +36,12 @@ import { db } from '../../services/db';
 const ROUTE_TO_ADMIN_TAB: Record<string, string> = {
   'admin-dashboard': 'dashboard',
   'admin-services-bills': 'services-bills',
+  'admin-bills': 'services-bills',
+  'admin-utilities': 'services-bills',
   'admin-services-cac': 'services-cac',
   'admin-kyc-compliance': 'kyc-compliance',
+  'admin-kyc': 'kyc-compliance',
+  'admin-compliance-kyc': 'kyc-compliance',
   'admin-users': 'users',
   'admin-user-detail': 'users',
   'admin-wallet-credit': 'users',
@@ -95,6 +99,8 @@ const ROUTE_REQUIRED_PERMISSION: Record<string, AdminModulePermission | 'super_a
   'admin-user-detail': 'users',
   'admin-wallet-credit': 'users',
   'admin-kyc-compliance': 'users',
+  'admin-kyc': 'users',
+  'admin-compliance-kyc': 'users',
 
   // Treasury, RMB/Naira Payouts & General Ledger
   'admin-payments': 'treasury',
@@ -113,6 +119,8 @@ const ROUTE_REQUIRED_PERMISSION: Record<string, AdminModulePermission | 'super_a
   'admin-rentals-offices': 'commerce',
   'admin-suppliers': 'commerce',
   'admin-services-bills': 'commerce',
+  'admin-bills': 'commerce',
+  'admin-utilities': 'commerce',
   'admin-services-cac': 'commerce',
 
   // Staff Governance & RBAC (Requires super_admin)
@@ -231,10 +239,14 @@ export const AdminShell: React.FC = () => {
       case 'admin-communications':
         return <AdminCommunicationsScreen />;
       case 'admin-services-bills':
+      case 'admin-bills':
+      case 'admin-utilities':
         return <AdminBillsServicesScreen />;
       case 'admin-services-cac':
         return <AdminCacServicesScreen />;
       case 'admin-kyc-compliance':
+      case 'admin-kyc':
+      case 'admin-compliance-kyc':
         return <AdminKycComplianceScreen />;
       case 'admin-team':
         return <AdminTeamScreen />;

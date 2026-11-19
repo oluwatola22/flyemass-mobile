@@ -109,12 +109,19 @@ export const AdminBillsServicesScreen: React.FC = () => {
 
       if (cfg) {
         setConfig(cfg);
-        setProviderMode(cfg.active_provider);
-        setAirtimeDiscount(cfg.airtime_discount_percentage);
-        setUtilityFee(cfg.convenience_fee_ngn);
+        const activeProv = (cfg.active_provider || cfg.provider_name || 'simulated').toLowerCase();
+        if (activeProv.includes('vtpass')) {
+          setProviderMode('vtpass');
+        } else if (activeProv.includes('clubkonnect')) {
+          setProviderMode('clubkonnect');
+        } else {
+          setProviderMode('simulated');
+        }
+        setAirtimeDiscount(cfg.airtime_discount_percentage ?? cfg.airtime_discount_pct ?? 2.0);
+        setUtilityFee(cfg.convenience_fee_ngn ?? cfg.utility_convenience_fee_ngn ?? 100);
         setApiKey(cfg.api_key || '');
         setApiSecret(cfg.api_secret || '');
-        setApiBaseUrl(cfg.api_base_url || '');
+        setApiBaseUrl(cfg.api_base_url || cfg.base_url || '');
         if (cfg.enabled_services) {
           setEnabledServices(prev => ({ ...prev, ...cfg.enabled_services }));
         }
@@ -282,10 +289,13 @@ export const AdminBillsServicesScreen: React.FC = () => {
       if (planProviderFilter !== 'all' && p.provider !== planProviderFilter) return false;
       if (planSearch) {
         const q = planSearch.toLowerCase();
+        const planProv = (p.provider || p.network_or_provider || '').toLowerCase();
+        const planName = (p.plan_name || '').toLowerCase();
+        const planCode = (p.plan_code || '').toLowerCase();
         return (
-          p.plan_name.toLowerCase().includes(q) ||
-          p.plan_code.toLowerCase().includes(q) ||
-          p.provider.toLowerCase().includes(q)
+          planName.includes(q) ||
+          planCode.includes(q) ||
+          planProv.includes(q)
         );
       }
       return true;
@@ -323,7 +333,7 @@ export const AdminBillsServicesScreen: React.FC = () => {
               <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
                 Nigerian VTU & Utility Bills Command Center
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  {providerMode.toUpperCase()} GATEWAY
+                  {(providerMode || 'simulated').toUpperCase()} GATEWAY
                 </span>
               </h1>
               <p className="text-xs text-slate-400 mt-0.5">
