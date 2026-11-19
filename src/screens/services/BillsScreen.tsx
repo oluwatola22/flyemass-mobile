@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   Clock,
   ChevronLeft,
+  ChevronDown,
   Copy,
   Check,
   Search,
@@ -37,6 +38,8 @@ import {
   ArrowRight,
   Info
 } from 'lucide-react';
+import { TelcoLogo } from '../../components/ui/TelcoLogo';
+import { FALLBACK_BILL_PLANS } from '../../data/fallbackBillPlans';
 
 const NIGERIAN_DISCOS: { code: ElectricityDisco; name: string; state: string }[] = [
   { code: 'IKEDC', name: 'Ikeja Electric', state: 'Lagos Mainland' },
@@ -89,11 +92,13 @@ export const BillsScreen: React.FC = () => {
 
   // Mobile Data State
   const [dataDurationFilter, setDataDurationFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'sme'>('all');
-  const [availablePlans, setAvailablePlans] = useState<BillPlanDocument[]>([]);
+  const [availablePlans, setAvailablePlans] = useState<BillPlanDocument[]>(FALLBACK_BILL_PLANS);
   const [selectedPlan, setSelectedPlan] = useState<BillPlanDocument | null>(null);
 
   // Electricity State
   const [selectedDisco, setSelectedDisco] = useState<ElectricityDisco>('IKEDC');
+  const [isDiscoPickerOpen, setIsDiscoPickerOpen] = useState<boolean>(false);
+  const [discoSearchQuery, setDiscoSearchQuery] = useState<string>('');
   const [meterType, setMeterType] = useState<'Prepaid' | 'Postpaid'>('Prepaid');
   const [meterNumber, setMeterNumber] = useState<string>('01234567890');
   const [electricityAmount, setElectricityAmount] = useState<number>(5000);
@@ -153,12 +158,31 @@ export const BillsScreen: React.FC = () => {
       const cfg = await db.getBillConfig();
       setConfig(cfg);
       const plans = await db.getBillPlans();
-      setAvailablePlans(plans);
+      if (plans && plans.length > 0) {
+        setAvailablePlans(plans);
+      } else {
+        setAvailablePlans(FALLBACK_BILL_PLANS);
+      }
       const txs = await db.getBillTransactions(activeUserId || 'usr_alade_01');
       setTransactions(txs);
     }
     loadInitialData();
   }, [activeUserId]);
+
+  // Current DISCO and Filtered DISCOs for search modal
+  const currentDisco = useMemo(() => {
+    return NIGERIAN_DISCOS.find(d => d.code === selectedDisco) || NIGERIAN_DISCOS[0];
+  }, [selectedDisco]);
+
+  const filteredDiscos = useMemo(() => {
+    if (!discoSearchQuery.trim()) return NIGERIAN_DISCOS;
+    const q = discoSearchQuery.toLowerCase();
+    return NIGERIAN_DISCOS.filter(d =>
+      d.name.toLowerCase().includes(q) ||
+      d.code.toLowerCase().includes(q) ||
+      d.state.toLowerCase().includes(q)
+    );
+  }, [discoSearchQuery]);
 
   // Filtered Data Plans
   const filteredDataPlans = useMemo(() => {
@@ -469,28 +493,24 @@ export const BillsScreen: React.FC = () => {
                 Select Network Provider
               </label>
               <div className="grid grid-cols-4 gap-2">
-                {[
-                  { id: 'MTN', name: 'MTN', color: 'from-amber-400 to-yellow-500 text-slate-950' },
-                  { id: 'Airtel', name: 'Airtel', color: 'from-rose-500 to-red-600 text-white' },
-                  { id: 'Glo', name: 'Glo', color: 'from-emerald-500 to-green-600 text-white' },
-                  { id: '9mobile', name: '9mobile', color: 'from-teal-600 to-emerald-700 text-white' }
-                ].map((net) => {
-                  const isSelected = selectedNetwork === net.id;
+                {(['MTN', 'Airtel', 'Glo', '9mobile'] as NigerianNetwork[]).map((net) => {
+                  const isSelected = selectedNetwork === net;
                   return (
                     <button
-                      key={net.id}
-                      onClick={() => setSelectedNetwork(net.id as NigerianNetwork)}
-                      className={`p-3 rounded-2xl border text-center transition-all cursor-pointer ${
+                      key={net}
+                      type="button"
+                      onClick={() => setSelectedNetwork(net)}
+                      className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
                         isSelected
-                          ? 'border-emerald-400 bg-emerald-500/10 shadow-md shadow-emerald-500/20'
+                          ? 'border-emerald-400 bg-emerald-500/15 shadow-md shadow-emerald-500/20'
                           : 'border-slate-800 bg-slate-900/80 hover:border-slate-700'
                       }`}
                     >
-                      <div className={`w-10 h-10 mx-auto rounded-xl bg-gradient-to-br ${net.color} flex items-center justify-center font-black text-xs shadow-md mb-1.5`}>
-                        {net.name.substring(0, 3)}
+                      <div className="mb-1.5 flex items-center justify-center">
+                        <TelcoLogo provider={net} size="md" />
                       </div>
-                      <span className={`text-xs font-bold block ${isSelected ? 'text-emerald-400' : 'text-slate-300'}`}>
-                        {net.name}
+                      <span className={`text-[11px] font-bold block ${isSelected ? 'text-emerald-400' : 'text-slate-300'}`}>
+                        {net}
                       </span>
                     </button>
                   );
@@ -589,17 +609,23 @@ export const BillsScreen: React.FC = () => {
                   return (
                     <button
                       key={net}
+                      type="button"
                       onClick={() => {
                         setSelectedNetwork(net);
                         setSelectedPlan(null);
                       }}
-                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                      className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
                         isSelected
-                          ? 'border-emerald-400 bg-emerald-500/15 text-emerald-300 font-bold'
-                          : 'border-slate-800 bg-slate-900 text-slate-400 hover:text-white'
+                          ? 'border-emerald-400 bg-emerald-500/15 shadow-md shadow-emerald-500/20'
+                          : 'border-slate-800 bg-slate-900/80 hover:border-slate-700'
                       }`}
                     >
-                      <span className="text-xs">{net}</span>
+                      <div className="mb-1.5 flex items-center justify-center">
+                        <TelcoLogo provider={net} size="md" />
+                      </div>
+                      <span className={`text-[11px] font-bold block ${isSelected ? 'text-emerald-400' : 'text-slate-300'}`}>
+                        {net}
+                      </span>
                     </button>
                   );
                 })}
@@ -661,10 +687,11 @@ export const BillsScreen: React.FC = () => {
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs ${
-                          isSelected ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'
-                        }`}>
-                          <Wifi className="w-4 h-4" />
+                        <div className="shrink-0 flex items-center justify-center">
+                          <TelcoLogo
+                            provider={plan.provider || plan.network_or_provider || selectedNetwork}
+                            size="sm"
+                          />
                         </div>
                         <div>
                           <h4 className="text-xs font-bold text-white">{plan.plan_name}</h4>
@@ -736,20 +763,34 @@ export const BillsScreen: React.FC = () => {
                   <label className="text-xs font-semibold text-slate-300">
                     Select Electricity Distribution Company (DISCO)
                   </label>
-                  <select
-                    value={selectedDisco}
-                    onChange={(e) => {
-                      setSelectedDisco(e.target.value as ElectricityDisco);
-                      setVerifiedCustomer(null);
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDiscoSearchQuery('');
+                      setIsDiscoPickerOpen(true);
                     }}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-white outline-none cursor-pointer"
+                    className="w-full bg-slate-900 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 rounded-2xl px-3.5 py-3 flex items-center justify-between text-left transition-all cursor-pointer group"
                   >
-                    {NIGERIAN_DISCOS.map(d => (
-                      <option key={d.code} value={d.code}>
-                        {d.name} ({d.code}) — {d.state}
-                      </option>
-                    ))}
-                  </select>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0 text-amber-400 font-black">
+                        ⚡
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-white truncate">
+                            {currentDisco.name}
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-emerald-400 border border-slate-700 shrink-0">
+                            {currentDisco.code}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                          {currentDisco.state}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors shrink-0 ml-2" />
+                  </button>
                 </div>
 
                 {/* Prepaid / Postpaid Toggle */}
@@ -1269,6 +1310,113 @@ export const BillsScreen: React.FC = () => {
                     </div>
                   </div>
                 ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 7. DISCO BOTTOM-SHEET / MODAL PICKER */}
+      {isDiscoPickerOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in"
+          onClick={() => setIsDiscoPickerOpen(false)}
+        >
+          <div
+            className="w-full max-w-md bg-slate-950 border border-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[82vh] flex flex-col animate-in slide-in-from-bottom duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="p-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/70">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <Zap className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Select Electricity DISCO</h3>
+                  <p className="text-[10px] text-slate-400">11 distribution companies nationwide</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsDiscoPickerOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Search Filter */}
+            <div className="p-3 border-b border-slate-800/60 bg-slate-900/40">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                <input
+                  type="text"
+                  value={discoSearchQuery}
+                  onChange={(e) => setDiscoSearchQuery(e.target.value)}
+                  placeholder="Search by DISCO name, code or state..."
+                  className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 outline-none"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* DISCOs List */}
+            <div className="p-3 space-y-2 overflow-y-auto max-h-[58vh]">
+              {filteredDiscos.map((disco) => {
+                const isSelected = selectedDisco === disco.code;
+                return (
+                  <button
+                    key={disco.code}
+                    type="button"
+                    onClick={() => {
+                      setSelectedDisco(disco.code);
+                      setVerifiedCustomer(null);
+                      setIsDiscoPickerOpen(false);
+                    }}
+                    className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-emerald-500/15 border-emerald-500/60 shadow-sm'
+                        : 'bg-slate-900/70 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs font-black ${
+                          isSelected ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-amber-400'
+                        }`}
+                      >
+                        ⚡
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-bold truncate ${isSelected ? 'text-emerald-300' : 'text-white'}`}>
+                            {disco.name}
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700 shrink-0">
+                            {disco.code}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                          Coverage: {disco.state}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ml-2 ${
+                        isSelected ? 'border-emerald-400 bg-emerald-500' : 'border-slate-700'
+                      }`}
+                    >
+                      {isSelected && <Check className="w-3 h-3 text-slate-950 stroke-[3]" />}
+                    </div>
+                  </button>
+                );
+              })}
+
+              {filteredDiscos.length === 0 && (
+                <div className="py-8 text-center text-xs text-slate-500">
+                  No distribution company found matching "{discoSearchQuery}"
+                </div>
               )}
             </div>
           </div>
